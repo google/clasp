@@ -8,7 +8,6 @@ npm i @google/gasp -g
 
 <INSERT GIF HERE>
 
-
 ### Features
 **🗺️ Develop Locally:** `gasp` allows you to develop your Apps Script projects locally. That means you can check-in your code into source control, collaborate with other developers, and use your favorite tools to develop Apps Script.
 
@@ -22,7 +21,6 @@ npm i @google/gasp -g
   - `tests/`
     - `slides.js`
     - `sheets.js`
-
 
 ## Commands
 
