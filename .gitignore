@@ -6,6 +6,3 @@ yarn-error.log*
 node_modules/
 .npm
 .env
-
-# CUSTOM IGNORED FILES
-test_dir/
