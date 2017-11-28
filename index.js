@@ -1,4 +1,20 @@
 #!/usr/bin/env node
+/**
+ * @license
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 /**
  * The Apps Script CLI
@@ -139,7 +155,8 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGGED_OUT: `Please login. (${PROJECT_NAME} login)`,
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
-  PERMISSION_DENIED: 'Error, permission denied: You do not have access to this script.',
+  PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
+https://script.google.com/home/usersettings`,
   SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
   SCRIPT_ID_DNE: `No ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
   SCRIPT_ID_INCORRECT: (scriptId) => `The scriptId "${scriptId}" looks incorrect.
@@ -163,7 +180,7 @@ const logError = (err, description) => {
     console.error(JSON.parse(err.error).error);
   } else if (err && err.statusCode === 401 || err && err.error && err.error.error && err.error.error.code === 401) {
     console.error(ERROR.UNAUTHENTICATED);
-  } else if (err && err.error && err.error.error && err.error.error.code === 403) {
+  } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
     console.error(ERROR.PERMISSION_DENIED);
   } else {
     if (err && err.error) {
@@ -277,7 +294,11 @@ program
     }).catch((err) => {
       var authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/script.management'],
+        scope: [
+          'https://www.googleapis.com/auth/script.deployments',
+          'https://www.googleapis.com/auth/script.management',
+          'https://www.googleapis.com/auth/script.projects',
+        ],
       });
       console.log(LOG.AUTHORIZE(authUrl));
       openurl.open(authUrl);
@@ -331,7 +352,7 @@ program
         script.projects.create({ title }, {}, (error, res) => {
           spinner.stop(true);
           if (error) {
-            logError(err, ERROR.CREATE);
+            logError(error, ERROR.CREATE);
           } else {
             var scriptId = res.scriptId;
             console.log(LOG.CREATE_PROJECT_FINISH(scriptId));

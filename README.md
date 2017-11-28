@@ -2,13 +2,16 @@
 
 ➡ Develop [Apps Script](https://developers.google.com/apps-script/) projects locally.
 
+### Install
+
 ```sh
 npm i @google/gasp -g
 ```
 
-<INSERT GIF HERE>
+Enable Apps Script API: https://script.google.com/home/usersettings
 
 ### Features
+
 **🗺️ Develop Locally:** `gasp` allows you to develop your Apps Script projects locally. That means you can check-in your code into source control, collaborate with other developers, and use your favorite tools to develop Apps Script.
 
 **🔢 Manage Deployment Versions:** Create, update, and view your multiple deployments of your project.
