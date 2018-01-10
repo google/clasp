@@ -1,14 +1,16 @@
 # clasp
 
-➡ Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
+Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
 ### Install
+
+First download `clasp`:
 
 ```sh
 npm i @google/clasp -g
 ```
 
-Enable Apps Script API: https://script.google.com/home/usersettings
+Then enable Apps Script API: https://script.google.com/home/usersettings
 
 ### Features
 
