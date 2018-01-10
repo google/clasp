@@ -45,7 +45,7 @@ const url = require('url');
 const DEBUG = false;
 
 // Names / Paths
-const PROJECT_NAME = 'gasp';
+const PROJECT_NAME = 'clasp';
 const PROJECT_MANIFEST_BASENAME = 'appsscript';
 
 // Dotfile names
@@ -117,11 +117,11 @@ const script = google.script({
 const LOG = {
   AUTH_CODE: 'Enter the code from that page here: ',
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page.`, // HTML Redirect Page
-  AUTH_SUCCESSFUL: `Saved the credentials to ${DOT.RC.PATH}.`,
+  AUTH_SUCCESSFUL: `Saved the credentials to ${DOT.RC.PATH}. You may close the page.`,
   AUTHORIZE: (authUrl) => `🔑  Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
-  CREATE_PROJECT_FINISH: (scriptId) => `\nCreated new script: ${getScriptURL(scriptId)}.`,
+  CREATE_PROJECT_FINISH: (scriptId) => `Created new script: ${getScriptURL(scriptId)}.`,
   CREATE_PROJECT_START: (title) => `Creating new script: ${title}...`,
   DEPLOYMENT_CREATE: 'Creating deployment...',
   DEPLOYMENT_DNE: 'No deployed versions of script.',
@@ -319,8 +319,7 @@ program
             });
           });
         }
-        // res.end(LOG.AUTH_PAGE_SUCCESSFUL);
-        res.end("<script>window.close()</script>");
+        res.end(LOG.AUTH_PAGE_SUCCESSFUL);
       });
       http.createServer(app)
           .listen(REDIRECT_PORT);
@@ -385,11 +384,9 @@ function fetchProject(scriptId) {
         }
       } else {
         DOTFILE.PROJECT().write({scriptId}); // Save the script id
-
         if (!res.files) {
           return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
         }
-
         // Create the files in the cwd
         console.log(LOG.CLONE_SUCCESS(res.files.length));
         let sortedFiles = res.files.sort((file) => file.name);

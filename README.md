@@ -1,22 +1,22 @@
-# gasp
+# clasp
 
-➡ Develop [Apps Script](https://developers.google.com/apps-script/) projects locally.
+➡ Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
 ### Install
 
 ```sh
-npm i @google/gasp -g
+npm i @google/clasp -g
 ```
 
 Enable Apps Script API: https://script.google.com/home/usersettings
 
 ### Features
 
-**🗺️ Develop Locally:** `gasp` allows you to develop your Apps Script projects locally. That means you can check-in your code into source control, collaborate with other developers, and use your favorite tools to develop Apps Script.
+**🗺️ Develop Locally:** `clasp` allows you to develop your Apps Script projects locally. That means you can check-in your code into source control, collaborate with other developers, and use your favorite tools to develop Apps Script.
 
 **🔢 Manage Deployment Versions:** Create, update, and view your multiple deployments of your project.
 
-**📁 Structure Code:** `gasp` automatically converts your flat project on [script.google.com](script.google.com) into **folders**. For example:
+**📁 Structure Code:** `clasp` automatically converts your flat project on [script.google.com](script.google.com) into **folders**. For example:
 - _On script.google.com_:
   - `tests/slides.gs`
   - `tests/sheets.gs`
@@ -28,27 +28,27 @@ Enable Apps Script API: https://script.google.com/home/usersettings
 ## Commands
 
 ```sh
-gasp
+clasp
 ```
-- `gasp login`
-- `gasp logout`
-- `gasp create [scriptTitle]`
-- `gasp clone <scriptId>`
-- `gasp pull`
-- `gasp push`
-- `gasp open`
-- `gasp deployments`
-- `gasp deploy [version] [description]`
-- `gasp redeploy <deploymentId> <description>`
-- `gasp version [description]`
-- `gasp versions`
+- `clasp login`
+- `clasp logout`
+- `clasp create [scriptTitle]`
+- `clasp clone <scriptId>`
+- `clasp pull`
+- `clasp push`
+- `clasp open`
+- `clasp deployments`
+- `clasp deploy [version] [description]`
+- `clasp redeploy <deploymentId> <description>`
+- `clasp version [description]`
+- `clasp versions`
 
 ## How To...
 
 ### Login/Logout
 ```
-gasp login
-gasp logout
+clasp login
+clasp logout
 ```
 
 ### Create a New Apps Script Project
@@ -56,46 +56,46 @@ gasp logout
 Files in the current directory are added to the project.
 
 ```
-gasp create [scriptTitle]
+clasp create [scriptTitle]
 ```
 
 ### Clone an existing project in the current directory
 
 ```
-gasp clone <scriptId>
+clasp clone <scriptId>
 ```
 
 ### Push/Pull
 
 ```
-gasp push # Updates Apps Script project with local files
-gasp pull # Updates local files with Apps Script project
+clasp push # Updates Apps Script project with local files
+clasp pull # Updates local files with Apps Script project
 ```
 
 ### Update a Published Project / Deploy
 
 To deploy a project:
 
-1. Create an immutable version of the Apps Script project using `gasp version`
-1. Deploy the version using `gasp deploy [version]`
+1. Create an immutable version of the Apps Script project using `clasp version`
+1. Deploy the version using `clasp deploy [version]`
 
 ```
-gasp versions # List versions
-gasp version [description] # Create a new version with a description
+clasp versions # List versions
+clasp version [description] # Create a new version with a description
 ```
 
 then deploy...
 
 ```
-gasp deploy [version] [description]
-gasp undeploy <deploymentId>
-gasp deployments # List all deployment IDs
+clasp deploy [version] [description]
+clasp undeploy <deploymentId>
+clasp deployments # List all deployment IDs
 ```
 
 ### Open the project on script.google.com
 
 ```
-gasp open
+clasp open
 ```
 
 ## Troubleshooting
@@ -114,7 +114,7 @@ To develop the Apps Script SDK locally, install the CLI locally:
 
 ```sh
 sudo npm i -g
-gasp <command>
+clasp <command>
 ```
 
-⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/dogfood/scriptmanagement/reference/).
+⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/scriptmanagement/reference/).

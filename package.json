@@ -1,13 +1,13 @@
 {
-  "name": "@google/gasp",
+  "name": "@google/clasp",
   "version": "1.0.0",
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
-    "postinstall": "echo '➡ Thanks for installing gasp!\n'"
+    "postinstall": "echo '➡ Thanks for installing clasp!\n'"
   },
   "bin": {
-    "gasp": "./index.js"
+    "clasp": "./index.js"
   },
   "repository": {
     "type": "git",
