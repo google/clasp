@@ -1,6 +1,6 @@
 {
   "name": "@google/clasp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "sso://devrel/libraries/apps-script-sdk"
+    "url": "https://github.com/google/clasp"
   },
   "keywords": [
     "Apps",

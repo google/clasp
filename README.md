@@ -119,4 +119,10 @@ sudo npm i -g
 clasp <command>
 ```
 
+Bump versions and publish with:
+
+```sh
+npm publish --access public
+```
+
 ⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/scriptmanagement/reference/).
