@@ -30,7 +30,7 @@ Then enable Apps Script API: https://script.google.com/home/usersettings
 ## Commands
 
 ```sh
-clasp
+clasp -h
 ```
 - `clasp login`
 - `clasp logout`

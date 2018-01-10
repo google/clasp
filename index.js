@@ -25,7 +25,7 @@ const del = require('del');
 const dotf = require('dotf');
 const findParentDir = require('find-parent-dir');
 const fs = require('fs');
-const google = require('googleapis'); // GCS bucket in same GCP project
+const google = require('googleapis');
 const http = require('http');
 const mkdirp = require('mkdirp');
 const OAuth2 = google.auth.OAuth2;
@@ -296,9 +296,7 @@ program
       var authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: [
-          'https://www.googleapis.com/auth/script.deployments',
           'https://www.googleapis.com/auth/script.management',
-          'https://www.googleapis.com/auth/script.projects',
         ],
       });
       console.log(LOG.AUTHORIZE(authUrl));
