@@ -297,7 +297,6 @@ program
         access_type: 'offline',
         scope: [
           // TODO: Update to newer scopes.
-          // 'https://www.googleapis.com/auth/script',
           'https://www.googleapis.com/auth/script.deployments',
           'https://www.googleapis.com/auth/script.management',
           'https://www.googleapis.com/auth/script.projects',
