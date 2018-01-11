@@ -1,6 +1,6 @@
 {
   "name": "@google/clasp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
@@ -35,7 +35,7 @@
     "fs": "^0.0.1-security",
     "googleapis": "^23.0.1",
     "mkdirp": "^0.5.1",
-    "openurl": "^1.1.1",
+    "open": "^0.0.5",
     "path": "^0.12.7",
     "pluralize": "^7.0.0",
     "read-file": "^0.2.0",

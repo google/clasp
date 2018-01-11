@@ -29,7 +29,7 @@ const google = require('googleapis');
 const http = require('http');
 const mkdirp = require('mkdirp');
 const OAuth2 = google.auth.OAuth2;
-const openurl = require('openurl');
+const open = require('open');
 const os = require('os');
 const path = require('path');
 const pluralize = require('pluralize');
@@ -304,7 +304,7 @@ program
         ],
       });
       console.log(LOG.AUTHORIZE(authUrl));
-      openurl.open(authUrl);
+      open(authUrl);
 
       // Create a local HTTP server that reads the OAuth token
       var app = connect();
@@ -511,7 +511,7 @@ program
         if (scriptId.length < 30) {
           logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
         } else {
-          openurl.open(getScriptURL(scriptId));
+          open(getScriptURL(scriptId));
         }
       }
     });
