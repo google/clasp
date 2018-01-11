@@ -125,4 +125,4 @@ Bump versions and publish with:
 npm publish --access public
 ```
 
-⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/reference/).
+⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/api/).
