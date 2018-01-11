@@ -240,7 +240,7 @@ function getProjectSettings() {
  */
 function getAPICredentials(cb) {
   DOTFILE.RC.read().then((rc) => {
-    oauth2Client.setCredentials(rc);
+    oauth2Client.credentials = rc;
     cb(rc);
   }).catch((err) => {
     logError(null, ERROR.LOGGED_OUT);
@@ -296,7 +296,11 @@ program
       var authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: [
+          // TODO: Update to newer scopes.
+          // 'https://www.googleapis.com/auth/script',
+          'https://www.googleapis.com/auth/script.deployments',
           'https://www.googleapis.com/auth/script.management',
+          'https://www.googleapis.com/auth/script.projects',
         ],
       });
       console.log(LOG.AUTHORIZE(authUrl));
