@@ -33,7 +33,7 @@
     "dotf": "^1.0.3",
     "find-parent-dir": "^0.3.0",
     "fs": "^0.0.1-security",
-    "googleapis": "^23.0.1",
+    "googleapis": "^24.0.0",
     "mkdirp": "^0.5.1",
     "open": "^0.0.5",
     "path": "^0.12.7",
