@@ -47,6 +47,7 @@ const DEBUG = false;
 // Names / Paths
 const PROJECT_NAME = 'clasp';
 const PROJECT_MANIFEST_BASENAME = 'appsscript';
+const PROJECT_MANIFEST_FULLNAME = `${PROJECT_MANIFEST_BASENAME}.json`;
 
 // Dotfile names
 const DOT = {
@@ -273,6 +274,22 @@ function getAPIFileType(path) {
   }[extension];
 }
 
+/**
+ * Saves the script ID in the project dotfile.
+ * @param  {string} scriptId The script ID
+ */
+function saveProjectId(scriptId) {
+  DOTFILE.PROJECT().write({scriptId}); // Save the script id
+}
+
+/**
+ * Checks if the current directory appears to be a valid project.
+ * @return {boolean} True if valid project, false otherwise
+ */
+function manifestExists() {
+  return fs.existsSync(PROJECT_MANIFEST_FULLNAME);
+}
+
 // CLI
 
 /**
@@ -356,7 +373,10 @@ program
           } else {
             var scriptId = res.scriptId;
             console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
-            fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
+            saveProjectId(scriptId)
+            if (!manifestExists()) {
+              fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
+            }
           }
         });
       });
@@ -382,7 +402,6 @@ function fetchProject(scriptId) {
           logError(error, ERROR.SCRIPT_ID);
         }
       } else {
-        DOTFILE.PROJECT().write({scriptId}); // Save the script id
         if (!res.files) {
           return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
         }
@@ -411,6 +430,7 @@ program
   .description('Clone a project')
   .action((scriptId) => {
     spinner.setSpinnerTitle(LOG.CLONING);
+    saveProjectId(scriptId)
     fetchProject(scriptId);
   });
 
