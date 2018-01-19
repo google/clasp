@@ -413,7 +413,9 @@ function fetchProject(scriptId) {
           let truePath = `./${filePath}`;
           mkdirp(path.dirname(truePath), (err) => {
             if (err) return logError(err, ERROR.FS_DIR_WRITE);
-            fs.writeFile(`./${filePath}`, file.source, console.err);
+            fs.writeFile(`./${filePath}`, file.source, (err) => {
+              console.err(err);
+            });
             console.log(`└─ ${filePath}`);
           });
         });
