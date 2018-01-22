@@ -140,7 +140,7 @@ const LOG = {
   UNTITLED_SCRIPT_TITLE: 'Untitled Script',
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber) => `Created version ${versionNumber}.`,
-  VERSION_DESCRIPTION: ({versionNumber, description}) => `${versionNumber} - ${description || '(no description)'}`,
+  VERSION_DESCRIPTION: ({ versionNumber, description }) => `${versionNumber} - ${description || '(no description)'}`,
   VERSION_NUM: (numVersions) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
 };
 
@@ -153,6 +153,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DEPLOYMENT_COUNT: `Unable to deploy; Only one deployment can be created at a time`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
+  FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
   LOGGED_OUT: `Please login. (${PROJECT_NAME} login)`,
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
@@ -279,7 +280,7 @@ function getAPIFileType(path) {
  * @param  {string} scriptId The script ID
  */
 function saveProjectId(scriptId) {
-  DOTFILE.PROJECT().write({scriptId}); // Save the script id
+  DOTFILE.PROJECT().write({ scriptId }); // Save the script id
 }
 
 /**
@@ -322,7 +323,7 @@ program
 
       // Create a local HTTP server that reads the OAuth token
       var app = connect();
-      app.use(function(req, res){
+      app.use(function(req, res) {
         var url_parts = url.parse(req.url, true);
         var code = url_parts.query.code;
         if (url_parts.query.code) {
@@ -349,7 +350,7 @@ program
   .command('logout')
   .description('Log out')
   .action(() => {
-    del(DOT.RC.ABSOLUTE_PATH, {force: true}); // del doesn't work with a relative path (~)
+    del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
   });
 
 /**
@@ -414,7 +415,7 @@ function fetchProject(scriptId) {
           mkdirp(path.dirname(truePath), (err) => {
             if (err) return logError(err, ERROR.FS_DIR_WRITE);
             fs.writeFile(`./${filePath}`, file.source, (err) => {
-              console.err(err);
+              if (err) return logError(err, ERROR.FS_FILE_WRITE);
             });
             console.log(`└─ ${filePath}`);
           });
@@ -551,7 +552,7 @@ program
 
         script.projects.deployments.list({
           scriptId
-        }, {}, (error, {deployments}) => {
+        }, {}, (error, { deployments }) => {
           spinner.stop(true);
           if (error) {
             logError(error);
@@ -559,7 +560,7 @@ program
             let numDeployments = deployments.length;
             let deploymentWord = pluralize('Deployment', numDeployments);
             console.log(`${numDeployments} ${deploymentWord}.`);
-            deployments.map(({deploymentId, deploymentConfig}) => {
+            deployments.map(({ deploymentId, deploymentConfig }) => {
               let versionString = !!deploymentConfig.versionNumber ?
                   `@${deploymentConfig.versionNumber}` : '@HEAD';
               let description = deploymentConfig.description ?
