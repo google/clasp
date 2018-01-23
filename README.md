@@ -131,9 +131,9 @@ npm publish --access public
 
 ## Ignore Files
 
-Create a file called `.claspignore` in the root directory of your Apps Script project. Add files as if it were a .gitignore, and they will be excluded from `clasp push`, `clasp deploy`, etc...  
+Create a file called `.claspignore` in the root directory of your Apps Script project. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.  
 
-As of now, clasp does not support pushing only tracked files, so to push a few files from an npm project with bundling, for example, a sample `.claspignore` could look like:
+A sample `.claspignore` could look like:
 
 ```
 **/**
@@ -142,6 +142,6 @@ As of now, clasp does not support pushing only tracked files, so to push a few f
 ```  
 This file ignores everything but the manifest and the bundle.
 
-Note: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like: `**/node_modules/**`
+Note: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like `**/node_modules/**`
 
 ⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/api/).
