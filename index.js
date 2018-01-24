@@ -256,8 +256,8 @@ function getAPICredentials(cb) {
  */
 function getFileType(type) {
   return {
-    SERVER_JS: 'js',
-    SHARED_JS: 'js'
+    SERVER_JS: 'gs',
+    SHARED_JS: 'gs'
   }[type] || type.toLowerCase();
 }
 
@@ -270,7 +270,6 @@ function getAPIFileType(path) {
   let extension = path.substr(path.lastIndexOf('.') + 1).toUpperCase();
   return {
     GS: 'SERVER_JS',
-    JS: 'SERVER_JS',
     HTML: 'HTML',
     JSON: 'JSON'
   }[extension];
