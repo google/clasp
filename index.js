@@ -354,20 +354,21 @@ program
   });
 
 /**
- * Creates a new script project. The project title is optional.
+ * Creates a new script project. The project title is optional. The project parent Id is optional.
+ * ParentId: The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
  * @example `create "My Script"`
  */
 program
-  .command('create [scriptTitle]')
+  .command('create [scriptTitle] [scriptParentId]')
   .description('Create a script')
-  .action((title = LOG.UNTITLED_SCRIPT_TITLE) => {
+  .action((title = LOG.UNTITLED_SCRIPT_TITLE,parentId) => {
     if (fs.existsSync(DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
       getAPICredentials(() => {
         spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
         spinner.start();
-        script.projects.create({ title }, {}, (error, res) => {
+        script.projects.create({ title,parentId }, {}, (error, res) => {
           spinner.stop(true);
           if (error) {
             logError(error, ERROR.CREATE);

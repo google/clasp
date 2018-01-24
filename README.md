@@ -38,7 +38,7 @@ clasp -h
 ```
 - `clasp login`
 - `clasp logout`
-- `clasp create [scriptTitle]`
+- `clasp create [scriptTitle] [scriptParentId]`
 - `clasp clone <scriptId>`
 - `clasp pull`
 - `clasp push`
@@ -62,7 +62,7 @@ clasp logout
 Files in the current directory are added to the project.
 
 ```
-clasp create [scriptTitle]
+clasp create [scriptTitle] [scriptParentId]
 ```
 
 ### Clone an existing project in the current directory
