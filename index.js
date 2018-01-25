@@ -418,7 +418,8 @@ function fetchProject(scriptId, rootDir) {
             fs.writeFile(truePath, file.source, (err) => {
               if (err) return logError(err, ERROR.FS_FILE_WRITE);
             });
-            console.log(`└─ ${rootDir ? truePath : filePath}`); // Log only filename if pulling to root (Code.gs vs ./Code.gs)
+            // Log only filename if pulling to root (Code.gs vs ./Code.gs)
+            console.log(`└─ ${rootDir ? truePath : filePath}`); 
           });
         });
       }
@@ -445,7 +446,7 @@ program
   .command('pull')
   .description('Fetch a remote project')
   .action(() => {
-    getProjectSettings().then(({scriptId, rootDir}) => {
+    getProjectSettings().then(({ scriptId, rootDir }) => {
       if (scriptId) {
         spinner.setSpinnerTitle(LOG.PULLING);
         fetchProject(scriptId, rootDir);
@@ -483,8 +484,16 @@ program
               let nonIgnoredFilePaths = [];
               let files = filePaths.map((name, i) => {
                 let nameWithoutExt = name.slice(0, -path.extname(name).length);
-                // Formats rootDir/appsscript.json to appsscript.json. Preserves subdirectory names in rootDir
-                let formattedName = rootDir ? formattedName.slice(rootDir.length + 1, formattedName.length) : nameWithoutExt;
+                // Formats rootDir/appsscript.json to appsscript.json. 
+                // Preserves subdirectory names in rootDir 
+                // (rootDir/foo/Code.js becomes foo/Code.js)
+                let formattedName = nameWithoutExt;
+                if (rootDir) {
+                  formattedName = nameWithoutExt.slice(
+                    rootDir.length + 1,
+                    nameWithoutExt.length
+                  );
+                };
                 if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
                   nonIgnoredFilePaths.push(name);
                   return {
