@@ -468,7 +468,7 @@ program
     spinner.setSpinnerTitle(LOG.PUSHING);
     spinner.start();
     getAPICredentials(() => {
-      getProjectSettings().then(({scriptId, rootDir}) => {
+      getProjectSettings().then(({ scriptId, rootDir }) => {
         if (!scriptId) return;
         // Read all filenames as a flattened tree
         recursive(rootDir || './', (err, filePaths) => {
@@ -537,7 +537,7 @@ program
   .command('open')
   .description('Open a script')
   .action((scriptId) => {
-    getProjectSettings().then(({scriptId}) => {
+    getProjectSettings().then(({ scriptId }) => {
       if (scriptId) {
         console.log(LOG.OPEN_PROJECT(scriptId));
         if (scriptId.length < 30) {
@@ -557,7 +557,7 @@ program
   .description('List deployment ids of a script')
   .action(() => {
     getAPICredentials(() => {
-      getProjectSettings().then(({scriptId}) => {
+      getProjectSettings().then(({ scriptId }) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId));
         spinner.start();
@@ -595,7 +595,7 @@ program
   .action((version, description) => {
     description = description || '';
     getAPICredentials(() => {
-      getProjectSettings().then(({scriptId}) => {
+      getProjectSettings().then(({ scriptId }) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId));
         spinner.start();
@@ -652,7 +652,7 @@ program
   .description('Undeploy a deployment of a project')
   .action((deploymentId) => {
     getAPICredentials(() => {
-      getProjectSettings().then(({scriptId}) => {
+      getProjectSettings().then(({ scriptId }) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId));
         spinner.start();
@@ -680,7 +680,7 @@ program
   .description(`Update a deployment`)
   .action((deploymentId, version, description) => {
     getAPICredentials(() => {
-      getProjectSettings().then(({scriptId}) => {
+      getProjectSettings().then(({ scriptId }) => {
         script.projects.deployments.update({
           scriptId,
           deploymentId,
@@ -713,7 +713,7 @@ program
     spinner.setSpinnerTitle('Grabbing versions...');
     spinner.start();
     getAPICredentials(() => {
-      getProjectSettings().then(({scriptId}) => {
+      getProjectSettings().then(({ scriptId }) => {
         script.projects.versions.list({
           scriptId,
         }, {}, (error, res) => {
@@ -746,7 +746,7 @@ program
     spinner.setSpinnerTitle(LOG.VERSION_CREATE);
     spinner.start();
     getAPICredentials(() => {
-      getProjectSettings().then(({scriptId}) => {
+      getProjectSettings().then(({ scriptId }) => {
         script.projects.versions.create({
           scriptId,
           description,
