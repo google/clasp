@@ -104,10 +104,10 @@ const DOTFILE = {
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_PORT = 2020;
 const oauth2Client = new OAuth2(
-    '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com', // CLIENT_ID
-    'v6V3fKV_zWU7iw1DrpO1rknX', // CLIENT_SECRET
-    'http://localhost:' + REDIRECT_PORT
-    // 'urn:ietf:wg:oauth:2.0:oob' // REDIRECT_URI (@see OAuth2InstalledApp)
+  '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com', // CLIENT_ID
+  'v6V3fKV_zWU7iw1DrpO1rknX', // CLIENT_SECRET
+  'http://localhost:' + REDIRECT_PORT
+  // 'urn:ietf:wg:oauth:2.0:oob' // REDIRECT_URI (@see OAuth2InstalledApp)
 );
 const script = google.script({
   version: 'v1',
@@ -323,7 +323,7 @@ program
 
       // Create a local HTTP server that reads the OAuth token
       var app = connect();
-      app.use(function(req, res) {
+      app.use(function (req, res) {
         var url_parts = url.parse(req.url, true);
         var code = url_parts.query.code;
         if (url_parts.query.code) {
@@ -339,7 +339,7 @@ program
         res.end(LOG.AUTH_PAGE_SUCCESSFUL);
       });
       http.createServer(app)
-          .listen(REDIRECT_PORT);
+        .listen(REDIRECT_PORT);
     });
   });
 
@@ -354,21 +354,26 @@ program
   });
 
 /**
- * Creates a new script project. The project title is optional. The project parent Id is optional.
- * ParentId: The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
- * @example `create "My Script"`
+ * Creates a new script project.
+ * @param {string} [scriptTitle] An optional project title.
+ * @param {string} [scriptParentId] An optional project parent Id. The Drive ID of a parent file
+ *   that the created script project is bound to. This is usually the ID of a
+ *   Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a
+ *   standalone script project is created.
+ * @example `create "My Script" "1D_Gxyv*****************************NXO7o"`
+ * @see https://developers.google.com/apps-script/api/reference/rest/v1/projects/create#body.request_body.FIELDS.parent_id
  */
 program
   .command('create [scriptTitle] [scriptParentId]')
   .description('Create a script')
-  .action((title = LOG.UNTITLED_SCRIPT_TITLE,parentId) => {
+  .action((title = LOG.UNTITLED_SCRIPT_TITLE, parentId) => {
     if (fs.existsSync(DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
       getAPICredentials(() => {
         spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
         spinner.start();
-        script.projects.create({ title,parentId }, {}, (error, res) => {
+        script.projects.create({ title, parentId }, {}, (error, res) => {
           spinner.stop(true);
           if (error) {
             logError(error, ERROR.CREATE);
@@ -563,9 +568,9 @@ program
             console.log(`${numDeployments} ${deploymentWord}.`);
             deployments.map(({ deploymentId, deploymentConfig }) => {
               let versionString = !!deploymentConfig.versionNumber ?
-                  `@${deploymentConfig.versionNumber}` : '@HEAD';
+                `@${deploymentConfig.versionNumber}` : '@HEAD';
               let description = deploymentConfig.description ?
-                  '- ' + deploymentConfig.description:  '';
+                '- ' + deploymentConfig.description : '';
               console.log(`- ${deploymentId} ${versionString} ${description}`);
             });
           }
