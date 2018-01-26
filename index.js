@@ -220,7 +220,7 @@ function getProjectSettings() {
       dotfile.read().then((settings) => {
         // Settings must have the script ID. Otherwise we err.
         if (settings.scriptId) {
-          resolve(settings.scriptId);
+          resolve(settings);
         } else {
           fail();
         }
@@ -394,8 +394,9 @@ program
  * Fetches the files for a project from the server and writes files locally to
  * `pwd` with dots converted to subdirectories.
  * @param {string} scriptId The project script id
+ * @param {string|null} rootDir The directory to save the project files to. Defaults to `pwd`
  */
-function fetchProject(scriptId) {
+function fetchProject(scriptId, rootDir) {
   spinner.start();
   getAPICredentials(() => {
     script.projects.getContent({
@@ -417,13 +418,14 @@ function fetchProject(scriptId) {
         let sortedFiles = res.files.sort((file) => file.name);
         sortedFiles.map((file) => {
           let filePath = `${file.name}.${getFileType(file.type)}`;
-          let truePath = `./${filePath}`;
+          let truePath = `${rootDir || '.'}/${filePath}`;
           mkdirp(path.dirname(truePath), (err) => {
             if (err) return logError(err, ERROR.FS_DIR_WRITE);
-            fs.writeFile(`./${filePath}`, file.source, (err) => {
+            fs.writeFile(truePath, file.source, (err) => {
               if (err) return logError(err, ERROR.FS_FILE_WRITE);
             });
-            console.log(`└─ ${filePath}`);
+            // Log only filename if pulling to root (Code.gs vs ./Code.gs)
+            console.log(`└─ ${rootDir ? truePath : filePath}`); 
           });
         });
       }
@@ -450,10 +452,10 @@ program
   .command('pull')
   .description('Fetch a remote project')
   .action(() => {
-    getProjectSettings().then((scriptId) => {
+    getProjectSettings().then(({ scriptId, rootDir }) => {
       if (scriptId) {
         spinner.setSpinnerTitle(LOG.PULLING);
-        fetchProject(scriptId);
+        fetchProject(scriptId, rootDir);
       }
     });
   });
@@ -472,10 +474,10 @@ program
     spinner.setSpinnerTitle(LOG.PUSHING);
     spinner.start();
     getAPICredentials(() => {
-      getProjectSettings().then((scriptId) => {
+      getProjectSettings().then(({ scriptId, rootDir }) => {
         if (!scriptId) return;
         // Read all filenames as a flattened tree
-        recursive(`./`, (err, filePaths) => {
+        recursive(rootDir || './', (err, filePaths) => {
           if (err) return logError(err);
           // Filter files that aren't allowed.
           filePaths = filePaths.filter((name) => !name.startsWith('.'));
@@ -488,10 +490,20 @@ program
               let nonIgnoredFilePaths = [];
               let files = filePaths.map((name, i) => {
                 let nameWithoutExt = name.slice(0, -path.extname(name).length);
+                // Formats rootDir/appsscript.json to appsscript.json. 
+                // Preserves subdirectory names in rootDir 
+                // (rootDir/foo/Code.js becomes foo/Code.js)
+                let formattedName = nameWithoutExt;
+                if (rootDir) {
+                  formattedName = nameWithoutExt.slice(
+                    rootDir.length + 1,
+                    nameWithoutExt.length
+                  );
+                };
                 if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
                   nonIgnoredFilePaths.push(name);
                   return {
-                    name: nameWithoutExt, // the API separates the extension
+                    name: formattedName, // the API separates the extension
                     type: getAPIFileType(name), // the file
                     source: contents[i]
                   };
@@ -531,7 +543,7 @@ program
   .command('open')
   .description('Open a script')
   .action((scriptId) => {
-    getProjectSettings().then((scriptId) => {
+    getProjectSettings().then(({ scriptId }) => {
       if (scriptId) {
         console.log(LOG.OPEN_PROJECT(scriptId));
         if (scriptId.length < 30) {
@@ -551,7 +563,7 @@ program
   .description('List deployment ids of a script')
   .action(() => {
     getAPICredentials(() => {
-      getProjectSettings().then((scriptId) => {
+      getProjectSettings().then(({ scriptId }) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId));
         spinner.start();
@@ -589,7 +601,7 @@ program
   .action((version, description) => {
     description = description || '';
     getAPICredentials(() => {
-      getProjectSettings().then((scriptId) => {
+      getProjectSettings().then(({ scriptId }) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId));
         spinner.start();
@@ -646,7 +658,7 @@ program
   .description('Undeploy a deployment of a project')
   .action((deploymentId) => {
     getAPICredentials(() => {
-      getProjectSettings().then((scriptId) => {
+      getProjectSettings().then(({ scriptId }) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId));
         spinner.start();
@@ -674,7 +686,7 @@ program
   .description(`Update a deployment`)
   .action((deploymentId, version, description) => {
     getAPICredentials(() => {
-      getProjectSettings().then((scriptId) => {
+      getProjectSettings().then(({ scriptId }) => {
         script.projects.deployments.update({
           scriptId,
           deploymentId,
@@ -707,7 +719,7 @@ program
     spinner.setSpinnerTitle('Grabbing versions...');
     spinner.start();
     getAPICredentials(() => {
-      getProjectSettings().then((scriptId) => {
+      getProjectSettings().then(({ scriptId }) => {
         script.projects.versions.list({
           scriptId,
         }, {}, (error, res) => {
@@ -740,7 +752,7 @@ program
     spinner.setSpinnerTitle(LOG.VERSION_CREATE);
     spinner.start();
     getAPICredentials(() => {
-      getProjectSettings().then((scriptId) => {
+      getProjectSettings().then(({ scriptId }) => {
         script.projects.versions.create({
           scriptId,
           description,
