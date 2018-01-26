@@ -142,7 +142,7 @@ const LOG = {
   UNTITLED_SCRIPT_TITLE: 'Untitled Script',
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber) => `Created version ${versionNumber}.`,
-  VERSION_DESCRIPTION: ({versionNumber, description}) => `${versionNumber} - ${description || '(no description)'}`,
+  VERSION_DESCRIPTION: ({ versionNumber, description }) => `${versionNumber} - ${description || '(no description)'}`,
   VERSION_NUM: (numVersions) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
 };
 
@@ -155,6 +155,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DEPLOYMENT_COUNT: `Unable to deploy; Only one deployment can be created at a time`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
+  FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
   LOGGED_OUT: `Please login. (${PROJECT_NAME} login)`,
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
@@ -375,7 +376,11 @@ function getAPIFileType(path) {
  * @param  {string} scriptId The script ID
  */
 function saveProjectId(scriptId) {
+<<<<<<< HEAD
   DOTFILE.PROJECT().write({scriptId}); // Save the script id
+=======
+  DOTFILE.PROJECT().write({ scriptId }); // Save the script id
+>>>>>>> f5967eb2726a9244895a4873334cb065c0b40e3a
 }
 
 /**
@@ -407,8 +412,41 @@ program
     DOTFILE.RC.read().then((rc) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch((err) => {
+<<<<<<< HEAD
       authorize(cmd.localhost);
     })
+=======
+      var authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: [
+          'https://www.googleapis.com/auth/script.deployments',
+          'https://www.googleapis.com/auth/script.projects',
+        ],
+      });
+      console.log(LOG.AUTHORIZE(authUrl));
+      open(authUrl);
+
+      // Create a local HTTP server that reads the OAuth token
+      var app = connect();
+      app.use(function (req, res) {
+        var url_parts = url.parse(req.url, true);
+        var code = url_parts.query.code;
+        if (url_parts.query.code) {
+          oauth2Client.getToken(code, (err, token) => {
+            if (err) return console.error(ERROR.ACCESS_TOKEN + err);
+            DOTFILE.RC.write(token).then(() => {
+              // Kill the CLI after DOTFILE write
+              console.log(LOG.AUTH_SUCCESSFUL);
+              process.exit(0);
+            });
+          });
+        }
+        res.end(LOG.AUTH_PAGE_SUCCESSFUL);
+      });
+      http.createServer(app)
+        .listen(REDIRECT_PORT);
+    });
+>>>>>>> f5967eb2726a9244895a4873334cb065c0b40e3a
   });
 
 /**
@@ -418,24 +456,30 @@ program
   .command('logout')
   .description('Log out')
   .action(() => {
-    del(DOT.RC.ABSOLUTE_PATH, {force: true}); // del doesn't work with a relative path (~)
+    del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
   });
 
 /**
- * Creates a new script project. The project title is optional.
- * @example `create "My Script"`
+ * Creates a new script project.
+ * @param {string} [scriptTitle] An optional project title.
+ * @param {string} [scriptParentId] An optional project parent Id. The Drive ID of a parent file
+ *   that the created script project is bound to. This is usually the ID of a
+ *   Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a
+ *   standalone script project is created.
+ * @example `create "My Script" "1D_Gxyv*****************************NXO7o"`
+ * @see https://developers.google.com/apps-script/api/reference/rest/v1/projects/create#body.request_body.FIELDS.parent_id
  */
 program
-  .command('create [scriptTitle]')
+  .command('create [scriptTitle] [scriptParentId]')
   .description('Create a script')
-  .action((title = LOG.UNTITLED_SCRIPT_TITLE) => {
+  .action((title = LOG.UNTITLED_SCRIPT_TITLE, parentId) => {
     if (fs.existsSync(DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
       getAPICredentials(() => {
         spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
         spinner.start();
-        script.projects.create({ title }, {}, (error, res) => {
+        script.projects.create({ title, parentId }, {}, (error, res) => {
           spinner.stop(true);
           if (error) {
             logError(error, ERROR.CREATE);
@@ -482,7 +526,9 @@ function fetchProject(scriptId) {
           let truePath = `./${filePath}`;
           mkdirp(path.dirname(truePath), (err) => {
             if (err) return logError(err, ERROR.FS_DIR_WRITE);
-            fs.writeFile(`./${filePath}`, file.source, console.err);
+            fs.writeFile(`./${filePath}`, file.source, (err) => {
+              if (err) return logError(err, ERROR.FS_FILE_WRITE);
+            });
             console.log(`└─ ${filePath}`);
           });
         });
@@ -618,7 +664,7 @@ program
 
         script.projects.deployments.list({
           scriptId
-        }, {}, (error, {deployments}) => {
+        }, {}, (error, { deployments }) => {
           spinner.stop(true);
           if (error) {
             logError(error);
@@ -626,11 +672,11 @@ program
             let numDeployments = deployments.length;
             let deploymentWord = pluralize('Deployment', numDeployments);
             console.log(`${numDeployments} ${deploymentWord}.`);
-            deployments.map(({deploymentId, deploymentConfig}) => {
+            deployments.map(({ deploymentId, deploymentConfig }) => {
               let versionString = !!deploymentConfig.versionNumber ?
-                  `@${deploymentConfig.versionNumber}` : '@HEAD';
+                `@${deploymentConfig.versionNumber}` : '@HEAD';
               let description = deploymentConfig.description ?
-                  '- ' + deploymentConfig.description:  '';
+                '- ' + deploymentConfig.description : '';
               console.log(`- ${deploymentId} ${versionString} ${description}`);
             });
           }

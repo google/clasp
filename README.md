@@ -2,6 +2,10 @@
 
 Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
+![clasp](https://user-images.githubusercontent.com/744973/35164939-43fd32ae-fd01-11e7-8916-acd70fff3383.gif)
+
+**To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
+
 ### Install
 
 First download `clasp`:
@@ -34,7 +38,7 @@ clasp -h
 ```
 - `clasp login`
 - `clasp logout`
-- `clasp create [scriptTitle]`
+- `clasp create [scriptTitle] [scriptParentId]`
 - `clasp clone <scriptId>`
 - `clasp pull`
 - `clasp push`
@@ -58,7 +62,7 @@ clasp logout
 Files in the current directory are added to the project.
 
 ```
-clasp create [scriptTitle]
+clasp create [scriptTitle] [scriptParentId]
 ```
 
 ### Clone an existing project in the current directory
@@ -124,5 +128,20 @@ Bump versions and publish with:
 ```sh
 npm publish --access public
 ```
+
+## Ignore Files
+
+Create a file called `.claspignore` in the root directory of your Apps Script project. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.  
+
+A sample `.claspignore` could look like:
+
+```
+**/**
+!build/Main.gs
+!appsscript.json
+```  
+This file ignores everything but the manifest and the bundle.
+
+Note: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like `**/node_modules/**`
 
 ⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/api/).
