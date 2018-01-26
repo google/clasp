@@ -376,11 +376,7 @@ function getAPIFileType(path) {
  * @param  {string} scriptId The script ID
  */
 function saveProjectId(scriptId) {
-<<<<<<< HEAD
-  DOTFILE.PROJECT().write({scriptId}); // Save the script id
-=======
   DOTFILE.PROJECT().write({ scriptId }); // Save the script id
->>>>>>> f5967eb2726a9244895a4873334cb065c0b40e3a
 }
 
 /**
@@ -412,41 +408,8 @@ program
     DOTFILE.RC.read().then((rc) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch((err) => {
-<<<<<<< HEAD
       authorize(cmd.localhost);
     })
-=======
-      var authUrl = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: [
-          'https://www.googleapis.com/auth/script.deployments',
-          'https://www.googleapis.com/auth/script.projects',
-        ],
-      });
-      console.log(LOG.AUTHORIZE(authUrl));
-      open(authUrl);
-
-      // Create a local HTTP server that reads the OAuth token
-      var app = connect();
-      app.use(function (req, res) {
-        var url_parts = url.parse(req.url, true);
-        var code = url_parts.query.code;
-        if (url_parts.query.code) {
-          oauth2Client.getToken(code, (err, token) => {
-            if (err) return console.error(ERROR.ACCESS_TOKEN + err);
-            DOTFILE.RC.write(token).then(() => {
-              // Kill the CLI after DOTFILE write
-              console.log(LOG.AUTH_SUCCESSFUL);
-              process.exit(0);
-            });
-          });
-        }
-        res.end(LOG.AUTH_PAGE_SUCCESSFUL);
-      });
-      http.createServer(app)
-        .listen(REDIRECT_PORT);
-    });
->>>>>>> f5967eb2726a9244895a4873334cb065c0b40e3a
   });
 
 /**
