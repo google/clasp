@@ -40,6 +40,9 @@ const recursive = require('recursive-readdir');
 const Spinner = require('cli-spinner').Spinner;
 const splitLines = require('split-lines');
 const url = require('url');
+const readline = require('readline');
+
+require('http-shutdown').extend();
 
 // Debug
 const DEBUG = false;
@@ -102,12 +105,11 @@ const DOTFILE = {
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
-const REDIRECT_PORT = 2020;
+const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
 const oauth2Client = new OAuth2(
     '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com', // CLIENT_ID
     'v6V3fKV_zWU7iw1DrpO1rknX', // CLIENT_SECRET
-    'http://localhost:' + REDIRECT_PORT
-    // 'urn:ietf:wg:oauth:2.0:oob' // REDIRECT_URI (@see OAuth2InstalledApp)
+    'http://localhost'
 );
 const script = google.script({
   version: 'v1',
@@ -249,6 +251,100 @@ function getAPICredentials(cb) {
 }
 
 /**
+ * Requests authorization to manage Apps Scrpit projects.
+ * @param {Boolean} useLocalhost True if a local HTTP server should be run
+ *     to handle the auth response. False if manual entry used.
+ */
+ function authorize(useLocalhost) {
+  var opts = {
+    access_type: 'offline',
+    scope: [
+      'https://www.googleapis.com/auth/script.deployments',
+      'https://www.googleapis.com/auth/script.projects',
+    ],
+  }
+  var authCode = useLocalhost ?
+    authorizeWithLocalhost(opts) :
+    authorizeWithoutLocalhost(opts);
+
+  authCode.then(code => {
+    return new Promise((res, rej) => {
+      oauth2Client.getToken(code, (err, token) => {
+        if (err) {
+          reject(err);
+        } else {
+          res(token);
+        }
+      })
+    })
+  })
+  .then(token => DOTFILE.RC.write(token))
+  .then(() => console.log(LOG.AUTH_SUCCESSFUL))
+  .catch(err => console.error(ERROR.ACCESS_TOKEN + err));
+}
+
+/**
+ * Requests authorization to manage Apps Scrpit projects. Spins up
+ * a temporary HTTP server to handle the auth redirect.
+ *
+ * @param {Object} opts OAuth2 options
+ * @return {Promise} Promise resolving with the authorization code
+ */
+function authorizeWithLocalhost(opts) {
+  return new Promise((resolve, reject) => {
+    var server = http.createServer(function(req, res) {
+      var url_parts = url.parse(req.url, true);
+      var code = url_parts.query.code;
+      if (url_parts.query.code) {
+        resolve(url_parts.query.code);
+      } else {
+        reject(url_parts.query.error);
+      }
+      res.end(LOG.AUTH_PAGE_SUCCESSFUL);
+      server.shutdown();
+    }).withShutdown();
+
+    server.listen(0, () => {
+      oauth2Client._redirectUri = 'http://localhost:' + server.address().port;
+      var authUrl = oauth2Client.generateAuthUrl(opts);
+      console.log(LOG.AUTHORIZE(authUrl));
+      open(authUrl);
+    });
+  });
+}
+
+/**
+ * Requests authorization to manage Apps Scrpit projects. Requires the
+ * user to manually copy/paste the authorization code. No HTTP server is
+ * used.
+ *
+ * @param {Object} opts OAuth2 options
+ * @return {Promise} Promise resolving with the authorization code
+ */
+
+function authorizeWithoutLocalhost(opts) {
+  oauth2Client._redirectUri = REDIRECT_URI_OOB;
+  var authUrl = oauth2Client.generateAuthUrl(opts);
+
+  console.log(LOG.AUTHORIZE(authUrl));
+
+  return new Promise((resolve, reject) => {
+    var rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    rl.question(LOG.AUTH_CODE, (code) => {
+      if (code && code.length) {
+        resolve(code);
+      } else {
+        reject("No authorization code entered.");
+      }
+      rl.close();
+    });
+  });
+}
+
+/**
  * Gets the local file type from the API FileType.
  * @param  {string} type The file type returned by Apps Script
  * @return {string}      The file type
@@ -305,41 +401,14 @@ program
 program
   .command('login')
   .description('Log in to script.google.com')
-  .action(() => {
+  .option('--no-localhost', 'Do not run a local server, manually enter code instead')
+  .action((cmd) => {
     // Try to read the RC file.
     DOTFILE.RC.read().then((rc) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch((err) => {
-      var authUrl = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: [
-          'https://www.googleapis.com/auth/script.deployments',
-          'https://www.googleapis.com/auth/script.projects',
-        ],
-      });
-      console.log(LOG.AUTHORIZE(authUrl));
-      open(authUrl);
-
-      // Create a local HTTP server that reads the OAuth token
-      var app = connect();
-      app.use(function(req, res){
-        var url_parts = url.parse(req.url, true);
-        var code = url_parts.query.code;
-        if (url_parts.query.code) {
-          oauth2Client.getToken(code, (err, token) => {
-            if (err) return console.error(ERROR.ACCESS_TOKEN + err);
-            DOTFILE.RC.write(token).then(() => {
-              // Kill the CLI after DOTFILE write
-              console.log(LOG.AUTH_SUCCESSFUL);
-              process.exit(0);
-            });
-          });
-        }
-        res.end(LOG.AUTH_PAGE_SUCCESSFUL);
-      });
-      http.createServer(app)
-          .listen(REDIRECT_PORT);
-    });
+      authorize(cmd.localhost);
+    })
   });
 
 /**
