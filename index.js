@@ -41,7 +41,6 @@ const Spinner = require('cli-spinner').Spinner;
 const splitLines = require('split-lines');
 const url = require('url');
 const readline = require('readline');
-
 require('http-shutdown').extend();
 
 // Debug
@@ -257,25 +256,22 @@ function getAPICredentials(cb) {
  *     to handle the auth response. False if manual entry used.
  */
  function authorize(useLocalhost) {
-  var opts = {
+  let opts = {
     access_type: 'offline',
     scope: [
       'https://www.googleapis.com/auth/script.deployments',
       'https://www.googleapis.com/auth/script.projects',
     ],
   }
-  var authCode = useLocalhost ?
+  let authCode = useLocalhost ?
     authorizeWithLocalhost(opts) :
     authorizeWithoutLocalhost(opts);
 
   authCode.then(code => {
     return new Promise((res, rej) => {
       oauth2Client.getToken(code, (err, token) => {
-        if (err) {
-          reject(err);
-        } else {
-          res(token);
-        }
+        if (err) return rej(err);
+        return res(token);
       })
     })
   })
@@ -292,22 +288,22 @@ function getAPICredentials(cb) {
  * @return {Promise} Promise resolving with the authorization code
  */
 function authorizeWithLocalhost(opts) {
-  return new Promise((resolve, reject) => {
-    var server = http.createServer(function(req, res) {
-      var url_parts = url.parse(req.url, true);
-      var code = url_parts.query.code;
-      if (url_parts.query.code) {
-        resolve(url_parts.query.code);
+  return new Promise((res, rej) => {
+    let server = http.createServer(function(req, resp) {
+      let urlParts = url.parse(req.url, true);
+      let code = urlParts.query.code;
+      if (urlParts.query.code) {
+        res(urlParts.query.code);
       } else {
-        reject(url_parts.query.error);
+        rej(urlParts.query.error);
       }
-      res.end(LOG.AUTH_PAGE_SUCCESSFUL);
+      resp.end(LOG.AUTH_PAGE_SUCCESSFUL);
       server.shutdown();
     }).withShutdown();
 
     server.listen(0, () => {
       oauth2Client._redirectUri = 'http://localhost:' + server.address().port;
-      var authUrl = oauth2Client.generateAuthUrl(opts);
+      let authUrl = oauth2Client.generateAuthUrl(opts);
       console.log(LOG.AUTHORIZE(authUrl));
       open(authUrl);
     });
@@ -325,20 +321,19 @@ function authorizeWithLocalhost(opts) {
 
 function authorizeWithoutLocalhost(opts) {
   oauth2Client._redirectUri = REDIRECT_URI_OOB;
-  var authUrl = oauth2Client.generateAuthUrl(opts);
-
+  let authUrl = oauth2Client.generateAuthUrl(opts);
   console.log(LOG.AUTHORIZE(authUrl));
 
-  return new Promise((resolve, reject) => {
-    var rl = readline.createInterface({
+  return new Promise((res, rej) => {
+    let rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
     });
     rl.question(LOG.AUTH_CODE, (code) => {
       if (code && code.length) {
-        resolve(code);
+        res(code);
       } else {
-        reject("No authorization code entered.");
+        rej("No authorization code entered.");
       }
       rl.close();
     });
@@ -447,7 +442,7 @@ program
           if (error) {
             logError(error, ERROR.CREATE);
           } else {
-            var scriptId = res.scriptId;
+            let scriptId = res.scriptId;
             console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
             saveProjectId(scriptId)
             if (!manifestExists()) {
