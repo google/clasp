@@ -34,6 +34,7 @@
     "find-parent-dir": "^0.3.0",
     "fs": "^0.0.1-security",
     "googleapis": "^24.0.0",
+    "http-shutdown": "^1.2.0",
     "mkdirp": "^0.5.1",
     "open": "^0.0.5",
     "path": "^0.12.7",
