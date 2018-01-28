@@ -257,6 +257,7 @@ function getAPICredentials(cb) {
  */
  function authorize(useLocalhost) {
   let codes = oauth2Client.generateCodeVerifier();
+  // See https://developers.google.com/identity/protocols/OAuth2InstalledApp#step1-code-verifier
   let opts = {
     access_type: 'offline',
     scope: [
@@ -271,7 +272,10 @@ function getAPICredentials(cb) {
     authorizeWithLocalhost(opts) :
     authorizeWithoutLocalhost(opts);
 
-  authCode.then(code => oauth2Client.getToken({ code: code, codeVerifier: codes.codeVerifier }))
+  authCode.then(code => oauth2Client.getToken({
+    code,
+    codeVerifier: codes.codeVerifier
+  }))
   .then(response => DOTFILE.RC.write(response.tokens))
   .then(() => console.log(LOG.AUTH_SUCCESSFUL))
   .catch(err => console.error(ERROR.ACCESS_TOKEN + err));
@@ -434,12 +438,12 @@ program
       getAPICredentials(() => {
         spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
         spinner.start();
-        script.projects.create({ title, parentId }, {}, (error, res) => {
+        script.projects.create({ title, parentId }, {}, (error, { data }) => {
           spinner.stop(true);
           if (error) {
             logError(error, ERROR.CREATE);
           } else {
-            let scriptId = res.data.scriptId;
+            let scriptId = data.scriptId;
             console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
             saveProjectId(scriptId)
             if (!manifestExists()) {
@@ -462,7 +466,7 @@ function fetchProject(scriptId, rootDir) {
   getAPICredentials(() => {
     script.projects.getContent({
       scriptId,
-    }, {}, (error, res) => {
+    }, {}, (error, { data }) => {
       spinner.stop(true);
       if (error) {
         if (error.statusCode === 404) {
@@ -471,12 +475,12 @@ function fetchProject(scriptId, rootDir) {
           logError(error, ERROR.SCRIPT_ID);
         }
       } else {
-        if (!res.data.files) {
+        if (!data.files) {
           return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
         }
         // Create the files in the cwd
-        console.log(LOG.CLONE_SUCCESS(res.data.files.length));
-        let sortedFiles = res.data.files.sort((file) => file.name);
+        console.log(LOG.CLONE_SUCCESS(data.files.length));
+        let sortedFiles = data.files.sort((file) => file.name);
         sortedFiles.map((file) => {
           let filePath = `${file.name}.${getFileType(file.type)}`;
           let truePath = `${rootDir || '.'}/${filePath}`;
@@ -486,7 +490,7 @@ function fetchProject(scriptId, rootDir) {
               if (err) return logError(err, ERROR.FS_FILE_WRITE);
             });
             // Log only filename if pulling to root (Code.gs vs ./Code.gs)
-            console.log(`└─ ${rootDir ? truePath : filePath}`); 
+            console.log(`└─ ${rootDir ? truePath : filePath}`);
           });
         });
       }
@@ -551,8 +555,8 @@ program
               let nonIgnoredFilePaths = [];
               let files = filePaths.map((name, i) => {
                 let nameWithoutExt = name.slice(0, -path.extname(name).length);
-                // Formats rootDir/appsscript.json to appsscript.json. 
-                // Preserves subdirectory names in rootDir 
+                // Formats rootDir/appsscript.json to appsscript.json.
+                // Preserves subdirectory names in rootDir
                 // (rootDir/foo/Code.js becomes foo/Code.js)
                 let formattedName = nameWithoutExt;
                 if (rootDir) {
@@ -676,12 +680,12 @@ program
               manifestFileName: PROJECT_MANIFEST_BASENAME,
               description,
             }
-          }, {}, (err, res) => {
+          }, {}, (err, { data }) => {
             spinner.stop(true);
             if (err) {
               console.error(ERROR.DEPLOYMENT_COUNT);
             } else {
-              console.log(`- ${res.data.deploymentId} @${versionNumber}.`)
+              console.log(`- ${data.deploymentId} @${versionNumber}.`)
             }
           });
         }
@@ -696,13 +700,13 @@ program
           script.projects.versions.create({
             scriptId,
             resource: versionRequestBody
-          }, {}, (err, res) => {
+          }, {}, (err, { data }) => {
             spinner.stop(true);
             if (err) {
               logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
             } else {
-              console.log(LOG.VERSION_CREATED(res.data.versionNumber));
-              createDeployment(+res.data.versionNumber);
+              console.log(LOG.VERSION_CREATED(data.versionNumber));
+              createDeployment(+data.versionNumber);
             }
           });
         }
@@ -783,15 +787,15 @@ program
       getProjectSettings().then(({ scriptId }) => {
         script.projects.versions.list({
           scriptId,
-        }, {}, (error, res) => {
+        }, {}, (error, { data }) => {
           spinner.stop(true);
           if (error) {
             logError(error);
           } else {
-            if (res.data && res.data.versions && res.data.versions.length) {
-              let numVersions = res.data.versions.length;
+            if (data && data.versions && data.versions.length) {
+              let numVersions = data.versions.length;
               console.log(LOG.VERSION_NUM(numVersions));
-              res.data.versions.map((version) => {
+              data.versions.map((version) => {
                 console.log(LOG.VERSION_DESCRIPTION(version));
               });
             } else {
@@ -817,12 +821,12 @@ program
         script.projects.versions.create({
           scriptId,
           description,
-        }, {}, (error, res) => {
+        }, {}, (error, { data }) => {
           spinner.stop(true);
           if (error) {
             logError(error);
           } else {
-            console.log(LOG.VERSION_CREATED(res.data.versionNumber));
+            console.log(LOG.VERSION_CREATED(data.versionNumber));
           }
         });
       }).catch((err) => {
