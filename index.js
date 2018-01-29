@@ -845,5 +845,9 @@ program
     console.error(ERROR.COMMAND_DNE(command));
   });
 
+// defaults to help if commands are not provided
+if (!process.argv.slice(2).length) {
+  program.outputHelp();
+}
 // User input is provided from the process' arguments
 program.parse(process.argv);
