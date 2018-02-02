@@ -104,32 +104,7 @@ clasp deployments # List all deployment IDs
 clasp open
 ```
 
-## Troubleshooting
-
-The library requires Node version >= 4.7.4.
-
-```sh
-node -v # Check Node version
-sudo npm install n -g
-sudo n latest
-```
-
-## Develop
-
-To develop the Apps Script SDK locally, install the CLI locally:
-
-```sh
-sudo npm i -g
-clasp <command>
-```
-
-Bump versions and publish with:
-
-```sh
-npm publish --access public
-```
-
-## Ignore Files
+### Ignore Files
 
 Create a file called `.claspignore` in the root directory of your Apps Script project. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.  
 
@@ -143,5 +118,33 @@ A sample `.claspignore` could look like:
 This file ignores everything but the manifest and the bundle.
 
 Note: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like `**/node_modules/**`
+
+## Troubleshooting
+
+The library requires Node version >= 4.7.4.
+
+```sh
+node -v # Check Node version
+sudo npm install n -g
+sudo n latest
+```
+
+## Develop
+
+To develop the Apps Script SDK locally, compile the TypeScript and install the CLI locally:
+
+```sh
+tsc index.ts
+sudo npm i -g
+clasp <command>
+```
+
+Run [tslint](https://palantir.github.io/tslint/): `npm run lint`
+
+Submit a pull request after testing and linting.
+
+## Publish
+
+Bump versions, then publish with: `npm publish --access public`
 
 ⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/api/).
