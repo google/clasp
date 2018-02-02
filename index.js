@@ -487,6 +487,7 @@ function fetchProject(scriptId, rootDir) {
           let truePath = `${rootDir || '.'}/${filePath}`;
           mkdirp(path.dirname(truePath), (err) => {
             if (err) return logError(err, ERROR.FS_DIR_WRITE);
+            if (!file.source) return;
             fs.writeFile(truePath, file.source, (err) => {
               if (err) return logError(err, ERROR.FS_FILE_WRITE);
             });
