@@ -1,6 +1,6 @@
 # clasp
 
-Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
+Develop [Apps Script](https://developers.google.com/apps-script/) projects locally usingclasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
 ![clasp](https://user-images.githubusercontent.com/744973/35164939-43fd32ae-fd01-11e7-8916-acd70fff3383.gif)
 
@@ -24,8 +24,8 @@ Then enable Apps Script API: https://script.google.com/home/usersettings
 
 **📁 Structure Code:** `clasp` automatically converts your flat project on [script.google.com](script.google.com) into **folders**. For example:
 - _On script.google.com_:
-  - `tests/slides.gs`
-  - `tests/sheets.gs`
+  - `tests/slides.js`
+  - `tests/sheets.js`
 - _locally_:
   - `tests/`
     - `slides.js`
@@ -34,9 +34,9 @@ Then enable Apps Script API: https://script.google.com/home/usersettings
 ## Commands
 
 ```sh
-clasp -h
+clasp
 ```
-- `clasp login`
+- `clasp login [--no-localhost]`
 - `clasp logout`
 - `clasp create [scriptTitle] [scriptParentId]`
 - `clasp clone <scriptId>`
@@ -45,7 +45,7 @@ clasp -h
 - `clasp open`
 - `clasp deployments`
 - `clasp deploy [version] [description]`
-- `clasp redeploy <deploymentId> <description>`
+- `clasp redeploy <deploymentId> <version> <description>`
 - `clasp version [description]`
 - `clasp versions`
 
@@ -57,9 +57,11 @@ clasp login
 clasp logout
 ```
 
+Run `clasp login --no-localhost` to manually enter a code instead of running a local server.
+
 ### Create a New Apps Script Project
 
-Files in the current directory are added to the project.
+Files in the current directory are added to the project. Optinally provide a script title or parent G Suite doc ID.
 
 ```
 clasp create [scriptTitle] [scriptParentId]
@@ -112,9 +114,9 @@ A sample `.claspignore` could look like:
 
 ```
 **/**
-!build/Main.gs
+!build/Main.js
 !appsscript.json
-```  
+```
 This file ignores everything but the manifest and the bundle.
 
 Note: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like `**/node_modules/**`
@@ -131,20 +133,29 @@ sudo n latest
 
 ## Develop
 
-To develop the Apps Script SDK locally, compile the TypeScript and install the CLI locally:
+The Apps Script CLI uses TypeScript to provide autocompletion and linting when developing.
+Use an IDE like **Visual Studio Code** for TypeScript autocompletion.
+
+### Setup
+
+Install `tsc`: `npm install -g typescript`
+
+### After Making a Change
 
 ```sh
-tsc index.ts
-sudo npm i -g
+npm run build;
 clasp <command>
 ```
 
-Run [tslint](https://palantir.github.io/tslint/): `npm run lint`
+### Submitting a Pull Request
 
-Submit a pull request after testing and linting.
+1. Look over the test cases in `test.sh`, try cases that the PR may affect.
+1. Run [tslint](https://palantir.github.io/tslint/): `npm run lint`.
+1. Submit a pull request after testing and linting.
 
 ## Publish
 
-Bump versions, then publish with: `npm publish --access public`
+1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.
+1. Bump versions, then publish with: `npm publish --access public`
 
 ⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/api/).
