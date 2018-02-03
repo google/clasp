@@ -1,6 +1,6 @@
 # clasp
 
-Develop [Apps Script](https://developers.google.com/apps-script/) projects locally usingclasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
+Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
 ![clasp](https://user-images.githubusercontent.com/744973/35164939-43fd32ae-fd01-11e7-8916-acd70fff3383.gif)
 
