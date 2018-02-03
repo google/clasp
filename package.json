@@ -4,8 +4,9 @@
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
-    "compile": "tsc .",
-    "lint": "tslint -c tslint.json index.ts"
+    "build": "sudo tsc index.ts; sudo npm i -g;",
+    "lint": "tslint -c tslint.json index.ts",
+    "test": "sh test.sh"
   },
   "bin": {
     "clasp": "./index.js"
@@ -56,7 +57,10 @@
     "@types/connect": "^3.4.31",
     "@types/core-js": "0.9.36",
     "@types/del": "^3.0.0",
+    "@types/events": "^1.1.0",
+    "@types/glob": "^5.0.35",
     "@types/mkdirp": "^0.5.2",
+    "@types/node": "^9.4.0",
     "@types/open": "^0.0.29",
     "@types/pluralize": "^0.0.28",
     "@types/recursive-readdir": "^2.2.0"
