@@ -328,11 +328,14 @@ function authorizeWithLocalhost(opts: object): Promise<string> {
       const urlParts = url.parse(req.url || '', true);
       const code = urlParts.query.code;
       if (urlParts.query.code) {
-        res(urlParts.query.code); // query.code can be a string[], parse to string
+        res(urlParts.query.code);
       } else {
         rej(urlParts.query.error);
       }
       resp.end(LOG.AUTH_PAGE_SUCCESSFUL);
+      setTimeout(() => { // TODO Remove hack to shutdown server.
+        process.exit();
+      }, 1000);
     });
 
     server.listen(0, () => {
