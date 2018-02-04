@@ -148,7 +148,7 @@ const LOG = {
   AUTHORIZE: (authUrl: string) => `🔑  Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
-  CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${getScriptURL(scriptId)}.`,
+  CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${getScriptURL(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
   DEPLOYMENT_CREATE: 'Creating deployment...',
   DEPLOYMENT_DNE: 'No deployed versions of script.',
