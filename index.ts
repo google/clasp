@@ -490,12 +490,14 @@ commander
  * `pwd` with dots converted to subdirectories.
  * @param {string} scriptId The project script id
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
+ * @param {number?} versionNumber The version of files to fetch.
  */
-function fetchProject(scriptId: string, rootDir = '') {
+function fetchProject(scriptId: string, rootDir = '', versionNumber: number?) {
   spinner.start();
   getAPICredentials(() => {
     script.projects.getContent({
       scriptId,
+      versionNumber,
     }, {}, (error: any, { data }: any) => {
       spinner.stop(true);
       if (error) {
@@ -530,7 +532,7 @@ function fetchProject(scriptId: string, rootDir = '') {
  * Fetches a project and saves the script id locally.
  */
 commander
-  .command('clone <scriptId>')
+  .command('clone <scriptId> [versionNumber]')
   .description('Clone a project')
   .action((scriptId: string) => {
     spinner.setSpinnerTitle(LOG.CLONING);
