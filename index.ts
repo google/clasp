@@ -44,6 +44,8 @@ const readline = require('readline');
 import * as Promise from 'bluebird';
 import { Server } from "http";
 
+const isOnline = require('is-online');
+
 // Debug
 const DEBUG = false;
 
@@ -158,6 +160,7 @@ const LOG = {
   PULLING: 'Pulling files...',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_FAILURE: 'Push failed. Errors:',
+  NO_NETWORK: 'Error: Looks like you are not connected to the internet',
   PUSHING: 'Pushing files...',
   REDEPLOY_END: 'Updated deployment.',
   REDEPLOY_START: 'Updating deployment...',
@@ -273,11 +276,17 @@ function getProjectSettings(): Promise<ProjectSettings> {
  * @param {Function} cb The callback
  */
 function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
-  DOTFILE.RC.read().then((rc: ClaspSettings) => {
-    oauth2Client.credentials = rc;
-    cb(rc);
-  }).catch((err: object) => {
-    logError(null, ERROR.LOGGED_OUT);
+  isOnline().then((online:boolean)=>{
+    if (!online){
+      console.error(LOG.NO_NETWORK);
+      process.exit(1);
+    }
+    DOTFILE.RC.read().then((rc: ClaspSettings) => {
+      oauth2Client.credentials = rc;
+      cb(rc);
+    }).catch((err: object) => {
+      logError(null, ERROR.LOGGED_OUT);
+    });
   });
 }
 
@@ -434,7 +443,13 @@ commander
     DOTFILE.RC.read().then((rc: ClaspSettings) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch((err: string) => {
-      authorize(cmd.localhost);
+      isOnline().then((online:boolean)=>{
+        if (!online){
+          console.error(LOG.NO_NETWORK);
+          process.exit(1);
+        }
+        authorize(cmd.localhost);
+      });
     });
   });
 
@@ -465,23 +480,23 @@ commander
     if (fs.existsSync(DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
-      getAPICredentials(() => {
-        spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
-        spinner.start();
-        script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
-          const scriptId = data.scriptId;
-          spinner.stop(true);
-          if (error) {
-            logError(error, ERROR.CREATE);
-          } else {
-            console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
-            saveProjectId(scriptId);
-            if (!manifestExists()) {
-              fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
+        getAPICredentials(() => {
+          spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
+          spinner.start();
+          script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
+            const scriptId = data.scriptId;
+            spinner.stop(true);
+            if (error) {
+              logError(error, ERROR.CREATE);
+            } else {
+              console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
+              saveProjectId(scriptId);
+              if (!manifestExists()) {
+                fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
+              }
             }
-          }
+          });
         });
-      });
     }
   });
 
@@ -535,9 +550,15 @@ commander
   .command('clone <scriptId> [versionNumber]')
   .description('Clone a project')
   .action((scriptId: string) => {
-    spinner.setSpinnerTitle(LOG.CLONING);
-    saveProjectId(scriptId);
-    fetchProject(scriptId);
+    isOnline().then((online:boolean)=>{
+      if (!online){
+        console.error(LOG.NO_NETWORK);
+        process.exit(1);
+      }
+      spinner.setSpinnerTitle(LOG.CLONING);
+      saveProjectId(scriptId);
+      fetchProject(scriptId);
+    });
   });
 
 /**
@@ -547,11 +568,17 @@ commander
   .command('pull')
   .description('Fetch a remote project')
   .action(() => {
-    getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
-      if (scriptId) {
-        spinner.setSpinnerTitle(LOG.PULLING);
-        fetchProject(scriptId, rootDir);
+    isOnline().then((online: boolean)=>{
+      if (!online){
+        console.error(LOG.NO_NETWORK);
+        process.exit(1);
       }
+      getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+        if (scriptId) {
+          spinner.setSpinnerTitle(LOG.PULLING);
+          fetchProject(scriptId, rootDir);
+        }
+      });
     });
   });
 
@@ -614,8 +641,8 @@ commander
 
               const files = filePaths.map((name, i) => {
                 let nameWithoutExt = name.slice(0, -path.extname(name).length);
-                // Formats rootDir/appsscript.json to appsscript.json. 
-                // Preserves subdirectory names in rootDir 
+                // Formats rootDir/appsscript.json to appsscript.json.
+                // Preserves subdirectory names in rootDir
                 // (rootDir/foo/Code.js becomes foo/Code.js)
                 let formattedName = nameWithoutExt;
                 if (rootDir) {
@@ -674,7 +701,13 @@ commander
         if (scriptId.length < 30) {
           logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
         } else {
-          open(getScriptURL(scriptId));
+          isOnline().then((online:boolean)=>{
+            if (!online){
+              console.error(LOG.NO_NETWORK);
+              process.exit(1);
+            }
+            open(getScriptURL(scriptId));
+          });
         }
       }
     });
