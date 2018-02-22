@@ -631,9 +631,12 @@ commander
               if (abortPush) return spinner.stop(true);
 
               const files = filePaths.map((name, i) => {
-                const nameWithoutExt = name.slice(0, -path.extname(name).length);
-                // Formats rootDir/appsscript.json to appsscript.json.
-                // Preserves subdirectory names in rootDir
+                let nameWithoutExt = name.slice(0, -path.extname(name).length);
+                // Replace OS specific path separator to common '/' char
+                nameWithoutExt = nameWithoutExt.replace('\\', '/');
+                
+                // Formats rootDir/appsscript.json to appsscript.json. 
+                // Preserves subdirectory names in rootDir 
                 // (rootDir/foo/Code.js becomes foo/Code.js)
                 let formattedName = nameWithoutExt;
                 if (rootDir) {
