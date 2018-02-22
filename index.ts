@@ -27,6 +27,7 @@ const findParentDir = require('find-parent-dir');
 import * as fs from 'fs';
 const google = require('googleapis');
 import * as http from 'http';
+const isOnline = require('is-online');
 import * as mkdirp from 'mkdirp';
 const OAuth2 = google.auth.OAuth2;
 const open = require('open');
@@ -43,8 +44,6 @@ import * as url from 'url';
 const readline = require('readline');
 import * as Promise from 'bluebird';
 import { Server } from "http";
-
-const isOnline = require('is-online');
 
 // Debug
 const DEBUG = false;
@@ -160,7 +159,6 @@ const LOG = {
   PULLING: 'Pulling files...',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_FAILURE: 'Push failed. Errors:',
-  NO_NETWORK: 'Error: Looks like you are not connected to the internet',
   PUSHING: 'Pushing files...',
   REDEPLOY_END: 'Updated deployment.',
   REDEPLOY_START: 'Updating deployment...',
@@ -187,6 +185,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
   LOGGED_OUT: `Please login. (${PROJECT_NAME} login)`,
+  OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
@@ -276,17 +275,11 @@ function getProjectSettings(): Promise<ProjectSettings> {
  * @param {Function} cb The callback
  */
 function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
-  isOnline().then((online:boolean)=>{
-    if (!online){
-      console.error(LOG.NO_NETWORK);
-      process.exit(1);
-    }
-    DOTFILE.RC.read().then((rc: ClaspSettings) => {
-      oauth2Client.credentials = rc;
-      cb(rc);
-    }).catch((err: object) => {
-      logError(null, ERROR.LOGGED_OUT);
-    });
+  DOTFILE.RC.read().then((rc: ClaspSettings) => {
+    oauth2Client.credentials = rc;
+    cb(rc);
+  }).catch((err: object) => {
+    logError(null, ERROR.LOGGED_OUT);
   });
 }
 
@@ -407,6 +400,16 @@ function getAPIFileType(path: string): string {
 }
 
 /**
+ * Checks if the network is available. Gracefully exits if not.
+ */
+async function checkIfOnline() {
+  if (!(await isOnline())) {
+    logError(null, ERROR.OFFLINE);
+    process.exit(1);
+  }
+}
+
+/**
  * Saves the script ID in the project dotfile.
  * @param  {string} scriptId The script ID
  */
@@ -442,14 +445,9 @@ commander
     // Try to read the RC file.
     DOTFILE.RC.read().then((rc: ClaspSettings) => {
       console.warn(ERROR.LOGGED_IN);
-    }).catch((err: string) => {
-      isOnline().then((online:boolean)=>{
-        if (!online){
-          console.error(LOG.NO_NETWORK);
-          process.exit(1);
-        }
-        authorize(cmd.localhost);
-      });
+    }).catch(async (err: string) => {
+      await checkIfOnline();
+      authorize(cmd.localhost);
     });
   });
 
@@ -480,23 +478,24 @@ commander
     if (fs.existsSync(DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
-        getAPICredentials(() => {
-          spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
-          spinner.start();
-          script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
-            const scriptId = data.scriptId;
-            spinner.stop(true);
-            if (error) {
-              logError(error, ERROR.CREATE);
-            } else {
-              console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
-              saveProjectId(scriptId);
-              if (!manifestExists()) {
-                fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
-              }
+      getAPICredentials(async () => {
+        await checkIfOnline();
+        spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
+        spinner.start();
+        script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
+          const scriptId = data.scriptId;
+          spinner.stop(true);
+          if (error) {
+            logError(error, ERROR.CREATE);
+          } else {
+            console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
+            saveProjectId(scriptId);
+            if (!manifestExists()) {
+              fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
             }
-          });
+          }
         });
+      });
     }
   });
 
@@ -509,7 +508,8 @@ commander
  */
 function fetchProject(scriptId: string, rootDir = '', versionNumber: number?) {
   spinner.start();
-  getAPICredentials(() => {
+  getAPICredentials(async () => {
+    await checkIfOnline();
     script.projects.getContent({
       scriptId,
       versionNumber,
@@ -549,16 +549,11 @@ function fetchProject(scriptId: string, rootDir = '', versionNumber: number?) {
 commander
   .command('clone <scriptId> [versionNumber]')
   .description('Clone a project')
-  .action((scriptId: string) => {
-    isOnline().then((online:boolean)=>{
-      if (!online){
-        console.error(LOG.NO_NETWORK);
-        process.exit(1);
-      }
+  .action(async (scriptId: string) => {
+      await checkIfOnline();
       spinner.setSpinnerTitle(LOG.CLONING);
       saveProjectId(scriptId);
       fetchProject(scriptId);
-    });
   });
 
 /**
@@ -567,18 +562,13 @@ commander
 commander
   .command('pull')
   .description('Fetch a remote project')
-  .action(() => {
-    isOnline().then((online: boolean)=>{
-      if (!online){
-        console.error(LOG.NO_NETWORK);
-        process.exit(1);
+  .action(async () => {
+    await checkIfOnline();
+    getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+      if (scriptId) {
+        spinner.setSpinnerTitle(LOG.PULLING);
+        fetchProject(scriptId, rootDir);
       }
-      getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
-        if (scriptId) {
-          spinner.setSpinnerTitle(LOG.PULLING);
-          fetchProject(scriptId, rootDir);
-        }
-      });
     });
   });
 
@@ -592,10 +582,11 @@ commander
 commander
   .command('push')
   .description('Update the remote project')
-  .action(() => {
+  .action(async () => {
     spinner.setSpinnerTitle(LOG.PUSHING);
     spinner.start();
-    getAPICredentials(() => {
+    getAPICredentials(async () => {
+      await checkIfOnline();
       getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
         // Read all filenames as a flattened tree
@@ -623,7 +614,7 @@ commander
 
               // Check if there are files that will conflict if renamed .gs to .js
               filePaths.map((name: string) => {
-                let fileNameWithoutExt = name.slice(0, -path.extname(name).length);
+                const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
                 if (filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
                   filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1) {
                   // Can't rename, conflicting files
@@ -640,7 +631,7 @@ commander
               if (abortPush) return spinner.stop(true);
 
               const files = filePaths.map((name, i) => {
-                let nameWithoutExt = name.slice(0, -path.extname(name).length);
+                const nameWithoutExt = name.slice(0, -path.extname(name).length);
                 // Formats rootDir/appsscript.json to appsscript.json.
                 // Preserves subdirectory names in rootDir
                 // (rootDir/foo/Code.js becomes foo/Code.js)
@@ -695,19 +686,14 @@ commander
   .command('open')
   .description('Open a script')
   .action((scriptId: string) => {
-    getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+    getProjectSettings().then(async ({ scriptId }: ProjectSettings) => {
       if (scriptId) {
         console.log(LOG.OPEN_PROJECT(scriptId));
         if (scriptId.length < 30) {
           logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
         } else {
-          isOnline().then((online:boolean)=>{
-            if (!online){
-              console.error(LOG.NO_NETWORK);
-              process.exit(1);
-            }
-            open(getScriptURL(scriptId));
-          });
+          await checkIfOnline();
+          open(getScriptURL(scriptId));
         }
       }
     });
@@ -720,7 +706,8 @@ commander
   .command('deployments')
   .description('List deployment ids of a script')
   .action(() => {
-    getAPICredentials(() => {
+    getAPICredentials(async () => {
+      await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId));
@@ -759,7 +746,8 @@ commander
   .description('Deploy a project')
   .action((version: string, description: string) => {
     description = description || '';
-    getAPICredentials(() => {
+    getAPICredentials(async () => {
+      await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId));
@@ -816,7 +804,8 @@ commander
   .command('undeploy <deploymentId>')
   .description('Undeploy a deployment of a project')
   .action((deploymentId: string) => {
-    getAPICredentials(() => {
+    getAPICredentials(async () => {
+      await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId));
@@ -844,7 +833,8 @@ commander
   .command('redeploy <deploymentId> <version> <description>')
   .description(`Update a deployment`)
   .action((deploymentId: string, version: string, description: string) => {
-    getAPICredentials(() => {
+    getAPICredentials(async () => {
+      await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         script.projects.deployments.update({
           scriptId,
@@ -877,7 +867,8 @@ commander
   .action(() => {
     spinner.setSpinnerTitle('Grabbing versions...');
     spinner.start();
-    getAPICredentials(() => {
+    getAPICredentials(async () => {
+      await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         script.projects.versions.list({
           scriptId,
@@ -910,7 +901,8 @@ commander
   .action((description: string) => {
     spinner.setSpinnerTitle(LOG.VERSION_CREATE);
     spinner.start();
-    getAPICredentials(() => {
+    getAPICredentials(async () => {
+      await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         script.projects.versions.create({
           scriptId,
