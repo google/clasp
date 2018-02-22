@@ -614,6 +614,10 @@ commander
 
               const files = filePaths.map((name, i) => {
                 let nameWithoutExt = name.slice(0, -path.extname(name).length);
+                
+                // Replace OS specific path separator to common '/' char
+                nameWithoutExt = nameWithoutExt.replace('\\', '/');
+                
                 // Formats rootDir/appsscript.json to appsscript.json. 
                 // Preserves subdirectory names in rootDir 
                 // (rootDir/foo/Code.js becomes foo/Code.js)
