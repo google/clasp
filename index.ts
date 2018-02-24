@@ -297,8 +297,8 @@ function authorize(useLocalhost: boolean) {
       'https://www.googleapis.com/auth/script.deployments',
       'https://www.googleapis.com/auth/script.projects',
     ],
-    code_challenge_method: 'S256',
-    code_challenge: codes.codeChallenge,
+    // code_challenge_method: 'S256',
+    // code_challenge: codes.codeChallenge,
   };
   const authCode: Promise<string> = useLocalhost ?
     authorizeWithLocalhost(options) :
