@@ -61,14 +61,14 @@ const DOT = {
     PATH: `.${PROJECT_NAME}ignore`,
   },
   PROJECT: { // Saves project information, local to project directory
-    DIR: './', // Relative to where the command is run. See DOTFILE.PROJECT()
+    DIR: path.join('.', '/'), // Relative to where the command is run. See DOTFILE.PROJECT()
     NAME: `${PROJECT_NAME}.json`,
     PATH: `.${PROJECT_NAME}.json`,
   },
   RC: { // Saves global information, in the $HOME directory
     DIR: '~',
     NAME: `${PROJECT_NAME}rc.json`,
-    PATH: `~/.${PROJECT_NAME}rc.json`,
+    PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
     ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`)
   },
 };
@@ -590,7 +590,7 @@ commander
       getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
         // Read all filenames as a flattened tree
-        recursive(rootDir || './', (err, filePaths) => {
+        recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
           if (err) return logError(err);
           // Filter files that aren't allowed.
           filePaths = filePaths.filter((name) => !name.startsWith('.'));
@@ -634,9 +634,9 @@ commander
                 let nameWithoutExt = name.slice(0, -path.extname(name).length);
                 // Replace OS specific path separator to common '/' char
                 nameWithoutExt = nameWithoutExt.replace('\\', '/');
-                
-                // Formats rootDir/appsscript.json to appsscript.json. 
-                // Preserves subdirectory names in rootDir 
+
+                // Formats rootDir/appsscript.json to appsscript.json.
+                // Preserves subdirectory names in rootDir
                 // (rootDir/foo/Code.js becomes foo/Code.js)
                 let formattedName = nameWithoutExt;
                 if (rootDir) {
