@@ -24,8 +24,8 @@ Then enable Apps Script API: https://script.google.com/home/usersettings
 
 **📁 Structure Code:** `clasp` automatically converts your flat project on [script.google.com](script.google.com) into **folders**. For example:
 - _On script.google.com_:
-  - `tests/slides.js`
-  - `tests/sheets.js`
+  - `tests/slides.gs`
+  - `tests/sheets.gs`
 - _locally_:
   - `tests/`
     - `slides.js`
