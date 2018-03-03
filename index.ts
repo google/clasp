@@ -155,6 +155,7 @@ const LOG = {
   DEPLOYMENT_DNE: 'No deployed versions of script.',
   DEPLOYMENT_LIST: (scriptId: string) => `Listing deployments for ${scriptId}...`,
   DEPLOYMENT_START: (scriptId: string) => `Deploying project ${scriptId}...`,
+  FILES_TO_PUSH: 'Files to push were:',
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   PULLING: 'Pulling files...',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
@@ -667,6 +668,10 @@ commander
                   console.error(LOG.PUSH_FAILURE);
                   error.errors.map((err: any) => {
                     console.error(err.message);
+                  });
+                  console.error(LOG.FILES_TO_PUSH);
+                   nonIgnoredFilePaths.map((filePath) => {
+                    console.error(`└─ ${filePath}`);
                   });
                 } else {
                   nonIgnoredFilePaths.map((filePath) => {
