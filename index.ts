@@ -84,7 +84,7 @@ interface ClaspSettings {
 }
 // Project settings file (Saved in .clasp.json)
 interface ClaspProjectSettings {
-  [index: string]: ProjectSettings
+  [index: string]: ProjectSettings;
 }
 
 interface ProjectSettings {
@@ -104,47 +104,47 @@ interface LoginOptions {
 }
 
 interface CreateOptions {
-  env: string
+  env: string;
 }
 
 interface CloneOptions {
-  env: string
+  env: string;
 }
 
 interface PullOptions {
-  env: string
+  env: string;
 }
 
 interface PushOptions {
-  env: string
+  env: string;
 }
 
 interface OpenOptions {
-  env: string
+  env: string;
 }
 
 interface DeploymentsOptions {
-  env: string
+  env: string;
 }
 
 interface DeployOptions {
-  env: string
+  env: string;
 }
 
 interface UndeployOptions {
-  env: string
+  env: string;
 }
 
 interface RedeployOptions {
-  env: string
+  env: string;
 }
 
 interface VersionsOptions {
-  env: string
+  env: string;
 }
 
 interface VersionOptions {
-  env: string
+  env: string;
 }
 
 // Dotfile files
