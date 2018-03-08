@@ -506,7 +506,7 @@ commander
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  * @param {number?} versionNumber The version of files to fetch.
  */
-function fetchProject(scriptId: string, rootDir = '', versionNumber: number?) {
+function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
   spinner.start();
   getAPICredentials(async () => {
     await checkIfOnline();
