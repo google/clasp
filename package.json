@@ -4,12 +4,12 @@
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
-    "build": "sudo tsc index.ts; sudo npm i -g;",
+    "build": "sudo tsc --outDir dist ./src/*",
     "lint": "tslint -c tslint.json index.ts",
     "test": "sh test.sh"
   },
   "bin": {
-    "clasp": "./index.js"
+    "clasp": "./lib/index.js"
   },
   "repository": {
     "type": "git",
