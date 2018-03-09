@@ -42,11 +42,7 @@ import { Spinner } from 'cli-spinner';
 const splitLines = require('split-lines');
 import * as url from 'url';
 const readline = require('readline');
-import * as Promise from 'bluebird';
 import { Server } from "http";
-
-// Debug
-const DEBUG = false;
 
 // Names / Paths
 const PROJECT_NAME = 'clasp';
