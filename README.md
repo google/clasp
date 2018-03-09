@@ -121,6 +121,18 @@ This file ignores everything but the manifest and the bundle.
 
 Note: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like `**/node_modules/**`
 
+### Configuration
+
+When running `clone` or `create`, a file named `.clasp.json` is created in the current directory to describe clasp's configuration for the current project. The following configuration values can be used in it.
+
+#### `scriptId` (required)
+
+Specifies the id of the Google Script project that clasp will target. It is the part located inbetween `/d/` and `/edit` in your project's URL: `https://script.google.com/d/<SCRIPT_ID>/edit`.
+
+#### `rootDir` (optional)
+
+Specifies the **local** directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
+
 ## Troubleshooting
 
 The library requires Node version >= 4.7.4.
