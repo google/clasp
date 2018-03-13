@@ -671,7 +671,7 @@ commander
                   });
                   console.error(LOG.FILES_TO_PUSH);
                    nonIgnoredFilePaths.map((filePath) => {
-                    console.error(`└─ ${filePath}`);
+                   console.error(`└─ ${filePath}`);
                   });
                 } else {
                   nonIgnoredFilePaths.map((filePath) => {
