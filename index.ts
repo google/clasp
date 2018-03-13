@@ -53,6 +53,8 @@ const PROJECT_NAME = 'clasp';
 const PROJECT_MANIFEST_BASENAME = 'appsscript';
 const PROJECT_MANIFEST_FULLNAME = `${PROJECT_MANIFEST_BASENAME}.json`;
 
+const DEFAULT_ENV_NAME = 'default';
+
 // Dotfile names
 const DOT = {
   IGNORE: { // Ignores files on `push`
@@ -81,6 +83,10 @@ interface ClaspSettings {
   expiry_date: string;
 }
 // Project settings file (Saved in .clasp.json)
+interface ClaspProjectSettings {
+  [index: string]: ProjectSettings;
+}
+
 interface ProjectSettings {
   scriptId: string;
   rootDir: string;
@@ -95,6 +101,50 @@ interface AppsScriptFile {
 
 interface LoginOptions {
   localhost: boolean;
+}
+
+interface CreateOptions {
+  env: string;
+}
+
+interface CloneOptions {
+  env: string;
+}
+
+interface PullOptions {
+  env: string;
+}
+
+interface PushOptions {
+  env: string;
+}
+
+interface OpenOptions {
+  env: string;
+}
+
+interface DeploymentsOptions {
+  env: string;
+}
+
+interface DeployOptions {
+  env: string;
+}
+
+interface UndeployOptions {
+  env: string;
+}
+
+interface RedeployOptions {
+  env: string;
+}
+
+interface VersionsOptions {
+  env: string;
+}
+
+interface VersionOptions {
+  env: string;
 }
 
 // Dotfile files
@@ -181,7 +231,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
   CREATE: 'Error creating script.',
   DEPLOYMENT_COUNT: `Unable to deploy; Only one deployment can be created at a time`,
-  FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
+  ENV_EXISTS: (env: string) => `Environment: ${env} already exists in project file (${DOT.PROJECT.PATH}).`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
@@ -239,7 +289,7 @@ const getScriptURL = (scriptId: string) => `https://script.google.com/d/${script
  * Should be used instead of `DOTFILE.PROJECT().read()`
  * @return {Promise} A promise to get the project script ID.
  */
-function getProjectSettings(): Promise<ProjectSettings> {
+function getProjectSettings(env: string = DEFAULT_ENV_NAME): Promise<ProjectSettings> {
   const promise = new Promise<ProjectSettings>((resolve, reject) => {
     const fail = () => {
       logError(null, ERROR.SCRIPT_ID_DNE);
@@ -248,10 +298,14 @@ function getProjectSettings(): Promise<ProjectSettings> {
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
-      dotfile.read().then((settings: ProjectSettings) => {
+      dotfile.read().then((settings: ClaspProjectSettings) => {
+        const setting = settings[env];
+        if (!setting) {
+          fail();
+        }
         // Settings must have the script ID. Otherwise we err.
-        if (settings.scriptId) {
-          resolve(settings);
+        if (setting.scriptId) {
+          resolve(setting);
         } else {
           // TODO: Better error message
           fail(); // Script ID DNE
@@ -410,12 +464,33 @@ async function checkIfOnline() {
   }
 }
 
+function existsEnv(env: string): Promise<boolean> {
+  const dotfile = DOTFILE.PROJECT();
+  if (!dotfile) {
+    return Promise.resolve(false);
+  }
+  return dotfile.read().then((settings: ClaspProjectSettings) => !!settings[env]);
+}
+
 /**
  * Saves the script ID in the project dotfile.
  * @param  {string} scriptId The script ID
+ * @param  {string} env Environment of project
  */
-function saveProjectId(scriptId: string): void {
-  DOTFILE.PROJECT().write({ scriptId }); // Save the script id
+function saveProjectId(scriptId: string, env: string = DEFAULT_ENV_NAME): void {
+  const dotfile = DOTFILE.PROJECT();
+  if (dotfile) {
+    dotfile.read().then((settings: ClaspProjectSettings) => {
+      const setting = settings[env] || {};
+      setting.scriptId = scriptId;
+      settings[env] = setting;
+      return settings;
+    }).then((settings: ClaspProjectSettings) => {
+      dotfile.write(settings);
+    });
+  } else {
+    DOTFILE.PROJECT().write({[env]: { scriptId } }); // Save the script id
+  }
 }
 
 /**
@@ -475,9 +550,11 @@ commander
 commander
   .command('create [scriptTitle] [scriptParentId]')
   .description('Create a script')
-  .action((title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId: string) => {
-    if (fs.existsSync(DOT.PROJECT.PATH)) {
-      logError(null, ERROR.FOLDER_EXISTS);
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action(async (title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId: string, cmd: CreateOptions) => {
+    const env = cmd.env;
+    if (await existsEnv(env)) {
+      logError(null, ERROR.ENV_EXISTS(env));
     } else {
       getAPICredentials(async () => {
         await checkIfOnline();
@@ -490,7 +567,7 @@ commander
             logError(error, ERROR.CREATE);
           } else {
             console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
-            saveProjectId(scriptId);
+            saveProjectId(scriptId, env);
             if (!manifestExists()) {
               fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
             }
@@ -550,10 +627,11 @@ function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
 commander
   .command('clone <scriptId> [versionNumber]')
   .description('Clone a project')
-  .action(async (scriptId: string) => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action(async (scriptId: string, versionNumber:number , cmd: CloneOptions) => {
       await checkIfOnline();
       spinner.setSpinnerTitle(LOG.CLONING);
-      saveProjectId(scriptId);
+      saveProjectId(scriptId, cmd.env);
       fetchProject(scriptId);
   });
 
@@ -563,9 +641,10 @@ commander
 commander
   .command('pull')
   .description('Fetch a remote project')
-  .action(async () => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action(async (cmd: PullOptions) => {
     await checkIfOnline();
-    getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+    getProjectSettings(cmd.env).then(({ scriptId, rootDir }: ProjectSettings) => {
       if (scriptId) {
         spinner.setSpinnerTitle(LOG.PULLING);
         fetchProject(scriptId, rootDir);
@@ -583,12 +662,13 @@ commander
 commander
   .command('push')
   .description('Update the remote project')
-  .action(async () => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action(async (cmd: PushOptions) => {
     spinner.setSpinnerTitle(LOG.PUSHING);
     spinner.start();
     getAPICredentials(async () => {
       await checkIfOnline();
-      getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+      getProjectSettings(cmd.env).then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
         // Read all filenames as a flattened tree
         recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
@@ -693,8 +773,9 @@ commander
 commander
   .command('open')
   .description('Open a script')
-  .action((scriptId: string) => {
-    getProjectSettings().then(async ({ scriptId }: ProjectSettings) => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action((cmd: OpenOptions) => {
+    getProjectSettings(cmd.env).then(async ({ scriptId }: ProjectSettings) => {
       if (scriptId) {
         console.log(LOG.OPEN_PROJECT(scriptId));
         if (scriptId.length < 30) {
@@ -713,10 +794,11 @@ commander
 commander
   .command('deployments')
   .description('List deployment ids of a script')
-  .action(() => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action((cmd: DeploymentsOptions) => {
     getAPICredentials(async () => {
       await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      getProjectSettings(cmd.env).then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId));
         spinner.start();
@@ -752,11 +834,12 @@ commander
 commander
   .command('deploy [version] [description]')
   .description('Deploy a project')
-  .action((version: string, description: string) => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action((version: string, description: string, cmd: DeployOptions) => {
     description = description || '';
     getAPICredentials(async () => {
       await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      getProjectSettings(cmd.env).then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId));
         spinner.start();
@@ -811,10 +894,11 @@ commander
 commander
   .command('undeploy <deploymentId>')
   .description('Undeploy a deployment of a project')
-  .action((deploymentId: string) => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action((deploymentId: string, cmd: UndeployOptions) => {
     getAPICredentials(async () => {
       await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      getProjectSettings(cmd.env).then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId));
         spinner.start();
@@ -840,10 +924,11 @@ commander
 commander
   .command('redeploy <deploymentId> <version> <description>')
   .description(`Update a deployment`)
-  .action((deploymentId: string, version: string, description: string) => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action((deploymentId: string, version: string, description: string, cmd: UndeployOptions) => {
     getAPICredentials(async () => {
       await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      getProjectSettings(cmd.env).then(({ scriptId }: ProjectSettings) => {
         script.projects.deployments.update({
           scriptId,
           deploymentId,
@@ -872,12 +957,13 @@ commander
 commander
   .command('versions')
   .description('List versions of a script')
-  .action(() => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action((cmd: VersionsOptions) => {
     spinner.setSpinnerTitle('Grabbing versions...');
     spinner.start();
     getAPICredentials(async () => {
       await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      getProjectSettings(cmd.env).then(({ scriptId }: ProjectSettings) => {
         script.projects.versions.list({
           scriptId,
         }, {}, (error: any, { data }: any) => {
@@ -906,12 +992,13 @@ commander
 commander
   .command('version [description]')
   .description('Creates an immutable version of the script')
-  .action((description: string) => {
+  .option('-e, --env [env]', 'Change the enviroment')
+  .action((description: string, cmd: VersionOptions) => {
     spinner.setSpinnerTitle(LOG.VERSION_CREATE);
     spinner.start();
     getAPICredentials(async () => {
       await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      getProjectSettings(cmd.env).then(({ scriptId }: ProjectSettings) => {
         script.projects.versions.create({
           scriptId,
           description,
