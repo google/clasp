@@ -2,14 +2,14 @@
   "name": "@google/clasp",
   "version": "1.1.5",
   "description": "Develop Apps Script Projects locally",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "sudo tsc --outDir dist ./src/*",
     "lint": "tslint -c tslint.json index.ts",
     "test": "sh test.sh"
   },
   "bin": {
-    "clasp": "./lib/index.js"
+    "clasp": "dist/cli.js"
   },
   "repository": {
     "type": "git",

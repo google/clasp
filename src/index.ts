@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * @license
  * Copyright Google Inc.
@@ -34,7 +33,6 @@ const open = require('open');
 import * as os from 'os';
 const path = require('path');
 import * as pluralize from 'pluralize';
-const commander = require('commander');
 const read = require('read-file');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
@@ -45,7 +43,7 @@ const readline = require('readline');
 import { Server } from "http";
 
 // Names / Paths
-const PROJECT_NAME = 'clasp';
+export const PROJECT_NAME = 'clasp';
 const PROJECT_MANIFEST_BASENAME = 'appsscript';
 const PROJECT_MANIFEST_FULLNAME = `${PROJECT_MANIFEST_BASENAME}.json`;
 
@@ -89,7 +87,7 @@ interface AppsScriptFile {
   source: string;
 }
 
-interface LoginOptions {
+export interface LoginOptions {
   localhost: boolean;
 }
 
@@ -170,7 +168,7 @@ const LOG = {
 };
 
 // Error messages (some errors take required params)
-const ERROR = {
+export const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
   COMMAND_DNE: (command: string) => `🤔  Unknown command "${command}"\n
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
@@ -422,14 +420,6 @@ function manifestExists(): boolean {
   return fs.existsSync(PROJECT_MANIFEST_FULLNAME);
 }
 
-// CLI
-
-/**
- * Set global CLI configurations
- */
-commander
-  .usage(`${PROJECT_NAME} <command> [options]`)
-  .description(`${PROJECT_NAME} - The Apps Script CLI`);
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -444,23 +434,12 @@ export function login(useLocalhost: boolean) {
   });
 }
 
-commander
-  .command('login')
-  .description('Log in to script.google.com')
-  .option('--no-localhost', 'Do not run a local server, manually enter code instead')
-  .action((cmd: LoginOptions) => login(cmd.localhost));
-
 /**
  * Logs out the user by deleteing client credentials.
  */
 export function logout() {
   del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
 }
-
-commander
-  .command('logout')
-  .description('Log out')
-  .action(logout);
 
 /**
  * Creates a new script project.
@@ -496,11 +475,6 @@ export async function create(title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId
     });
   }
 }
-
-commander
-  .command('create [scriptTitle] [scriptParentId]')
-  .description('Create a script')
-  .action(create);
 
 /**
  * Fetches the files for a project from the server and writes files locally to
@@ -556,11 +530,6 @@ export async function clone(scriptId: string) {
   fetchProject(scriptId);
 }
 
-commander
-  .command('clone <scriptId> [versionNumber]')
-  .description('Clone a project')
-  .action(clone);
-
 /**
  * Fetches a project from either a provided or saved script id.
  */
@@ -573,11 +542,6 @@ export async function pull() {
    }
  });
 }
-
-commander
-  .command('pull')
-  .description('Fetch a remote project')
-  .action(pull);
 
 /**
  * Force writes all local files to the script management server.
@@ -690,10 +654,6 @@ export async function push() {
   });
 }
 
-commander
-  .command('push')
-  .description('Update the remote project')
-  .action(push);
 
 /**
  * Opens the script editor in the user's browser.
@@ -711,11 +671,6 @@ export function openScriptProject(scriptId: string) {
    }
  });
 }
-
-commander
-  .command('open')
-  .description('Open a script')
-  .action(openScriptProject);
 
 export function listDeployments() {
   getAPICredentials(async () => {
@@ -752,10 +707,6 @@ export function listDeployments() {
 /**
  * List deployments of a script
  */
-commander
-  .command('deployments')
-  .description('List deployment ids of a script')
-  .action(listDeployments);
 
 /**
  * Creates a version and deploys a script.
@@ -813,11 +764,6 @@ export function deploy(version: string, description: string) {
   });
 }
 
-commander
-  .command('deploy [version] [description]')
-  .description('Deploy a project')
-  .action(deploy);
-
 /**
  * Undeploys a deployment of a script.
  * @example "undeploy 123"
@@ -845,18 +791,13 @@ export function undeploy(deploymentId: string) {
    });
  }
 
-commander
-  .command('undeploy <deploymentId>')
-  .description('Undeploy a deployment of a project')
-  .action(undeploy);
-
 /**
  * Updates deployments of a script
  */
 export function redeploy(deploymentId: string, version: string, description: string) {
   getAPICredentials(async () => {
-   await checkIfOnline();
-   getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+    await checkIfOnline();
+    getProjectSettings().then(({ scriptId }: ProjectSettings) => {
      script.projects.deployments.update({
        scriptId,
        deploymentId,
@@ -877,12 +818,8 @@ export function redeploy(deploymentId: string, version: string, description: str
      });
    });
   });
- }
+}
 
-commander
-  .command('redeploy <deploymentId> <version> <description>')
-  .description(`Update a deployment`)
-  .action(redeploy);
 
 /**
  * List versions of a script
@@ -915,10 +852,6 @@ export function listVersions() {
   });
 }
 
-commander
-  .command('versions')
-  .description('List versions of a script')
-  .action(listVersions);
 
 /**
  * Creates an immutable version of the script
@@ -946,25 +879,3 @@ export function createVersion(description: string) {
    });
   });
 }
-
-commander
-  .command('version [description]')
-  .description('Creates an immutable version of the script')
-  .action(createVersion);
-
-/**
- * All other commands are given a help message.
- */
-commander
-  .command('', { isDefault: true })
-  .action((command: string) => {
-    console.error(ERROR.COMMAND_DNE(command));
-  });
-
-// defaults to help if commands are not provided
-if (!process.argv.slice(2).length) {
-  commander.outputHelp();
-}
-
-// User input is provided from the process' arguments
-commander.parse(process.argv);
