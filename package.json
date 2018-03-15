@@ -2,14 +2,14 @@
   "name": "@google/clasp",
   "version": "1.1.5",
   "description": "Develop Apps Script Projects locally",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "sudo tsc index.ts; sudo npm i -g;",
+    "build": "sudo tsc --outDir dist ./src/*",
     "lint": "tslint -c tslint.json index.ts",
     "test": "sh test.sh"
   },
   "bin": {
-    "clasp": "./index.js"
+    "clasp": "dist/cli.js"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "anymatch": "^1.3.2",
-    "bluebird": "^3.5.1",
     "cli-spinner": "^0.2.6",
     "commander": "^2.11.0",
     "connect": "^3.6.5",
@@ -52,7 +51,6 @@
   },
   "devDependencies": {
     "@types/anymatch": "^1.3.0",
-    "@types/bluebird": "^3.5.20",
     "@types/cli-spinner": "^0.2.0",
     "@types/commander": "^2.12.2",
     "@types/connect": "^3.4.31",
@@ -64,6 +62,8 @@
     "@types/node": "^9.4.0",
     "@types/open": "^0.0.29",
     "@types/pluralize": "^0.0.28",
-    "@types/recursive-readdir": "^2.2.0"
+    "@types/recursive-readdir": "^2.2.0",
+    "tslint": "^5.9.1",
+    "typescript": "^2.7.2"
   }
 }

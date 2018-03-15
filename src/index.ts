@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * @license
  * Copyright Google Inc.
@@ -34,7 +33,6 @@ const open = require('open');
 import * as os from 'os';
 const path = require('path');
 import * as pluralize from 'pluralize';
-const commander = require('commander');
 const read = require('read-file');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
@@ -42,14 +40,10 @@ import { Spinner } from 'cli-spinner';
 const splitLines = require('split-lines');
 import * as url from 'url';
 const readline = require('readline');
-import * as Promise from 'bluebird';
 import { Server } from "http";
 
-// Debug
-const DEBUG = false;
-
 // Names / Paths
-const PROJECT_NAME = 'clasp';
+export const PROJECT_NAME = 'clasp';
 const PROJECT_MANIFEST_BASENAME = 'appsscript';
 const PROJECT_MANIFEST_FULLNAME = `${PROJECT_MANIFEST_BASENAME}.json`;
 
@@ -93,7 +87,7 @@ interface AppsScriptFile {
   source: string;
 }
 
-interface LoginOptions {
+export interface LoginOptions {
   localhost: boolean;
 }
 
@@ -174,7 +168,7 @@ const LOG = {
 };
 
 // Error messages (some errors take required params)
-const ERROR = {
+export const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
   COMMAND_DNE: (command: string) => `🤔  Unknown command "${command}"\n
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
@@ -426,41 +420,26 @@ function manifestExists(): boolean {
   return fs.existsSync(PROJECT_MANIFEST_FULLNAME);
 }
 
-// CLI
-
-/**
- * Set global CLI configurations
- */
-commander
-  .usage(`${PROJECT_NAME} <command> [options]`)
-  .description(`${PROJECT_NAME} - The Apps Script CLI`);
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
  */
-commander
-  .command('login')
-  .description('Log in to script.google.com')
-  .option('--no-localhost', 'Do not run a local server, manually enter code instead')
-  .action((cmd: LoginOptions) => {
-    // Try to read the RC file.
-    DOTFILE.RC.read().then((rc: ClaspSettings) => {
-      console.warn(ERROR.LOGGED_IN);
-    }).catch(async (err: string) => {
-      await checkIfOnline();
-      authorize(cmd.localhost);
-    });
+export function login(useLocalhost: boolean) {
+  // Try to read the RC file.
+  DOTFILE.RC.read().then((rc: ClaspSettings) => {
+    console.warn(ERROR.LOGGED_IN);
+  }).catch(async (err: string) => {
+    await checkIfOnline();
+    authorize(useLocalhost);
   });
+}
 
 /**
  * Logs out the user by deleteing client credentials.
  */
-commander
-  .command('logout')
-  .description('Log out')
-  .action(() => {
-    del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
-  });
+export function logout() {
+  del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
+}
 
 /**
  * Creates a new script project.
@@ -472,33 +451,30 @@ commander
  * @example `create "My Script" "1D_Gxyv*****************************NXO7o"`
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/projects/create#body.request_body.FIELDS.parent_id
  */
-commander
-  .command('create [scriptTitle] [scriptParentId]')
-  .description('Create a script')
-  .action((title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId: string) => {
-    if (fs.existsSync(DOT.PROJECT.PATH)) {
-      logError(null, ERROR.FOLDER_EXISTS);
-    } else {
-      getAPICredentials(async () => {
-        await checkIfOnline();
-        spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
-        spinner.start();
-        script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
-          const scriptId = data.scriptId;
-          spinner.stop(true);
-          if (error) {
-            logError(error, ERROR.CREATE);
-          } else {
-            console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
-            saveProjectId(scriptId);
-            if (!manifestExists()) {
-              fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
-            }
+export async function create(title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId: string) {
+  if (fs.existsSync(DOT.PROJECT.PATH)) {
+    logError(null, ERROR.FOLDER_EXISTS);
+  } else {
+    getAPICredentials(async () => {
+      await checkIfOnline();
+      spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
+      spinner.start();
+      script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
+        const scriptId = data.scriptId;
+        spinner.stop(true);
+        if (error) {
+          logError(error, ERROR.CREATE);
+        } else {
+          console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
+          saveProjectId(scriptId);
+          if (!manifestExists()) {
+            fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
           }
-        });
+        }
       });
-    }
-  });
+    });
+  }
+}
 
 /**
  * Fetches the files for a project from the server and writes files locally to
@@ -547,31 +523,25 @@ function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
 /**
  * Fetches a project and saves the script id locally.
  */
-commander
-  .command('clone <scriptId> [versionNumber]')
-  .description('Clone a project')
-  .action(async (scriptId: string) => {
-      await checkIfOnline();
-      spinner.setSpinnerTitle(LOG.CLONING);
-      saveProjectId(scriptId);
-      fetchProject(scriptId);
-  });
+export async function clone(scriptId: string) {
+  await checkIfOnline();
+  spinner.setSpinnerTitle(LOG.CLONING);
+  saveProjectId(scriptId);
+  fetchProject(scriptId);
+}
 
 /**
  * Fetches a project from either a provided or saved script id.
  */
-commander
-  .command('pull')
-  .description('Fetch a remote project')
-  .action(async () => {
-    await checkIfOnline();
-    getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
-      if (scriptId) {
-        spinner.setSpinnerTitle(LOG.PULLING);
-        fetchProject(scriptId, rootDir);
-      }
-    });
-  });
+export async function pull() {
+ await checkIfOnline();
+ getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+   if (scriptId) {
+     spinner.setSpinnerTitle(LOG.PULLING);
+     fetchProject(scriptId, rootDir);
+   }
+ });
+}
 
 /**
  * Force writes all local files to the script management server.
@@ -580,369 +550,332 @@ commander
  * - That don't have an accepted file extension
  * - That are ignored (filename matches a glob pattern in the ignore file)
  */
-commander
-  .command('push')
-  .description('Update the remote project')
-  .action(async () => {
-    spinner.setSpinnerTitle(LOG.PUSHING);
-    spinner.start();
-    getAPICredentials(async () => {
-      await checkIfOnline();
-      getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
-        if (!scriptId) return;
-        // Read all filenames as a flattened tree
-        recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
-          if (err) return logError(err);
-          // Filter files that aren't allowed.
-          filePaths = filePaths.filter((name) => !name.startsWith('.'));
-          DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
-            filePaths = filePaths.sort(); // Sort files alphanumerically
-            let abortPush = false;
+export async function push() {
+  spinner.setSpinnerTitle(LOG.PUSHING);
+  spinner.start();
+  getAPICredentials(async () => {
+    await checkIfOnline();
+    getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+      if (!scriptId) return;
+      // Read all filenames as a flattened tree
+      recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
+        if (err) return logError(err);
+        // Filter files that aren't allowed.
+        filePaths = filePaths.filter((name) => !name.startsWith('.'));
+        DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
+          filePaths = filePaths.sort(); // Sort files alphanumerically
+          let abortPush = false;
 
-            // Match the files with ignored glob pattern
-            readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
-              if (err) return console.error(err);
-              const nonIgnoredFilePaths: string[] = [];
+          // Match the files with ignored glob pattern
+          readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
+            if (err) return console.error(err);
+            const nonIgnoredFilePaths: string[] = [];
 
-              // Check if there are any .gs files
-              // We will prompt the user to rename files
-              let canRenameToJS = false;
-              filePaths.map((name, i) => {
-                if (path.extname(name) === '.gs') {
-                  canRenameToJS = true;
+            // Check if there are any .gs files
+            // We will prompt the user to rename files
+            let canRenameToJS = false;
+            filePaths.map((name, i) => {
+              if (path.extname(name) === '.gs') {
+                canRenameToJS = true;
+              }
+            });
+
+            // Check if there are files that will conflict if renamed .gs to .js
+            filePaths.map((name: string) => {
+              const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
+              if (filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
+                filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1) {
+                // Can't rename, conflicting files
+                abortPush = true;
+                if (path.extname(name) === '.gs') { // only print error once (for .gs)
+                  logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
                 }
-              });
+              } else if (path.extname(name) === '.gs') {
+                // rename file to js
+                console.log(LOG.RENAME_FILE(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js'));
+                fs.renameSync(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js');
+              }
+            });
+            if (abortPush) return spinner.stop(true);
 
-              // Check if there are files that will conflict if renamed .gs to .js
-              filePaths.map((name: string) => {
-                const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
-                if (filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
-                  filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1) {
-                  // Can't rename, conflicting files
-                  abortPush = true;
-                  if (path.extname(name) === '.gs') { // only print error once (for .gs)
-                    logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
-                  }
-                } else if (path.extname(name) === '.gs') {
-                  // rename file to js
-                  console.log(LOG.RENAME_FILE(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js'));
-                  fs.renameSync(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js');
-                }
-              });
-              if (abortPush) return spinner.stop(true);
+            const files = filePaths.map((name, i) => {
+              let nameWithoutExt = name.slice(0, -path.extname(name).length);
+              // Replace OS specific path separator to common '/' char
+              nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
 
-              const files = filePaths.map((name, i) => {
-                let nameWithoutExt = name.slice(0, -path.extname(name).length);
-                // Replace OS specific path separator to common '/' char
-                nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
+              // Formats rootDir/appsscript.json to appsscript.json.
+              // Preserves subdirectory names in rootDir
+              // (rootDir/foo/Code.js becomes foo/Code.js)
+              let formattedName = nameWithoutExt;
+              if (rootDir) {
+                formattedName = nameWithoutExt.slice(
+                  rootDir.length + 1,
+                  nameWithoutExt.length
+                );
+              }
+              if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
+                nonIgnoredFilePaths.push(name);
+                const file: AppsScriptFile = {
+                  name: formattedName, // the file base name
+                  type: getAPIFileType(name), // the file extension
+                  source: contents[i] //the file contents
+                };
+                return file;
+              } else {
+                return; // Skip ignored files
+              }
+            }).filter(Boolean); // remove null values
 
-                // Formats rootDir/appsscript.json to appsscript.json.
-                // Preserves subdirectory names in rootDir
-                // (rootDir/foo/Code.js becomes foo/Code.js)
-                let formattedName = nameWithoutExt;
-                if (rootDir) {
-                  formattedName = nameWithoutExt.slice(
-                    rootDir.length + 1,
-                    nameWithoutExt.length
-                  );
-                }
-                if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
-                  nonIgnoredFilePaths.push(name);
-                  const file: AppsScriptFile = {
-                    name: formattedName, // the file base name
-                    type: getAPIFileType(name), // the file extension
-                    source: contents[i] //the file contents
-                  };
-                  return file;
-                } else {
-                  return; // Skip ignored files
-                }
-              }).filter(Boolean); // remove null values
-
-              script.projects.updateContent({
-                scriptId,
-                resource: { files }
-              }, {}, (error: any, res: Function) => {
-                spinner.stop(true);
-                if (error) {
-                  console.error(LOG.PUSH_FAILURE);
-                  error.errors.map((err: any) => {
-                    console.error(err.message);
-                  });
-                  console.error(LOG.FILES_TO_PUSH);
-                  nonIgnoredFilePaths.map((filePath) => {
-                    console.error(`└─ ${filePath}`);
-                  });
-                } else {
-                  nonIgnoredFilePaths.map((filePath) => {
-                    console.log(`└─ ${filePath}`);
-                  });
-                  console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-                }
-              });
+            script.projects.updateContent({
+              scriptId,
+              resource: { files }
+            }, {}, (error: any, res: Function) => {
+              spinner.stop(true);
+              if (error) {
+                console.error(LOG.PUSH_FAILURE);
+                error.errors.map((err: any) => {
+                  console.error(err.message);
+                });
+                console.error(LOG.FILES_TO_PUSH);
+                nonIgnoredFilePaths.map((filePath) => {
+                  console.error(`└─ ${filePath}`);
+                });
+              } else {
+                nonIgnoredFilePaths.map((filePath) => {
+                  console.log(`└─ ${filePath}`);
+                });
+                console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+              }
             });
           });
         });
       });
     });
   });
+}
+
 
 /**
  * Opens the script editor in the user's browser.
  */
-commander
-  .command('open')
-  .description('Open a script')
-  .action((scriptId: string) => {
-    getProjectSettings().then(async ({ scriptId }: ProjectSettings) => {
-      if (scriptId) {
-        console.log(LOG.OPEN_PROJECT(scriptId));
-        if (scriptId.length < 30) {
-          logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+export function openScriptProject(scriptId: string) {
+ getProjectSettings().then(async ({ scriptId }: ProjectSettings) => {
+   if (scriptId) {
+     console.log(LOG.OPEN_PROJECT(scriptId));
+     if (scriptId.length < 30) {
+       logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+     } else {
+       await checkIfOnline();
+       open(getScriptURL(scriptId));
+     }
+   }
+ });
+}
+
+export function listDeployments() {
+  getAPICredentials(async () => {
+    await checkIfOnline();
+    getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      if (!scriptId) return;
+      spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId));
+      spinner.start();
+
+      script.projects.deployments.list({
+        scriptId
+      }, {}, (error: any, { data }: any) => {
+        spinner.stop(true);
+        if (error) {
+          logError(error);
         } else {
-          await checkIfOnline();
-          open(getScriptURL(scriptId));
+          const deployments = data.deployments;
+          const numDeployments = deployments.length;
+          const deploymentWord = pluralize('Deployment', numDeployments);
+          console.log(`${numDeployments} ${deploymentWord}.`);
+          deployments.map(({ deploymentId, deploymentConfig }: any) => {
+            const versionString = !!deploymentConfig.versionNumber ?
+              `@${deploymentConfig.versionNumber}` : '@HEAD';
+            const description = deploymentConfig.description ?
+              '- ' + deploymentConfig.description : '';
+            console.log(`- ${deploymentId} ${versionString} ${description}`);
+          });
         }
-      }
+      });
     });
   });
+}
 
 /**
  * List deployments of a script
  */
-commander
-  .command('deployments')
-  .description('List deployment ids of a script')
-  .action(() => {
-    getAPICredentials(async () => {
-      await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId));
-        spinner.start();
-
-        script.projects.deployments.list({
-          scriptId
-        }, {}, (error: any, { data }: any) => {
-          spinner.stop(true);
-          if (error) {
-            logError(error);
-          } else {
-            const deployments = data.deployments;
-            const numDeployments = deployments.length;
-            const deploymentWord = pluralize('Deployment', numDeployments);
-            console.log(`${numDeployments} ${deploymentWord}.`);
-            deployments.map(({ deploymentId, deploymentConfig }: any) => {
-              const versionString = !!deploymentConfig.versionNumber ?
-                `@${deploymentConfig.versionNumber}` : '@HEAD';
-              const description = deploymentConfig.description ?
-                '- ' + deploymentConfig.description : '';
-              console.log(`- ${deploymentId} ${versionString} ${description}`);
-            });
-          }
-        });
-      });
-    });
-  });
 
 /**
  * Creates a version and deploys a script.
  * The response gives the version of the deployment.
  */
-commander
-  .command('deploy [version] [description]')
-  .description('Deploy a project')
-  .action((version: string, description: string) => {
-    description = description || '';
-    getAPICredentials(async () => {
-      await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId));
-        spinner.start();
+export function deploy(version: string, description: string) {
+  description = description || '';
+  getAPICredentials(async () => {
+    await checkIfOnline();
+    getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      if (!scriptId) return;
+      spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId));
+      spinner.start();
 
-        function createDeployment(versionNumber: string) {
-          spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
-          script.projects.deployments.create({
-            scriptId,
-            resource: {
-              versionNumber,
-              manifestFileName: PROJECT_MANIFEST_BASENAME,
-              description,
-            }
-          }, {}, (err: any, { data }: any) => {
-            spinner.stop(true);
-            if (err) {
-              console.error(ERROR.DEPLOYMENT_COUNT);
-            } else {
-              console.log(`- ${data.deploymentId} @${versionNumber}.`);
-            }
-          });
-        }
+      function createDeployment(versionNumber: string) {
+        spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+        script.projects.deployments.create({
+          scriptId,
+          resource: {
+            versionNumber,
+            manifestFileName: PROJECT_MANIFEST_BASENAME,
+            description,
+          }
+        }, {}, (err: any, { data }: any) => {
+          spinner.stop(true);
+          if (err) {
+            console.error(ERROR.DEPLOYMENT_COUNT);
+          } else {
+            console.log(`- ${data.deploymentId} @${versionNumber}.`);
+          }
+        });
+      }
 
-        // If the version is specified, update that deployment
-        const versionRequestBody = {
-          description
-        };
-        if (version) {
-          createDeployment(version);
-        } else { // if no version, create a new version and deploy that
-          script.projects.versions.create({
-            scriptId,
-            resource: versionRequestBody
-          }, {}, (err: any, { data }: any) => {
-            spinner.stop(true);
-            if (err) {
-              logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
-            } else {
-              console.log(LOG.VERSION_CREATED(data.versionNumber));
-              createDeployment(data.versionNumber);
-            }
-          });
-        }
-      });
+      // If the version is specified, update that deployment
+      const versionRequestBody = {
+        description
+      };
+      if (version) {
+        createDeployment(version);
+      } else { // if no version, create a new version and deploy that
+        script.projects.versions.create({
+          scriptId,
+          resource: versionRequestBody
+        }, {}, (err: any, { data }: any) => {
+          spinner.stop(true);
+          if (err) {
+            logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
+          } else {
+            console.log(LOG.VERSION_CREATED(data.versionNumber));
+            createDeployment(data.versionNumber);
+          }
+        });
+      }
     });
   });
+}
 
 /**
  * Undeploys a deployment of a script.
  * @example "undeploy 123"
  */
-commander
-  .command('undeploy <deploymentId>')
-  .description('Undeploy a deployment of a project')
-  .action((deploymentId: string) => {
-    getAPICredentials(async () => {
-      await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId));
-        spinner.start();
+export function undeploy(deploymentId: string) {
+   getAPICredentials(async () => {
+     await checkIfOnline();
+     getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+       if (!scriptId) return;
+       spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId));
+       spinner.start();
 
-        script.projects.deployments.delete({
-          scriptId,
-          deploymentId,
-        }, {}, (err: any, res: any) => {  // TODO remove any
-          spinner.stop(true);
-          if (err) {
-            logError(null, ERROR.READ_ONLY_DELETE);
-          } else {
-            console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
-          }
-        });
-      });
-    });
-  });
+       script.projects.deployments.delete({
+         scriptId,
+         deploymentId,
+       }, {}, (err: any, res: any) => {  // TODO remove any
+         spinner.stop(true);
+         if (err) {
+           logError(null, ERROR.READ_ONLY_DELETE);
+         } else {
+           console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
+         }
+       });
+     });
+   });
+ }
 
 /**
  * Updates deployments of a script
  */
-commander
-  .command('redeploy <deploymentId> <version> <description>')
-  .description(`Update a deployment`)
-  .action((deploymentId: string, version: string, description: string) => {
-    getAPICredentials(async () => {
-      await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        script.projects.deployments.update({
-          scriptId,
-          deploymentId,
-          resource: {
-            deploymentConfig: {
-              versionNumber: version,
-              manifestFileName: PROJECT_MANIFEST_BASENAME,
-              description
-            }
-          }
-        }, {}, (error: any, res: any) => { // TODO remove any
-          spinner.stop(true);
-          if (error) {
-            logError(null, error); // TODO prettier error
-          } else {
-            console.log(LOG.REDEPLOY_END);
-          }
-        });
-      });
-    });
+export function redeploy(deploymentId: string, version: string, description: string) {
+  getAPICredentials(async () => {
+    await checkIfOnline();
+    getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+     script.projects.deployments.update({
+       scriptId,
+       deploymentId,
+       resource: {
+         deploymentConfig: {
+           versionNumber: version,
+           manifestFileName: PROJECT_MANIFEST_BASENAME,
+           description
+         }
+       }
+     }, {}, (error: any, res: any) => { // TODO remove any
+       spinner.stop(true);
+       if (error) {
+         logError(null, error); // TODO prettier error
+       } else {
+         console.log(LOG.REDEPLOY_END);
+       }
+     });
+   });
   });
+}
+
 
 /**
  * List versions of a script
  */
-commander
-  .command('versions')
-  .description('List versions of a script')
-  .action(() => {
-    spinner.setSpinnerTitle('Grabbing versions...');
-    spinner.start();
-    getAPICredentials(async () => {
-      await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        script.projects.versions.list({
-          scriptId,
-        }, {}, (error: any, { data }: any) => {
-          spinner.stop(true);
-          if (error) {
-            logError(error);
-          } else {
-            if (data && data.versions && data.versions.length) {
-              const numVersions = data.versions.length;
-              console.log(LOG.VERSION_NUM(numVersions));
-              data.versions.map((version: string) => {
-                console.log(LOG.VERSION_DESCRIPTION(version));
-              });
-            } else {
-              console.error(LOG.DEPLOYMENT_DNE);
-            }
-          }
-        });
-      });
-    });
+export function listVersions() {
+  spinner.setSpinnerTitle('Grabbing versions...');
+  spinner.start();
+  getAPICredentials(async () => {
+   await checkIfOnline();
+   getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+     script.projects.versions.list({
+       scriptId,
+     }, {}, (error: any, { data }: any) => {
+       spinner.stop(true);
+       if (error) {
+         logError(error);
+       } else {
+         if (data && data.versions && data.versions.length) {
+           const numVersions = data.versions.length;
+           console.log(LOG.VERSION_NUM(numVersions));
+           data.versions.map((version: string) => {
+             console.log(LOG.VERSION_DESCRIPTION(version));
+           });
+         } else {
+           console.error(LOG.DEPLOYMENT_DNE);
+         }
+       }
+     });
+   });
   });
+}
+
 
 /**
  * Creates an immutable version of the script
  */
-commander
-  .command('version [description]')
-  .description('Creates an immutable version of the script')
-  .action((description: string) => {
-    spinner.setSpinnerTitle(LOG.VERSION_CREATE);
-    spinner.start();
-    getAPICredentials(async () => {
-      await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        script.projects.versions.create({
-          scriptId,
-          description,
-        }, {}, (error: any, { data }: any) => {
-          spinner.stop(true);
-          if (error) {
-            logError(error);
-          } else {
-            console.log(LOG.VERSION_CREATED(data.versionNumber));
-          }
-        });
-      }).catch((err: any) => {
-        spinner.stop(true);
-        logError(err);
-      });
-    });
+export function createVersion(description: string) {
+  spinner.setSpinnerTitle(LOG.VERSION_CREATE);
+  spinner.start();
+  getAPICredentials(async () => {
+   await checkIfOnline();
+   getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+     script.projects.versions.create({
+       scriptId,
+       description,
+     }, {}, (error: any, { data }: any) => {
+       spinner.stop(true);
+       if (error) {
+         logError(error);
+       } else {
+         console.log(LOG.VERSION_CREATED(data.versionNumber));
+       }
+     });
+   }).catch((err: any) => {
+     spinner.stop(true);
+     logError(err);
+   });
   });
-
-/**
- * All other commands are given a help message.
- */
-commander
-  .command('', { isDefault: true })
-  .action((command: string) => {
-    console.error(ERROR.COMMAND_DNE(command));
-  });
-
-// defaults to help if commands are not provided
-if (!process.argv.slice(2).length) {
-  commander.outputHelp();
 }
-
-// User input is provided from the process' arguments
-commander.parse(process.argv);

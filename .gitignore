@@ -1,4 +1,6 @@
 *.js
+dist/
+
 *.DS_Store
 *.log
 npm-debug.log*
