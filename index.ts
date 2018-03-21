@@ -550,11 +550,11 @@ function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
 commander
   .command('clone <scriptId> [versionNumber]')
   .description('Clone a project')
-  .action(async (scriptId: string) => {
+  .action(async (scriptId: string, versionNumber?: number) => {
       await checkIfOnline();
       spinner.setSpinnerTitle(LOG.CLONING);
       saveProjectId(scriptId);
-      fetchProject(scriptId);
+      fetchProject(scriptId, '', versionNumber);
   });
 
 /**
