@@ -931,10 +931,21 @@ commander
   });
 
 /**
++ * Displays the help function
++ */
+commander
+  .command('help')
+  .description('Display help')
+  .action(() => {
+    commander.outputHelp();
+  });
+
+/**
  * All other commands are given a help message.
  */
 commander
-  .command('', { isDefault: true })
+  .command('*', { isDefault: true })
+  .description('Any other command is not supported')
   .action((command: string) => {
     console.error(ERROR.COMMAND_DNE(command));
   });
