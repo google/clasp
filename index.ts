@@ -185,7 +185,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
-  LOGGED_OUT: `Please login. (${PROJECT_NAME} login)`,
+  LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
@@ -281,6 +281,7 @@ function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
     cb(rc);
   }).catch((err: object) => {
     logError(null, ERROR.LOGGED_OUT);
+    process.exit(-1);
   });
 }
 
