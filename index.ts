@@ -688,6 +688,88 @@ commander
   });
 
 /**
+ * Lists files that will be written to the server on `push`.
+ * Ignores files:
+ * - That start with a .
+ * - That don't have an accepted file extension
+ * - That are ignored (filename matches a glob pattern in the ignore file)
+ */
+commander
+.command('status')
+.description('Lists files that will be pushed by clasp')
+.action(async () => {
+  //TODO (arjun-rao): Check if getAPICredentials is needed
+  getAPICredentials(async () => {
+    getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+      if (!scriptId) return;
+      // Read all filenames as a flattened tree
+      recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
+        if (err) return logError(err);
+        // Filter files that aren't allowed.
+        filePaths = filePaths.filter((name) => !name.startsWith('.'));
+        DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
+          filePaths = filePaths.sort(); // Sort files alphanumerically
+          let abortPush = false;
+
+          // Match the files with ignored glob pattern
+          readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
+            if (err) return console.error(err);
+            const nonIgnoredFilePaths: string[] = [];
+            const ignoredFilePaths: string[] = [];
+
+            // Check if there are any .gs files
+            // We will prompt the user to rename files
+            let canRenameToJS = false;
+            filePaths.map((name, i) => {
+              if (path.extname(name) === '.gs') {
+                canRenameToJS = true;
+              }
+            });
+
+            // Check if there are files that will conflict if renamed .gs to .js
+            filePaths.map((name: string) => {
+              const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
+              if (filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
+                filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1) {
+                // Can't rename, conflicting files
+                abortPush = true;
+                if (path.extname(name) === '.gs') { // only print error once (for .gs)
+                  logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
+                }
+              } else if (path.extname(name) === '.gs') {
+                // rename file to js
+                console.log(LOG.RENAME_FILE(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js'));
+                fs.renameSync(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js');
+              }
+            });
+            if (abortPush) return spinner.stop(true);
+
+            filePaths.map((name, i) => {
+              if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
+                nonIgnoredFilePaths.push(name);
+              } else {
+                ignoredFilePaths.push(name);
+              }
+            }).filter(Boolean); // remove null values
+
+            //TODO (arjun-rao): Replace with LOG. strings
+            console.log("The following files will be pushed by clasp push:");
+            nonIgnoredFilePaths.map((filePath) => {
+                  console.log(`└─ ${filePath}`);
+            });
+            //TODO (arjun-rao): Replace with LOG. strings
+            console.log("Untracked files:");
+            ignoredFilePaths.map((filePath) => {
+              console.log(`└─ ${filePath}`);
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+/**
  * Opens the script editor in the user's browser.
  */
 commander
