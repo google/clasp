@@ -44,6 +44,7 @@ import * as url from 'url';
 const readline = require('readline');
 import * as Promise from 'bluebird';
 import { Server } from "http";
+const Logging = require('@google-cloud/logging');
 
 // Debug
 const DEBUG = false;
@@ -186,6 +187,9 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
+  NO_GCLOUD_PROJECT: `\nPlease set $GCLOUD_PROJECT_ID to your Google Cloud project ID. \n
+  You can find more information on configuring your Google Script with a Google Cloud project\n
+  here: https://developers.google.com/apps-script/guides/cloud-platform-projects#switch_to_a_different_google_cloud_platform_project`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
@@ -298,6 +302,10 @@ function authorize(useLocalhost: boolean) {
     scope: [
       'https://www.googleapis.com/auth/script.deployments',
       'https://www.googleapis.com/auth/script.projects',
+      'https://www.googleapis.com/auth/logging.read',
+      'https://www.googleapis.com/auth/logging.admin',
+      'https://www.googleapis.com/auth/cloud-platform.read-only',
+      'https://www.googleapis.com/auth/cloud-platform'
     ],
     // code_challenge_method: 'S256',
     // code_challenge: codes.codeChallenge,
@@ -930,6 +938,46 @@ commander
       });
     });
   });
+
+/**
+ * Prints out the StackDriver logs
+ */
+commander
+  .command('logs')
+  .description('Shows the StackDriver Logs')
+  .action(() => {
+  
+    if (!process.env.GCLOUD_PROJECT_ID) {
+      console.error(ERROR.NO_GCLOUD_PROJECT);
+      process.exit(-1);
+    }
+
+    // Create logging client
+    const logging = new Logging({
+      projectId: process.env.GCLOUD_PROJECT_ID
+    });
+
+    function printLogs(entries) {
+      for (let i = 0; i < entries.length; i++) {
+        if (entries[i].metadata.payload == 'textPayload') {
+          console.log("=================");
+          console.log(entries[i].data);
+          console.log("=================");
+        } else if (entries[i].metadata.payload == 'jsonPayload') {
+          console.log("=================");
+          let logData = entries[i].data;
+          console.log(logData);
+          console.log("=================");
+        }
+        
+      }
+    }
+
+    logging.getEntries().then((entryData) => {
+      printLogs(entryData[0]);
+    });
+
+  });  
 
 /**
 + * Displays the help function
