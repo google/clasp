@@ -156,7 +156,7 @@ const LOG = {
   DEPLOYMENT_LIST: (scriptId: string) => `Listing deployments for ${scriptId}...`,
   DEPLOYMENT_START: (scriptId: string) => `Deploying project ${scriptId}...`,
   FILES_TO_PUSH: 'Files to push were:',
-  FINDING_SCRIPTS: 'Looking for your scripts now...',
+  FINDING_SCRIPTS: 'Finding your scripts...',
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   PULLING: 'Pulling files...',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
@@ -950,11 +950,9 @@ commander
         pageSize: 10,
         fields: 'nextPageToken, files(id, name)',
         q: "mimeType='application/vnd.google-apps.script'",
-      }, function(err: any, { data }: any) {
+      }, (err: any, { data }: any) => {
         spinner.stop(true);
-        if (err) {
-          return console.error(ERROR.UNAUTHENTICATED);
-        } 
+        if (err) return console.error(ERROR.UNAUTHENTICATED);
         const files = data.files;
         if (files.length) {
           files.map((file: any) => {
