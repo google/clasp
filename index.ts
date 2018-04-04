@@ -156,6 +156,7 @@ const LOG = {
   DEPLOYMENT_LIST: (scriptId: string) => `Listing deployments for ${scriptId}...`,
   DEPLOYMENT_START: (scriptId: string) => `Deploying project ${scriptId}...`,
   FILES_TO_PUSH: 'Files to push were:',
+  FINDING_SCRIPTS: 'Finding your scripts...',
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   PULLING: 'Pulling files...',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
@@ -298,6 +299,7 @@ function authorize(useLocalhost: boolean) {
     scope: [
       'https://www.googleapis.com/auth/script.deployments',
       'https://www.googleapis.com/auth/script.projects',
+      'https://www.googleapis.com/auth/drive.metadata.readonly'
     ],
     // code_challenge_method: 'S256',
     // code_challenge: codes.codeChallenge,
@@ -930,6 +932,45 @@ commander
       });
     });
   });
+
+/**
+ * Lists your most recent 10 apps scripts
+ * TODO: add --all flag
+ * @example `list`
+ * This would show someting like:
+ * helloworld1          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ * helloworld2          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ * helloworld3          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ */
+commander
+  .command('list')
+  .description('List App Scripts projects')
+  .action(() => {
+    spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS);
+    spinner.start();
+    getAPICredentials(async () => {
+      await checkIfOnline();
+      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      const drive = google.drive({version: 'v3', auth: oauth2Client});
+      drive.files.list({
+        pageSize: 10,
+        fields: 'nextPageToken, files(id, name)',
+        q: "mimeType='application/vnd.google-apps.script'",
+      }, (err: any, { data }: any) => {
+        spinner.stop(true);
+        if (err) return console.error(ERROR.UNAUTHENTICATED);
+        const files = data.files;
+        if (files.length) {
+          files.map((file: any) => {
+              console.log(`${file.name.padEnd(20)} (${file.id})`);
+          });
+        } else {
+          console.log('No script files found.');
+        }
+      });
+    });
+  });
+});
 
 /**
  * Displays the help function
