@@ -85,6 +85,7 @@ interface ClaspSettings {
 interface ProjectSettings {
   scriptId: string;
   rootDir: string;
+  projectId: string; // Resources -> Cloud Platform Project
 }
 
 // An Apps Script API File
@@ -494,6 +495,9 @@ commander
         spinner.start();
         script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
           const scriptId = data.scriptId;
+          console.log("********************");
+          console.log(data);
+          console.log("********************");
           spinner.stop(true);
           if (error) {
             logError(error, ERROR.CREATE);
@@ -946,16 +950,6 @@ commander
   .command('logs')
   .description('Shows the StackDriver Logs')
   .action(() => {
-  
-    if (!process.env.GCLOUD_PROJECT_ID) {
-      console.error(ERROR.NO_GCLOUD_PROJECT);
-      process.exit(-1);
-    }
-
-    // Create logging client
-    const logging = new Logging({
-      projectId: process.env.GCLOUD_PROJECT_ID
-    });
 
     function printLogs(entries) {
       for (let i = 0; i < entries.length; i++) {
@@ -972,11 +966,21 @@ commander
         
       }
     }
-
-    logging.getEntries().then((entryData) => {
-      printLogs(entryData[0]);
+  
+    getProjectSettings().then(({ scriptId, rootDir, projectId }: ProjectSettings) => {
+      if (!projectId) {
+        console.error(ERROR.NO_GCLOUD_PROJECT);
+        process.exit(-1);
+      } else {
+        const logging = new Logging({
+            projectId: process.env.GCLOUD_PROJECT_ID
+        });
+        logging.getEntries().then((entryData) => {
+          printLogs(entryData[0]);
+        });
+      }
     });
-
+    
   });  
 
 /**
