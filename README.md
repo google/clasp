@@ -106,6 +106,21 @@ clasp deployments # List all deployment IDs
 clasp open
 ```
 
+### See CloudDriver logs from script
+
+First, you'll need to edit your `.clasp.json` file to put in the Google Cloud projectId.
+You can find it by running `clasp open` then in the top click **Resources -> Cloud Platform project...**
+Copy the projectId (including the part `project-id`), so something like: `project-id-xxxxxxxxxxxxxxxxxxx`
+Put that in your `.clasp.json` file, which should now look something like:
+
+```
+  {
+    "scriptId":"14Ht4FoesbNDhRbbTMI_IyM9uQ27EXIP_p2rK8xCOECg5s9XKpHp4fh3d",
+    "projectId": "project-id-xxxxxxxxxxxxxxxxxxx"
+  }
+
+```
+
 ### Ignore Files
 
 Create a file called `.claspignore` in the root directory of your Apps Script project. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.  
