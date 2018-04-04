@@ -932,8 +932,8 @@ commander
   });
 
 /**
-+ * Displays the help function
-+ */
+ * Displays the help function
+ */
 commander
   .command('help')
   .description('Display help')
