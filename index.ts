@@ -188,9 +188,9 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
-  NO_GCLOUD_PROJECT: `\nPlease set $GCLOUD_PROJECT_ID to your Google Cloud project ID. \n
-  You can find more information on configuring your Google Script with a Google Cloud project\n
-  here: https://developers.google.com/apps-script/guides/cloud-platform-projects#switch_to_a_different_google_cloud_platform_project`,
+  NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
+  You can find your projectId by following the instructions in the README here: \n
+  https://github.com/google/clasp/blob/master/README.md`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
@@ -980,7 +980,7 @@ commander
         });
       }
     });
-    
+
   });  
 
 /**
