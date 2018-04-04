@@ -4,7 +4,7 @@
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
-    "build": "sudo tsc index.ts; sudo npm i -g;",
+    "build": "sudo tsc; sudo npm i -g;",
     "lint": "tslint -c tslint.json index.ts",
     "test": "sh test.sh"
   },
