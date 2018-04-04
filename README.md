@@ -111,7 +111,15 @@ clasp open
 
 ```
 clasp list
+helloworld1          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+helloworld2          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+helloworld3          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+.
+.
+.
 ```
+
+This shows your most recent 10 scripts.
 
 ### Ignore Files
 
