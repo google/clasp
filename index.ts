@@ -934,7 +934,13 @@ commander
   });
 
 /**
- * Lists the apps scripts
+ * Lists your most recent 10 apps scripts
+ * TODO: add --all flag
+ * @example `list`
+ * This would show someting like:
+ * helloworld1          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ * helloworld2          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ * helloworld3          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
  */
 commander
   .command('list')
@@ -967,8 +973,8 @@ commander
 });
 
 /**
-+ * Displays the help function
-+ */
+ * Displays the help function
+ */
 commander
   .command('help')
   .description('Display help')
