@@ -97,6 +97,15 @@ interface LoginOptions {
   localhost: boolean;
 }
 
+// Used to receive files tracked by current project
+interface FilesCallback {
+  (
+    error: Error | boolean,
+    result: string[][] | null,
+    files: Array<AppsScriptFile | undefined> | null
+  ) : void;
+}
+
 // Dotfile files
 const DOTFILE = {
   /**
@@ -159,6 +168,8 @@ const LOG = {
   FINDING_SCRIPTS: 'Finding your scripts...',
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   PULLING: 'Pulling files...',
+  STATUS_PUSH: 'The following files will be pushed by clasp push:',
+  STATUS_IGNORE: 'Untracked files:',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_FAILURE: 'Push failed. Errors:',
   PUSHING: 'Pushing files...',
@@ -429,6 +440,90 @@ function manifestExists(): boolean {
   return fs.existsSync(PROJECT_MANIFEST_FULLNAME);
 }
 
+/**
+ * Recursively finds all files that are part of the current project, and those that are ignored
+ * by .claspignore and calls the passed callback function with the file lists.
+ * @param {string} rootDir The project's root directory
+ * @param {FilesCallBack} callback The callback will be called with the following paramters
+ * error: Error if there's an error, otherwise null
+ * result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
+ * files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
+ */
+function getProjectFiles(rootDir: string, callback: FilesCallback): void {
+  // Read all filenames as a flattened tree
+  recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
+    if (err) return callback(err, null, null);
+    // Filter files that aren't allowed.
+    filePaths = filePaths.filter((name) => !name.startsWith('.'));
+    DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
+      filePaths = filePaths.sort(); // Sort files alphanumerically
+      let abortPush = false;
+      const nonIgnoredFilePaths: string[] = [];
+      const ignoredFilePaths: string[] = [];
+      // Match the files with ignored glob pattern
+      readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
+        if (err) return callback(new Error(err), null, null);
+        // Check if there are any .gs files
+        // We will prompt the user to rename files
+        let canRenameToJS = false;
+        filePaths.map((name, i) => {
+          if (path.extname(name) === '.gs') {
+            canRenameToJS = true;
+          }
+        });
+
+        // Check if there are files that will conflict if renamed .gs to .js
+        filePaths.map((name: string) => {
+          const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
+          if (filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
+            filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1) {
+            // Can't rename, conflicting files
+            abortPush = true;
+            if (path.extname(name) === '.gs') { // only print error once (for .gs)
+              logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
+            }
+          } else if (path.extname(name) === '.gs') {
+            // rename file to js
+            console.log(LOG.RENAME_FILE(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js'));
+            fs.renameSync(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js');
+          }
+        });
+
+        if(abortPush) return callback(new Error(), null, null);
+
+        const files = filePaths.map((name, i) => {
+          let nameWithoutExt = name.slice(0, -path.extname(name).length);
+          // Replace OS specific path separator to common '/' char
+          nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
+
+          // Formats rootDir/appsscript.json to appsscript.json.
+          // Preserves subdirectory names in rootDir
+          // (rootDir/foo/Code.js becomes foo/Code.js)
+          let formattedName = nameWithoutExt;
+          if (rootDir) {
+            formattedName = nameWithoutExt.slice(
+              rootDir.length + 1,
+              nameWithoutExt.length
+            );
+          }
+          if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
+            nonIgnoredFilePaths.push(name);
+            const file: AppsScriptFile = {
+              name: formattedName, // the file base name
+              type: getAPIFileType(name), // the file extension
+              source: contents[i] //the file contents
+            };
+            return file;
+          } else {
+            ignoredFilePaths.push(name);
+            return; // Skip ignored files
+          }
+        }).filter(Boolean); // remove null values
+        callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
+      });
+    });
+  });
+}
 // CLI
 
 /**
@@ -593,102 +688,71 @@ commander
       await checkIfOnline();
       getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
-        // Read all filenames as a flattened tree
-        recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
-          if (err) return logError(err);
-          // Filter files that aren't allowed.
-          filePaths = filePaths.filter((name) => !name.startsWith('.'));
-          DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
-            filePaths = filePaths.sort(); // Sort files alphanumerically
-            let abortPush = false;
-
-            // Match the files with ignored glob pattern
-            readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
-              if (err) return console.error(err);
-              const nonIgnoredFilePaths: string[] = [];
-
-              // Check if there are any .gs files
-              // We will prompt the user to rename files
-              let canRenameToJS = false;
-              filePaths.map((name, i) => {
-                if (path.extname(name) === '.gs') {
-                  canRenameToJS = true;
-                }
-              });
-
-              // Check if there are files that will conflict if renamed .gs to .js
-              filePaths.map((name: string) => {
-                const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
-                if (filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
-                  filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1) {
-                  // Can't rename, conflicting files
-                  abortPush = true;
-                  if (path.extname(name) === '.gs') { // only print error once (for .gs)
-                    logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
-                  }
-                } else if (path.extname(name) === '.gs') {
-                  // rename file to js
-                  console.log(LOG.RENAME_FILE(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js'));
-                  fs.renameSync(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js');
-                }
-              });
-              if (abortPush) return spinner.stop(true);
-
-              const files = filePaths.map((name, i) => {
-                let nameWithoutExt = name.slice(0, -path.extname(name).length);
-                // Replace OS specific path separator to common '/' char
-                nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
-
-                // Formats rootDir/appsscript.json to appsscript.json.
-                // Preserves subdirectory names in rootDir
-                // (rootDir/foo/Code.js becomes foo/Code.js)
-                let formattedName = nameWithoutExt;
-                if (rootDir) {
-                  formattedName = nameWithoutExt.slice(
-                    rootDir.length + 1,
-                    nameWithoutExt.length
-                  );
-                }
-                if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
-                  nonIgnoredFilePaths.push(name);
-                  const file: AppsScriptFile = {
-                    name: formattedName, // the file base name
-                    type: getAPIFileType(name), // the file extension
-                    source: contents[i] //the file contents
-                  };
-                  return file;
-                } else {
-                  return; // Skip ignored files
-                }
-              }).filter(Boolean); // remove null values
-
-              script.projects.updateContent({
-                scriptId,
-                resource: { files }
-              }, {}, (error: any, res: Function) => {
-                spinner.stop(true);
-                if (error) {
-                  console.error(LOG.PUSH_FAILURE);
-                  error.errors.map((err: any) => {
-                    console.error(err.message);
-                  });
-                  console.error(LOG.FILES_TO_PUSH);
-                  nonIgnoredFilePaths.map((filePath) => {
-                    console.error(`└─ ${filePath}`);
-                  });
-                } else {
-                  nonIgnoredFilePaths.map((filePath) => {
-                    console.log(`└─ ${filePath}`);
-                  });
-                  console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-                }
-              });
-            });
+        getProjectFiles(rootDir, (err, projectFiles, files) => {
+          if(err) {
+            console.log(err);
+            spinner.stop(true);
+          } else if (projectFiles) {
+            const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
+            script.projects.updateContent({
+              scriptId,
+              resource: { files }
+            }, {}, (error: any, res: Function) => {
+              spinner.stop(true);
+              if (error) {
+                console.error(LOG.PUSH_FAILURE);
+                error.errors.map((err: any) => {
+                  console.error(err.message);
+                });
+                console.error(LOG.FILES_TO_PUSH);
+                nonIgnoredFilePaths.map((filePath: string) => {
+                  console.error(`└─ ${filePath}`);
+                });
+              } else {
+                nonIgnoredFilePaths.map((filePath: string) => {
+                  console.log(`└─ ${filePath}`);
+                });
+                console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+              }
           });
-        });
+        }
       });
     });
   });
+});
+
+/**
+ * Lists files that will be written to the server on `push`.
+ * Ignores files:
+ * - That start with a .
+ * - That don't have an accepted file extension
+ * - That are ignored (filename matches a glob pattern in the ignore file)
+ */
+commander
+.command('status')
+.description('Lists files that will be pushed by clasp')
+.action(async () => {
+  getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+    if (!scriptId) return;
+
+    getProjectFiles(rootDir, (err, projectFiles) => {
+      if(err) return console.log(err);
+      else if (projectFiles) {
+        const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
+        console.log(LOG.STATUS_PUSH);
+        nonIgnoredFilePaths.map((filePath: string) => {
+              console.log(`└─ ${filePath}`);
+        });
+        if (ignoredFilePaths.length) {
+          console.log(LOG.STATUS_IGNORE);
+          ignoredFilePaths.map((filePath: string) => {
+            console.log(`└─ ${filePath}`);
+          });
+        }
+      }
+    });
+  });
+});
 
 /**
  * Opens the script editor in the user's browser.
