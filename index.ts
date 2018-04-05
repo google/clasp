@@ -99,7 +99,11 @@ interface LoginOptions {
 
 // Used to receive files tracked by current project
 interface FilesCallback {
-  ( error?: Error, result?: string[][], files?: Array<AppsScriptFile|undefined>) : void;
+  (
+    error: Error | boolean,
+    result: string[][] | null,
+    files: Array<AppsScriptFile | undefined> | null
+  ) : void;
 }
 
 // Dotfile files
@@ -445,13 +449,10 @@ function manifestExists(): boolean {
  * result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
  * files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
  */
-function getProjectFiles(rootDir: string, callback: FilesCallback): any {
+function getProjectFiles(rootDir: string, callback: FilesCallback): void {
   // Read all filenames as a flattened tree
   recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
-    if (err) {
-      callback(err);
-      return;
-    }
+    if (err) return callback(err, null, null);
     // Filter files that aren't allowed.
     filePaths = filePaths.filter((name) => !name.startsWith('.'));
     DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
@@ -461,10 +462,7 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): any {
       const ignoredFilePaths: string[] = [];
       // Match the files with ignored glob pattern
       readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
-        if (err) {
-          callback(new Error(err));
-          return;
-        }
+        if (err) return callback(new Error(err), null, null);
         // Check if there are any .gs files
         // We will prompt the user to rename files
         let canRenameToJS = false;
@@ -490,10 +488,9 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): any {
             fs.renameSync(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js');
           }
         });
-        if (abortPush) {
-            callback(new Error());
-            return;
-        }
+
+        if(abortPush) return callback(new Error(), null, null);
+
         const files = filePaths.map((name, i) => {
           let nameWithoutExt = name.slice(0, -path.extname(name).length);
           // Replace OS specific path separator to common '/' char
@@ -522,7 +519,7 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): any {
             return; // Skip ignored files
           }
         }).filter(Boolean); // remove null values
-        callback(undefined,[nonIgnoredFilePaths,ignoredFilePaths],files);
+        callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
       });
     });
   });
@@ -692,9 +689,10 @@ commander
       getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
         getProjectFiles(rootDir, (err, projectFiles, files) => {
-          if (err !== undefined) {
-            return;
-          } else if (projectFiles !== undefined) {
+          if(err) {
+            console.log(err);
+            spinner.stop(true);
+          } else if (projectFiles) {
             const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
             script.projects.updateContent({
               scriptId,
@@ -707,11 +705,11 @@ commander
                   console.error(err.message);
                 });
                 console.error(LOG.FILES_TO_PUSH);
-                nonIgnoredFilePaths.map((filePath) => {
+                nonIgnoredFilePaths.map((filePath: string) => {
                   console.error(`└─ ${filePath}`);
                 });
               } else {
-                nonIgnoredFilePaths.map((filePath) => {
+                nonIgnoredFilePaths.map((filePath: string) => {
                   console.log(`└─ ${filePath}`);
                 });
                 console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
@@ -738,17 +736,16 @@ commander
     if (!scriptId) return;
 
     getProjectFiles(rootDir, (err, projectFiles) => {
-      if (err !== undefined) {
-        console.error(err);
-      } else if (projectFiles !== undefined) {
+      if(err) return console.log(err);
+      else if (projectFiles) {
         const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
         console.log(LOG.STATUS_PUSH);
         nonIgnoredFilePaths.map((filePath: string) => {
               console.log(`└─ ${filePath}`);
         });
-        if(ignoredFilePaths.length !== 0) {
+        if (ignoredFilePaths.length) {
           console.log(LOG.STATUS_IGNORE);
-          ignoredFilePaths.map((filePath:string) => {
+          ignoredFilePaths.map((filePath: string) => {
             console.log(`└─ ${filePath}`);
           });
         }
