@@ -161,6 +161,7 @@ const LOG = {
   DEPLOYMENT_LIST: (scriptId: string) => `Listing deployments for ${scriptId}...`,
   DEPLOYMENT_START: (scriptId: string) => `Deploying project ${scriptId}...`,
   FILES_TO_PUSH: 'Files to push were:',
+  FINDING_SCRIPTS: 'Finding your scripts...',
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   PULLING: 'Pulling files...',
   STATUS_PUSH: 'The following files will be pushed by clasp push:',
@@ -192,7 +193,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
-  LOGGED_OUT: `Please login. (${PROJECT_NAME} login)`,
+  LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
@@ -288,6 +289,7 @@ function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
     cb(rc);
   }).catch((err: object) => {
     logError(null, ERROR.LOGGED_OUT);
+    process.exit(-1);
   });
 }
 
@@ -304,6 +306,7 @@ function authorize(useLocalhost: boolean) {
     scope: [
       'https://www.googleapis.com/auth/script.deployments',
       'https://www.googleapis.com/auth/script.projects',
+      'https://www.googleapis.com/auth/drive.metadata.readonly'
     ],
     // code_challenge_method: 'S256',
     // code_challenge: codes.codeChallenge,
@@ -998,10 +1001,60 @@ commander
   });
 
 /**
+ * Lists your most recent 10 apps scripts
+ * TODO: add --all flag
+ * @example `list`
+ * This would show someting like:
+ * helloworld1          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ * helloworld2          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ * helloworld3          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ */
+commander
+  .command('list')
+  .description('List App Scripts projects')
+  .action(() => {
+    spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS);
+    spinner.start();
+    getAPICredentials(async () => {
+      await checkIfOnline();
+      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      const drive = google.drive({version: 'v3', auth: oauth2Client});
+      drive.files.list({
+        pageSize: 10,
+        fields: 'nextPageToken, files(id, name)',
+        q: "mimeType='application/vnd.google-apps.script'",
+      }, (err: any, { data }: any) => {
+        spinner.stop(true);
+        if (err) return console.error(ERROR.UNAUTHENTICATED);
+        const files = data.files;
+        if (files.length) {
+          files.map((file: any) => {
+              console.log(`${file.name.padEnd(20)} (${file.id})`);
+          });
+        } else {
+          console.log('No script files found.');
+        }
+      });
+    });
+  });
+});
+
+/**
+ * Displays the help function
+ */
+commander
+  .command('help')
+  .description('Display help')
+  .action(() => {
+    commander.outputHelp();
+  });
+
+/**
  * All other commands are given a help message.
  */
 commander
-  .command('', { isDefault: true })
+  .command('*', { isDefault: true })
+  .description('Any other command is not supported')
   .action((command: string) => {
     console.error(ERROR.COMMAND_DNE(command));
   });

@@ -1,0 +1,17 @@
+sudo: false
+os:
+  - linux
+  - osx
+language: node_js
+node_js:
+  - node
+  - '9'
+  - '8'
+  - '7'
+  - '6'
+  - '5'
+  - '4'
+  
+script:
+  - npm install
+  - npm run lint

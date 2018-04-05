@@ -4,7 +4,7 @@
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
-    "build": "sudo tsc index.ts; sudo npm i -g;",
+    "build": "sudo tsc; sudo npm i -g;",
     "lint": "tslint -c tslint.json index.ts",
     "test": "sh test.sh"
   },
@@ -64,6 +64,8 @@
     "@types/node": "^9.4.0",
     "@types/open": "^0.0.29",
     "@types/pluralize": "^0.0.28",
-    "@types/recursive-readdir": "^2.2.0"
+    "@types/recursive-readdir": "^2.2.0",
+    "tslint": "^5.9.1",
+    "typescript": "^2.8.1"
   }
 }

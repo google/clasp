@@ -1,4 +1,4 @@
-# clasp
+# clasp [![Build Status](https://travis-ci.org/google/clasp.svg?branch=master)](https://travis-ci.org/google/clasp)
 
 Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
@@ -11,7 +11,7 @@ Develop [Apps Script](https://developers.google.com/apps-script/) projects local
 First download `clasp`:
 
 ```sh
-npm i @google/clasp -g
+sudo npm i @google/clasp -g
 ```
 
 Then enable Apps Script API: https://script.google.com/home/usersettings
@@ -48,6 +48,7 @@ clasp
 - `clasp redeploy <deploymentId> <version> <description>`
 - `clasp version [description]`
 - `clasp versions`
+- `clasp list`
 
 ## How To...
 
@@ -105,6 +106,20 @@ clasp deployments # List all deployment IDs
 ```
 clasp open
 ```
+
+### List your App Scripts
+
+```
+clasp list
+helloworld1          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+helloworld2          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+helloworld3          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+.
+.
+.
+```
+
+This shows your most recent 10 scripts.
 
 ### Ignore Files
 
