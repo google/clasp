@@ -99,7 +99,7 @@ interface LoginOptions {
 
 // Used to receive files tracked by current project
 interface FilesCallback {
-  ( error?: Error, result?: string[][], files?: (AppsScriptFile|undefined)[]) : void;
+  ( error?: Error, result?: string[][], files?: Array<AppsScriptFile|undefined>) : void;
 }
 
 // Dotfile files
@@ -520,10 +520,10 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): any {
           }
         }).filter(Boolean); // remove null values
         callback(undefined,[nonIgnoredFilePaths,ignoredFilePaths],files);
-        });
       });
     });
-};
+  });
+}
 // CLI
 
 /**
@@ -689,9 +689,9 @@ commander
       getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
         getProjectFiles(rootDir, (err,projectFiles,files) => {
-          if (err != undefined) {
+          if (err !== undefined) {
             return;
-          } else if(projectFiles!=undefined) {
+          } else if(projectFiles !== undefined) {
             const nonIgnoredFilePaths = projectFiles[0];
             const ignoredFilePaths = projectFiles[1];
             script.projects.updateContent({
@@ -732,26 +732,25 @@ commander
 .command('status')
 .description('Lists files that will be pushed by clasp')
 .action(async () => {
-  //TODO (arjun-rao): Check if getAPICredentials is needed
   getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
     if (!scriptId) return;
 
     getProjectFiles(rootDir, (err,projectFiles) => {
-      if (err!=undefined) {
+      if (err !== undefined) {
         console.error(err);
-      } else if(projectFiles!=undefined) {
+      } else if(projectFiles !== undefined) {
         const nonIgnoredFilePaths = projectFiles[0];
         const ignoredFilePaths = projectFiles[1];
-        //TODO (arjun-rao): Replace with LOG. strings
         console.log(LOG.STATUS_PUSH);
         nonIgnoredFilePaths.map((filePath:string) => {
               console.log(`└─ ${filePath}`);
         });
-        //TODO (arjun-rao): Replace with LOG. strings
-        console.log(LOG.STATUS_IGNORE);
-        ignoredFilePaths.map((filePath:string) => {
-          console.log(`└─ ${filePath}`);
-        });
+        if(ignoredFilePaths.length !== 0) {
+          console.log(LOG.STATUS_IGNORE);
+          ignoredFilePaths.map((filePath:string) => {
+            console.log(`└─ ${filePath}`);
+          });
+        }
       }
     });
   });
