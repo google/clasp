@@ -439,8 +439,11 @@ function manifestExists(): boolean {
 /**
  * Recursively finds all files that are part of the current project, and those that are ignored
  * by .claspignore and calls the passed callback function with the file lists.
- * @param {string} rootDir
- * @param {FilesCallBack} callback
+ * @param {string} rootDir The project's root directory
+ * @param {FilesCallBack} callback The callback will be called with the following paramters
+ * error: Error if there's an error, otherwise null
+ * result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
+ * files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
  */
 function getProjectFiles(rootDir: string, callback: FilesCallback): any {
   // Read all filenames as a flattened tree
@@ -688,12 +691,11 @@ commander
       await checkIfOnline();
       getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
-        getProjectFiles(rootDir, (err,projectFiles,files) => {
+        getProjectFiles(rootDir, (err, projectFiles, files) => {
           if (err !== undefined) {
             return;
-          } else if(projectFiles !== undefined) {
-            const nonIgnoredFilePaths = projectFiles[0];
-            const ignoredFilePaths = projectFiles[1];
+          } else if (projectFiles !== undefined) {
+            const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
             script.projects.updateContent({
               scriptId,
               resource: { files }
@@ -735,14 +737,13 @@ commander
   getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
     if (!scriptId) return;
 
-    getProjectFiles(rootDir, (err,projectFiles) => {
+    getProjectFiles(rootDir, (err, projectFiles) => {
       if (err !== undefined) {
         console.error(err);
-      } else if(projectFiles !== undefined) {
-        const nonIgnoredFilePaths = projectFiles[0];
-        const ignoredFilePaths = projectFiles[1];
+      } else if (projectFiles !== undefined) {
+        const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
         console.log(LOG.STATUS_PUSH);
-        nonIgnoredFilePaths.map((filePath:string) => {
+        nonIgnoredFilePaths.map((filePath: string) => {
               console.log(`└─ ${filePath}`);
         });
         if(ignoredFilePaths.length !== 0) {
