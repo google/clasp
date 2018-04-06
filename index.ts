@@ -200,11 +200,12 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
+  NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
 https://script.google.com/home/usersettings`,
   SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
-  SCRIPT_ID_DNE: `No ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
+  SCRIPT_ID_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
@@ -251,10 +252,12 @@ const getScriptURL = (scriptId: string) => `https://script.google.com/d/${script
  * Should be used instead of `DOTFILE.PROJECT().read()`
  * @return {Promise} A promise to get the project script ID.
  */
-function getProjectSettings(): Promise<ProjectSettings> {
+function getProjectSettings(whileCreating): Promise<ProjectSettings> {
   const promise = new Promise<ProjectSettings>((resolve, reject) => {
-    const fail = () => {
-      logError(null, ERROR.SCRIPT_ID_DNE);
+    const fail = (whileCreating) => {
+      if (!whileCreating) {
+        logError(null, ERROR.SCRIPT_ID_DNE);
+      }
       reject();
     };
     const dotfile = DOTFILE.PROJECT();
@@ -269,7 +272,7 @@ function getProjectSettings(): Promise<ProjectSettings> {
           fail(); // Script ID DNE
         }
       }).catch((err: object) => {
-        fail(); // Failed to read dotfile
+        fail(whileCreating); // Failed to read dotfile
       });
     } else {
       fail(); // Never found a dotfile
@@ -581,6 +584,14 @@ commander
         await checkIfOnline();
         spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
         spinner.start();
+        getProjectSettings(true).then(({ scriptId }: ProjectSettings) => {
+          if (scriptId) {
+            console.error(ERROR.NO_NESTED_PROJECTS);
+            process.exit(1);
+          }
+        }).catch((err) => {
+           //.clasp.json doesn't exist, so we can continue to make project
+        });
         script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
           const scriptId = data.scriptId;
           spinner.stop(true);
