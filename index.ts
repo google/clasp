@@ -250,15 +250,18 @@ const getScriptURL = (scriptId: string) => `https://script.google.com/d/${script
 /**
  * Gets the project settings from the project dotfile. Logs errors.
  * Should be used instead of `DOTFILE.PROJECT().read()`
+ * @param  {boolean} failSilently if you don't want to err when it doesn't
+ * find a dot file (such as when creating a a new script)
  * @return {Promise} A promise to get the project script ID.
  */
-function getProjectSettings(whileCreating): Promise<ProjectSettings> {
+function getProjectSettings(failSilently: boolean): Promise<ProjectSettings> {
   const promise = new Promise<ProjectSettings>((resolve, reject) => {
-    const fail = (whileCreating) => {
-      if (!whileCreating) {
+    const fail = (failSilently: boolean) => {
+      if (!failSilently) {
         logError(null, ERROR.SCRIPT_ID_DNE);
+        reject();
       }
-      reject();
+      resolve('');
     };
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
@@ -272,7 +275,7 @@ function getProjectSettings(whileCreating): Promise<ProjectSettings> {
           fail(); // Script ID DNE
         }
       }).catch((err: object) => {
-        fail(whileCreating); // Failed to read dotfile
+        fail(failSilently); // Failed to read dotfile
       });
     } else {
       fail(); // Never found a dotfile
@@ -589,8 +592,6 @@ commander
             console.error(ERROR.NO_NESTED_PROJECTS);
             process.exit(1);
           }
-        }).catch((err) => {
-           //.clasp.json doesn't exist, so we can continue to make project
         });
         script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
           const scriptId = data.scriptId;
