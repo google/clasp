@@ -44,6 +44,7 @@ import * as url from 'url';
 const readline = require('readline');
 import * as Promise from 'bluebird';
 import { Server } from "http";
+const Logging = require('@google-cloud/logging');
 
 // Debug
 const DEBUG = false;
@@ -84,6 +85,7 @@ interface ClaspSettings {
 interface ProjectSettings {
   scriptId: string;
   rootDir: string;
+  projectId: string;
 }
 
 // An Apps Script API File
@@ -95,6 +97,8 @@ interface AppsScriptFile {
 
 interface LoginOptions {
   localhost: boolean;
+  json: boolean;
+  open: boolean;
 }
 
 // Used to receive files tracked by current project
@@ -200,8 +204,13 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
+  NO_FUNCTION_NAME: 'N/A',
+  NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
+  You can find your projectId by following the instructions in the README here: \n
+  https://github.com/google/clasp/blob/master/README.md`,
   NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
+  PAYLOAD_UNKNOWN: 'Unknown StackDriver payload',
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
 https://script.google.com/home/usersettings`,
   SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
@@ -1047,6 +1056,71 @@ commander
     });
   });
 });
+
+/**
+ * Prints out 5 most recent the StackDriver logs
+ * Use --json for output in json format
+ * Use --open to open logs in StackDriver
+ */
+commander
+  .command('logs')
+  .description('Shows the StackDriver Logs')
+  .option('--json', "Show logs in JSON form")
+  .option('--open', 'Open the StackDriver logs in browser')
+  .action((cmd: LoginOptions) => {
+    function printLogs(entries) {
+      for (let i = 0; i < 5; i++) {
+        const severity = `(${entries[i].metadata.severity})`;
+        const timestamp = entries[i].metadata.timestamp;
+        const payloadType = entries[i].metadata.payload;
+        let functionName = entries[i].metadata.resource.labels.function_name;
+        if (functionName) {
+          functionName = functionName.padEnd(15);
+        } else {
+          functionName = ERROR.NO_FUNCTION_NAME;
+        }
+        let payload = '';
+        if (cmd.json) {
+          payload = JSON.stringify(entries[i], null, 4);
+        } else {
+          if (payloadType === 'textPayload') {
+            payload = entries[i].metadata.textPayload;
+          } else if (payloadType === 'jsonPayload') {
+            payload = entries[i].metadata.jsonPayload.fields.message.stringValue;
+          } else if (payloadType === 'protoPayload') {
+            payload = entries[i].metadata.protoPayload;
+          } else {
+            payload = ERROR.PAYLOAD_UNKNOWN;
+          }
+          if (payload && typeof(payload) === "string") {
+            payload = payload.padEnd(20);
+          }
+        }
+        const logString = `${severity.padEnd(10)} - ${functionName} - ${payload} - [${timestamp}]`;
+        console.log(logString);       
+      }
+    }
+  
+    getProjectSettings().then(({ scriptId, rootDir, projectId }: ProjectSettings) => {
+      if (!projectId) {
+        console.error(ERROR.NO_GCLOUD_PROJECT);
+        process.exit(-1);
+      } else {
+        if (cmd.open) {
+          const stackdriverURL = `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`;
+          open(stackdriverURL);
+          process.exit(0);
+        }
+        const logging = new Logging({
+            projectId: projectId
+        });
+        logging.getEntries().then((entryData: any) => {
+          printLogs(entryData[0]);
+        });
+      }
+    });
+
+  });  
 
 /**
  * Displays the help function
