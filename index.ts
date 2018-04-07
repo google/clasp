@@ -44,7 +44,8 @@ import * as url from 'url';
 const readline = require('readline');
 import * as Promise from 'bluebird';
 import { Server } from "http";
-const Logging = require('@google-cloud/logging');
+const logging = require('@google-cloud/logging');
+const chalk = require('chalk');
 
 // Debug
 const DEBUG = false;
@@ -97,6 +98,9 @@ interface AppsScriptFile {
 
 interface LoginOptions {
   localhost: boolean;
+}
+
+interface LogOptions {
   json: boolean;
   open: boolean;
 }
@@ -207,10 +211,10 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
   You can find your projectId by following the instructions in the README here: \n
-  https://github.com/google/clasp/blob/master/README.md`,
+  https://github.com/google/clasp#get-project-id`,
   NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
-  PAYLOAD_UNKNOWN: 'Unknown StackDriver payload',
+  PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
 https://script.google.com/home/usersettings`,
   SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
@@ -1067,58 +1071,51 @@ commander
   .description('Shows the StackDriver Logs')
   .option('--json', "Show logs in JSON form")
   .option('--open', 'Open the StackDriver logs in browser')
-  .action((cmd: LoginOptions) => {
-    function printLogs(entries) {
+  .action((cmd: LogOptions) => {
+    function printLogs([entries]) {
       for (let i = 0; i < 5; i++) {
-        const severity = `(${entries[i].metadata.severity})`;
-        const timestamp = entries[i].metadata.timestamp;
-        const payloadType = entries[i].metadata.payload;
+        const metadata = entries[i].metadata;
+        const { severity, timestamp, payload } = metadata;
+
         let functionName = entries[i].metadata.resource.labels.function_name;
-        if (functionName) {
-          functionName = functionName.padEnd(15);
-        } else {
-          functionName = ERROR.NO_FUNCTION_NAME;
-        }
-        let payload = '';
+        functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
+        let payloadData = '';
         if (cmd.json) {
-          payload = JSON.stringify(entries[i], null, 4);
+          payloadData = JSON.stringify(entries[i], null, 2);
         } else {
-          if (payloadType === 'textPayload') {
-            payload = entries[i].metadata.textPayload;
-          } else if (payloadType === 'jsonPayload') {
-            payload = entries[i].metadata.jsonPayload.fields.message.stringValue;
-          } else if (payloadType === 'protoPayload') {
-            payload = entries[i].metadata.protoPayload;
-          } else {
-            payload = ERROR.PAYLOAD_UNKNOWN;
-          }
-          if (payload && typeof(payload) === "string") {
-            payload = payload.padEnd(20);
+          payloadData = ({
+            textPayload: metadata.textPayload,
+            jsonPayload: metadata.jsonPayload ? metadata.jsonPayload.fields.message.stringValue : '',
+            protoPayload: metadata.protoPayload
+          })[payload] || ERROR.PAYLOAD_UNKNOWN;
+
+          if (payloadData && typeof(payloadData) === 'string') {
+            payloadData = payloadData.padEnd(20);
           }
         }
-        const logString = `${severity.padEnd(10)} - ${functionName} - ${payload} - [${timestamp}]`;
-        console.log(logString);       
+        let coloredSeverity = ({
+          ERROR: chalk.red(severity),
+          INFO: chalk.blue(severity),
+          DEBUG: chalk.yellow(severity)
+        })[severity] || severity;
+        coloredSeverity = String(coloredSeverity).padEnd(15);
+        console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);   
       }
     }
   
-    getProjectSettings().then(({ scriptId, rootDir, projectId }: ProjectSettings) => {
+    getProjectSettings().then(({ projectId }: ProjectSettings) => {
       if (!projectId) {
         console.error(ERROR.NO_GCLOUD_PROJECT);
-        process.exit(-1);
-      } else {
-        if (cmd.open) {
-          const stackdriverURL = `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`;
-          open(stackdriverURL);
-          process.exit(0);
-        }
-        const logging = new Logging({
-            projectId: projectId
-        });
-        logging.getEntries().then((entryData: any) => {
-          printLogs(entryData[0]);
-        });
+        return process.exit(-1);
       }
-    });
+      if (cmd.open) {
+        const stackdriverURL = `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`;
+        open(stackdriverURL);
+        process.exit(0);
+      }
+      const logger = new logging({ projectId });
+      logger.getEntries().then(printLogs);
+      });
 
   });  
 

@@ -49,6 +49,7 @@ clasp
 - `clasp version [description]`
 - `clasp versions`
 - `clasp list`
+- `clasp logs [--json] [--open]`
 
 ## How To...
 
@@ -120,6 +121,33 @@ helloworld3          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
 ```
 
 This shows your most recent 10 scripts.
+
+### See your Clasp Logs
+
+Use `clasp logs` to see the 5 most recent log messages from StackDriver. For example:
+
+```
+clasp logs
+ERROR Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      my log error
+INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
+DEBUG Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      debugging now
+ERROR Sat Apr 07 2018 10:58:30 GMT-0700 (PDT) myFunction      another error
+INFO  Sat Apr 07 2018 10:58:30 GMT-0700 (PDT) myFunction      more info
+```
+
+You can also use `clasp logs --json` to see the information in JSON format.
+You can also use `clasp logs --open` to open the StackDriver logs in your browser.
+
+### [Get Project ID](#get-project-id)
+
+First, you'll need to edit your .clasp.json file to put in the Google Cloud projectId. You can find it by running clasp open then in the top click Resources -> Cloud Platform project... Copy the projectId (including the part project-id), so something like: project-id-xxxxxxxxxxxxxxxxxxx Put that in your .clasp.json file, which should now look something like:
+
+```
+  {
+    "scriptId":"14Ht4FoesbNDhRbbTMI_IyM9uQ27EXIP_p2rK8xCOECg5s9XKpHp4fh3d",
+    "projectId": "project-id-xxxxxxxxxxxxxxxxxxx"
+  }
+```
 
 ### Ignore Files
 
