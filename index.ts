@@ -1114,7 +1114,7 @@ commander
         process.exit(0);
       }
       const logger = new logging({ projectId });
-      logger.getEntries().then(printLogs);
+        logger.getEntries().then(printLogs);
       });
 
   });  
