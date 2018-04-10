@@ -1,27 +1,14 @@
 {
+    "compileOnSave": true,
     "compilerOptions": {
-        "allowSyntheticDefaultImports": false,
-        "allowUnreachableCode": false,
-        "allowUnusedLabels": false,
-        "declaration": true,
-        "forceConsistentCasingInFileNames": true,
-        "lib": [
-            "es2017"
-        ],
-        "noFallthroughCasesInSwitch": true,
-        "noEmitOnError": true,
-        "noImplicitReturns": true,
-        "outDir": "build",
-        "pretty": true,
-        "strict": true,
-        "module": "commonjs",
         "target": "es5",
-        "sourceMap": true
+        "lib": [
+            "es2015",
+            "es5",
+            "es6",
+        ]
     },
-    "exclude": [
-        "node_modules"
-    ],
-    "include": [
-        "*.ts",
+    "files": [
+        "index.ts"
     ]
 }

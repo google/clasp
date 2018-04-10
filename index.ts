@@ -17,7 +17,7 @@
  */
 
 /**
- * The Apps Script CLI
+ * clasp – The Apps Script CLI
  */
 import * as anymatch from "anymatch";
 import 'connect';
@@ -25,11 +25,11 @@ import * as del from 'del';
 const dotf = require('dotf');
 const findParentDir = require('find-parent-dir');
 import * as fs from 'fs';
-const google = require('googleapis');
+import { google } from 'googleapis';
 import * as http from 'http';
 const isOnline = require('is-online');
 import * as mkdirp from 'mkdirp';
-const OAuth2 = google.auth.OAuth2;
+import { OAuth2Client, GoogleAuthOptions } from 'google-auth-library';
 const open = require('open');
 import * as os from 'os';
 const path = require('path');
@@ -42,18 +42,13 @@ import { Spinner } from 'cli-spinner';
 const splitLines = require('split-lines');
 import * as url from 'url';
 const readline = require('readline');
-import * as Promise from 'bluebird';
 import { Server } from "http";
-const logging = require('@google-cloud/logging');
+const Logging = require('@google-cloud/logging');
 const chalk = require('chalk');
-
-// Debug
-const DEBUG = false;
 
 // Names / Paths
 const PROJECT_NAME = 'clasp';
 const PROJECT_MANIFEST_BASENAME = 'appsscript';
-const PROJECT_MANIFEST_FULLNAME = `${PROJECT_MANIFEST_BASENAME}.json`;
 
 // Dotfile names
 const DOT = {
@@ -80,7 +75,6 @@ interface ClaspSettings {
   access_token: string;
   refresh_token: string;
   token_type: string;
-  expiry_date: string;
 }
 // Project settings file (Saved in .clasp.json)
 interface ProjectSettings {
@@ -96,15 +90,6 @@ interface AppsScriptFile {
   source: string;
 }
 
-interface LoginOptions {
-  localhost: boolean;
-}
-
-interface LogOptions {
-  json: boolean;
-  open: boolean;
-}
-
 // Used to receive files tracked by current project
 interface FilesCallback {
   (
@@ -114,7 +99,6 @@ interface FilesCallback {
   ) : void;
 }
 
-// Dotfile files
 const DOTFILE = {
   /**
    * Reads DOT.IGNORE.PATH to get a glob pattern of ignored paths.
@@ -122,9 +106,8 @@ const DOTFILE = {
    */
   IGNORE: () => {
     const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    const path = `${projectDirectory}/${DOT.IGNORE.PATH}`;
     return new Promise<string[]>((res, rej) => {
-      if (fs.existsSync(path)) {
+      if (fs.existsSync(path.join(projectDirectory, DOT.IGNORE.PATH))) {
         const buffer = read.sync(DOT.IGNORE.PATH, 'utf8');
         res(splitLines(buffer).filter((name: string) => name));
       } else {
@@ -148,14 +131,14 @@ const DOTFILE = {
 // API settings
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
-const oauth2Client = new OAuth2(
-  '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com', // CLIENT_ID
-  'v6V3fKV_zWU7iw1DrpO1rknX', // CLIENT_SECRET
-  'http://localhost'
-);
+const oauth2Client = new OAuth2Client({
+  clientId: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
+  clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
+  redirectUri: 'http://localhost',
+});
 const script = google.script({
   version: 'v1',
-  auth: oauth2Client
+  auth: oauth2Client,
 });
 
 // Log messages (some logs take required params)
@@ -263,18 +246,17 @@ const getScriptURL = (scriptId: string) => `https://script.google.com/d/${script
 /**
  * Gets the project settings from the project dotfile. Logs errors.
  * Should be used instead of `DOTFILE.PROJECT().read()`
- * @param  {boolean} failSilently if you don't want to err when it doesn't
- * find a dot file (such as when creating a a new script)
+ * @param  {boolean} failSilently Don't err when dot file DNE.
  * @return {Promise} A promise to get the project script ID.
  */
-function getProjectSettings(failSilently: boolean): Promise<ProjectSettings> {
+function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
   const promise = new Promise<ProjectSettings>((resolve, reject) => {
-    const fail = (failSilently: boolean) => {
+    const fail = (failSilently?: boolean) => {
       if (!failSilently) {
         logError(null, ERROR.SCRIPT_ID_DNE);
         reject();
       }
-      resolve('');
+      resolve();
     };
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
@@ -308,10 +290,9 @@ function getProjectSettings(failSilently: boolean): Promise<ProjectSettings> {
  */
 function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
   DOTFILE.RC.read().then((rc: ClaspSettings) => {
-    oauth2Client.credentials = rc;
+    oauth2Client.setCredentials(rc);
     cb(rc);
   }).catch((err: object) => {
-    logError(null, ERROR.LOGGED_OUT);
     process.exit(-1);
   });
 }
@@ -337,16 +318,11 @@ function authorize(useLocalhost: boolean) {
   const authCode: Promise<string> = useLocalhost ?
     authorizeWithLocalhost(options) :
     authorizeWithoutLocalhost(options);
-
   authCode.then((code: string) => {
     return new Promise((res: Function, rej: Function) => {
-      oauth2Client.getToken(code, (err: string, token: string) => {
-        if (err) return rej(err);
-        return res(token);
-      });
+      oauth2Client.getToken(code).then((token) => res(token.tokens));
     });
-  })
-    .then((token: object) => DOTFILE.RC.write(token))
+  }).then((token: object) => DOTFILE.RC.write(token))
     .then(() => console.log(LOG.AUTH_SUCCESSFUL))
     .catch((err: string) => console.error(ERROR.ACCESS_TOKEN + err));
 }
@@ -358,7 +334,7 @@ function authorize(useLocalhost: boolean) {
  * @param {Object} opts OAuth2 options TODO formalize options
  * @return {Promise} Promise resolving with the authorization code
  */
-function authorizeWithLocalhost(opts: object): Promise<string> {
+function authorizeWithLocalhost(opts: any): Promise<string> {
   return new Promise((res: Function, rej: Function) => {
     const server = http.createServer((req: http.ServerRequest, resp: http.ServerResponse) => {
       const urlParts = url.parse(req.url || '', true);
@@ -456,7 +432,7 @@ function saveProjectId(scriptId: string): void {
  * @return {boolean} True if valid project, false otherwise
  */
 function manifestExists(): boolean {
-  return fs.existsSync(PROJECT_MANIFEST_FULLNAME);
+  return fs.existsSync(`${PROJECT_MANIFEST_BASENAME}.json`);
 }
 
 /**
@@ -559,13 +535,15 @@ commander
   .command('login')
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
-  .action((cmd: LoginOptions) => {
+  .action((options: {
+    localhost: boolean;
+  }) => {
     // Try to read the RC file.
     DOTFILE.RC.read().then((rc: ClaspSettings) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch(async (err: string) => {
       await checkIfOnline();
-      authorize(cmd.localhost);
+      authorize(options.localhost);
     });
   });
 
@@ -592,32 +570,30 @@ commander
 commander
   .command('create [scriptTitle] [scriptParentId]')
   .description('Create a script')
-  .action((title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId: string) => {
+  .action(async (title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId: string) => {
+    await checkIfOnline();
     if (fs.existsSync(DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
       getAPICredentials(async () => {
-        await checkIfOnline();
-        spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title));
-        spinner.start();
+        spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
         getProjectSettings(true).then(({ scriptId }: ProjectSettings) => {
           if (scriptId) {
             console.error(ERROR.NO_NESTED_PROJECTS);
             process.exit(1);
           }
         });
-        script.projects.create({ title, parentId }, {}, (error: object, { data }: any) => {
-          const scriptId = data.scriptId;
+        script.projects.create({ title, parentId }, {}).then(res => {
           spinner.stop(true);
-          if (error) {
-            logError(error, ERROR.CREATE);
-          } else {
-            console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
-            saveProjectId(scriptId);
-            if (!manifestExists()) {
-              fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
-            }
+          const scriptId = res.data.scriptId;
+          console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
+          saveProjectId(scriptId);
+          if (!manifestExists()) {
+            fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
           }
+        }).catch((error: object) => {
+          spinner.stop(true);
+          logError(error, ERROR.CREATE);
         });
       });
     }
@@ -707,10 +683,9 @@ commander
   .command('push')
   .description('Update the remote project')
   .action(async () => {
-    spinner.setSpinnerTitle(LOG.PUSHING);
-    spinner.start();
+    await checkIfOnline();
+    spinner.setSpinnerTitle(LOG.PUSHING).start();
     getAPICredentials(async () => {
-      await checkIfOnline();
       getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
         getProjectFiles(rootDir, (err, projectFiles, files) => {
@@ -757,9 +732,9 @@ commander
 .command('status')
 .description('Lists files that will be pushed by clasp')
 .action(async () => {
+  await checkIfOnline();
   getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
     if (!scriptId) return;
-
     getProjectFiles(rootDir, (err, projectFiles) => {
       if(err) return console.log(err);
       else if (projectFiles) {
@@ -805,13 +780,12 @@ commander
 commander
   .command('deployments')
   .description('List deployment ids of a script')
-  .action(() => {
+  .action(async () => {
+    await checkIfOnline();
     getAPICredentials(async () => {
-      await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId));
-        spinner.start();
+        spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
 
         script.projects.deployments.list({
           scriptId
@@ -844,14 +818,13 @@ commander
 commander
   .command('deploy [version] [description]')
   .description('Deploy a project')
-  .action((version: string, description: string) => {
+  .action(async (version: string, description: string) => {
+    await checkIfOnline();
     description = description || '';
-    getAPICredentials(async () => {
-      await checkIfOnline();
+    getAPICredentials(() => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId));
-        spinner.start();
+        spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
 
         function createDeployment(versionNumber: string) {
           spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
@@ -903,13 +876,12 @@ commander
 commander
   .command('undeploy <deploymentId>')
   .description('Undeploy a deployment of a project')
-  .action((deploymentId: string) => {
-    getAPICredentials(async () => {
-      await checkIfOnline();
+  .action(async (deploymentId: string) => {
+    await checkIfOnline();
+    getAPICredentials(() => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId));
-        spinner.start();
+        spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
 
         script.projects.deployments.delete({
           scriptId,
@@ -932,9 +904,9 @@ commander
 commander
   .command('redeploy <deploymentId> <version> <description>')
   .description(`Update a deployment`)
-  .action((deploymentId: string, version: string, description: string) => {
-    getAPICredentials(async () => {
-      await checkIfOnline();
+  .action(async (deploymentId: string, version: string, description: string) => {
+    await checkIfOnline();
+    getAPICredentials(() => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         script.projects.deployments.update({
           scriptId,
@@ -964,11 +936,10 @@ commander
 commander
   .command('versions')
   .description('List versions of a script')
-  .action(() => {
-    spinner.setSpinnerTitle('Grabbing versions...');
-    spinner.start();
-    getAPICredentials(async () => {
-      await checkIfOnline();
+  .action(async () => {
+    await checkIfOnline();
+    spinner.setSpinnerTitle('Grabbing versions...').start();
+    getAPICredentials(() => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         script.projects.versions.list({
           scriptId,
@@ -998,11 +969,10 @@ commander
 commander
   .command('version [description]')
   .description('Creates an immutable version of the script')
-  .action((description: string) => {
-    spinner.setSpinnerTitle(LOG.VERSION_CREATE);
-    spinner.start();
+  .action(async (description: string) => {
+    await checkIfOnline();
+    spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
     getAPICredentials(async () => {
-      await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         script.projects.versions.create({
           scriptId,
@@ -1027,42 +997,37 @@ commander
  * TODO: add --all flag
  * @example `list`
  * This would show someting like:
- * helloworld1          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
- * helloworld2          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
- * helloworld3          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+ * helloworld1          – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ * helloworld2          – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ * helloworld3          – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
  */
 commander
   .command('list')
   .description('List App Scripts projects')
-  .action(() => {
-    spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS);
-    spinner.start();
+  .action(async () => {
+    await checkIfOnline();
+    spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
     getAPICredentials(async () => {
-      await checkIfOnline();
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
       const drive = google.drive({version: 'v3', auth: oauth2Client});
-      drive.files.list({
-        pageSize: 10,
+      const res = await drive.files.list({
+        pageSize: 50,
         fields: 'nextPageToken, files(id, name)',
         q: "mimeType='application/vnd.google-apps.script'",
-      }, (err: any, { data }: any) => {
-        spinner.stop(true);
-        if (err) return console.error(ERROR.UNAUTHENTICATED);
-        const files = data.files;
-        if (files.length) {
-          files.map((file: any) => {
-              console.log(`${file.name.padEnd(20)} (${file.id})`);
-          });
-        } else {
-          console.log('No script files found.');
-        }
       });
+      spinner.stop(true);
+      let files = res.data.files;
+      if (files.length) {
+        files.map((file: any) => {
+          console.log(`${file.name.padEnd(20)} – ${getScriptURL(file.id)}`);
+        });
+      } else {
+        console.log('No script files found.');
+      }
     });
   });
-});
 
 /**
- * Prints out 5 most recent the StackDriver logs
+ * Prints out 5 most recent the StackDriver logs.
  * Use --json for output in json format
  * Use --open to open logs in StackDriver
  */
@@ -1071,23 +1036,29 @@ commander
   .description('Shows the StackDriver Logs')
   .option('--json', "Show logs in JSON form")
   .option('--open', 'Open the StackDriver logs in browser')
-  .action((cmd: LogOptions) => {
-    function printLogs([entries]) {
-      for (let i = 0; i < 5; i++) {
+  .action(async (cmd: {
+    json: boolean,
+    open: boolean,
+  }) => {
+    await checkIfOnline();
+    console.log('IN DEVELOPMENT!');
+    process.exit(0);
+    function printLogs([entries]:any[]) {
+      for (let i = 0; i < 5; ++i) {
         const metadata = entries[i].metadata;
         const { severity, timestamp, payload } = metadata;
-
         let functionName = entries[i].metadata.resource.labels.function_name;
         functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
-        let payloadData = '';
+        let payloadData: any = '';
         if (cmd.json) {
           payloadData = JSON.stringify(entries[i], null, 2);
         } else {
-          payloadData = ({
+          const data = {
             textPayload: metadata.textPayload,
             jsonPayload: metadata.jsonPayload ? metadata.jsonPayload.fields.message.stringValue : '',
-            protoPayload: metadata.protoPayload
-          })[payload] || ERROR.PAYLOAD_UNKNOWN;
+            protoPayload: metadata.protoPayload,
+          };
+          payloadData = data[payload] || ERROR.PAYLOAD_UNKNOWN;
 
           if (payloadData && typeof(payloadData) === 'string') {
             payloadData = payloadData.padEnd(20);
@@ -1106,18 +1077,22 @@ commander
     getProjectSettings().then(({ projectId }: ProjectSettings) => {
       if (!projectId) {
         console.error(ERROR.NO_GCLOUD_PROJECT);
-        return process.exit(-1);
+        process.exit(-1);
       }
       if (cmd.open) {
-        const stackdriverURL = `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`;
-        open(stackdriverURL);
+        const url = `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`;
+        console.log(`Opening logs: ${url}`)
+        open(`https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`);
         process.exit(0);
       }
-      const logger = new logging({ projectId });
-      logger.getEntries().then(printLogs);
+      const logger = new Logging({
+        projectId,
+        // auth: oauth2Client
+      });
+      console.log(logger.getEntries());
+      // return logger.getEntries().then(printLogs);
     });
-
-  });  
+  });
 
 /**
  * Displays the help function
@@ -1129,7 +1104,7 @@ commander
     commander.outputHelp();
   });
 
-/**
+  /**
  * All other commands are given a help message.
  */
 commander
