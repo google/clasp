@@ -43,7 +43,7 @@ const splitLines = require('split-lines');
 import * as url from 'url';
 const readline = require('readline');
 import { Server } from "http";
-const Logging = require('@google-cloud/logging');
+const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 
 // Names / Paths
@@ -1015,7 +1015,7 @@ commander
         q: "mimeType='application/vnd.google-apps.script'",
       });
       spinner.stop(true);
-      let files = res.data.files;
+      const files = res.data.files;
       if (files.length) {
         files.map((file: any) => {
           console.log(`${file.name.padEnd(20)} – ${getScriptURL(file.id)}`);
@@ -1070,10 +1070,10 @@ commander
           DEBUG: chalk.yellow(severity)
         })[severity] || severity;
         coloredSeverity = String(coloredSeverity).padEnd(15);
-        console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);   
+        console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
     }
-  
+
     getProjectSettings().then(({ projectId }: ProjectSettings) => {
       if (!projectId) {
         console.error(ERROR.NO_GCLOUD_PROJECT);
@@ -1081,11 +1081,11 @@ commander
       }
       if (cmd.open) {
         const url = `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`;
-        console.log(`Opening logs: ${url}`)
+        console.log(`Opening logs: ${url}`);
         open(`https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`);
         process.exit(0);
       }
-      const logger = new Logging({
+      const logger = new logging({
         projectId,
         // auth: oauth2Client
       });
@@ -1104,7 +1104,7 @@ commander
     commander.outputHelp();
   });
 
-  /**
+/**
  * All other commands are given a help message.
  */
 commander
