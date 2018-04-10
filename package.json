@@ -1,10 +1,10 @@
 {
   "name": "@google/clasp",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
-    "build": "sudo tsc; sudo npm i -g;",
+    "build": "rm index.js; tsc --project tsconfig.json; sudo npm i -g;",
     "lint": "tslint -c tslint.json index.ts",
     "test": "sh test.sh"
   },
@@ -29,7 +29,6 @@
   "dependencies": {
     "@google-cloud/logging": "^1.2.0",
     "anymatch": "^1.3.2",
-    "bluebird": "^3.5.1",
     "chalk": "^2.3.2",
     "cli-spinner": "^0.2.6",
     "commander": "^2.11.0",
@@ -38,7 +37,7 @@
     "dotf": "^1.0.3",
     "find-parent-dir": "^0.3.0",
     "fs": "^0.0.1-security",
-    "googleapis": "^25.0.0",
+    "googleapis": "^28.1.0",
     "http-shutdown": "^1.2.0",
     "is-online": "^7.0.0",
     "mkdirp": "^0.5.1",
@@ -54,11 +53,9 @@
   },
   "devDependencies": {
     "@types/anymatch": "^1.3.0",
-    "@types/bluebird": "^3.5.20",
     "@types/cli-spinner": "^0.2.0",
     "@types/commander": "^2.12.2",
     "@types/connect": "^3.4.31",
-    "@types/core-js": "0.9.36",
     "@types/del": "^3.0.0",
     "@types/events": "^1.1.0",
     "@types/glob": "^5.0.35",
