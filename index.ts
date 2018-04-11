@@ -291,21 +291,13 @@ function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
  * @param {Function} cb The callback
  */
 function getAPICredentials(isLocal: boolean, cb: (rc: ClaspSettings | void) => void) {
-  if (isLocal) {
-    DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
+  const dotfile = isLocal ? DOTFILE.RC_LOCAL : DOTFILE.RC;
+  dotfile.read().then((rc: ClaspSettings) => {
       oauth2Client.setCredentials(rc);
       cb(rc);
     }).catch((err: object) => {
       process.exit(-1);
     });
-  } else {
-    DOTFILE.RC.read().then((rc: ClaspSettings) => {
-      oauth2Client.setCredentials(rc);
-      cb(rc);
-    }).catch((err: object) => {
-      process.exit(-1);
-    });
-  }
 }
 
 /**
@@ -549,17 +541,17 @@ commander
   .command('login')
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
-  .option('--localkey', 'Save .clasprc.json file locally')
+  .option('--ownkey', 'Save .clasprc.json file to current working directory')
   .action((options: {
     localhost: boolean;
-    localkey: boolean;
+    ownkey: boolean;
   }) => {
     // Try to read the RC file.
     DOTFILE.RC.read().then((rc: ClaspSettings) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch(async (err: string) => {
       await checkIfOnline();
-      authorize(options.localhost, options.localkey);
+      authorize(options.localhost, options.ownkey);
     });
   });
 
@@ -1111,29 +1103,31 @@ commander
   });
 
 /**
- * Clasp run <function>
- * 
- * @param scriptId ID of the script you want to run
+ * Clasp run <functionName>
+ * This function runs your script in the cloud. You must supply
+ * the functionName params. For now, it can 
+ * only run functions that do not require other authorization.
  * @param theFunction function in the script that you want to run
- * 
- * Note: to use this command, you must have used `clasp login --localkey`
+ * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run
+ * Note: to use this command, you must have used `clasp login --ownkey`
  */
 commander
-  .command('run <scriptId> <theFunction>')
-  .description('Run a command')
-  .action((scriptId, theFunction) => {
+  .command('run <functionName>')
+  .description('Run a function in your Apps Scripts project')
+  .action((functionName) => {
     getAPICredentials(true, async () => {
       await checkIfOnline();
-      const params = {
-        'scriptId': scriptId,
-        'function': theFunction,
-        'devMode': false
-      };
+      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+        const params = {
+          'scriptId': scriptId,
+          'function': functionName,
+          'devMode': false
+        };
 
-      script.scripts.run(params).then(response => {
-        console.log(response.data);
+        script.scripts.run(params).then(response => {
+          console.log(response.data);
+        });
       });
-
     });
   });
 
