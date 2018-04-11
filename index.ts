@@ -64,6 +64,7 @@ const DOT = {
   },
   RC: { // Saves global information, in the $HOME directory
     DIR: '~',
+    LOCAL_DIR: './',
     NAME: `${PROJECT_NAME}rc.json`,
     PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
     ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`)
@@ -126,6 +127,7 @@ const DOTFILE = {
   },
   // See `login`: Stores { accessToken, refreshToken }
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
+  RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME)
 };
 
 // API settings
@@ -288,13 +290,22 @@ function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
  * Required before every API call.
  * @param {Function} cb The callback
  */
-function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
-  DOTFILE.RC.read().then((rc: ClaspSettings) => {
-    oauth2Client.setCredentials(rc);
-    cb(rc);
-  }).catch((err: object) => {
-    process.exit(-1);
-  });
+function getAPICredentials(isLocal: boolean, cb: (rc: ClaspSettings | void) => void) {
+  if (isLocal) {
+    DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
+      oauth2Client.setCredentials(rc);
+      cb(rc);
+    }).catch((err: object) => {
+      process.exit(-1);
+    });
+  } else {
+    DOTFILE.RC.read().then((rc: ClaspSettings) => {
+      oauth2Client.setCredentials(rc);
+      cb(rc);
+    }).catch((err: object) => {
+      process.exit(-1);
+    });
+  }
 }
 
 /**
@@ -302,7 +313,7 @@ function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
  * @param {boolean} useLocalhost True if a local HTTP server should be run
  *     to handle the auth response. False if manual entry used.
  */
-function authorize(useLocalhost: boolean) {
+function authorize(useLocalhost: boolean, writeToLocalKey: boolean) {
   const codes = oauth2Client.generateCodeVerifier();
   // See https://developers.google.com/identity/protocols/OAuth2InstalledApp#step1-code-verifier
   const options = {
@@ -310,7 +321,8 @@ function authorize(useLocalhost: boolean) {
     scope: [
       'https://www.googleapis.com/auth/script.deployments',
       'https://www.googleapis.com/auth/script.projects',
-      'https://www.googleapis.com/auth/drive.metadata.readonly'
+      'https://www.googleapis.com/auth/drive.metadata.readonly',
+      'https://www.googleapis.com/auth/script.webapp.deploy'
     ],
     // code_challenge_method: 'S256',
     // code_challenge: codes.codeChallenge,
@@ -322,7 +334,9 @@ function authorize(useLocalhost: boolean) {
     return new Promise((res: Function, rej: Function) => {
       oauth2Client.getToken(code).then((token) => res(token.tokens));
     });
-  }).then((token: object) => DOTFILE.RC.write(token))
+  }).then((token: object) => {
+    writeToLocalKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token)
+  })
     .then(() => console.log(LOG.AUTH_SUCCESSFUL))
     .catch((err: string) => console.error(ERROR.ACCESS_TOKEN + err));
 }
@@ -535,15 +549,17 @@ commander
   .command('login')
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
+  .option('--localkey', 'Save .clasprc.json file locally')
   .action((options: {
     localhost: boolean;
+    localkey: boolean;
   }) => {
     // Try to read the RC file.
     DOTFILE.RC.read().then((rc: ClaspSettings) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch(async (err: string) => {
       await checkIfOnline();
-      authorize(options.localhost);
+      authorize(options.localhost, options.localkey);
     });
   });
 
@@ -1091,6 +1107,33 @@ commander
       });
       console.log(logger.getEntries());
       // return logger.getEntries().then(printLogs);
+    });
+  });
+
+/**
+ * Clasp run <function>
+ * 
+ * @param scriptId ID of the script you want to run
+ * @param theFunction function in the script that you want to run
+ * 
+ * Note: to use this command, you must have used `clasp login --localkey`
+ */
+commander
+  .command('run <scriptId> <theFunction>')
+  .description('Run a command')
+  .action((scriptId, theFunction) => {
+    getAPICredentials(true, async () => {
+      await checkIfOnline();
+      let params = {
+        'scriptId': scriptId,
+        'function': theFunction,
+        'devMode': false
+      }
+
+      script.scripts.run(params).then(response => {
+        console.log(response.data);
+      });
+
     });
   });
 
