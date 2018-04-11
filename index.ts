@@ -335,7 +335,7 @@ function authorize(useLocalhost: boolean, writeToLocalKey: boolean) {
       oauth2Client.getToken(code).then((token) => res(token.tokens));
     });
   }).then((token: object) => {
-    writeToLocalKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token)
+    writeToLocalKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token);
   })
     .then(() => console.log(LOG.AUTH_SUCCESSFUL))
     .catch((err: string) => console.error(ERROR.ACCESS_TOKEN + err));
@@ -1124,11 +1124,11 @@ commander
   .action((scriptId, theFunction) => {
     getAPICredentials(true, async () => {
       await checkIfOnline();
-      let params = {
+      const params = {
         'scriptId': scriptId,
         'function': theFunction,
         'devMode': false
-      }
+      };
 
       script.scripts.run(params).then(response => {
         console.log(response.data);
