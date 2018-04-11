@@ -1121,7 +1121,7 @@ commander
         const params = {
           'scriptId': scriptId,
           'function': functionName,
-          'devMode': false
+          'devMode': true
         };
 
         script.scripts.run(params).then(response => {
