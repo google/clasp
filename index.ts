@@ -45,30 +45,7 @@ const readline = require('readline');
 import { Server } from "http";
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
-
-// Names / Paths
-const PROJECT_NAME = 'clasp';
-const PROJECT_MANIFEST_BASENAME = 'appsscript';
-
-// Dotfile names
-const DOT = {
-  IGNORE: { // Ignores files on `push`
-    DIR: '~',
-    NAME: `${PROJECT_NAME}ignore`,
-    PATH: `.${PROJECT_NAME}ignore`,
-  },
-  PROJECT: { // Saves project information, local to project directory
-    DIR: path.join('.', '/'), // Relative to where the command is run. See DOTFILE.PROJECT()
-    NAME: `${PROJECT_NAME}.json`,
-    PATH: `.${PROJECT_NAME}.json`,
-  },
-  RC: { // Saves global information, in the $HOME directory
-    DIR: '~',
-    NAME: `${PROJECT_NAME}rc.json`,
-    PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
-    ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`)
-  },
-};
+import * as utils from './utils.js';
 
 // Clasp settings file (Saved in ~/.clasprc.json)
 interface ClaspSettings {
@@ -99,35 +76,6 @@ interface FilesCallback {
   ) : void;
 }
 
-const DOTFILE = {
-  /**
-   * Reads DOT.IGNORE.PATH to get a glob pattern of ignored paths.
-   * @return {Promise<string[]>} A list of file glob patterns
-   */
-  IGNORE: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return new Promise<string[]>((res, rej) => {
-      if (fs.existsSync(path.join(projectDirectory, DOT.IGNORE.PATH))) {
-        const buffer = read.sync(DOT.IGNORE.PATH, 'utf8');
-        res(splitLines(buffer).filter((name: string) => name));
-      } else {
-        res([]);
-      }
-    });
-  },
-  /**
-   * Gets the closest DOT.PROJECT.NAME in the parent directory of the directory
-   * that the command was run in.
-   * @return {dotf} A dotf with that dotfile. Null if there is no file
-   */
-  PROJECT: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return dotf(projectDirectory, DOT.PROJECT.NAME);
-  },
-  // See `login`: Stores { accessToken, refreshToken }
-  RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
-};
-
 // API settings
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
@@ -145,8 +93,8 @@ const script = google.script({
 const LOG = {
   AUTH_CODE: 'Enter the code from that page here: ',
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page.`, // HTML Redirect Page
-  AUTH_SUCCESSFUL: `Saved the credentials to ${DOT.RC.PATH}. You may close the page.`,
-  AUTHORIZE: (authUrl: string) => `🔑  Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
+  AUTH_SUCCESSFUL: `Saved the credentials to ${utils.DOT.RC.PATH}. You may close the page.`,
+  AUTHORIZE: (authUrl: string) => `🔑  Authorize ${utils.PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
   CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${getScriptURL(scriptId)}`,
@@ -180,15 +128,15 @@ const LOG = {
 const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
   COMMAND_DNE: (command: string) => `🤔  Unknown command "${command}"\n
-Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
+Forgot ${utils.PROJECT_NAME} commands? Get help:\n  ${utils.PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
   CREATE: 'Error creating script.',
   DEPLOYMENT_COUNT: `Unable to deploy; Only one deployment can be created at a time`,
-  FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
+  FOLDER_EXISTS: `Project file (${utils.DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
-  LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
+  LOGGED_OUT: `\nCommand failed. Please login. (${utils.PROJECT_NAME} login)`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   NO_FUNCTION_NAME: 'N/A',
@@ -201,7 +149,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
 https://script.google.com/home/usersettings`,
   SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
-  SCRIPT_ID_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
+  SCRIPT_ID_DNE: `\nNo ${utils.DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
@@ -258,7 +206,7 @@ function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
       }
       resolve();
     };
-    const dotfile = DOTFILE.PROJECT();
+    const dotfile = utils.DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
       dotfile.read().then((settings: ProjectSettings) => {
@@ -289,7 +237,7 @@ function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
  * @param {Function} cb The callback
  */
 function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
-  DOTFILE.RC.read().then((rc: ClaspSettings) => {
+  utils.DOTFILE.RC.read().then((rc: ClaspSettings) => {
     oauth2Client.setCredentials(rc);
     cb(rc);
   }).catch((err: object) => {
@@ -322,7 +270,7 @@ function authorize(useLocalhost: boolean) {
     return new Promise((res: Function, rej: Function) => {
       oauth2Client.getToken(code).then((token) => res(token.tokens));
     });
-  }).then((token: object) => DOTFILE.RC.write(token))
+  }).then((token: object) => utils.DOTFILE.RC.write(token))
     .then(() => console.log(LOG.AUTH_SUCCESSFUL))
     .catch((err: string) => console.error(ERROR.ACCESS_TOKEN + err));
 }
@@ -424,7 +372,7 @@ async function checkIfOnline() {
  * @param  {string} scriptId The script ID
  */
 function saveProjectId(scriptId: string): void {
-  DOTFILE.PROJECT().write({ scriptId }); // Save the script id
+  utils.DOTFILE.PROJECT().write({ scriptId }); // Save the script id
 }
 
 /**
@@ -432,7 +380,7 @@ function saveProjectId(scriptId: string): void {
  * @return {boolean} True if valid project, false otherwise
  */
 function manifestExists(): boolean {
-  return fs.existsSync(`${PROJECT_MANIFEST_BASENAME}.json`);
+  return fs.existsSync(`${utils.PROJECT_MANIFEST_BASENAME}.json`);
 }
 
 /**
@@ -450,7 +398,7 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): void {
     if (err) return callback(err, null, null);
     // Filter files that aren't allowed.
     filePaths = filePaths.filter((name) => !name.startsWith('.'));
-    DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
+    utils.DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
       filePaths = filePaths.sort(); // Sort files alphanumerically
       let abortPush = false;
       const nonIgnoredFilePaths: string[] = [];
@@ -525,8 +473,8 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): void {
  * Set global CLI configurations
  */
 commander
-  .usage(`${PROJECT_NAME} <command> [options]`)
-  .description(`${PROJECT_NAME} - The Apps Script CLI`);
+  .usage(`${utils.PROJECT_NAME} <command> [options]`)
+  .description(`${utils.PROJECT_NAME} - The Apps Script CLI`);
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -539,7 +487,7 @@ commander
     localhost: boolean;
   }) => {
     // Try to read the RC file.
-    DOTFILE.RC.read().then((rc: ClaspSettings) => {
+    utils.DOTFILE.RC.read().then((rc: ClaspSettings) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch(async (err: string) => {
       await checkIfOnline();
@@ -554,7 +502,7 @@ commander
   .command('logout')
   .description('Log out')
   .action(() => {
-    del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
+    del(utils.DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
   });
 
 /**
@@ -572,7 +520,7 @@ commander
   .description('Create a script')
   .action(async (title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId: string) => {
     await checkIfOnline();
-    if (fs.existsSync(DOT.PROJECT.PATH)) {
+    if (fs.existsSync(utils.DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
       getAPICredentials(async () => {
@@ -832,7 +780,7 @@ commander
             scriptId,
             resource: {
               versionNumber,
-              manifestFileName: PROJECT_MANIFEST_BASENAME,
+              manifestFileName: utils.PROJECT_MANIFEST_BASENAME,
               description,
             }
           }, {}, (err: any, { data }: any) => {
@@ -914,7 +862,7 @@ commander
           resource: {
             deploymentConfig: {
               versionNumber: version,
-              manifestFileName: PROJECT_MANIFEST_BASENAME,
+              manifestFileName: utils.PROJECT_MANIFEST_BASENAME,
               description
             }
           }
