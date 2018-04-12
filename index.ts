@@ -1049,8 +1049,6 @@ commander
     open: boolean,
   }) => {
     await checkIfOnline();
-    console.log('IN DEVELOPMENT!');
-    process.exit(0);
     function printLogs([entries]:any[]) {
       for (let i = 0; i < 5; ++i) {
         const metadata = entries[i].metadata;
@@ -1082,7 +1080,7 @@ commander
       }
     }
 
-    getProjectSettings().then(({ projectId }: ProjectSettings) => {
+    getProjectSettings().then(({ scriptId, rootDir, projectId }: ProjectSettings) => {
       if (!projectId) {
         console.error(ERROR.NO_GCLOUD_PROJECT);
         process.exit(-1);
@@ -1095,10 +1093,8 @@ commander
       }
       const logger = new logging({
         projectId,
-        // auth: oauth2Client
       });
-      console.log(logger.getEntries());
-      // return logger.getEntries().then(printLogs);
+      return logger.getEntries().then(printLogs);
     });
   });
 
