@@ -1,6 +1,6 @@
 {
   "name": "@google/clasp",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
