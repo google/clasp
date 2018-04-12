@@ -305,7 +305,7 @@ function getAPICredentials(isLocal: boolean, cb: (rc: ClaspSettings | void) => v
  * @param {boolean} useLocalhost True if a local HTTP server should be run
  *     to handle the auth response. False if manual entry used.
  */
-function authorize(useLocalhost: boolean, writeToLocalKey: boolean) {
+function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
   const codes = oauth2Client.generateCodeVerifier();
   // See https://developers.google.com/identity/protocols/OAuth2InstalledApp#step1-code-verifier
   const options = {
@@ -327,7 +327,7 @@ function authorize(useLocalhost: boolean, writeToLocalKey: boolean) {
       oauth2Client.getToken(code).then((token) => res(token.tokens));
     });
   }).then((token: object) => {
-    writeToLocalKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token);
+    writeToOwnKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token);
   })
     .then(() => console.log(LOG.AUTH_SUCCESSFUL))
     .catch((err: string) => console.error(ERROR.ACCESS_TOKEN + err));
