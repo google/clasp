@@ -133,9 +133,14 @@ const DOTFILE = {
 // API settings
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
+// const oauth2Client = new OAuth2Client({
+//   clientId: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
+//   clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
+//   redirectUri: 'http://localhost',
+// });
 const oauth2Client = new OAuth2Client({
-  clientId: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
-  clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
+  clientId: '966757935325-0k94acvv2ardm9oudi38h5tu5nhd8d96.apps.googleusercontent.com',
+  clientSecret: 'GzcdBI57_YZAHDJ9GYeS35q9',
   redirectUri: 'http://localhost',
 });
 const script = google.script({
@@ -293,11 +298,11 @@ function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
 function getAPICredentials(isLocal: boolean, cb: (rc: ClaspSettings | void) => void) {
   const dotfile = isLocal ? DOTFILE.RC_LOCAL : DOTFILE.RC;
   dotfile.read().then((rc: ClaspSettings) => {
-      oauth2Client.setCredentials(rc);
-      cb(rc);
-    }).catch((err: object) => {
-      process.exit(-1);
-    });
+    oauth2Client.setCredentials(rc);
+    cb(rc);
+  }).catch((err: object) => {
+    process.exit(-1);
+  });
 }
 
 /**
@@ -1119,9 +1124,9 @@ commander
       await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         const params = {
-          'scriptId': scriptId,
-          'function': functionName,
-          'devMode': true
+          scriptId,
+          function: functionName,
+          devMode: true
         };
 
         script.scripts.run(params).then(response => {
