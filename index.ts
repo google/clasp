@@ -289,13 +289,16 @@ function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
  * Loads the Apps Script API credentials for the CLI.
  * Required before every API call.
  * @param {Function} cb The callback
+ * @param {boolean} isLocal If we should load local API credentials for this clasp project.
  */
-function getAPICredentials(isLocal: boolean, cb: (rc: ClaspSettings | void) => void) {
+function getAPICredentials(cb: (rc: ClaspSettings | void) => void, isLocal?: boolean) {
   const dotfile = isLocal ? DOTFILE.RC_LOCAL : DOTFILE.RC;
   dotfile.read().then((rc: ClaspSettings) => {
     oauth2Client.setCredentials(rc);
     cb(rc);
   }).catch((err: object) => {
+    console.error('Could not read API credentials. Error:');
+    console.error(err);
     process.exit(-1);
   });
 }
@@ -585,23 +588,23 @@ commander
     } else {
       getAPICredentials(async () => {
         spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
-        getProjectSettings(true).then(({ scriptId }: ProjectSettings) => {
-          if (scriptId) {
+        getProjectSettings(true).then((settings: ProjectSettings) => {
+          if (settings && settings.scriptId) {
             console.error(ERROR.NO_NESTED_PROJECTS);
             process.exit(1);
           }
-        });
-        script.projects.create({ title, parentId }, {}).then(res => {
-          spinner.stop(true);
-          const scriptId = res.data.scriptId;
-          console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
-          saveProjectId(scriptId);
-          if (!manifestExists()) {
-            fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
-          }
-        }).catch((error: object) => {
-          spinner.stop(true);
-          logError(error, ERROR.CREATE);
+          script.projects.create({ title, parentId }, {}).then(res => {
+            spinner.stop(true);
+            const scriptId = res.data.scriptId;
+            console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
+            saveProjectId(scriptId);
+            if (!manifestExists()) {
+              fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
+            }
+          }).catch((error: object) => {
+            spinner.stop(true);
+            logError(error, ERROR.CREATE);
+          });
         });
       });
     }
@@ -771,11 +774,10 @@ commander
   .action((scriptId: string) => {
     getProjectSettings().then(async ({ scriptId }: ProjectSettings) => {
       if (scriptId) {
-        console.log(LOG.OPEN_PROJECT(scriptId));
         if (scriptId.length < 30) {
           logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
         } else {
-          await checkIfOnline();
+          console.log(LOG.OPEN_PROJECT(scriptId));
           open(getScriptURL(scriptId));
         }
       }
@@ -794,7 +796,6 @@ commander
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
-
         script.projects.deployments.list({
           scriptId
         }, {}, (error: any, { data }: any) => {
@@ -833,7 +834,6 @@ commander
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
-
         function createDeployment(versionNumber: string) {
           spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
           script.projects.deployments.create({
@@ -890,7 +890,6 @@ commander
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
-
         script.projects.deployments.delete({
           scriptId,
           deploymentId,
@@ -1090,15 +1089,13 @@ commander
       if (cmd.open) {
         const url = `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`;
         console.log(`Opening logs: ${url}`);
-        open(`https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`);
+        open(url);
         process.exit(0);
       }
       const logger = new logging({
         projectId,
-        // auth: oauth2Client
       });
-      console.log(logger.getEntries());
-      // return logger.getEntries().then(printLogs);
+      return logger.getEntries().then(printLogs);
     });
   });
 
@@ -1115,20 +1112,25 @@ commander
   .command('run <functionName>')
   .description('Run a function in your Apps Scripts project')
   .action((functionName) => {
-    getAPICredentials(true, async () => {
+    console.log('start run');
+    getAPICredentials(async () => {
+      console.log('got creds');
       await checkIfOnline();
+      console.log('online');
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         const params = {
           scriptId,
           function: functionName,
           devMode: true
         };
-
+        console.log('about to run');
         script.scripts.run(params).then(response => {
           console.log(response.data);
+        }).catch(e => {
+          console.log(e);
         });
       });
-    });
+    }, true);
   });
 
 /**

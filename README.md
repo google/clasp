@@ -108,21 +108,19 @@ clasp deployments # List all deployment IDs
 clasp open
 ```
 
-### List your App Scripts
+### List your App Scripts (In Development)
 
 ```
 clasp list
-helloworld1          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-helloworld2          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-helloworld3          (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-.
-.
-.
+My Project           (1_M8ExSD9KI33fiVYbIOv-Cze0gWAzPYnPoSFb41eisVUOtyne8IDUjJ3)
+Testing SlidesApp    (Cze0gWAzPYnPoSFb41eisVUOtyne8IDUjJg-1_M8ExSD9KI33fiVYbIOv)
+Send Email           (isVUOtyne8IDUjJg-1_M8ExSD9KI33fiVYbIOvCze0gWAzPYnPoSFb41e)
+...
 ```
 
-This shows your most recent 10 scripts.
+This shows your 50 most recent scripts.
 
-### See your Clasp Logs
+### See your Clasp Logs (In Development)
 
 Use `clasp logs` to see the 5 most recent log messages from StackDriver. For example:
 
@@ -135,19 +133,25 @@ ERROR Sat Apr 07 2018 10:58:30 GMT-0700 (PDT) myFunction      another error
 INFO  Sat Apr 07 2018 10:58:30 GMT-0700 (PDT) myFunction      more info
 ```
 
-You can also use `clasp logs --json` to see the information in JSON format.
+You can also use `clasp logs --json` to see the logs in JSON format.
 You can also use `clasp logs --open` to open the StackDriver logs in your browser.
 
 ### [Get Project ID](#get-project-id)
 
-First, you'll need to edit your .clasp.json file to put in the Google Cloud projectId. You can find it by running clasp open then in the top click Resources -> Cloud Platform project... Copy the projectId (including the part project-id), so something like: project-id-xxxxxxxxxxxxxxxxxxx Put that in your .clasp.json file, which should now look something like:
+To use `clasp logs`, you need to enter your script's Google Cloud `projectId` into `.clasp.json`:
 
+1. Run `clasp open`.
+1. Click `Resources > Cloud Platform project...`
+1. Copy the project ID `project-id-xxxxxxxxxxxxxxxxxxx` into `.clasp.json`. It should look like this:
+
+```json
+{
+  "scriptId":"14Ht4FoesbNDhRbbTMI_IyM9uQ27EXIP_p2rK8xCOECg5s9XKpHp4fh3f",
+  "projectId": "project-id-xxxxxxxxxxxxxxxxxxx"
+}
 ```
-  {
-    "scriptId":"14Ht4FoesbNDhRbbTMI_IyM9uQ27EXIP_p2rK8xCOECg5s9XKpHp4fh3d",
-    "projectId": "project-id-xxxxxxxxxxxxxxxxxxx"
-  }
-```
+
+Now you can run `clasp logs` for this project.
 
 ### Ignore Files
 
