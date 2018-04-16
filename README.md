@@ -69,7 +69,7 @@ Files in the current directory are added to the project. Optinally provide a scr
 clasp create [scriptTitle] [scriptParentId]
 ```
 
-### Clone an existing project in the current directory
+### Clone an Existing Project in the Current Directory
 
 ```
 clasp clone <scriptId>
@@ -102,7 +102,7 @@ clasp undeploy <deploymentId>
 clasp deployments # List all deployment IDs
 ```
 
-### Open the project on script.google.com
+### Open the Project on script.google.com
 
 ```
 clasp open
@@ -120,25 +120,11 @@ Send Email           (isVUOtyne8IDUjJg-1_M8ExSD9KI33fiVYbIOvCze0gWAzPYnPoSFb41e)
 
 This shows your 50 most recent scripts.
 
-### See your Clasp Logs (In Development)
+### See your Logs (In Development)
 
-Use `clasp logs` to see the 5 most recent log messages from StackDriver. For example:
+To use `clasp logs`, you need to enter your script's Google Cloud `projectId` into `.clasp.json`.
 
-```
-clasp logs
-ERROR Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      my log error
-INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
-DEBUG Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      debugging now
-ERROR Sat Apr 07 2018 10:58:30 GMT-0700 (PDT) myFunction      another error
-INFO  Sat Apr 07 2018 10:58:30 GMT-0700 (PDT) myFunction      more info
-```
-
-You can also use `clasp logs --json` to see the logs in JSON format.
-You can also use `clasp logs --open` to open the StackDriver logs in your browser.
-
-### [Get Project ID](#get-project-id)
-
-To use `clasp logs`, you need to enter your script's Google Cloud `projectId` into `.clasp.json`:
+#### [Get Project ID](#get-project-id)
 
 1. Run `clasp open`.
 1. Click `Resources > Cloud Platform project...`
@@ -153,24 +139,43 @@ To use `clasp logs`, you need to enter your script's Google Cloud `projectId` in
 
 Now you can run `clasp logs` for this project.
 
-### Ignore Files
+#### Run `clasp logs`
 
-Create a file called `.claspignore` in the root directory of your Apps Script project. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.  
+Use `clasp logs` to see recent log messages from StackDriver. For example:
+
+```
+clasp logs
+ERROR Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      my log error
+INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
+```
+
+#### Other Options
+
+- `clasp logs --json`: See the logs in JSON format.
+- `clasp logs --open`: Open the StackDriver logs in your browser.
+
+### Ignore File (`.claspignore`)
+
+Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to not upload on `clasp push`. Steps:
+
+1. Create a file called `.claspignore` in your project's root directory.
+1. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.  
 
 A sample `.claspignore` could look like:
 
 ```
 **/**
-!build/Main.js
+!build/main.js
 !appsscript.json
 ```
-This file ignores everything but the manifest and the bundle.
 
-Note: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like `**/node_modules/**`
+In this example, `clasp` ignores everything but the manifest and `build/main.js`.
 
-### Configuration
+_Note_: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like `**/node_modules/**`.
 
-When running `clone` or `create`, a file named `.clasp.json` is created in the current directory to describe clasp's configuration for the current project. The following configuration values can be used in it.
+### Project Settings File (`.clasp.json`)
+
+When running `clone` or `create`, a file named `.clasp.json` is created in the current directory to describe `clasp`'s configuration for the current project. The following configuration values can be used in it:
 
 #### `scriptId` (required)
 
@@ -182,7 +187,7 @@ Specifies the **local** directory in which clasp will store your project files. 
 
 ## Troubleshooting
 
-The library requires Node version >= 4.7.4.
+The library requires **Node version >= 4.7.4**. Use this script to check your version and **upgrade Node if necessary**:
 
 ```sh
 node -v # Check Node version
@@ -199,22 +204,28 @@ Use an IDE like **Visual Studio Code** for TypeScript autocompletion.
 
 Install `tsc`: `npm install -g typescript`
 
-### After Making a Change
+#### After Making a Change
 
 ```sh
 npm run build;
 clasp <command>
 ```
 
-### Submitting a Pull Request
-
-1. Look over the test cases in `test.sh`, try cases that the PR may affect.
-1. Run [tslint](https://palantir.github.io/tslint/): `npm run lint`.
-1. Submit a pull request after testing and linting.
-
-## Publish
+#### Publishing `clasp` to npm (admin)
 
 1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.
 1. Bump versions, then publish with: `npm publish --access public`
+
+### Contributing
+
+The main purpose of this tool is to enable local Apps Script development.
+If you have a core feature or use-case you'd like to see, find a GitHub issue or create a detailed proposal of the use-case.
+PRs are very welcome! See the [issues](https://github.com/google/clasp/issues) (especially **good first issue** and **help wanted**).
+
+#### How to Submit a Pull Request
+
+1. Look over the test cases in `test.sh`, try cases that the PR may affect.
+1. Run [tslint](https://palantir.github.io/tslint/): `npm run lint`.
+1. Submit a pull request after testing your feature to make sure it works.
 
 ⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/api/).
