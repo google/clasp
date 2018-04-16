@@ -38,7 +38,7 @@ const commander = require('commander');
 const read = require('read-file');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
-import { Spinner } from 'cli-spinner';
+// import { Spinner } from 'cli-spinner';
 const splitLines = require('split-lines');
 import * as url from 'url';
 const readline = require('readline');
@@ -210,7 +210,7 @@ Did you provide the correct scriptId?`,
 };
 
 // Utils
-const spinner = new Spinner();
+// const spinner = new Spinner();
 
 /**
  * Logs errors to the user such as unauthenticated or permission denied
@@ -280,7 +280,7 @@ function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
   });
   promise.catch(err => {
     logError(err);
-    spinner.stop(true);
+    // spinner.stop(true);
   });
   return promise;
 }
@@ -587,14 +587,14 @@ commander
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
       getAPICredentials(async () => {
-        spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
+        // spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
         getProjectSettings(true).then((settings: ProjectSettings) => {
           if (settings && settings.scriptId) {
             console.error(ERROR.NO_NESTED_PROJECTS);
             process.exit(1);
           }
           script.projects.create({ title, parentId }, {}).then(res => {
-            spinner.stop(true);
+            // spinner.stop(true);
             const scriptId = res.data.scriptId;
             console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
             saveProjectId(scriptId);
@@ -602,7 +602,7 @@ commander
               fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
             }
           }).catch((error: object) => {
-            spinner.stop(true);
+            // spinner.stop(true);
             logError(error, ERROR.CREATE);
           });
         });
@@ -618,14 +618,14 @@ commander
  * @param {number?} versionNumber The version of files to fetch.
  */
 function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
-  spinner.start();
+  // spinner.start();
   getAPICredentials(async () => {
     await checkIfOnline();
     script.projects.getContent({
       scriptId,
       versionNumber,
     }, {}, (error: any, { data }: any) => {
-      spinner.stop(true);
+      // spinner.stop(true);
       if (error) {
         if (error.statusCode === 404) return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
         return logError(error, ERROR.SCRIPT_ID);
@@ -662,7 +662,7 @@ commander
   .description('Clone a project')
   .action(async (scriptId: string, versionNumber?: number) => {
       await checkIfOnline();
-      spinner.setSpinnerTitle(LOG.CLONING);
+      // spinner.setSpinnerTitle(LOG.CLONING);
       saveProjectId(scriptId);
       fetchProject(scriptId, '', versionNumber);
   });
@@ -677,7 +677,7 @@ commander
     await checkIfOnline();
     getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
       if (scriptId) {
-        spinner.setSpinnerTitle(LOG.PULLING);
+        // spinner.setSpinnerTitle(LOG.PULLING);
         fetchProject(scriptId, rootDir);
       }
     });
@@ -695,21 +695,21 @@ commander
   .description('Update the remote project')
   .action(async () => {
     await checkIfOnline();
-    spinner.setSpinnerTitle(LOG.PUSHING).start();
+    // spinner.setSpinnerTitle(LOG.PUSHING).start();
     getAPICredentials(async () => {
       getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
         if (!scriptId) return;
         getProjectFiles(rootDir, (err, projectFiles, files) => {
           if(err) {
             console.log(err);
-            spinner.stop(true);
+            // spinner.stop(true);
           } else if (projectFiles) {
             const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
             script.projects.updateContent({
               scriptId,
               resource: { files }
             }, {}, (error: any, res: Function) => {
-              spinner.stop(true);
+              // spinner.stop(true);
               if (error) {
                 console.error(LOG.PUSH_FAILURE);
                 error.errors.map((err: any) => {
@@ -795,11 +795,11 @@ commander
     getAPICredentials(async () => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
+        // spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
         script.projects.deployments.list({
           scriptId
         }, {}, (error: any, { data }: any) => {
-          spinner.stop(true);
+          // spinner.stop(true);
           if (error) {
             logError(error);
           } else {
@@ -833,9 +833,9 @@ commander
     getAPICredentials(() => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
+        // spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
         function createDeployment(versionNumber: string) {
-          spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+          // spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
           script.projects.deployments.create({
             scriptId,
             resource: {
@@ -844,7 +844,7 @@ commander
               description,
             }
           }, {}, (err: any, { data }: any) => {
-            spinner.stop(true);
+            // spinner.stop(true);
             if (err) {
               console.error(ERROR.DEPLOYMENT_COUNT);
             } else {
@@ -864,7 +864,7 @@ commander
             scriptId,
             resource: versionRequestBody
           }, {}, (err: any, { data }: any) => {
-            spinner.stop(true);
+            // spinner.stop(true);
             if (err) {
               logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
             } else {
@@ -889,12 +889,12 @@ commander
     getAPICredentials(() => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         if (!scriptId) return;
-        spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
+        // spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
         script.projects.deployments.delete({
           scriptId,
           deploymentId,
         }, {}, (err: any, res: any) => {  // TODO remove any
-          spinner.stop(true);
+          // spinner.stop(true);
           if (err) {
             logError(null, ERROR.READ_ONLY_DELETE);
           } else {
@@ -926,7 +926,7 @@ commander
             }
           }
         }, {}, (error: any, res: any) => { // TODO remove any
-          spinner.stop(true);
+          // spinner.stop(true);
           if (error) {
             logError(null, error); // TODO prettier error
           } else {
@@ -945,13 +945,13 @@ commander
   .description('List versions of a script')
   .action(async () => {
     await checkIfOnline();
-    spinner.setSpinnerTitle('Grabbing versions...').start();
+    // spinner.setSpinnerTitle('Grabbing versions...').start();
     getAPICredentials(() => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         script.projects.versions.list({
           scriptId,
         }, {}, (error: any, { data }: any) => {
-          spinner.stop(true);
+          // spinner.stop(true);
           if (error) {
             logError(error);
           } else {
@@ -978,14 +978,14 @@ commander
   .description('Creates an immutable version of the script')
   .action(async (description: string) => {
     await checkIfOnline();
-    spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
+    // spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
     getAPICredentials(async () => {
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         script.projects.versions.create({
           scriptId,
           description,
         }, {}, (error: any, { data }: any) => {
-          spinner.stop(true);
+          // spinner.stop(true);
           if (error) {
             logError(error);
           } else {
@@ -993,7 +993,7 @@ commander
           }
         });
       }).catch((err: any) => {
-        spinner.stop(true);
+        // spinner.stop(true);
         logError(err);
       });
     });
@@ -1013,7 +1013,7 @@ commander
   .description('List App Scripts projects')
   .action(async () => {
     await checkIfOnline();
-    spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
+    // spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
     getAPICredentials(async () => {
       const drive = google.drive({version: 'v3', auth: oauth2Client});
       const res = await drive.files.list({
@@ -1021,7 +1021,7 @@ commander
         fields: 'nextPageToken, files(id, name)',
         q: "mimeType='application/vnd.google-apps.script'",
       });
-      spinner.stop(true);
+      // spinner.stop(true);
       const files = res.data.files;
       if (files.length) {
         files.map((file: any) => {
