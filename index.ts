@@ -1040,7 +1040,7 @@ commander
  */
 commander
   .command('logs')
-  .description('Shows the StackDriver Logs')
+  .description('Shows the StackDriver logs')
   .option('--json', "Show logs in JSON form")
   .option('--open', 'Open the StackDriver logs in browser')
   .action(async (cmd: {
