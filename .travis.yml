@@ -1,4 +1,4 @@
-sudo: false
+sudo: required
 os:
   - linux
   - osx
@@ -9,9 +9,13 @@ node_js:
   - '8'
   - '7'
   - '6'
-  - '5'
-  - '4'
-  
-script:
+cache:
+  directories:
+  - node_modules
+before_script:
   - npm install
+  - npm run build
+script:
   - npm run lint
+  - npm run test
+after_success: npm run coverage
