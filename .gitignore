@@ -1,5 +1,5 @@
 *.js
-!tests/*.js
+!tests/*.ts
 *.DS_Store
 *.log
 npm-debug.log*
