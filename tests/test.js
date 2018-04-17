@@ -18,7 +18,7 @@ describe('Test help for each function', () => {
   });
 });
 
-describe('Test clasp list function', () => {
+describe.skip('Test clasp list function', () => {
   it('should list clasp projects correctly', () => {
     const result = spawnSync(
       'clasp', ['list'], { encoding: 'utf8' }
@@ -31,7 +31,7 @@ describe('Test clasp list function', () => {
   });
 });
 
-describe('Test clasp create function', () => {
+describe.skip('Test clasp create function', () => {
   it('should create a new project correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
