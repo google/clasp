@@ -1,5 +1,4 @@
 *.js
-!tests/*.js
 *.DS_Store
 *.log
 npm-debug.log*
