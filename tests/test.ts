@@ -42,29 +42,28 @@ describe.skip('Test clasp create function', () => {
   });
 });
 
-
 /**
-TODO: Test these commands and configs.
-
-# Commands:
-[ ] clasp;
-[ ] clasp login';
-[ ] clasp login --no-localhost;
-[ ] clasp logout;
-[ ] clasp create "myTitle"
-[x] clasp create <untitled>
-[x] clasp list
-[ ] clasp clone <scriptId>
-[ ] clasp pull
-[ ] echo '// test' >> index.js && clasp push
-[ ] clasp open
-[ ] clasp deployments
-[ ] clasp deploy [version] [description]
-[ ] clasp redeploy <deploymentId> <version> <description>
-[ ] clasp version [description]
-[ ] clasp versions
-
-# Configs
-- .js and .gs files
-- Ignored files
-*/
+ * TODO: Test these commands and configs.
+ * 
+ * # Commands:
+ * [ ] clasp;
+ * [ ] clasp login';
+ * [ ] clasp login --no-localhost;
+ * [ ] clasp logout;
+ * [ ] clasp create "myTitle"
+ * [x] clasp create <untitled>
+ * [x] clasp list
+ * [ ] clasp clone <scriptId>
+ * [ ] clasp pull
+ * [ ] echo '// test' >> index.js && clasp push
+ * [ ] clasp open
+ * [ ] clasp deployments
+ * [ ] clasp deploy [version] [description]
+ * [ ] clasp redeploy <deploymentId> <version> <description>
+ * [ ] clasp version [description]
+ * [ ] clasp versions
+ * 
+ * # Configs
+ * - .js and .gs files
+ * - Ignored files
+ */
