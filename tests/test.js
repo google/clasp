@@ -17,3 +17,27 @@ describe('Test help for each function', () => {
     expect(result.stdout).to.include('Shows the StackDriver logs');
   });
 });
+
+/**
+TODO: Test these commands and configs.
+
+# Commands:
+clasp;
+clasp login';
+clasp login --no-localhost;
+clasp logout;
+clasp create "myTitle"
+clasp clone <scriptId>
+clasp pull
+echo '// test' >> index.js && clasp push
+clasp open
+clasp deployments
+clasp deploy [version] [description]
+clasp redeploy <deploymentId> <version> <description>
+clasp version [description]
+clasp versions
+
+# Configs
+- .js and .gs files
+- Ignored files
+*/
