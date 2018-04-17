@@ -9,11 +9,15 @@ node_js:
   - '8'
   - '7'
   - '6'
+# keep the npm cache around to speed up installs
 cache:
   directories:
-  - node_modules
+  - "$HOME/.npm"
+before_install:
+  - npm install -g npm@latest
+install:
+  - npm ci
 before_script:
-  - npm install
   - npm run build
 script:
   - npm run lint
