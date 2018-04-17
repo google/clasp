@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --project tsconfig.json; npm i -g;",
-    "lint": "tslint -c tslint.json index.ts",
-    "test": "nyc --cache false mocha --timeout 100000",
+    "lint": "tslint --project tslint.json",
+    "test": "nyc --cache false mocha --timeout 100000 -- tests/*.js",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls"
   },
   "bin": {
