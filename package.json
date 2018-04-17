@@ -4,7 +4,7 @@
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
-    "build": "tsc --project tsconfig.json; sudo npm i -g;",
+    "build": "tsc --project tsconfig.json; npm i -g;",
     "lint": "tslint -c tslint.json index.ts",
     "test": "nyc --cache false mocha --timeout 100000",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls"
