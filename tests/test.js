@@ -18,24 +18,51 @@ describe('Test help for each function', () => {
   });
 });
 
+describe.skip('Test clasp list function', () => {
+  it('should list clasp projects correctly', () => {
+    const result = spawnSync(
+      'clasp', ['list'], { encoding: 'utf8' }
+    );
+    // Every project starts with this base URL, thus
+    // using clasp list should at least contain this
+    // in its output.
+    expect(result.stdout).to.contain('https://script.google.com/d/');
+    expect(result.status).to.equal(0);
+  });
+});
+
+describe.skip('Test clasp create function', () => {
+  it('should create a new project correctly', () => {
+    spawnSync('rm', ['.clasp.json']);
+    const result = spawnSync(
+      'clasp', ['create'], { encoding: 'utf8' }
+    );
+    expect(result.stdout).to.contain('Created new script: https://script.google.com/d/');
+    expect(result.status).to.equal(0);
+  });
+});
+
+
 /**
 TODO: Test these commands and configs.
 
 # Commands:
-clasp;
-clasp login';
-clasp login --no-localhost;
-clasp logout;
-clasp create "myTitle"
-clasp clone <scriptId>
-clasp pull
-echo '// test' >> index.js && clasp push
-clasp open
-clasp deployments
-clasp deploy [version] [description]
-clasp redeploy <deploymentId> <version> <description>
-clasp version [description]
-clasp versions
+[ ] clasp;
+[ ] clasp login';
+[ ] clasp login --no-localhost;
+[ ] clasp logout;
+[ ] clasp create "myTitle"
+[x] clasp create <untitled>
+[x] clasp list
+[ ] clasp clone <scriptId>
+[ ] clasp pull
+[ ] echo '// test' >> index.js && clasp push
+[ ] clasp open
+[ ] clasp deployments
+[ ] clasp deploy [version] [description]
+[ ] clasp redeploy <deploymentId> <version> <description>
+[ ] clasp version [description]
+[ ] clasp versions
 
 # Configs
 - .js and .gs files
