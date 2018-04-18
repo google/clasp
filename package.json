@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --project tsconfig.json; npm i -g;",
-    "lint": "tslint --project tslint.json",
+    "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
     "test": "nyc --cache false mocha --timeout 100000 -- tests/*.js",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls"
   },
