@@ -43,6 +43,31 @@ describe.skip('Test clasp create function', () => {
   });
 });
 
+// When running this test, please put in a script ID
+// then use `sudo npm run build` before running test.
+describe.skip('Test clasp clone function', () => {
+  it('should clone an existing project correctly', () => {
+    spawnSync('rm', ['.clasp.json']);
+    const result = spawnSync(
+      'clasp', ['clone', '[SCRIPT_ID]'], { encoding: 'utf8' }
+    );
+    expect(result.stdout).to.contain('Cloned');
+    expect(result.stdout).to.contain('files.');
+    expect(result.status).to.equal(0);
+  });
+});
+
+describe.skip('Test clasp pull function', () => {
+  it('should pull an existing project correctly', () => {
+    const result = spawnSync(
+      'clasp', ['pull'], { encoding: 'utf8' }
+    );
+    expect(result.stdout).to.contain('Cloned');
+    expect(result.stdout).to.contain('files.');
+    expect(result.status).to.equal(0);
+  });
+});
+
 /**
  * TODO: Test these commands and configs.
  *
@@ -54,8 +79,8 @@ describe.skip('Test clasp create function', () => {
  * [ ] clasp create "myTitle"
  * [x] clasp create <untitled>
  * [x] clasp list
- * [ ] clasp clone <scriptId>
- * [ ] clasp pull
+ * [x] clasp clone <scriptId>
+ * [x] clasp pull
  * [ ] echo '// test' >> index.js && clasp push
  * [ ] clasp open
  * [ ] clasp deployments
