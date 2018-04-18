@@ -159,7 +159,7 @@ INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
 Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to not upload on `clasp push`. Steps:
 
 1. Create a file called `.claspignore` in your project's root directory.
-1. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.  
+1. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.
 
 A sample `.claspignore` could look like:
 
@@ -207,8 +207,15 @@ Install `tsc`: `npm install -g typescript`
 #### After Making a Change
 
 ```sh
-npm run build;
+sudo npm run build;
 clasp <command>
+```
+
+#### Run Tests (experimental)
+
+```sh
+sudo npm run build;
+npm run test
 ```
 
 #### Publishing `clasp` to npm (admin)
@@ -219,12 +226,13 @@ clasp <command>
 ### Contributing
 
 The main purpose of this tool is to enable local Apps Script development.
-If you have a core feature or use-case you'd like to see, find a GitHub issue or create a detailed proposal of the use-case.
+If you have a core feature or use-case you'd like to see, find a GitHub issue or
+create a detailed proposal of the use-case.
 PRs are very welcome! See the [issues](https://github.com/google/clasp/issues) (especially **good first issue** and **help wanted**).
 
 #### How to Submit a Pull Request
 
-1. Look over the test cases in `test.sh`, try cases that the PR may affect.
+1. Look over the test cases in `tests/test.ts`, try cases that the PR may affect.
 1. Run [tslint](https://palantir.github.io/tslint/): `npm run lint`.
 1. Submit a pull request after testing your feature to make sure it works.
 

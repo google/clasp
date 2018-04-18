@@ -1,7 +1,8 @@
-const expect = require('chai').expect;
-const spawnSync = require('child_process').spawnSync;
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
+const { spawnSync } = require('child_process');
 
-describe('Test help for each function', () => { 
+describe('Test help for each function', () => {
   it('should output help for run command', () => {
     const result = spawnSync(
       'clasp', ['run', '--help'], { encoding : 'utf8' }
@@ -44,7 +45,7 @@ describe.skip('Test clasp create function', () => {
 
 /**
  * TODO: Test these commands and configs.
- * 
+ *
  * # Commands:
  * [ ] clasp;
  * [ ] clasp login';
@@ -62,7 +63,7 @@ describe.skip('Test clasp create function', () => {
  * [ ] clasp redeploy <deploymentId> <version> <description>
  * [ ] clasp version [description]
  * [ ] clasp versions
- * 
+ *
  * # Configs
  * - .js and .gs files
  * - Ignored files

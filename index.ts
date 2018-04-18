@@ -1100,7 +1100,7 @@ commander
 /**
  * Clasp run <functionName>
  * This function runs your script in the cloud. You must supply
- * the functionName params. For now, it can 
+ * the functionName params. For now, it can
  * only run functions that do not require other authorization.
  * @param functionName function in the script that you want to run
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run
