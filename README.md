@@ -61,6 +61,8 @@ clasp logout
 
 Run `clasp login --no-localhost` to manually enter a code instead of running a local server.
 
+Run `clasp login --ownkey` to save the `.clasprc.json` file to your current working directory.
+
 ### Create a New Apps Script Project
 
 Files in the current directory are added to the project. Optinally provide a script title or parent G Suite doc ID.
@@ -212,6 +214,9 @@ clasp <command>
 ```
 
 #### Run Tests (experimental)
+
+Check out `/tests/test.ts` and change `describe.skip(...)` to `describe(...)` for relevant tests.
+If you created a new command, please make a test for it. Here's how to run the tests:
 
 ```sh
 sudo npm run build;
