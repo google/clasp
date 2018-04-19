@@ -29,7 +29,7 @@ import { google } from 'googleapis';
 import * as http from 'http';
 const isOnline = require('is-online');
 import * as mkdirp from 'mkdirp';
-import { OAuth2Client, GoogleAuthOptions } from 'google-auth-library';
+import { OAuth2Client } from 'google-auth-library';
 const open = require('open');
 import * as os from 'os';
 const path = require('path');
@@ -42,7 +42,6 @@ import { Spinner } from 'cli-spinner';
 const splitLines = require('split-lines');
 import * as url from 'url';
 const readline = require('readline');
-import { Server } from "http";
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 
@@ -309,7 +308,7 @@ function getAPICredentials(cb: (rc: ClaspSettings | void) => void, isLocal?: boo
  *     to handle the auth response. False if manual entry used.
  */
 function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
-  const codes = oauth2Client.generateCodeVerifier();
+  // const codes = oauth2Client.generateCodeVerifier();
   // See https://developers.google.com/identity/protocols/OAuth2InstalledApp#step1-code-verifier
   const options = {
     access_type: 'offline',
@@ -347,7 +346,6 @@ function authorizeWithLocalhost(opts: any): Promise<string> {
   return new Promise((res: Function, rej: Function) => {
     const server = http.createServer((req: http.ServerRequest, resp: http.ServerResponse) => {
       const urlParts = url.parse(req.url || '', true);
-      const code = urlParts.query.code;
       if (urlParts.query.code) {
         res(urlParts.query.code);
       } else {
@@ -469,12 +467,6 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): void {
         if (err) return callback(new Error(err), null, null);
         // Check if there are any .gs files
         // We will prompt the user to rename files
-        let canRenameToJS = false;
-        filePaths.map((name, i) => {
-          if (path.extname(name) === '.gs') {
-            canRenameToJS = true;
-          }
-        });
 
         // Check if there are files that will conflict if renamed .gs to .js
         filePaths.map((name: string) => {
@@ -704,7 +696,7 @@ commander
             console.log(err);
             spinner.stop(true);
           } else if (projectFiles) {
-            const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
+            const [nonIgnoredFilePaths] = projectFiles;
             script.projects.updateContent({
               scriptId,
               resource: { files }
