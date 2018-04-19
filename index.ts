@@ -467,7 +467,14 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): void {
         if (err) return callback(new Error(err), null, null);
         // Check if there are any .gs files
         // We will prompt the user to rename files
-
+        //
+        // TODO: implement renaming files from .gs to .js
+        // let canRenameToJS = false;
+        // filePaths.map((name, i) => {	
+        //   if (path.extname(name) === '.gs') {	
+        //     canRenameToJS = true;	
+        //   }	
+        // });
         // Check if there are files that will conflict if renamed .gs to .js
         filePaths.map((name: string) => {
           const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
