@@ -215,8 +215,7 @@ clasp <command>
 
 #### Run Tests (experimental)
 
-Check out `/tests/test.ts` and change `describe.skip(...)` to `describe(...)` for relevant tests.
-If you created a new command, please make a test for it. Here's how to run the tests:
+Change `describe.skip(...)` to `describe(...)` for relevant tests.
 
 ```sh
 sudo npm run build;
