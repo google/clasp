@@ -1,5 +1,6 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
+import * as fs from 'fs';
 const { spawnSync } = require('child_process');
 
 describe('Test help for each function', () => {
@@ -43,13 +44,11 @@ describe.skip('Test clasp create function', () => {
   });
 });
 
-// When running this test, please put in a script ID
-// then use `sudo npm run build` before running test.
 describe.skip('Test clasp clone function', () => {
   it('should clone an existing project correctly', () => {
-    spawnSync('rm', ['.clasp.json']);
+    let settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
     const result = spawnSync(
-      'clasp', ['clone', '[SCRIPT_ID]'], { encoding: 'utf8' }
+      'clasp', ['clone', settings.scriptId], { encoding: 'utf8' }
     );
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
