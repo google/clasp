@@ -20,7 +20,7 @@ describe('Test help for each function', () => {
   });
 });
 
-describe('Test clasp list function', () => {
+describe.skip('Test clasp list function', () => {
   it('should list clasp projects correctly', () => {
     const result = spawnSync(
       'clasp', ['list'], { encoding: 'utf8' }
@@ -33,7 +33,7 @@ describe('Test clasp list function', () => {
   });
 });
 
-describe('Test clasp create function', () => {
+describe.skip('Test clasp create function', () => {
   it('should create a new project correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
@@ -44,7 +44,7 @@ describe('Test clasp create function', () => {
   });
 });
 
-describe('Test clasp clone function', () => {
+describe.skip('Test clasp clone function', () => {
   it('should clone an existing project correctly', () => {
     const settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
     const result = spawnSync(
@@ -56,7 +56,7 @@ describe('Test clasp clone function', () => {
   });
 });
 
-describe('Test clasp pull function', () => {
+describe.skip('Test clasp pull function', () => {
   it('should pull an existing project correctly', () => {
     const result = spawnSync(
       'clasp', ['pull'], { encoding: 'utf8' }
