@@ -7,4 +7,5 @@ yarn-error.log*
 node_modules/
 .npm
 .env
+.nyc_output
 *.lock
