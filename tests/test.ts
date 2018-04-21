@@ -67,6 +67,28 @@ describe.skip('Test clasp pull function', () => {
   });
 });
 
+describe.skip('Test clasp push function', () => {
+  it('should push local project correctly', () => {
+    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
+    const result = spawnSync(
+      'clasp', ['push'], { encoding: 'utf8' }
+    );
+    expect(result.stdout).to.contain('Pushed');
+    expect(result.stdout).to.contain('files.');
+    expect(result.status).to.equal(0);
+  });
+});
+
+describe.skip('Test clasp open function', () => {
+  it('should open a project correctly', () => {
+    const result = spawnSync(
+      'clasp', ['open'], { encoding: 'utf8' }
+    );
+    //should open a browser with the project
+    expect(result.status).to.equal(0);
+  });
+});
+
 /**
  * TODO: Test these commands and configs.
  *
@@ -80,8 +102,9 @@ describe.skip('Test clasp pull function', () => {
  * [x] clasp list
  * [x] clasp clone <scriptId>
  * [x] clasp pull
+ * [x] clasp push
  * [ ] echo '// test' >> index.js && clasp push
- * [ ] clasp open
+ * [x] clasp open
  * [ ] clasp deployments
  * [ ] clasp deploy [version] [description]
  * [ ] clasp redeploy <deploymentId> <version> <description>
