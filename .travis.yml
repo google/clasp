@@ -11,9 +11,15 @@ node_js:
   - '6'
 cache:
   directories:
-  - node_modules
+  - "$HOME/.npm"
+before_install:
+  - npm install -g npm@latest
+install:
+# npm-ci (https://docs.npmjs.com/cli/ci) is used for the install step instead
+# of npm-install because it ensures that the package-lock.json is up to date
+# with the package.json in order for the travis tests to pass.
+  - npm ci
 before_script:
-  - npm install
   - npm run build
 script:
   - npm run lint
