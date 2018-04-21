@@ -100,6 +100,20 @@ describe.skip('Test clasp open function', () => {
   });
 });
 
+// Fails when you logged in using --ownkey flag
+describe.skip('Test clasp logout function', () => {
+  it('should logout correctly', () => {
+    const result = spawnSync(
+      'clasp', ['logout'], { encoding: 'utf8' }
+    );
+    expect(result.status).to.equal(0);
+    const localDotExists = fs.existsSync('.clasprc.json');
+    expect(localDotExists).to.equal(false);
+    const dotExists = fs.existsSync('~/.clasprc.json');
+    expect(dotExists).to.equal(false);
+  });
+});
+
 /**
  * TODO: Test these commands and configs.
  *
@@ -107,7 +121,7 @@ describe.skip('Test clasp open function', () => {
  * [ ] clasp;
  * [ ] clasp login';
  * [ ] clasp login --no-localhost;
- * [ ] clasp logout;
+ * [x] clasp logout;
  * [x] clasp create "myTitle"
  * [x] clasp create <untitled>
  * [x] clasp list
