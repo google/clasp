@@ -104,7 +104,7 @@ describe.skip('Test clasp open function', () => {
 describe.skip('Test clasp logout function', () => {
   it('should logout correctly', () => {
     fs.writeFileSync('.clasprc.json', ' ');
-    fs.writeFileSync('~.clasprc.json', ' ');
+    fs.writeFileSync('~/.clasprc.json', ' ');
     const result = spawnSync(
       'clasp', ['logout'], { encoding: 'utf8' }
     );
