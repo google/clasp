@@ -34,10 +34,21 @@ describe.skip('Test clasp list function', () => {
 });
 
 describe.skip('Test clasp create function', () => {
-  it('should create a new project correctly', () => {
+  it('should prompt for a project name correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
       'clasp', ['create'], { encoding: 'utf8' }
+    );
+    expect(result.stdout).to.contain('give a script title:');
+    expect(result.status).to.equal(0);
+  });
+});
+
+describe.skip('Test clasp create <projectName> function', () => {
+  it('should create a new project correctly', () => {
+    spawnSync('rm', ['.clasp.json']);
+    const result = spawnSync(
+      'clasp', ['create', 'sampleProject'], { encoding: 'utf8' }
     );
     expect(result.stdout).to.contain('Created new script: https://script.google.com/d/');
     expect(result.status).to.equal(0);

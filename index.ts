@@ -44,6 +44,7 @@ import * as url from 'url';
 const readline = require('readline');
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
+const { prompt } = require('inquirer');
 
 // Names / Paths
 const PROJECT_NAME = 'clasp';
@@ -208,6 +209,16 @@ https://script.google.com/home/usersettings`,
 Did you provide the correct scriptId?`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
 };
+
+// Questions (prompts) for clasp create
+const createQuestions = [
+  {
+    type : 'input',
+    name : 'title',
+    message : 'give a script title: ',
+    default: LOG.UNTITLED_SCRIPT_TITLE
+  }
+];
 
 // Utils
 const spinner = new Spinner();
@@ -581,7 +592,14 @@ commander
 commander
   .command('create [scriptTitle] [scriptParentId]')
   .description('Create a script')
-  .action(async (title: string = LOG.UNTITLED_SCRIPT_TITLE, parentId: string) => {
+  .action(async (title: string, parentId: string) => {
+    if (!title) {
+      await prompt(createQuestions).then((answers) => {
+        title = answers.title;
+      }).catch((err) => {
+        console.log(err);
+      });
+    }
     await checkIfOnline();
     if (fs.existsSync(DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
@@ -606,7 +624,7 @@ commander
             logError(error, ERROR.CREATE);
           });
         });
-      });
+      });  
     }
   });
 
