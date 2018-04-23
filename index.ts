@@ -67,7 +67,7 @@ const DOT = {
     LOCAL_DIR: './',
     NAME: `${PROJECT_NAME}rc.json`,
     PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
-    ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`)
+    ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`),
   },
 };
 
@@ -96,7 +96,7 @@ interface FilesCallback {
   (
     error: Error | boolean,
     result: string[][] | null,
-    files: Array<AppsScriptFile | undefined> | null
+    files: Array<AppsScriptFile | undefined> | null,
   ) : void;
 }
 
@@ -127,7 +127,7 @@ const DOTFILE = {
   },
   // See `login`: Stores { accessToken, refreshToken }
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
-  RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME)
+  RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME),
 };
 
 // API settings
@@ -211,14 +211,12 @@ Did you provide the correct scriptId?`,
 };
 
 // Questions (prompts) for clasp create
-const createQuestions = [
-  {
+const createQuestions = [{
     type : 'input',
     name : 'title',
     message : 'give a script title: ',
-    default: LOG.UNTITLED_SCRIPT_TITLE
-  }
-];
+    default: LOG.UNTITLED_SCRIPT_TITLE,
+}];
 
 // Utils
 const spinner = new Spinner();
@@ -328,7 +326,7 @@ function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
       'https://www.googleapis.com/auth/script.deployments',
       'https://www.googleapis.com/auth/script.projects',
       'https://www.googleapis.com/auth/drive.metadata.readonly',
-      'https://www.googleapis.com/auth/script.webapp.deploy'
+      'https://www.googleapis.com/auth/script.webapp.deploy',
     ],
     // code_challenge_method: 'S256',
     // code_challenge: codes.codeChallenge,
@@ -395,7 +393,7 @@ function authorizeWithoutLocalhost(opts: any): Promise<string> {
   return new Promise((res, rej) => {
     const rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
     rl.question(LOG.AUTH_CODE, (code: string) => {
       if (code && code.length) {
@@ -482,10 +480,10 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): void {
         //
         // TODO: implement renaming files from .gs to .js
         // let canRenameToJS = false;
-        // filePaths.map((name, i) => {	
-        //   if (path.extname(name) === '.gs') {	
-        //     canRenameToJS = true;	
-        //   }	
+        // filePaths.map((name, i) => {
+        //   if (path.extname(name) === '.gs') {
+        //     canRenameToJS = true;
+        //   }
         // });
         // Check if there are files that will conflict if renamed .gs to .js
         filePaths.map((name: string) => {
@@ -518,7 +516,7 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): void {
           if (rootDir) {
             formattedName = nameWithoutExt.slice(
               rootDir.length + 1,
-              nameWithoutExt.length
+              nameWithoutExt.length,
             );
           }
           if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
@@ -526,7 +524,7 @@ function getProjectFiles(rootDir: string, callback: FilesCallback): void {
             const file: AppsScriptFile = {
               name: formattedName, // the file base name
               type: getAPIFileType(name), // the file extension
-              source: contents[i] //the file contents
+              source: contents[i], //the file contents
             };
             return file;
           } else {
@@ -624,7 +622,7 @@ commander
             logError(error, ERROR.CREATE);
           });
         });
-      });  
+      });
     }
   });
 
@@ -725,7 +723,7 @@ commander
             const [nonIgnoredFilePaths] = projectFiles;
             script.projects.updateContent({
               scriptId,
-              resource: { files }
+              resource: { files },
             }, {}, (error: any, res: Function) => {
               spinner.stop(true);
               if (error) {
@@ -815,7 +813,7 @@ commander
         if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
         script.projects.deployments.list({
-          scriptId
+          scriptId,
         }, {}, (error: any, { data }: any) => {
           spinner.stop(true);
           if (error) {
@@ -860,7 +858,7 @@ commander
               versionNumber,
               manifestFileName: PROJECT_MANIFEST_BASENAME,
               description,
-            }
+            },
           }, {}, (err: any, { data }: any) => {
             spinner.stop(true);
             if (err) {
@@ -873,14 +871,14 @@ commander
 
         // If the version is specified, update that deployment
         const versionRequestBody = {
-          description
+          description,
         };
         if (version) {
           createDeployment(version);
         } else { // if no version, create a new version and deploy that
           script.projects.versions.create({
             scriptId,
-            resource: versionRequestBody
+            resource: versionRequestBody,
           }, {}, (err: any, { data }: any) => {
             spinner.stop(true);
             if (err) {
@@ -940,9 +938,9 @@ commander
             deploymentConfig: {
               versionNumber: version,
               manifestFileName: PROJECT_MANIFEST_BASENAME,
-              description
-            }
-          }
+              description,
+            },
+          },
         }, {}, (error: any, res: any) => { // TODO remove any
           spinner.stop(true);
           if (error) {
@@ -1091,7 +1089,7 @@ commander
           ERROR: chalk.red(severity),
           INFO: chalk.blue(severity),
           DEBUG: chalk.yellow(severity),
-          NOTICE: chalk.magenta(severity)
+          NOTICE: chalk.magenta(severity),
         })[severity] || severity;
         coloredSeverity = String(coloredSeverity).padEnd(20);
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
@@ -1140,7 +1138,7 @@ commander
         const params = {
           scriptId,
           function: functionName,
-          devMode: true
+          devMode: true,
         };
         console.log('about to run');
         script.scripts.run(params).then(response => {
