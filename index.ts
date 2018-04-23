@@ -190,6 +190,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
+  LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   NO_FUNCTION_NAME: 'N/A',
@@ -1071,9 +1072,10 @@ commander
         let coloredSeverity = ({
           ERROR: chalk.red(severity),
           INFO: chalk.blue(severity),
-          DEBUG: chalk.yellow(severity)
+          DEBUG: chalk.yellow(severity),
+          NOTICE: chalk.magenta(severity)
         })[severity] || severity;
-        coloredSeverity = String(coloredSeverity).padEnd(15);
+        coloredSeverity = String(coloredSeverity).padEnd(20);
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
     }
@@ -1092,7 +1094,9 @@ commander
       const logger = new logging({
         projectId,
       });
-      return logger.getEntries().then(printLogs);
+      return logger.getEntries().then(printLogs).catch((err) => {
+        console.error(ERROR.LOGS_UNAVAILABLE);
+      });
     });
   });
 
