@@ -72,6 +72,7 @@
         ],
         "no-reference": true,
         "no-string-throw": true,
+        "no-trailing-whitespace": true,
         "no-unused-expression": true,
         "no-unused-variable": true,
         "no-var-keyword": true,
@@ -89,6 +90,13 @@
             "ignore-bound-class-methods"
         ],
         "switch-default": true,
+        "trailing-comma": [
+            true,
+            {
+                "multiline": "always",
+                "singleline": "never"
+            }
+        ],
         "triple-equals": [
             true,
             "allow-null-check"
