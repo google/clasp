@@ -218,6 +218,14 @@ const createQuestions = [{
     default: LOG.UNTITLED_SCRIPT_TITLE,
 }];
 
+// Questions (prompts) for clasp clone
+const cloneQuestions = [{
+  type : 'list',
+  name : 'scriptId',
+  message : 'Clone which script? ',
+  choices : [],
+}];
+
 // Utils
 const spinner = new Spinner();
 
@@ -674,13 +682,42 @@ function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
  * Fetches a project and saves the script id locally.
  */
 commander
-  .command('clone <scriptId> [versionNumber]')
+  .command('clone [scriptId] [versionNumber]')
   .description('Clone a project')
   .action(async (scriptId: string, versionNumber?: number) => {
-      await checkIfOnline();
-      spinner.setSpinnerTitle(LOG.CLONING);
-      saveProjectId(scriptId);
-      fetchProject(scriptId, '', versionNumber);
+      if (!scriptId) {
+        getAPICredentials(async () => {
+          const drive = google.drive({version: 'v3', auth: oauth2Client});
+          const res = await drive.files.list({
+            pageSize: 10,
+            fields: 'nextPageToken, files(id, name)',
+            q: "mimeType='application/vnd.google-apps.script'",
+          });
+          const files = res.data.files;
+          const fileIds = [];
+          if (files.length) {
+            files.map((file: any) => {
+              fileIds.push(file.id);
+            });
+            cloneQuestions[0].choices = fileIds;
+            await prompt(cloneQuestions).then((answers) => {
+              checkIfOnline();
+              spinner.setSpinnerTitle(LOG.CLONING);
+              saveProjectId(answers.scriptId);
+              fetchProject(answers.scriptId, '', versionNumber);
+            }).catch((err) => {
+              console.log(err);
+            });
+          } else {
+            console.log('No script files found.');
+          }
+        });
+      } else {
+        await checkIfOnline();
+        spinner.setSpinnerTitle(LOG.CLONING);
+        saveProjectId(scriptId);
+        fetchProject(scriptId, '', versionNumber);
+      }
   });
 
 /**
