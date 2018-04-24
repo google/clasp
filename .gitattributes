@@ -1,0 +1,3 @@
+# Override for linguist treating .ts files as js if there's a shebang on the
+# first line (https://github.com/github/linguist/issues/3733#issuecomment-317342874)
+*.ts linguist-language=TypeScript
