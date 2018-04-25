@@ -133,3 +133,62 @@ export const logError = (err: any, description = '') => {
     if (description) console.error(description);
   }
 };
+
+/**
+ * Gets the script URL from a script ID.
+ *
+ * It is too expensive to get the script URL from the Drive API. (Async/not offline)
+ * @param  {string} scriptId The script ID
+ * @return {string}          The URL of the script in the online script editor.
+ */
+export const getScriptURL = (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`;
+
+/**
+ * Gets the project settings from the project dotfile. Logs errors.
+ * Should be used instead of `DOTFILE.PROJECT().read()`
+ * @param  {boolean} failSilently Don't err when dot file DNE.
+ * @return {Promise} A promise to get the project script ID.
+ */
+export function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
+  const promise = new Promise<ProjectSettings>((resolve, reject) => {
+    const fail = (failSilently?: boolean) => {
+      if (!failSilently) {
+        logError(null, ERROR.SCRIPT_ID_DNE);
+        reject();
+      }
+      resolve();
+    };
+    const dotfile = DOTFILE.PROJECT();
+    if (dotfile) {
+      // Found a dotfile, but does it have the settings, or is it corrupted?
+      dotfile.read().then((settings: ProjectSettings) => {
+        // Settings must have the script ID. Otherwise we err.
+        if (settings.scriptId) {
+          resolve(settings);
+        } else {
+          // TODO: Better error message
+          fail(); // Script ID DNE
+        }
+      }).catch((err: object) => {
+        fail(failSilently); // Failed to read dotfile
+      });
+    } else {
+      fail(); // Never found a dotfile
+    }
+  });
+  promise.catch(err => {
+    logError(err);
+    spinner.stop(true);
+  });
+  return promise;
+}
+
+/**
+ * Gets the local file type from the API FileType.
+ * @param  {string} type The file type returned by Apps Script
+ * @return {string}      The file type
+ * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
+ */
+export function getFileType(type: string): string {
+  return (type === 'SERVER_JS') ? 'js' : type.toLowerCase();
+}

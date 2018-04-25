@@ -40,7 +40,8 @@ const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
-    ProjectSettings, DOTFILE, spinner, logError, ERROR } from './src/utils.js';
+    ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
+    getProjectSettings, getFileType } from './src/utils.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -107,55 +108,6 @@ const LOG = {
       (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
 };
-
-/**
- * Gets the script URL from a script ID.
- *
- * It is too expensive to get the script URL from the Drive API. (Async/not offline)
- * @param  {string} scriptId The script ID
- * @return {string}          The URL of the script in the online script editor.
- */
-const getScriptURL = (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`;
-
-/**
- * Gets the project settings from the project dotfile. Logs errors.
- * Should be used instead of `DOTFILE.PROJECT().read()`
- * @param  {boolean} failSilently Don't err when dot file DNE.
- * @return {Promise} A promise to get the project script ID.
- */
-function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
-  const promise = new Promise<ProjectSettings>((resolve, reject) => {
-    const fail = (failSilently?: boolean) => {
-      if (!failSilently) {
-        logError(null, ERROR.SCRIPT_ID_DNE);
-        reject();
-      }
-      resolve();
-    };
-    const dotfile = DOTFILE.PROJECT();
-    if (dotfile) {
-      // Found a dotfile, but does it have the settings, or is it corrupted?
-      dotfile.read().then((settings: ProjectSettings) => {
-        // Settings must have the script ID. Otherwise we err.
-        if (settings.scriptId) {
-          resolve(settings);
-        } else {
-          // TODO: Better error message
-          fail(); // Script ID DNE
-        }
-      }).catch((err: object) => {
-        fail(failSilently); // Failed to read dotfile
-      });
-    } else {
-      fail(); // Never found a dotfile
-    }
-  });
-  promise.catch(err => {
-    logError(err);
-    spinner.stop(true);
-  });
-  return promise;
-}
 
 /**
  * Loads the Apps Script API credentials for the CLI.
@@ -267,16 +219,6 @@ function authorizeWithoutLocalhost(opts: any): Promise<string> {
       rl.close();
     });
   });
-}
-
-/**
- * Gets the local file type from the API FileType.
- * @param  {string} type The file type returned by Apps Script
- * @return {string}      The file type
- * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
- */
-function getFileType(type: string): string {
-  return (type === 'SERVER_JS') ? 'js' : type.toLowerCase();
 }
 
 /**
