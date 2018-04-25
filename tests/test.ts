@@ -2,6 +2,7 @@ import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import * as fs from 'fs';
 const { spawnSync } = require('child_process');
+import { getScriptURL, getFileType } from './../src/utils.js';
 
 describe('Test help for each function', () => {
   it('should output help for run command', () => {
@@ -150,6 +151,26 @@ describe.skip('Test clasp versions function', () => {
     expect(result.stdout).to.contain('~ ');
     expect(result.stdout).to.contain(' Versions ~');
     expect(result.status).to.equal(0);
+  });
+});
+
+describe.skip('Test getScriptURL function from utils', () => {
+  it('should return the scriptURL correctly', () => {
+    const url = getScriptURL('abcdefghijklmnopqrstuvwxyz');
+    expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
+    const url2 = getScriptURL('1234567890abcdefg');
+    expect(url2).to.equal('https://script.google.com/d/1234567890abcdefg/edit');
+  });
+});
+
+describe.skip('Test getFileType function from utils', () => {
+  it('should return the lowercase file type correctly', () => {
+    const type = getFileType('SERVER_JS');
+    expect(type).to.equal('js');
+    const type2 = getFileType('GS');
+    expect(type2).to.equal('gs');
+    const type3 = getFileType('JS');
+    expect(type3).to.equal('js');
   });
 });
 
