@@ -142,6 +142,17 @@ describe.skip('Test clasp deploy function', () => {
   });
 });
 
+describe.skip('Test clasp versions function', () => {
+  it('should list versions correctly', () => {
+    const result = spawnSync(
+      'clasp', ['versions'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('~ ');
+    expect(result.stdout).to.contain(' Versions ~');
+    expect(result.status).to.equal(0);
+  });
+});
+
 // Fails when you logged in using --ownkey flag
 describe.skip('Test clasp logout function', () => {
   it('should logout correctly', () => {
@@ -179,7 +190,7 @@ describe.skip('Test clasp logout function', () => {
  * [ ] clasp deploy [version] [description]
  * [ ] clasp redeploy <deploymentId> <version> <description>
  * [ ] clasp version [description]
- * [ ] clasp versions
+ * [x] clasp versions
  *
  * # Configs
  * - .js and .gs files
