@@ -34,14 +34,13 @@ import * as pluralize from 'pluralize';
 const commander = require('commander');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
-import { Spinner } from 'cli-spinner';
 import * as url from 'url';
 const readline = require('readline');
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
-    ProjectSettings, DOTFILE } from './src/utils.js';
+    ProjectSettings, DOTFILE, spinner, logError } from './src/utils.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -110,7 +109,7 @@ const LOG = {
 };
 
 // Error messages (some errors take required params)
-const ERROR = {
+export const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
   COMMAND_DNE: (command: string) => `🤔  Unknown command "${command}"\n
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
@@ -139,34 +138,6 @@ https://script.google.com/home/usersettings`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
-};
-
-// Utils
-const spinner = new Spinner();
-
-/**
- * Logs errors to the user such as unauthenticated or permission denied
- * @param  {object} err         The object from the request's error
- * @param  {string} description The description of the error
- */
-const logError = (err: any, description = '') => {
-  // Errors are weird. The API returns interesting error structures.
-  // TODO(timmerman) This will need to be standardized. Waiting for the API to
-  // change error model. Don't review this method now.
-  if (err && typeof err.error === 'string') {
-    console.error(JSON.parse(err.error).error);
-  } else if (err && err.statusCode === 401 || err && err.error &&
-             err.error.error && err.error.error.code === 401) {
-    console.error(ERROR.UNAUTHENTICATED);
-  } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
-    console.error(ERROR.PERMISSION_DENIED);
-  } else {
-    if (err && err.error) {
-      console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
-      console.error(err.error);
-    }
-    if (description) console.error(description);
-  }
 };
 
 /**

@@ -5,6 +5,8 @@ const splitLines = require('split-lines');
 import * as fs from 'fs';
 const dotf = require('dotf');
 const read = require('read-file');
+import { Spinner } from 'cli-spinner';
+import { ERROR } from '../index.js';
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
@@ -72,4 +74,32 @@ export const DOTFILE = {
   // See `login`: Stores { accessToken, refreshToken }
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME),
+};
+
+// Utils
+export const spinner = new Spinner();
+
+/**
+ * Logs errors to the user such as unauthenticated or permission denied
+ * @param  {object} err         The object from the request's error
+ * @param  {string} description The description of the error
+ */
+export const logError = (err: any, description = '') => {
+  // Errors are weird. The API returns interesting error structures.
+  // TODO(timmerman) This will need to be standardized. Waiting for the API to
+  // change error model. Don't review this method now.
+  if (err && typeof err.error === 'string') {
+    console.error(JSON.parse(err.error).error);
+  } else if (err && err.statusCode === 401 || err && err.error &&
+             err.error.error && err.error.error.code === 401) {
+    console.error(ERROR.UNAUTHENTICATED);
+  } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
+    console.error(ERROR.PERMISSION_DENIED);
+  } else {
+    if (err && err.error) {
+      console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
+      console.error(err.error);
+    }
+    if (description) console.error(description);
+  }
 };
