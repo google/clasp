@@ -134,6 +134,7 @@ const LOG = {
   DEPLOYMENT_START: (scriptId: string) => `Deploying project ${scriptId}...`,
   FILES_TO_PUSH: 'Files to push were:',
   FINDING_SCRIPTS: 'Finding your scripts...',
+  FINDING_SCRIPTS_DNE: 'No script files found.',
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   PULLING: 'Pulling files...',
   STATUS_PUSH: 'The following files will be pushed by clasp push:',
@@ -184,14 +185,6 @@ https://script.google.com/home/usersettings`,
 Did you provide the correct scriptId?`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
 };
-
-// Questions (prompts) for clasp create
-const createQuestions = [{
-    type : 'input',
-    name : 'title',
-    message : 'give a script title: ',
-    default: LOG.UNTITLED_SCRIPT_TITLE,
-}];
 
 // Utils
 const spinner = new Spinner();
@@ -567,7 +560,12 @@ commander
   .description('Create a script')
   .action(async (title: string, parentId: string) => {
     if (!title) {
-      await prompt(createQuestions).then((answers) => {
+      await prompt([{
+        type : 'input',
+        name : 'title',
+        message : 'give a script title: ',
+        default: LOG.UNTITLED_SCRIPT_TITLE,
+      }]).then((answers) => {
         title = answers.title;
       }).catch((err) => {
         console.log(err);
@@ -649,13 +647,46 @@ function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
  * Fetches a project and saves the script id locally.
  */
 commander
-  .command('clone <scriptId> [versionNumber]')
+  .command('clone [scriptId] [versionNumber]')
   .description('Clone a project')
   .action(async (scriptId: string, versionNumber?: number) => {
-      await checkIfOnline();
-      spinner.setSpinnerTitle(LOG.CLONING);
-      saveProjectId(scriptId);
-      fetchProject(scriptId, '', versionNumber);
+      if (!scriptId) {
+        getAPICredentials(async () => {
+          const drive = google.drive({version: 'v3', auth: oauth2Client});
+          const { data } = await drive.files.list({
+            pageSize: 10,
+            fields: 'files(id, name)',
+            q: "mimeType='application/vnd.google-apps.script'",
+          });
+          const files = data.files;
+          const fileIds = [];
+          if (files.length) {
+            files.map((file: any) => {
+              fileIds.push(file.id);
+            });
+            await prompt([{
+              type : 'list',
+              name : 'scriptId',
+              message : 'Clone which script? ',
+              choices : fileIds,
+            }]).then((answers) => {
+              checkIfOnline();
+              spinner.setSpinnerTitle(LOG.CLONING);
+              saveProjectId(answers.scriptId);
+              fetchProject(answers.scriptId, '', versionNumber);
+            }).catch((err) => {
+              console.log(err);
+            });
+          } else {
+            console.log(LOG.FINDING_SCRIPTS_DNE);
+          }
+        });
+      } else {
+        await checkIfOnline();
+        spinner.setSpinnerTitle(LOG.CLONING);
+        saveProjectId(scriptId);
+        fetchProject(scriptId, '', versionNumber);
+      }
   });
 
 /**
