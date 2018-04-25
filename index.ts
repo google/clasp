@@ -34,14 +34,13 @@ import * as pluralize from 'pluralize';
 const commander = require('commander');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
-import { Spinner } from 'cli-spinner';
 import * as url from 'url';
 const readline = require('readline');
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
-    ProjectSettings, DOTFILE } from './src/utils.js';
+    ProjectSettings, DOTFILE, spinner, logError, ERROR } from './src/utils.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -107,66 +106,6 @@ const LOG = {
   VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
       (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
-};
-
-// Error messages (some errors take required params)
-const ERROR = {
-  ACCESS_TOKEN: `Error retrieving access token: `,
-  COMMAND_DNE: (command: string) => `🤔  Unknown command "${command}"\n
-Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
-  CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
-  CREATE: 'Error creating script.',
-  DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
-  FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
-  FS_DIR_WRITE: 'Could not create directory.',
-  FS_FILE_WRITE: 'Could not write file.',
-  LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
-  LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
-  LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
-  OFFLINE: 'Error: Looks like you are offline.',
-  ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
-  NO_FUNCTION_NAME: 'N/A',
-  NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
-  You can find your projectId by following the instructions in the README here: \n
-  https://github.com/google/clasp#get-project-id`,
-  NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
-  READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
-  PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
-  PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
-https://script.google.com/home/usersettings`,
-  SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
-  SCRIPT_ID_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
-  SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
-Did you provide the correct scriptId?`,
-  UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
-};
-
-// Utils
-const spinner = new Spinner();
-
-/**
- * Logs errors to the user such as unauthenticated or permission denied
- * @param  {object} err         The object from the request's error
- * @param  {string} description The description of the error
- */
-const logError = (err: any, description = '') => {
-  // Errors are weird. The API returns interesting error structures.
-  // TODO(timmerman) This will need to be standardized. Waiting for the API to
-  // change error model. Don't review this method now.
-  if (err && typeof err.error === 'string') {
-    console.error(JSON.parse(err.error).error);
-  } else if (err && err.statusCode === 401 || err && err.error &&
-             err.error.error && err.error.error.code === 401) {
-    console.error(ERROR.UNAUTHENTICATED);
-  } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
-    console.error(ERROR.PERMISSION_DENIED);
-  } else {
-    if (err && err.error) {
-      console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
-      console.error(err.error);
-    }
-    if (description) console.error(description);
-  }
 };
 
 /**
