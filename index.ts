@@ -40,7 +40,8 @@ const readline = require('readline');
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
-import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings, ProjectSettings, DOTFILE } from './src/utils.js';
+import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
+    ProjectSettings, DOTFILE } from './src/utils.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -103,7 +104,8 @@ const LOG = {
   UNTITLED_SCRIPT_TITLE: 'Untitled Script',
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: string) => `Created version ${versionNumber}.`,
-  VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ${description || '(no description)'}`,
+  VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
+      (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
 };
 
@@ -153,7 +155,8 @@ const logError = (err: any, description = '') => {
   // change error model. Don't review this method now.
   if (err && typeof err.error === 'string') {
     console.error(JSON.parse(err.error).error);
-  } else if (err && err.statusCode === 401 || err && err.error && err.error.error && err.error.error.code === 401) {
+  } else if (err && err.statusCode === 401 || err && err.error &&
+             err.error.error && err.error.error.code === 401) {
     console.error(ERROR.UNAUTHENTICATED);
   } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
     console.error(ERROR.PERMISSION_DENIED);
@@ -506,7 +509,7 @@ commander
  *   Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a
  *   standalone script project is created.
  * @example `create "My Script" "1D_Gxyv*****************************NXO7o"`
- * @see https://developers.google.com/apps-script/api/reference/rest/v1/projects/create#body.request_body.FIELDS.parent_id
+ * @see https://developers.google.com/apps-script/api/reference/rest/v1/projects/create
  */
 commander
   .command('create [scriptTitle] [scriptParentId]')
@@ -1061,7 +1064,8 @@ commander
         process.exit(-1);
       }
       if (cmd.open) {
-        const url = `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`;
+        const url = 'https://console.cloud.google.com/logs/viewer?project=' +
+            `${projectId}&resource=app_script_function`;
         console.log(`Opening logs: ${url}`);
         open(url);
         process.exit(0);
