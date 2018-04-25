@@ -6,7 +6,6 @@ import * as fs from 'fs';
 const dotf = require('dotf');
 const read = require('read-file');
 import { Spinner } from 'cli-spinner';
-import { ERROR } from '../index.js';
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
@@ -76,7 +75,38 @@ export const DOTFILE = {
   RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME),
 };
 
-// Utils
+// Error messages (some errors take required params)
+export const ERROR = {
+  ACCESS_TOKEN: `Error retrieving access token: `,
+  COMMAND_DNE: (command: string) => `🤔  Unknown command "${command}"\n
+Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
+  CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
+  CREATE: 'Error creating script.',
+  DEPLOYMENT_COUNT: `Unable to deploy; Only one deployment can be created at a time`,
+  FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
+  FS_DIR_WRITE: 'Could not create directory.',
+  FS_FILE_WRITE: 'Could not write file.',
+  LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
+  LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
+  LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
+  OFFLINE: 'Error: Looks like you are offline.',
+  ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
+  NO_FUNCTION_NAME: 'N/A',
+  NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
+  You can find your projectId by following the instructions in the README here: \n
+  https://github.com/google/clasp#get-project-id`,
+  NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
+  READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
+  PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
+  PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
+https://script.google.com/home/usersettings`,
+  SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
+  SCRIPT_ID_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
+  SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
+Did you provide the correct scriptId?`,
+  UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
+};
+
 export const spinner = new Spinner();
 
 /**
