@@ -760,12 +760,12 @@ commander
               manifestFileName: PROJECT_MANIFEST_BASENAME,
               description,
             },
-          }, {}, (err: any, { data }: any) => {
+          }, {}, (err: any, response: any) => {
             spinner.stop(true);
             if (err) {
               console.error(ERROR.DEPLOYMENT_COUNT);
-            } else {
-              console.log(`- ${data.deploymentId} @${versionNumber}.`);
+            } else if (response) {
+              console.log(`- ${response.data.deploymentId} @${versionNumber}.`);
             }
           });
         }
