@@ -122,6 +122,26 @@ describe.skip('Test clasp clone function', () => {
   });
 });
 
+describe.skip('Test clasp deployments function', () => {
+  it('should list deployments correctly', () => {
+    const result = spawnSync(
+      'clasp', ['deployments'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('Deployments.');
+    expect(result.status).to.equal(0);
+  });
+});
+
+describe.skip('Test clasp deploy function', () => {
+  it('should deploy correctly', () => {
+    const result = spawnSync(
+      'clasp', ['deploy'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('Created version ');
+    expect(result.status).to.equal(0);
+  });
+});
+
 // Fails when you logged in using --ownkey flag
 describe.skip('Test clasp logout function', () => {
   it('should logout correctly', () => {
