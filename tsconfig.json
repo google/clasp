@@ -11,6 +11,7 @@
   "moduleResolution": "node",
   "files": [
     "index.ts",
-    "tests/test.ts"
+    "tests/test.ts",
+    "src/utils.ts"
   ]
 }
