@@ -116,7 +116,7 @@ const ERROR = {
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
   CREATE: 'Error creating script.',
-  DEPLOYMENT_COUNT: `Unable to deploy; Only one deployment can be created at a time`,
+  DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
@@ -821,12 +821,12 @@ commander
               manifestFileName: PROJECT_MANIFEST_BASENAME,
               description,
             },
-          }, {}, (err: any, { data }: any) => {
+          }, {}, (err: any, response: any) => {
             spinner.stop(true);
             if (err) {
               console.error(ERROR.DEPLOYMENT_COUNT);
-            } else {
-              console.log(`- ${data.deploymentId} @${versionNumber}.`);
+            } else if (response) {
+              console.log(`- ${response.data.deploymentId} @${versionNumber}.`);
             }
           });
         }
