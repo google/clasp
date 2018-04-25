@@ -22,8 +22,6 @@
 import * as anymatch from "anymatch";
 import 'connect';
 import * as del from 'del';
-const dotf = require('dotf');
-const findParentDir = require('find-parent-dir');
 import * as fs from 'fs';
 import { google } from 'googleapis';
 import * as http from 'http';
@@ -34,30 +32,15 @@ const open = require('open');
 const path = require('path');
 import * as pluralize from 'pluralize';
 const commander = require('commander');
-const read = require('read-file');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
 import { Spinner } from 'cli-spinner';
-const splitLines = require('split-lines');
 import * as url from 'url';
 const readline = require('readline');
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
-import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME } from './src/utils.js';
-
-// Clasp settings file (Saved in ~/.clasprc.json)
-interface ClaspSettings {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-}
-// Project settings file (Saved in .clasp.json)
-interface ProjectSettings {
-  scriptId: string;
-  rootDir: string;
-  projectId: string;
-}
+import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings, ProjectSettings, DOTFILE } from './src/utils.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -74,36 +57,6 @@ interface FilesCallback {
     files: Array<AppsScriptFile | undefined> | null,
   ) : void;
 }
-
-const DOTFILE = {
-  /**
-   * Reads DOT.IGNORE.PATH to get a glob pattern of ignored paths.
-   * @return {Promise<string[]>} A list of file glob patterns
-   */
-  IGNORE: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return new Promise<string[]>((res, rej) => {
-      if (fs.existsSync(path.join(projectDirectory, DOT.IGNORE.PATH))) {
-        const buffer = read.sync(DOT.IGNORE.PATH, 'utf8');
-        res(splitLines(buffer).filter((name: string) => name));
-      } else {
-        res([]);
-      }
-    });
-  },
-  /**
-   * Gets the closest DOT.PROJECT.NAME in the parent directory of the directory
-   * that the command was run in.
-   * @return {dotf} A dotf with that dotfile. Null if there is no file
-   */
-  PROJECT: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return dotf(projectDirectory, DOT.PROJECT.NAME);
-  },
-  // See `login`: Stores { accessToken, refreshToken }
-  RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
-  RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME),
-};
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
