@@ -42,7 +42,7 @@ clasp
 - `clasp clone <scriptId>`
 - `clasp pull`
 - `clasp push`
-- `clasp open`
+- `clasp open [scriptId]`
 - `clasp deployments`
 - `clasp deploy [version] [description]`
 - `clasp redeploy <deploymentId> <version> <description>`
@@ -107,8 +107,10 @@ clasp deployments # List all deployment IDs
 ### Open the Project on script.google.com
 
 ```
-clasp open
+clasp open [scriptId]
 ```
+
+Takes an optional argument of the scriptId that you'd like to open. Else, opens script from `.clasp.json`
 
 ### List your App Scripts (In Development)
 
