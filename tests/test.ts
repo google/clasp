@@ -66,7 +66,7 @@ describe.skip('Test clasp create <title> function', () => {
   });
 });
 
-describe.skip('Test clasp clone function', () => {
+describe.skip('Test clasp clone <scriptId> function', () => {
   it('should clone an existing project correctly', () => {
     const settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
     const result = spawnSync(
@@ -111,6 +111,17 @@ describe.skip('Test clasp open function', () => {
   });
 });
 
+describe.skip('Test clasp clone function', () => {
+  it('should prompt for which script to clone correctly', () => {
+    spawnSync('rm', ['.clasp.json']);
+    const result = spawnSync(
+      'clasp', ['clone'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('Clone which script?');
+    expect(result.status).to.equal(0);
+  });
+});
+
 // Fails when you logged in using --ownkey flag
 describe.skip('Test clasp logout function', () => {
   it('should logout correctly', () => {
@@ -139,6 +150,7 @@ describe.skip('Test clasp logout function', () => {
  * [x] clasp create <untitled>
  * [x] clasp list
  * [x] clasp clone <scriptId>
+ * [x] clasp clone
  * [x] clasp pull
  * [x] clasp push
  * [ ] echo '// test' >> index.js && clasp push
