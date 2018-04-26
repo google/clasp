@@ -628,19 +628,23 @@ commander
  * Opens the script editor in the user's browser.
  */
 commander
-  .command('open')
+  .command('open [scriptId]')
   .description('Open a script')
-  .action((scriptId: string) => {
-    getProjectSettings().then(async ({ scriptId }: ProjectSettings) => {
-      if (scriptId) {
-        if (scriptId.length < 30) {
-          logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-        } else {
-          console.log(LOG.OPEN_PROJECT(scriptId));
-          open(getScriptURL(scriptId));
-        }
+  .action(async (scriptId: string) => {
+    const openScript = (scriptId?) => {
+      if (!scriptId) return;
+      if (scriptId.length < 30) {
+        logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+      } else {
+        console.log(LOG.OPEN_PROJECT(scriptId));
+        open(getScriptURL(scriptId));
       }
-    });
+    };
+    if (scriptId) {
+      openScript(scriptId);
+    } else {
+      getProjectSettings().then(openScript);
+    }
   });
 
 /**
