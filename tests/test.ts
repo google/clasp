@@ -2,6 +2,7 @@ import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import * as fs from 'fs';
 const { spawnSync } = require('child_process');
+import { getScriptURL, getFileType } from './../src/utils.js';
 
 describe('Test help for each function', () => {
   it('should output help for run command', () => {
@@ -142,6 +143,42 @@ describe.skip('Test clasp deploy function', () => {
   });
 });
 
+describe.skip('Test clasp version and versions function', () => {
+  let versionNumber = '';
+  it('should create new version correctly', () => {
+    const result = spawnSync(
+      'clasp', ['version'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('Created version ');
+    expect(result.status).to.equal(0);
+    versionNumber = result.stdout.substring(result.stdout.lastIndexOf(" "), result.stdout.length-2);
+    it('should list versions correctly', () => {
+      const result = spawnSync(
+        'clasp', ['versions'], { encoding: 'utf8' },
+      );
+      expect(result.stdout).to.contain('~ ');
+      expect(result.stdout).to.contain(' Versions ~');
+      expect(result.stdout).to.contain(versionNumber + ' - ');
+      expect(result.status).to.equal(0);
+    });
+  });
+});
+
+describe.skip('Test getScriptURL function from utils', () => {
+  it('should return the scriptURL correctly', () => {
+    const url = getScriptURL('abcdefghijklmnopqrstuvwxyz');
+    expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
+  });
+});
+
+describe.skip('Test getFileType function from utils', () => {
+  it('should return the lowercase file type correctly', () => {
+    expect(getFileType('SERVER_JS')).to.equal('js');
+    expect(getFileType('GS')).to.equal('gs');
+    expect(getFileType('JS')).to.equal('js');
+  });
+});
+
 // Fails when you logged in using --ownkey flag
 describe.skip('Test clasp logout function', () => {
   it('should logout correctly', () => {
@@ -179,7 +216,7 @@ describe.skip('Test clasp logout function', () => {
  * [ ] clasp deploy [version] [description]
  * [ ] clasp redeploy <deploymentId> <version> <description>
  * [ ] clasp version [description]
- * [ ] clasp versions
+ * [x] clasp versions
  *
  * # Configs
  * - .js and .gs files
