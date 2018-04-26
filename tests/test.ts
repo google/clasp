@@ -143,14 +143,24 @@ describe.skip('Test clasp deploy function', () => {
   });
 });
 
-describe.skip('Test clasp versions function', () => {
-  it('should list versions correctly', () => {
+describe.skip('Test clasp version and versions function', () => {
+  let versionNumber = '';
+  it('should create new version correctly', () => {
     const result = spawnSync(
-      'clasp', ['versions'], { encoding: 'utf8' },
+      'clasp', ['version'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('~ ');
-    expect(result.stdout).to.contain(' Versions ~');
+    expect(result.stdout).to.contain('Created version ');
     expect(result.status).to.equal(0);
+    versionNumber = result.stdout.substring(result.stdout.lastIndexOf(" "), result.stdout.length-2);
+    it('should list versions correctly', () => {
+      const result = spawnSync(
+        'clasp', ['versions'], { encoding: 'utf8' },
+      );
+      expect(result.stdout).to.contain('~ ');
+      expect(result.stdout).to.contain(' Versions ~');
+      expect(result.stdout).to.contain(versionNumber + ' - ');
+      expect(result.status).to.equal(0);
+    });
   });
 });
 
@@ -158,19 +168,14 @@ describe.skip('Test getScriptURL function from utils', () => {
   it('should return the scriptURL correctly', () => {
     const url = getScriptURL('abcdefghijklmnopqrstuvwxyz');
     expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
-    const url2 = getScriptURL('1234567890abcdefg');
-    expect(url2).to.equal('https://script.google.com/d/1234567890abcdefg/edit');
   });
 });
 
 describe.skip('Test getFileType function from utils', () => {
   it('should return the lowercase file type correctly', () => {
-    const type = getFileType('SERVER_JS');
-    expect(type).to.equal('js');
-    const type2 = getFileType('GS');
-    expect(type2).to.equal('gs');
-    const type3 = getFileType('JS');
-    expect(type3).to.equal('js');
+    expect(getFileType('SERVER_JS')).to.equal('js');
+    expect(getFileType('GS')).to.equal('gs');
+    expect(getFileType('JS')).to.equal('js');
   });
 });
 
