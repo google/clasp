@@ -1,4 +1,4 @@
-# clasp [![Build Status](https://travis-ci.org/google/clasp.svg?branch=master)](https://travis-ci.org/google/clasp) [![Coverage Status](https://coveralls.io/repos/github/google/clasp/badge.svg)](https://coveralls.io/github/google/clasp) [![npm Version](https://img.shields.io/npm/v/@google/clasp.svg)](https://www.npmjs.com/package/@google/clasp) ![npm Downloads](https://img.shields.io/npm/dw/@google/clasp.svg)
+# clasp [![Build Status](https://travis-ci.org/google/clasp.svg?branch=master)](https://travis-ci.org/google/clasp) [![Coverage Status](https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master)](https://coveralls.io/github/google/clasp?branch=master) [![npm Version](https://img.shields.io/npm/v/@google/clasp.svg)](https://www.npmjs.com/package/@google/clasp) ![npm Downloads](https://img.shields.io/npm/dw/@google/clasp.svg)
 
 Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
