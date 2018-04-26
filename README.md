@@ -110,7 +110,7 @@ clasp deployments # List all deployment IDs
 clasp open [scriptId]
 ```
 
-Takes an optional argument of the scriptId that you'd like to open. Else, opens script from `.clasp.json`
+Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.
 
 ### List your App Scripts (In Development)
 

@@ -631,7 +631,8 @@ commander
   .command('open [scriptId]')
   .description('Open a script')
   .action(async (scriptId: string) => {
-    const openScript = (scriptId) => {
+    const openScript = (scriptId?) => {
+      if (!scriptId) return;
       if (scriptId.length < 30) {
         logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
       } else {
@@ -642,11 +643,7 @@ commander
     if (scriptId) {
       openScript(scriptId);
     } else {
-      getProjectSettings().then(async ({ scriptId }: ProjectSettings) => {
-        if (scriptId) {
-          openScript(scriptId);
-        }
-      });
+      getProjectSettings().then(openScript);
     }
   });
 
