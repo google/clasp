@@ -6,17 +6,7 @@ Develop [Apps Script](https://developers.google.com/apps-script/) projects local
 
 **To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
 
-### Install
-
-First download `clasp`:
-
-```sh
-sudo npm i @google/clasp -g
-```
-
-Then enable Apps Script API: https://script.google.com/home/usersettings
-
-### Features
+## Features
 
 **🗺️ Develop Locally:** `clasp` allows you to develop your Apps Script projects locally. That means you can check-in your code into source control, collaborate with other developers, and use your favorite tools to develop Apps Script.
 
@@ -30,6 +20,16 @@ Then enable Apps Script API: https://script.google.com/home/usersettings
   - `tests/`
     - `slides.js`
     - `sheets.js`
+
+## Install
+
+First download `clasp`:
+
+```sh
+sudo npm i @google/clasp -g
+```
+
+Then enable Apps Script API: https://script.google.com/home/usersettings
 
 ## Commands
 
