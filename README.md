@@ -71,6 +71,9 @@ Files in the current directory are added to the project. Optinally provide a scr
 clasp create [scriptTitle] [scriptParentId]
 ```
 
+![clasp-create](https://user-images.githubusercontent.com/11984923/39343526-274651d0-4992-11e8-94c7-765b3ba0a438.gif)
+![clasp-create-no-name](https://user-images.githubusercontent.com/11984923/39343529-2b655e64-4992-11e8-8c33-48294fbfdfa2.gif)
+
 ### Clone an Existing Project in the Current Directory
 
 ```
