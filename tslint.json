@@ -109,6 +109,10 @@
             "ban-keywords",
             "allow-leading-underscore",
             "allow-trailing-underscore"
+        ],
+        "whitespace": [
+            true,
+            "check-operator"
         ]
     }
 }
