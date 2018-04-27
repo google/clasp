@@ -414,23 +414,26 @@ commander
     } else {
       getAPICredentials(async () => {
         spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
-        getProjectSettings(true).then((settings: ProjectSettings) => {
-          if (settings && settings.scriptId) {
+        try {
+          const { scriptId } = await getProjectSettings(true);
+          if (scriptId) {
             console.error(ERROR.NO_NESTED_PROJECTS);
             process.exit(1);
           }
-          script.projects.create({ title, parentId }, {}).then(res => {
-            spinner.stop(true);
-            const scriptId = res.data.scriptId;
-            console.log(LOG.CREATE_PROJECT_FINISH(scriptId));
-            saveProjectId(scriptId);
-            if (!manifestExists()) {
-              fetchProject(scriptId); // fetches appsscript.json, o.w. `push` breaks
-            }
-          }).catch((error: object) => {
-            spinner.stop(true);
-            logError(error, ERROR.CREATE);
-          });
+        } catch (err) { // no scriptId (because project doesn't exist)
+          //console.log(err);
+        }
+        script.projects.create({ title, parentId }, {}).then(res => {
+          spinner.stop(true);
+          const createdScriptId = res.data.scriptId;
+          console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
+          saveProjectId(createdScriptId);
+          if (!manifestExists()) {
+            fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
+          }
+        }).catch((error: object) => {
+          spinner.stop(true);
+          logError(error, ERROR.CREATE);
         });
       });
     }
@@ -534,12 +537,11 @@ commander
   .description('Fetch a remote project')
   .action(async () => {
     await checkIfOnline();
-    getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
-      if (scriptId) {
-        spinner.setSpinnerTitle(LOG.PULLING);
-        fetchProject(scriptId, rootDir);
-      }
-    });
+    const { scriptId, rootDir } = await getProjectSettings();
+    if (scriptId) {
+      spinner.setSpinnerTitle(LOG.PULLING);
+      fetchProject(scriptId, rootDir);
+    }
   });
 
 /**
@@ -556,8 +558,8 @@ commander
     await checkIfOnline();
     spinner.setSpinnerTitle(LOG.PUSHING).start();
     getAPICredentials(async () => {
-      getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
-        if (!scriptId) return;
+      const { scriptId, rootDir } = await getProjectSettings();
+      if (!scriptId) return;
         getProjectFiles(rootDir, (err, projectFiles, files) => {
           if(err) {
             console.log(err);
@@ -586,7 +588,6 @@ commander
               }
           });
         }
-      });
     });
   });
 });
@@ -630,20 +631,15 @@ commander
 commander
   .command('open [scriptId]')
   .description('Open a script')
-  .action(async (scriptId: string) => {
-    const openScript = (scriptId?) => {
-      if (!scriptId) return;
-      if (scriptId.length < 30) {
-        logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-      } else {
-        console.log(LOG.OPEN_PROJECT(scriptId));
-        open(getScriptURL(scriptId));
-      }
-    };
-    if (scriptId) {
-      openScript(scriptId);
+  .action(async (scriptId: any) => {
+    if (!scriptId) {
+      scriptId = await getProjectSettings();
+    }
+    if (scriptId.length < 30) {
+      logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     } else {
-      getProjectSettings().then(openScript);
+      console.log(LOG.OPEN_PROJECT(scriptId));
+      open(getScriptURL(scriptId));
     }
   });
 
@@ -656,8 +652,8 @@ commander
   .action(async () => {
     await checkIfOnline();
     getAPICredentials(async () => {
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        if (!scriptId) return;
+      const { scriptId } = await getProjectSettings();
+      if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
         script.projects.deployments.list({
           scriptId,
@@ -679,7 +675,6 @@ commander
             });
           }
         });
-      });
     });
   });
 
@@ -693,9 +688,9 @@ commander
   .action(async (version: string, description: string) => {
     await checkIfOnline();
     description = description || '';
-    getAPICredentials(() => {
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        if (!scriptId) return;
+    getAPICredentials(async () => {
+      const { scriptId } = await getProjectSettings();
+      if (!scriptId) return;
         spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
         function createDeployment(versionNumber: string) {
           spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
@@ -736,7 +731,6 @@ commander
             }
           });
         }
-      });
     });
   });
 
@@ -809,26 +803,25 @@ commander
   .action(async () => {
     await checkIfOnline();
     spinner.setSpinnerTitle('Grabbing versions...').start();
-    getAPICredentials(() => {
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        script.projects.versions.list({
-          scriptId,
-        }, {}, (error: any, { data }: any) => {
-          spinner.stop(true);
-          if (error) {
-            logError(error);
+    getAPICredentials(async () => {
+      const { scriptId } = await getProjectSettings();
+      script.projects.versions.list({
+        scriptId,
+      }, {}, (error: any, { data }: any) => {
+        spinner.stop(true);
+        if (error) {
+          logError(error);
+        } else {
+          if (data && data.versions && data.versions.length) {
+            const numVersions = data.versions.length;
+            console.log(LOG.VERSION_NUM(numVersions));
+            data.versions.map((version: string) => {
+              console.log(LOG.VERSION_DESCRIPTION(version));
+            });
           } else {
-            if (data && data.versions && data.versions.length) {
-              const numVersions = data.versions.length;
-              console.log(LOG.VERSION_NUM(numVersions));
-              data.versions.map((version: string) => {
-                console.log(LOG.VERSION_DESCRIPTION(version));
-              });
-            } else {
-              console.error(LOG.DEPLOYMENT_DNE);
-            }
+            console.error(LOG.DEPLOYMENT_DNE);
           }
-        });
+        }
       });
     });
   });
@@ -843,21 +836,17 @@ commander
     await checkIfOnline();
     spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
     getAPICredentials(async () => {
-      getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-        script.projects.versions.create({
-          scriptId,
-          description,
-        }, {}, (error: any, { data }: any) => {
-          spinner.stop(true);
-          if (error) {
-            logError(error);
-          } else {
-            console.log(LOG.VERSION_CREATED(data.versionNumber));
-          }
-        });
-      }).catch((err: any) => {
+      const { scriptId } = await getProjectSettings();
+      script.projects.versions.create({
+        scriptId,
+        description,
+      }, {}, (error: any, { data }: any) => {
         spinner.stop(true);
-        logError(err);
+        if (error) {
+          logError(error);
+        } else {
+          console.log(LOG.VERSION_CREATED(data.versionNumber));
+        }
       });
     });
   });
@@ -942,25 +931,23 @@ commander
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
     }
-
-    getProjectSettings().then(({ scriptId, rootDir, projectId }: ProjectSettings) => {
-      if (!projectId) {
-        console.error(ERROR.NO_GCLOUD_PROJECT);
-        process.exit(-1);
-      }
-      if (cmd.open) {
-        const url = 'https://console.cloud.google.com/logs/viewer?project=' +
-            `${projectId}&resource=app_script_function`;
-        console.log(`Opening logs: ${url}`);
-        open(url);
-        process.exit(0);
-      }
-      const logger = new logging({
-        projectId,
-      });
-      return logger.getEntries().then(printLogs).catch((err) => {
-        console.error(ERROR.LOGS_UNAVAILABLE);
-      });
+    const { projectId } = await getProjectSettings();
+    if (!projectId) {
+      console.error(ERROR.NO_GCLOUD_PROJECT);
+      process.exit(-1);
+    }
+    if (cmd.open) {
+      const url = 'https://console.cloud.google.com/logs/viewer?project=' +
+          `${projectId}&resource=app_script_function`;
+      console.log(`Opening logs: ${url}`);
+      open(url);
+      process.exit(0);
+    }
+    const logger = new logging({
+      projectId,
+    });
+    return logger.getEntries().then(printLogs).catch((err) => {
+      console.error(ERROR.LOGS_UNAVAILABLE);
     });
   });
 
@@ -977,6 +964,8 @@ commander
   .command('run <functionName>')
   .description('Run a function in your Apps Scripts project')
   .action((functionName) => {
+    console.log('IN DEVELOPMENT');
+    process.exit(0);
     console.log('start run');
     getAPICredentials(async () => {
       console.log('got creds');
