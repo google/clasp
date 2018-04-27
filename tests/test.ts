@@ -151,13 +151,12 @@ describe.skip('Test clasp version and versions function', () => {
     );
     expect(result.stdout).to.contain('Created version ');
     expect(result.status).to.equal(0);
-    versionNumber = result.stdout.substring(result.stdout.lastIndexOf(" "), result.stdout.length-2);
+    versionNumber = result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2);
     it('should list versions correctly', () => {
       const result = spawnSync(
         'clasp', ['versions'], { encoding: 'utf8' },
       );
-      expect(result.stdout).to.contain('~ ');
-      expect(result.stdout).to.contain(' Versions ~');
+      expect(result.stdout).to.contain('Versions');
       expect(result.stdout).to.contain(versionNumber + ' - ');
       expect(result.status).to.equal(0);
     });
