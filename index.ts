@@ -25,7 +25,6 @@ import * as del from 'del';
 import * as fs from 'fs';
 import { google } from 'googleapis';
 import * as http from 'http';
-const isOnline = require('is-online');
 import * as mkdirp from 'mkdirp';
 import { OAuth2Client } from 'google-auth-library';
 const open = require('open');
@@ -41,7 +40,8 @@ const chalk = require('chalk');
 const { prompt } = require('inquirer');
 import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
     ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
-    getProjectSettings, getFileType } from './src/utils.js';
+    getProjectSettings, getFileType, getAPIFileType, checkIfOnline,
+    saveProjectId, manifestExists } from './src/utils.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -219,42 +219,6 @@ function authorizeWithoutLocalhost(opts: any): Promise<string> {
       rl.close();
     });
   });
-}
-
-/**
- * Gets the API FileType. Assumes the path is valid.
- * @param  {string} path The file path
- * @return {string}      The API's FileType enum (uppercase), null if not valid.
- */
-function getAPIFileType(path: string): string {
-  const extension: string = path.substr(path.lastIndexOf('.') + 1).toUpperCase();
-  return (extension === 'GS' || extension === 'JS') ? 'SERVER_JS' : extension.toUpperCase();
-}
-
-/**
- * Checks if the network is available. Gracefully exits if not.
- */
-async function checkIfOnline() {
-  if (!(await isOnline())) {
-    logError(null, ERROR.OFFLINE);
-    process.exit(1);
-  }
-}
-
-/**
- * Saves the script ID in the project dotfile.
- * @param  {string} scriptId The script ID
- */
-function saveProjectId(scriptId: string): void {
-  DOTFILE.PROJECT().write({ scriptId }); // Save the script id
-}
-
-/**
- * Checks if the current directory appears to be a valid project.
- * @return {boolean} True if valid project, false otherwise
- */
-function manifestExists(): boolean {
-  return fs.existsSync(`${PROJECT_MANIFEST_BASENAME}.json`);
 }
 
 /**
@@ -633,7 +597,8 @@ commander
   .description('Open a script')
   .action(async (scriptId: any) => {
     if (!scriptId) {
-      scriptId = await getProjectSettings();
+      const settings = await getProjectSettings();
+      scriptId = settings.scriptId;
     }
     if (scriptId.length < 30) {
       logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
