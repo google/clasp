@@ -24,17 +24,13 @@ import 'connect';
 import * as del from 'del';
 import * as fs from 'fs';
 import { google } from 'googleapis';
-import * as http from 'http';
 import * as mkdirp from 'mkdirp';
-import { OAuth2Client } from 'google-auth-library';
 const open = require('open');
 const path = require('path');
 import * as pluralize from 'pluralize';
 const commander = require('commander');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
-import * as url from 'url';
-const readline = require('readline');
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
@@ -42,6 +38,8 @@ import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
     ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
     getProjectSettings, getFileType, getAPIFileType, checkIfOnline,
     saveProjectId, manifestExists } from './src/utils.js';
+import { oauth2Client, getAPICredentials,
+    authorizeWithLocalhost, authorizeWithoutLocalhost } from './src/auth.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -59,21 +57,13 @@ interface FilesCallback {
   ) : void;
 }
 
-// API settings
-// @see https://developers.google.com/oauthplayground/
-const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
-const oauth2Client = new OAuth2Client({
-  clientId: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
-  clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
-  redirectUri: 'http://localhost',
-});
 const script = google.script({
   version: 'v1',
   auth: oauth2Client,
 });
 
 // Log messages (some logs take required params)
-const LOG = {
+export const LOG = {
   AUTH_CODE: 'Enter the code from that page here: ',
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page.`, // HTML Redirect Page
   AUTH_SUCCESSFUL: `Saved the credentials to ${DOT.RC.PATH}. You may close the page.`,
@@ -110,24 +100,6 @@ const LOG = {
 };
 
 /**
- * Loads the Apps Script API credentials for the CLI.
- * Required before every API call.
- * @param {Function} cb The callback
- * @param {boolean} isLocal If we should load local API credentials for this clasp project.
- */
-function getAPICredentials(cb: (rc: ClaspSettings | void) => void, isLocal?: boolean) {
-  const dotfile = isLocal ? DOTFILE.RC_LOCAL : DOTFILE.RC;
-  dotfile.read().then((rc: ClaspSettings) => {
-    oauth2Client.setCredentials(rc);
-    cb(rc);
-  }).catch((err: object) => {
-    console.error('Could not read API credentials. Error:');
-    console.error(err);
-    process.exit(-1);
-  });
-}
-
-/**
  * Requests authorization to manage Apps Script projects.
  * @param {boolean} useLocalhost True if a local HTTP server should be run
  *     to handle the auth response. False if manual entry used.
@@ -158,67 +130,6 @@ function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
   })
     .then(() => console.log(LOG.AUTH_SUCCESSFUL))
     .catch((err: string) => console.error(ERROR.ACCESS_TOKEN + err));
-}
-
-/**
- * Requests authorization to manage Apps Scrpit projects. Spins up
- * a temporary HTTP server to handle the auth redirect.
- *
- * @param {Object} opts OAuth2 options TODO formalize options
- * @return {Promise} Promise resolving with the authorization code
- */
-function authorizeWithLocalhost(opts: any): Promise<string> {
-  return new Promise((res: Function, rej: Function) => {
-    const server = http.createServer((req: http.ServerRequest, resp: http.ServerResponse) => {
-      const urlParts = url.parse(req.url || '', true);
-      if (urlParts.query.code) {
-        res(urlParts.query.code);
-      } else {
-        rej(urlParts.query.error);
-      }
-      resp.end(LOG.AUTH_PAGE_SUCCESSFUL);
-      setTimeout(() => { // TODO Remove hack to shutdown server.
-        process.exit();
-      }, 1000);
-    });
-
-    server.listen(0, () => {
-      oauth2Client.redirectUri = `http://localhost:${server.address().port}`;
-      const authUrl = oauth2Client.generateAuthUrl(opts);
-      console.log(LOG.AUTHORIZE(authUrl));
-      open(authUrl);
-    });
-  });
-}
-
-/**
- * Requests authorization to manage Apps Scrpit projects. Requires the
- * user to manually copy/paste the authorization code. No HTTP server is
- * used.
- *
- * @param {Object} opts OAuth2 options
- * @return {Promise} Promise resolving with the authorization code
- */
-
-function authorizeWithoutLocalhost(opts: any): Promise<string> {
-  oauth2Client.redirectUri = REDIRECT_URI_OOB;
-  const authUrl = oauth2Client.generateAuthUrl(opts);
-  console.log(LOG.AUTHORIZE(authUrl));
-
-  return new Promise((res, rej) => {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    rl.question(LOG.AUTH_CODE, (code: string) => {
-      if (code && code.length) {
-        res(code);
-      } else {
-        rej("No authorization code entered.");
-      }
-      rl.close();
-    });
-  });
 }
 
 /**
