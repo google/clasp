@@ -1,10 +1,10 @@
-import { decribe, it } from 'mocha';
+import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import * as fs from 'fs';
 const { spawnSync } = require('child_process');
 import { getScriptURL, getFileType } from './../src/utils.js';
 
-decribe('Test help for each function', () => {
+describe('Test help for each function', () => {
   it('should output help for run command', () => {
     const result = spawnSync(
       'clasp', ['run', '--help'], { encoding : 'utf8' },
@@ -21,7 +21,7 @@ decribe('Test help for each function', () => {
   });
 });
 
-decribe.skip('Test clasp list function', () => {
+describe.skip('Test clasp list function', () => {
   it('should list clasp projects correctly', () => {
     const result = spawnSync(
       'clasp', ['list'], { encoding: 'utf8' },
@@ -34,7 +34,7 @@ decribe.skip('Test clasp list function', () => {
   });
 });
 
-decribe.skip('Test clasp create function', () => {
+describe.skip('Test clasp create function', () => {
   it('should prompt for a project name correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
@@ -45,7 +45,7 @@ decribe.skip('Test clasp create function', () => {
   });
 });
 
-decribe.skip('Test clasp create <projectName> function', () => {
+describe.skip('Test clasp create <projectName> function', () => {
   it('should create a new project correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
@@ -56,7 +56,7 @@ decribe.skip('Test clasp create <projectName> function', () => {
   });
 });
 
-decribe.skip('Test clasp create <title> function', () => {
+describe.skip('Test clasp create <title> function', () => {
   it('should create a new project named <title> correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
@@ -67,7 +67,7 @@ decribe.skip('Test clasp create <title> function', () => {
   });
 });
 
-decribe.skip('Test clasp clone <scriptId> function', () => {
+describe.skip('Test clasp clone <scriptId> function', () => {
   it('should clone an existing project correctly', () => {
     const settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
     const result = spawnSync(
@@ -79,7 +79,7 @@ decribe.skip('Test clasp clone <scriptId> function', () => {
   });
 });
 
-decribe.skip('Test clasp pull function', () => {
+describe.skip('Test clasp pull function', () => {
   it('should pull an existing project correctly', () => {
     const result = spawnSync(
       'clasp', ['pull'], { encoding: 'utf8' },
@@ -90,7 +90,7 @@ decribe.skip('Test clasp pull function', () => {
   });
 });
 
-decribe.skip('Test clasp push function', () => {
+describe.skip('Test clasp push function', () => {
   it('should push local project correctly', () => {
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
     const result = spawnSync(
@@ -102,7 +102,7 @@ decribe.skip('Test clasp push function', () => {
   });
 });
 
-decribe.skip('Test clasp open function', () => {
+describe.skip('Test clasp open function', () => {
   it('should open a project correctly', () => {
     const result = spawnSync(
       'clasp', ['open'], { encoding: 'utf8' },
@@ -112,7 +112,7 @@ decribe.skip('Test clasp open function', () => {
   });
 });
 
-decribe.skip('Test clasp clone function', () => {
+describe.skip('Test clasp clone function', () => {
   it('should prompt for which script to clone correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
@@ -123,7 +123,7 @@ decribe.skip('Test clasp clone function', () => {
   });
 });
 
-decribe.skip('Test clasp deployments function', () => {
+describe.skip('Test clasp deployments function', () => {
   it('should list deployments correctly', () => {
     const result = spawnSync(
       'clasp', ['deployments'], { encoding: 'utf8' },
@@ -133,7 +133,7 @@ decribe.skip('Test clasp deployments function', () => {
   });
 });
 
-decribe.skip('Test clasp deploy function', () => {
+describe.skip('Test clasp deploy function', () => {
   it('should deploy correctly', () => {
     const result = spawnSync(
       'clasp', ['deploy'], { encoding: 'utf8' },
@@ -143,7 +143,7 @@ decribe.skip('Test clasp deploy function', () => {
   });
 });
 
-decribe.skip('Test clasp version and versions function', () => {
+describe.skip('Test clasp version and versions function', () => {
   let versionNumber = '';
   it('should create new version correctly', () => {
     const result = spawnSync(
@@ -163,14 +163,14 @@ decribe.skip('Test clasp version and versions function', () => {
   });
 });
 
-decribe.skip('Test getScriptURL function from utils', () => {
+describe.skip('Test getScriptURL function from utils', () => {
   it('should return the scriptURL correctly', () => {
     const url = getScriptURL('abcdefghijklmnopqrstuvwxyz');
     expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
   });
 });
 
-decribe.skip('Test getFileType function from utils', () => {
+describe.skip('Test getFileType function from utils', () => {
   it('should return the lowercase file type correctly', () => {
     expect(getFileType('SERVER_JS')).to.equal('js');
     expect(getFileType('GS')).to.equal('gs');
@@ -179,7 +179,7 @@ decribe.skip('Test getFileType function from utils', () => {
 });
 
 // Fails when you logged in using --ownkey flag
-decribe.skip('Test clasp logout function', () => {
+describe.skip('Test clasp logout function', () => {
   it('should logout correctly', () => {
     fs.writeFileSync('.clasprc.json', ' ');
     fs.writeFileSync('~/.clasprc.json', ' ');
