@@ -4,8 +4,7 @@ import * as http from 'http';
 import * as url from 'url';
 const open = require('open');
 const readline = require('readline');
-//Just for now, until it moves into /src/commands.ts
-import { LOG } from '../index.js';
+import { LOG } from './commands.js';
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
