@@ -335,7 +335,7 @@ commander
             fields: 'files(id, name)',
             q: "mimeType='application/vnd.google-apps.script'",
           });
-          const files = data.files;
+          const files = data['files'];
           const fileIds = [];
           if (files.length) {
             files.map((file: any) => {
@@ -406,7 +406,7 @@ commander
             script.projects.updateContent({
               scriptId,
               resource: { files },
-            }, {}, (error: any, res: Function) => {
+            }, {}, (error: any) => {
               spinner.stop(true);
               if (error) {
                 console.error(LOG.PUSH_FAILURE);
@@ -712,7 +712,7 @@ commander
         q: "mimeType='application/vnd.google-apps.script'",
       });
       spinner.stop(true);
-      const files = res.data.files;
+      const files = res.data['files'];
       if (files.length) {
         files.map((file: any) => {
           console.log(`${file.name.padEnd(20)} – ${getScriptURL(file.id)}`);
