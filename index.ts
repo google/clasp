@@ -24,6 +24,7 @@ import 'connect';
 import * as del from 'del';
 import * as fs from 'fs';
 import { google } from 'googleapis';
+import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import * as mkdirp from 'mkdirp';
 const open = require('open');
 const path = require('path');
@@ -329,13 +330,13 @@ commander
   .action(async (scriptId: string, versionNumber?: number) => {
       if (!scriptId) {
         getAPICredentials(async () => {
-          const drive = google.drive({version: 'v3', auth: oauth2Client});
+          const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
           const { data } = await drive.files.list({
             pageSize: 10,
             fields: 'files(id, name)',
             q: "mimeType='application/vnd.google-apps.script'",
           });
-          const files = data['files'];
+          const files = data.files;
           const fileIds = [];
           if (files.length) {
             files.map((file: any) => {
@@ -705,14 +706,14 @@ commander
     await checkIfOnline();
     spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
     getAPICredentials(async () => {
-      const drive = google.drive({version: 'v3', auth: oauth2Client});
+      const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
       const res = await drive.files.list({
         pageSize: 50,
         fields: 'nextPageToken, files(id, name)',
         q: "mimeType='application/vnd.google-apps.script'",
       });
       spinner.stop(true);
-      const files = res.data['files'];
+      const files = res.data.files;
       if (files.length) {
         files.map((file: any) => {
           console.log(`${file.name.padEnd(20)} – ${getScriptURL(file.id)}`);
