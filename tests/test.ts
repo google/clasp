@@ -2,7 +2,9 @@ import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import * as fs from 'fs';
 const { spawnSync } = require('child_process');
-import { getScriptURL, getFileType } from './../src/utils.js';
+import { getScriptURL, getFileType, getAPIFileType,
+         saveProjectId } from './../src/utils.js';
+const path = require('path');
 
 describe('Test help for each function', () => {
   it('should output help for run command', () => {
@@ -163,18 +165,38 @@ describe.skip('Test clasp version and versions function', () => {
   });
 });
 
-describe.skip('Test getScriptURL function from utils', () => {
+describe('Test getScriptURL function from utils', () => {
   it('should return the scriptURL correctly', () => {
     const url = getScriptURL('abcdefghijklmnopqrstuvwxyz');
     expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
   });
 });
 
-describe.skip('Test getFileType function from utils', () => {
+describe('Test getFileType function from utils', () => {
   it('should return the lowercase file type correctly', () => {
     expect(getFileType('SERVER_JS')).to.equal('js');
     expect(getFileType('GS')).to.equal('gs');
     expect(getFileType('JS')).to.equal('js');
+  });
+});
+
+describe('Test getAPIFileType function from utils', () => {
+  it('should return the uppercase file type correctly', () => {
+    expect(getAPIFileType('file.GS')).to.equal('SERVER_JS');
+    expect(getAPIFileType('file.JS')).to.equal('SERVER_JS');
+    expect(getAPIFileType('file.txt')).to.equal('TXT');
+  });
+});
+
+// NOTE: we should make saveProjectId async because dotf.write is async
+describe('Test saveProjectId function from utils', () => {
+  it('should save the scriptId correctly', () => {
+    spawnSync('rm', ['.clasp.json']);
+    saveProjectId('12345');
+    setTimeout(function() {
+      let id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
+      expect(id).to.equal('{"scriptId":"12345"}');
+    }, 3000);
   });
 });
 
