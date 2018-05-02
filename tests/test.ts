@@ -193,8 +193,8 @@ describe('Test saveProjectId function from utils', () => {
   it('should save the scriptId correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     saveProjectId('12345');
-    setTimeout(function() {
-      let id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
+    setTimeout(() => {
+      const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345"}');
     }, 3000);
   });
@@ -238,6 +238,10 @@ describe.skip('Test clasp logout function', () => {
  * [ ] clasp redeploy <deploymentId> <version> <description>
  * [ ] clasp version [description]
  * [x] clasp versions
+ * [x] saveProjectId
+ * [x] getScriptURL
+ * [x] getFileType
+ * [x] getAPIFileType
  *
  * # Configs
  * - .js and .gs files
