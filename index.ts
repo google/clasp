@@ -24,6 +24,7 @@ import 'connect';
 import * as del from 'del';
 import * as fs from 'fs';
 import { google } from 'googleapis';
+import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import * as mkdirp from 'mkdirp';
 const open = require('open');
 const path = require('path');
@@ -329,7 +330,7 @@ commander
   .action(async (scriptId: string, versionNumber?: number) => {
       if (!scriptId) {
         getAPICredentials(async () => {
-          const drive = google.drive({version: 'v3', auth: oauth2Client});
+          const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
           const { data } = await drive.files.list({
             pageSize: 10,
             fields: 'files(id, name)',
@@ -406,7 +407,7 @@ commander
             script.projects.updateContent({
               scriptId,
               resource: { files },
-            }, {}, (error: any, res: Function) => {
+            }, {}, (error: any) => {
               spinner.stop(true);
               if (error) {
                 console.error(LOG.PUSH_FAILURE);
@@ -705,7 +706,7 @@ commander
     await checkIfOnline();
     spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
     getAPICredentials(async () => {
-      const drive = google.drive({version: 'v3', auth: oauth2Client});
+      const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
       const res = await drive.files.list({
         pageSize: 50,
         fields: 'nextPageToken, files(id, name)',
