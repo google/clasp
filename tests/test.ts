@@ -184,19 +184,21 @@ describe('Test getAPIFileType function from utils', () => {
   it('should return the uppercase file type correctly', () => {
     expect(getAPIFileType('file.GS')).to.equal('SERVER_JS');
     expect(getAPIFileType('file.JS')).to.equal('SERVER_JS');
-    expect(getAPIFileType('file.txt')).to.equal('TXT');
+    expect(getAPIFileType('file.js')).to.equal('SERVER_JS');
+    expect(getAPIFileType('file.jsx')).to.equal('JSX');
+    expect(getAPIFileType('file.js.html')).to.equal('HTML');
   });
 });
 
-// NOTE: we should make saveProjectId async because dotf.write is async
 describe('Test saveProjectId function from utils', () => {
   it('should save the scriptId correctly', () => {
     spawnSync('rm', ['.clasp.json']);
-    saveProjectId('12345');
-    setTimeout(() => {
+    const isSaved = async () => {
+      await saveProjectId('12345');
       const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345"}');
-    }, 3000);
+    };
+    expect(isSaved).to.not.equal(null);
   });
 });
 

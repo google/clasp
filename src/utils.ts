@@ -218,8 +218,8 @@ export async function checkIfOnline() {
  * Saves the script ID in the project dotfile.
  * @param  {string} scriptId The script ID
  */
-export function saveProjectId(scriptId: string): void {
-  DOTFILE.PROJECT().write({ scriptId }); // Save the script id
+export async function saveProjectId(scriptId: string): Promise<string> {
+  return DOTFILE.PROJECT().write({ scriptId }); // Save the script id
 }
 
 /**
