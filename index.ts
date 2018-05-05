@@ -34,6 +34,7 @@ import * as recursive from 'recursive-readdir';
 const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
+import * as pluralize from 'pluralize';
 import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
     ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
     getProjectSettings, getFileType, getAPIFileType, checkIfOnline,
