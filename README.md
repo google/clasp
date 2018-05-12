@@ -1,6 +1,12 @@
-# clasp [![Build Status](https://travis-ci.org/google/clasp.svg?branch=master)](https://travis-ci.org/google/clasp) [![Coverage Status](https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master)](https://coveralls.io/github/google/clasp?branch=master) [![npm Version](https://img.shields.io/npm/v/@google/clasp.svg)](https://www.npmjs.com/package/@google/clasp) ![npm Downloads](https://img.shields.io/npm/dw/@google/clasp.svg) [![Package Quality](http://npm.packagequality.com/shield/%40google%2Fclasp.svg)](http://packagequality.com/#?package=%40google%2Fclasp)
+<h1 align="center">
+  <br>
+  clasp
+  <br>
+</h1>
 
-Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
+<p align="center"><a href="https://travis-ci.org/google/clasp"><img src="https://travis-ci.org/google/clasp.svg?branch=master" alt="Build Status"></a> <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/v/@google/clasp.svg" alt="npm Version"></a> <img src="https://img.shields.io/npm/dw/@google/clasp.svg" alt="npm Downloads"> <a href="http://packagequality.com/#?package=%40google%2Fclasp"><img src="http://npm.packagequality.com/shield/%40google%2Fclasp.svg" alt="Package Quality"></a></p>
+
+> Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
 ![clasp](https://user-images.githubusercontent.com/744973/35164939-43fd32ae-fd01-11e7-8916-acd70fff3383.gif)
 
