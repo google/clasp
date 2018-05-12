@@ -30,6 +30,7 @@ export const DOT = {
       NAME: `${PROJECT_NAME}rc.json`,
       PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
       ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`),
+      ABSOLUTE_LOCAL_PATH: path.join('.', `.${PROJECT_NAME}rc.json`),
     },
 };
 
