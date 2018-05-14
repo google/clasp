@@ -1,6 +1,8 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import * as fs from 'fs';
+import * as os from 'os';
+
 const { spawnSync } = require('child_process');
 import { getScriptURL, getFileType, getAPIFileType,
          saveProjectId } from './../src/utils.js';
@@ -202,11 +204,10 @@ describe('Test saveProjectId function from utils', () => {
   });
 });
 
-// Fails when you logged in using --ownkey flag
 describe.skip('Test clasp logout function', () => {
   it('should logout correctly', () => {
     fs.writeFileSync('.clasprc.json', ' ');
-    fs.writeFileSync('~/.clasprc.json', ' ');
+    fs.writeFileSync(path.join(os.homedir(), '/.clasprc.json'), ' ');
     const result = spawnSync(
       'clasp', ['logout'], { encoding: 'utf8' },
     );
