@@ -219,6 +219,7 @@ commander
   .description('Log out')
   .action(() => {
     del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
+    del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
   });
 
 /**
