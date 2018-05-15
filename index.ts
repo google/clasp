@@ -206,8 +206,12 @@ commander
     DOTFILE.RC.read().then((rc: ClaspSettings) => {
       console.warn(ERROR.LOGGED_IN);
     }).catch(async (err: string) => {
-      await checkIfOnline();
-      authorize(options.localhost, options.ownkey);
+      DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
+        console.warn(ERROR.LOGGED_IN);
+      }).catch(async (err: string) => {
+        await checkIfOnline();
+        authorize(options.localhost, options.ownkey);
+      });
     });
   });
 
