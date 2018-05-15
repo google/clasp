@@ -452,8 +452,8 @@ commander
       else if (projectFiles) {
         const status = {
           filesToPush: projectFiles[0],
-          untrackedFiles: projectFiles[1]
-        }
+          untrackedFiles: projectFiles[1],
+        };
         if (cmd.json) {
           console.log(JSON.stringify(status));
         } else {

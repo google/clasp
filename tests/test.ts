@@ -122,7 +122,7 @@ describe.skip('Test clasp status function', () => {
       { file: 'build/main.js', data: ' ' },
       { file: 'appsscript.json', data: ' ' },
       { file: 'shouldBeIgnored', data: ' ' },
-      { file: 'should/alsoBeIgnored', data: ' ' }
+      { file: 'should/alsoBeIgnored', data: ' ' },
     ]);
     spawnSync('clasp', ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir  });
     const result = spawnSync('clasp', ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
@@ -142,7 +142,8 @@ describe.skip('Test clasp status function', () => {
     const result = spawnSync('clasp', ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
-    expect(resultJson.untrackedFiles).to.have.members(['node_modules/fsevents/build/Release/.deps/Release/.node.d']);
+    expect(resultJson.untrackedFiles).to.have.members([
+      'node_modules/fsevents/build/Release/.deps/Release/.node.d']);
     expect(resultJson.filesToPush).to.have.members(['appsscript.json']);
   });
 });
