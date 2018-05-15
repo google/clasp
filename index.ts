@@ -450,17 +450,14 @@ commander
     getProjectFiles(rootDir, (err, projectFiles) => {
       if(err) return console.log(err);
       else if (projectFiles) {
-        const status = {
-          filesToPush: projectFiles[0],
-          untrackedFiles: projectFiles[1],
-        };
+        const [filesToPush, untrackedFiles] = projectFiles;
         if (cmd.json) {
-          console.log(JSON.stringify(status));
+          console.log(JSON.stringify({ filesToPush, untrackedFiles }));
         } else {
           console.log(LOG.STATUS_PUSH);
-          status.filesToPush.forEach((file) => console.log(`└─ ${file}`));
+          filesToPush.forEach((file) => console.log(`└─ ${file}`));
           console.log(LOG.STATUS_IGNORE);
-          status.untrackedFiles.forEach((file) => console.log(`└─ ${file}`));
+          untrackedFiles.forEach((file) => console.log(`└─ ${file}`));
         }
       }
     });
