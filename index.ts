@@ -828,7 +828,7 @@ commander
           console.log(e);
         });
       });
-    }, true);
+    });
   });
 
 /**
