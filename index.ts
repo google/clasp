@@ -346,7 +346,7 @@ commander
           const fileIds = [];
           if (files.length) {
             files.map((file: any) => {
-              fileIds.push(file.id);
+              fileIds.push(`${file.id} - (${file.name})`);
             });
             await prompt([{
               type : 'list',
