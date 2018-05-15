@@ -1,12 +1,13 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as os from 'os';
 
 const { spawnSync } = require('child_process');
 import { getScriptURL, getFileType, getAPIFileType,
          saveProjectId } from './../src/utils.js';
-const path = require('path');
+import * as path from 'path';
+import * as tmp from 'tmp';
 
 describe('Test help for each function', () => {
   it('should output help for run command', () => {
@@ -18,7 +19,7 @@ describe('Test help for each function', () => {
   });
   it('should output help for logs command', () => {
     const result = spawnSync(
-      'clasp', ['logs', '--help'], { encoding : 'utf8', detached: true },
+      'clasp', ['logs', '--help'], { encoding : 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include('Shows the StackDriver logs');
@@ -103,6 +104,46 @@ describe.skip('Test clasp push function', () => {
     expect(result.stdout).to.contain('Pushed');
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
+  });
+});
+
+describe.skip('Test clasp status function', () => {
+  function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
+    fs.ensureDirSync('tmp');
+    const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: true }).name;
+    filepathsAndContents.forEach(({ file, data }) => {
+      fs.outputFileSync(path.join(tmpdir, file), data);
+    });
+    return tmpdir;
+  }
+  it("should respect globs and negation rules", () => {
+    const tmpdir = setupTmpDirectory([
+      { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
+      { file: 'build/main.js', data: ' ' },
+      { file: 'appsscript.json', data: ' ' },
+      { file: 'shouldBeIgnored', data: ' ' },
+      { file: 'should/alsoBeIgnored', data: ' ' }
+    ]);
+    spawnSync('clasp', ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir  });
+    const result = spawnSync('clasp', ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
+    expect(result.status).to.equal(0);
+    const resultJson = JSON.parse(result.stdout);
+    expect(resultJson.untrackedFiles).to.have.members(['shouldBeIgnored', 'should/alsoBeIgnored']);
+    expect(resultJson.filesToPush).to.have.members(['build/main.js', 'appsscript.json']);
+  });
+  // https://github.com/google/clasp/issues/67 - This test currently fails
+  it.skip('should ignore dotfiles if the parent folder is ignored', () => {
+    const tmpdir = setupTmpDirectory([
+      { file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json' },
+      { file: 'appsscript.json', data: ' ' },
+      { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: ' ' },
+    ]);
+    spawnSync('clasp', ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
+    const result = spawnSync('clasp', ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
+    expect(result.status).to.equal(0);
+    const resultJson = JSON.parse(result.stdout);
+    expect(resultJson.untrackedFiles).to.have.members(['node_modules/fsevents/build/Release/.deps/Release/.node.d']);
+    expect(resultJson.filesToPush).to.have.members(['appsscript.json']);
   });
 });
 
