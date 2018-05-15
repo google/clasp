@@ -442,23 +442,25 @@ commander
 commander
 .command('status')
 .description('Lists files that will be pushed by clasp')
-.action(async () => {
+.option('--json', "Show status in JSON form")
+.action(async (cmd: { json: boolean }) => {
   await checkIfOnline();
   getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
     if (!scriptId) return;
     getProjectFiles(rootDir, (err, projectFiles) => {
       if(err) return console.log(err);
       else if (projectFiles) {
-        const [nonIgnoredFilePaths, ignoredFilePaths] = projectFiles;
-        console.log(LOG.STATUS_PUSH);
-        nonIgnoredFilePaths.map((filePath: string) => {
-              console.log(`└─ ${filePath}`);
-        });
-        if (ignoredFilePaths.length) {
+        const status = {
+          filesToPush: projectFiles[0],
+          untrackedFiles: projectFiles[1]
+        }
+        if (cmd.json) {
+          console.log(JSON.stringify(status));
+        } else {
+          console.log(LOG.STATUS_PUSH);
+          status.filesToPush.forEach((file) => console.log(`└─ ${file}`));
           console.log(LOG.STATUS_IGNORE);
-          ignoredFilePaths.map((filePath: string) => {
-            console.log(`└─ ${filePath}`);
-          });
+          status.untrackedFiles.forEach((file) => console.log(`└─ ${file}`));
         }
       }
     });
