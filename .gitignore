@@ -9,3 +9,4 @@ node_modules/
 .env
 .nyc_output
 *.lock
+/tmp
