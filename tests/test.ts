@@ -110,7 +110,7 @@ describe.skip('Test clasp push function', () => {
 describe.skip('Test clasp status function', () => {
   function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
     fs.ensureDirSync('tmp');
-    const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: true }).name;
+    const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
     filepathsAndContents.forEach(({ file, data }) => {
       fs.outputFileSync(path.join(tmpdir, file), data);
     });
