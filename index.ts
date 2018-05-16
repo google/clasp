@@ -244,7 +244,7 @@ commander
       await prompt([{
         type : 'input',
         name : 'title',
-        message : 'give a script title: ',
+        message : 'give a script title:',
         default: LOG.UNTITLED_SCRIPT_TITLE,
       }]).then((answers) => {
         title = answers.title;
