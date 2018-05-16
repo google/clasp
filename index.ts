@@ -808,20 +808,14 @@ commander
   .command('run <functionName>')
   .description('Run a function in your Apps Scripts project')
   .action((functionName) => {
-    console.log('IN DEVELOPMENT');
-    process.exit(0);
-    console.log('start run');
     getAPICredentials(async () => {
-      console.log('got creds');
       await checkIfOnline();
-      console.log('online');
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {
         const params = {
           scriptId,
           function: functionName,
-          devMode: true,
+          devMode: false,
         };
-        console.log('about to run');
         script.scripts.run(params).then(response => {
           console.log(response.data);
         }).catch(e => {
