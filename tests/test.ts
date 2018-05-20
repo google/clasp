@@ -105,6 +105,16 @@ describe.skip('Test clasp push function', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
   });
+  it('should return non-0 exit code when push failed', () => {
+    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
+    fs.writeFileSync('unexpected_file', '');
+    const result = spawnSync(
+      'clasp', ['push'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('failed.');
+    expect(result.stdout).to.contain('files.');
+    expect(result.status).to.equal(-1);
+  });
 });
 
 describe.skip('Test clasp status function', () => {
