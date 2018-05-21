@@ -424,6 +424,7 @@ commander
                 nonIgnoredFilePaths.map((filePath: string) => {
                   console.error(`└─ ${filePath}`);
                 });
+                process.exit(-1);
               } else {
                 nonIgnoredFilePaths.map((filePath: string) => {
                   console.log(`└─ ${filePath}`);
