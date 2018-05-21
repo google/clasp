@@ -39,8 +39,7 @@ import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
     ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
     getProjectSettings, getFileType, getAPIFileType, checkIfOnline,
     saveProjectId, manifestExists } from './src/utils.js';
-import { oauth2Client, getAPICredentials,
-    authorizeWithLocalhost, authorizeWithoutLocalhost } from './src/auth.js';
+import { oauth2Client, getAPICredentials, authorize } from './src/auth';
 import { LOG } from './src/commands.js';
 // An Apps Script API File
 interface AppsScriptFile {
@@ -62,39 +61,6 @@ const script = google.script({
   version: 'v1',
   auth: oauth2Client,
 });
-
-/**
- * Requests authorization to manage Apps Script projects.
- * @param {boolean} useLocalhost True if a local HTTP server should be run
- *     to handle the auth response. False if manual entry used.
- */
-function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
-  // const codes = oauth2Client.generateCodeVerifier();
-  // See https://developers.google.com/identity/protocols/OAuth2InstalledApp#step1-code-verifier
-  const options = {
-    access_type: 'offline',
-    scope: [
-      'https://www.googleapis.com/auth/script.deployments',
-      'https://www.googleapis.com/auth/script.projects',
-      'https://www.googleapis.com/auth/drive.metadata.readonly',
-      'https://www.googleapis.com/auth/script.webapp.deploy',
-    ],
-    // code_challenge_method: 'S256',
-    // code_challenge: codes.codeChallenge,
-  };
-  const authCode: Promise<string> = useLocalhost ?
-    authorizeWithLocalhost(options) :
-    authorizeWithoutLocalhost(options);
-  authCode.then((code: string) => {
-    return new Promise((res: Function, rej: Function) => {
-      oauth2Client.getToken(code).then((token) => res(token.tokens));
-    });
-  }).then((token: object) => {
-    writeToOwnKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token);
-  })
-    .then(() => console.log(LOG.AUTH_SUCCESSFUL))
-    .catch((err: string) => console.error(ERROR.ACCESS_TOKEN + err));
-}
 
 /**
  * Recursively finds all files that are part of the current project, and those that are ignored
