@@ -58,7 +58,8 @@ async function authorizeWithLocalhost() {
     const s = http.createServer();
     s.listen(0, () => resolve(s));
   });
-  const client = new OAuth2Client({...oauth2ClientSettings,
+  const client = new OAuth2Client({
+    ...oauth2ClientSettings,
     redirectUri: `http://localhost:${server.address().port}`});
   const authCode = await new Promise<string>((res, rej) => {
     server.on('request', (req: http.ServerRequest, resp: http.ServerResponse) => {
