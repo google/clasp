@@ -1,3 +1,5 @@
+(Please search [existing issues](https://github.com/google/clasp/issues) before creating a new one.)
+
 ## Expected Behavior
 
 
