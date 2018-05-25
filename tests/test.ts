@@ -50,17 +50,6 @@ describe.skip('Test clasp create function', () => {
   });
 });
 
-describe.skip('Test clasp create <projectName> function', () => {
-  it('should create a new project correctly', () => {
-    spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(
-      'clasp', ['create', 'sampleProject'], { encoding: 'utf8' },
-    );
-    expect(result.stdout).to.contain('Created new script: https://script.google.com/d/');
-    expect(result.status).to.equal(0);
-  });
-});
-
 describe.skip('Test clasp create <title> function', () => {
   it('should create a new project named <title> correctly', () => {
     spawnSync('rm', ['.clasp.json']);
@@ -106,7 +95,7 @@ describe.skip('Test clasp push function', () => {
     expect(result.status).to.equal(0);
   });
   it('should return non-0 exit code when push failed', () => {
-    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
+    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
     fs.writeFileSync('unexpected_file', '');
     const result = spawnSync(
       'clasp', ['push'], { encoding: 'utf8' },
