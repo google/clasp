@@ -1,4 +1,6 @@
-import { DOT, PROJECT_NAME, getScriptURL } from './utils.js';
+import { DOT, PROJECT_NAME, getScriptURL, ClaspSettings, DOTFILE, ERROR,
+checkIfOnline } from './utils.js';
+import { authorize } from './auth.js';
 import * as pluralize from 'pluralize';
 
 // Log messages (some logs take required params)
@@ -37,3 +39,16 @@ export const LOG = {
         (description || '(no description)'),
     VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
   };
+
+export function login(options) {
+    DOTFILE.RC.read().then((rc: ClaspSettings) => {
+        console.warn(ERROR.LOGGED_IN);
+      }).catch(async (err: string) => {
+        DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
+          console.warn(ERROR.LOGGED_IN);
+        }).catch(async (err: string) => {
+          await checkIfOnline();
+          authorize(options.localhost, options.ownkey);
+        });
+      });
+}

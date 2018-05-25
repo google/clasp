@@ -115,6 +115,7 @@ export async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
     const token = await (useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
     await (writeToOwnKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token));
     console.log(LOG.AUTH_SUCCESSFUL);
+    process.exit(0);
   } catch(err) {
     console.error(ERROR.ACCESS_TOKEN + err);
   }

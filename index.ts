@@ -35,12 +35,12 @@ const logging = require('@google-cloud/logging');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 import * as pluralize from 'pluralize';
-import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME, ClaspSettings,
+import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME,
     ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
     getProjectSettings, getFileType, getAPIFileType, checkIfOnline,
     saveProjectId, manifestExists } from './src/utils.js';
-import { oauth2Client, getAPICredentials, authorize } from './src/auth';
-import { LOG } from './src/commands.js';
+import { oauth2Client, getAPICredentials } from './src/auth';
+import { LOG, login } from './src/commands.js';
 // An Apps Script API File
 interface AppsScriptFile {
   name: string;
@@ -168,17 +168,7 @@ commander
     localhost: boolean;
     ownkey: boolean;
   }) => {
-    // Try to read the RC file.
-    DOTFILE.RC.read().then((rc: ClaspSettings) => {
-      console.warn(ERROR.LOGGED_IN);
-    }).catch(async (err: string) => {
-      DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
-        console.warn(ERROR.LOGGED_IN);
-      }).catch(async (err: string) => {
-        await checkIfOnline();
-        authorize(options.localhost, options.ownkey);
-      });
-    });
+    login(options);
   });
 
 /**
