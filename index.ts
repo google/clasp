@@ -192,22 +192,22 @@ commander
   .command('create [scriptTitle] [scriptParentId]')
   .description('Create a script')
   .action(async (title: string, parentId: string) => {
-    if (!title) {
-      await prompt([{
-        type : 'input',
-        name : 'title',
-        message : 'Give a script title:',
-        default: LOG.UNTITLED_SCRIPT_TITLE,
-      }]).then((answers: any) => {
-        title = answers.title;
-      }).catch((err: any) => {
-        console.log(err);
-      });
-    }
     await checkIfOnline();
     if (fs.existsSync(DOT.PROJECT.PATH)) {
       logError(null, ERROR.FOLDER_EXISTS);
     } else {
+      if (!title) {
+        await prompt([{
+          type : 'input',
+          name : 'title',
+          message : 'Give a script title:',
+          default: LOG.UNTITLED_SCRIPT_TITLE,
+        }]).then((answers: any) => {
+          title = answers.title;
+        }).catch((err: any) => {
+          console.log(err);
+        });
+      }
       getAPICredentials(async () => {
         spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
         try {
