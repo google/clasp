@@ -19,7 +19,7 @@
 /**
  * clasp – The Apps Script CLI
  */
-import * as anymatch from "anymatch";
+import * as anymatch from 'anymatch';
 import 'connect';
 import * as del from 'del';
 import * as fs from 'fs';
@@ -41,6 +41,7 @@ import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME,
     saveProjectId, manifestExists } from './src/utils.js';
 import { oauth2Client, getAPICredentials } from './src/auth';
 import { LOG, login } from './src/commands.js';
+
 // An Apps Script API File
 interface AppsScriptFile {
   name: string;
@@ -195,11 +196,11 @@ commander
       await prompt([{
         type : 'input',
         name : 'title',
-        message : 'give a script title:',
+        message : 'Give a script title:',
         default: LOG.UNTITLED_SCRIPT_TITLE,
-      }]).then((answers) => {
+      }]).then((answers: any) => {
         title = answers.title;
-      }).catch((err) => {
+      }).catch((err: any) => {
         console.log(err);
       });
     }
@@ -291,10 +292,10 @@ commander
           const { data } = await drive.files.list({
             pageSize: 10,
             fields: 'files(id, name)',
-            q: "mimeType='application/vnd.google-apps.script'",
+            q: 'mimeType="application/vnd.google-apps.script"',
           });
           const files = data.files;
-          const fileIds = [];
+          const fileIds:string[] = [];
           if (files.length) {
             files.map((file: any) => {
               fileIds.push(`${file.name}`.padEnd(20) + ` - (${file.id})`);
@@ -304,12 +305,12 @@ commander
               name : 'scriptId',
               message : 'Clone which script? ',
               choices : fileIds,
-            }]).then((answers) => {
+            }]).then((answers: any) => {
               checkIfOnline();
               spinner.setSpinnerTitle(LOG.CLONING);
               saveProjectId(answers.scriptId);
               fetchProject(answers.scriptId, '', versionNumber);
-            }).catch((err) => {
+            }).catch((err: any) => {
               console.log(err);
             });
           } else {
@@ -398,7 +399,7 @@ commander
 commander
 .command('status')
 .description('Lists files that will be pushed by clasp')
-.option('--json', "Show status in JSON form")
+.option('--json', 'Show status in JSON form')
 .action(async (cmd: { json: boolean }) => {
   await checkIfOnline();
   getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
@@ -546,7 +547,7 @@ commander
         script.projects.deployments.delete({
           scriptId,
           deploymentId,
-        }, {}, (err: any, res: any) => {  // TODO remove any
+        }, {}, (err: any, res: any) => {
           spinner.stop(true);
           if (err) {
             logError(null, ERROR.READ_ONLY_DELETE);
@@ -578,7 +579,7 @@ commander
               description,
             },
           },
-        }, {}, (error: any, res: any) => { // TODO remove any
+        }, {}, (error: any, res: any) => {
           spinner.stop(true);
           if (error) {
             logError(null, error); // TODO prettier error
@@ -667,7 +668,7 @@ commander
       const res = await drive.files.list({
         pageSize: 50,
         fields: 'nextPageToken, files(id, name)',
-        q: "mimeType='application/vnd.google-apps.script'",
+        q: 'mimeType="application/vnd.google-apps.script"',
       });
       spinner.stop(true);
       const files = res.data.files;
@@ -689,14 +690,14 @@ commander
 commander
   .command('logs')
   .description('Shows the StackDriver logs')
-  .option('--json', "Show logs in JSON form")
+  .option('--json', 'Show logs in JSON form')
   .option('--open', 'Open the StackDriver logs in browser')
   .action(async (cmd: {
     json: boolean,
     open: boolean,
   }) => {
     await checkIfOnline();
-    function printLogs([entries]:any[]) {
+    function printLogs([entries]: any[]) {
       for (let i = 0; i < 5; ++i) {
         const metadata = entries[i].metadata;
         const { severity, timestamp, payload } = metadata;
@@ -706,23 +707,23 @@ commander
         if (cmd.json) {
           payloadData = JSON.stringify(entries[i], null, 2);
         } else {
-          const data = {
+          const data: any = {
             textPayload: metadata.textPayload,
             jsonPayload: metadata.jsonPayload ? metadata.jsonPayload.fields.message.stringValue : '',
             protoPayload: metadata.protoPayload,
           };
           payloadData = data[payload] || ERROR.PAYLOAD_UNKNOWN;
-
           if (payloadData && typeof(payloadData) === 'string') {
             payloadData = payloadData.padEnd(20);
           }
         }
-        let coloredSeverity = ({
+        const coloredStringMap: any = {
           ERROR: chalk.red(severity),
           INFO: chalk.blue(severity),
           DEBUG: chalk.yellow(severity),
           NOTICE: chalk.magenta(severity),
-        })[severity] || severity;
+        };
+        let coloredSeverity:string = coloredStringMap[severity] || severity;
         coloredSeverity = String(coloredSeverity).padEnd(20);
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
@@ -742,7 +743,7 @@ commander
     const logger = new logging({
       projectId,
     });
-    return logger.getEntries().then(printLogs).catch((err) => {
+    return logger.getEntries().then(printLogs).catch((err: any) => {
       console.error(ERROR.LOGS_UNAVAILABLE);
     });
   });
@@ -759,7 +760,7 @@ commander
 commander
   .command('run <functionName>')
   .description('Run a function in your Apps Scripts project')
-  .action((functionName) => {
+  .action((functionName:string) => {
     getAPICredentials(async () => {
       await checkIfOnline();
       getProjectSettings().then(({ scriptId }: ProjectSettings) => {

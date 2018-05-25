@@ -2,6 +2,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { ClaspSettings, DOTFILE, ERROR } from './utils';
 import * as http from 'http';
 import * as url from 'url';
+import { AddressInfo } from 'net';
 import open = require('open');
 import readline = require('readline');
 import { LOG } from './commands';
@@ -35,11 +36,11 @@ export function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
     DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
       oauth2Client.setCredentials(rc);
       cb(rc);
-    }).catch((err: object) => {
+    }).catch((err: any) => {
       DOTFILE.RC.read().then((rc: ClaspSettings) => {
         oauth2Client.setCredentials(rc);
         cb(rc);
-      }).catch((err: object) => {
+      }).catch((err: any) => {
         console.error('Could not read API credentials. Error:');
         console.error(err);
         process.exit(-1);
@@ -58,9 +59,10 @@ async function authorizeWithLocalhost() {
     const s = http.createServer();
     s.listen(0, () => resolve(s));
   });
+  const port = (server.address() as AddressInfo).port; // (Cast from <string | AddressInfo>)
   const client = new OAuth2Client({
     ...oauth2ClientSettings,
-    redirectUri: `http://localhost:${server.address().port}`});
+    redirectUri: `http://localhost:${port}`});
   const authCode = await new Promise<string>((res, rej) => {
     server.on('request', (req: http.ServerRequest, resp: http.ServerResponse) => {
       const urlParts = url.parse(req.url || '', true);
@@ -97,7 +99,7 @@ async function authorizeWithoutLocalhost() {
       if (code && code.length) {
         res(code);
       } else {
-        rej("No authorization code entered.");
+        rej('No authorization code entered.');
       }
       rl.close();
     });

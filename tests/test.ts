@@ -115,7 +115,7 @@ describe.skip('Test clasp status function', () => {
     });
     return tmpdir;
   }
-  it("should respect globs and negation rules", () => {
+  it('should respect globs and negation rules', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
       { file: 'build/main.js', data: ' ' },
