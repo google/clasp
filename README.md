@@ -212,7 +212,9 @@ Use an IDE like **Visual Studio Code** for TypeScript autocompletion.
 
 ### Setup
 
-Install `tsc`: `npm install -g typescript`
+- Install `tsc`: `npm install -g typescript`
+- Remove your local version of `clasp`: `sudo npm uninstall -g @google/clasp`
+  - This will prevent errors when updating `node_modules`.
 
 #### After Making a Change
 
