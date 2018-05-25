@@ -40,15 +40,19 @@ export const LOG = {
     VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
   };
 
-export function login(options) {
-    DOTFILE.RC.read().then((rc: ClaspSettings) => {
+/**
+ * Logs the user in. Saves the client credentials to an rc file.
+ * @param options the localhost and ownkey options from commander
+ */
+export function login(options: { localhost: boolean, ownkey: boolean}) {
+  DOTFILE.RC.read().then((rc: ClaspSettings) => {
+      console.warn(ERROR.LOGGED_IN);
+    }).catch(async (err: string) => {
+      DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
         console.warn(ERROR.LOGGED_IN);
       }).catch(async (err: string) => {
-        DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
-          console.warn(ERROR.LOGGED_IN);
-        }).catch(async (err: string) => {
-          await checkIfOnline();
-          authorize(options.localhost, options.ownkey);
-        });
+        await checkIfOnline();
+        authorize(options.localhost, options.ownkey);
       });
+    });
 }

@@ -164,12 +164,7 @@ commander
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
   .option('--ownkey', 'Save .clasprc.json file to current working directory')
-  .action((options: {
-    localhost: boolean;
-    ownkey: boolean;
-  }) => {
-    login(options);
-  });
+  .action(login);
 
 /**
  * Logs out the user by deleteing client credentials.
