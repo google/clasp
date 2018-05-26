@@ -40,7 +40,7 @@
     "find-parent-dir": "^0.3.0",
     "fs": "^0.0.1-security",
     "googleapis": "^28.1.0",
-    "grpc": "^1.12.2",
+    "grpc": "^1.10.0",
     "http-shutdown": "^1.2.0",
     "inquirer": "^5.2.0",
     "is-online": "^7.0.0",
