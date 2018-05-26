@@ -39,7 +39,7 @@ Then enable Apps Script API: https://script.google.com/home/usersettings
 
 (If that fails, run this:)
 ```sh
-sudo npm i @google/clasp -g --unsafe-perm
+sudo npm i -g grpc @google/clasp --unsafe-perm
 ```
 
 ## Commands
