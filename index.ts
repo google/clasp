@@ -306,6 +306,8 @@ commander
               message : 'Clone which script? ',
               choices : fileIds,
             }]).then((answers: any) => {
+              answers.scriptId = answers.scriptId.substring(answers.scriptId.lastIndexOf('(') + 1,
+                                 answers.scriptId.length - 1);
               checkIfOnline();
               spinner.setSpinnerTitle(LOG.CLONING);
               saveProjectId(answers.scriptId);
