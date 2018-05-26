@@ -45,8 +45,15 @@ describe.skip('Test clasp create function', () => {
     const result = spawnSync(
       'clasp', ['create'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('give a script title:');
+    expect(result.stdout).to.contain('Give a script title:');
     expect(result.status).to.equal(0);
+  });
+  it('should not prompt for project name', () => {
+    fs.writeFileSync('.clasp.json', '');
+    const result = spawnSync(
+      'clasp', ['create'], { encoding: 'utf8' },
+    );
+    expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
   });
 });
 
