@@ -31,7 +31,7 @@ const path = require('path');
 const commander = require('commander');
 const readMultipleFiles = require('read-multiple-files');
 import * as recursive from 'recursive-readdir';
-const logging = require('@google-cloud/logging');
+import { Logging } from 'googleapis/build/src/apis/logging/v2';
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 import * as pluralize from 'pluralize';
@@ -697,22 +697,21 @@ commander
     open: boolean,
   }) => {
     await checkIfOnline();
-    function printLogs([entries]: any[]) {
+    function printLogs(entries: any[]) {
       for (let i = 0; i < 5; ++i) {
-        const metadata = entries[i].metadata;
-        const { severity, timestamp, payload } = metadata;
-        let functionName = entries[i].metadata.resource.labels.function_name;
+        const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
+        let functionName = resource.labels.function_name;
         functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
         let payloadData: any = '';
         if (cmd.json) {
           payloadData = JSON.stringify(entries[i], null, 2);
         } else {
           const data: any = {
-            textPayload: metadata.textPayload,
-            jsonPayload: metadata.jsonPayload ? metadata.jsonPayload.fields.message.stringValue : '',
-            protoPayload: metadata.protoPayload,
+            textPayload,
+            jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
+            protoPayload,
           };
-          payloadData = data[payload] || ERROR.PAYLOAD_UNKNOWN;
+          payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
           if (payloadData && typeof(payloadData) === 'string') {
             payloadData = payloadData.padEnd(20);
           }
@@ -740,11 +739,14 @@ commander
       open(url);
       process.exit(0);
     }
-    const logger = new logging({
-      projectId,
-    });
-    return logger.getEntries().then(printLogs).catch((err: any) => {
-      console.error(ERROR.LOGS_UNAVAILABLE);
+    getAPICredentials(async () => {
+      const logger = google.logging({version: 'v2', auth: oauth2Client}) as Logging;
+      const { data } = await logger.entries.list({
+        'resourceNames': [
+          'projects/' + projectId,
+        ],
+      });
+      printLogs(data.entries);
     });
   });
 
