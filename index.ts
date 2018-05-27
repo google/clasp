@@ -63,6 +63,11 @@ const script = google.script({
   auth: oauth2Client,
 });
 
+const logger = google.logging({
+  version: 'v2',
+  auth: oauth2Client,
+}) as Logging;
+
 /**
  * Recursively finds all files that are part of the current project, and those that are ignored
  * by .claspignore and calls the passed callback function with the file lists.
@@ -698,7 +703,7 @@ commander
   }) => {
     await checkIfOnline();
     function printLogs(entries: any[]) {
-      for (let i = 0; i < 5; ++i) {
+      for (let i = 0; i < Math.min(50,entries.length); ++i) {
         const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
         let functionName = resource.labels.function_name;
         functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
@@ -740,10 +745,9 @@ commander
       process.exit(0);
     }
     getAPICredentials(async () => {
-      const logger = google.logging({version: 'v2', auth: oauth2Client}) as Logging;
       const { data } = await logger.entries.list({
-        'resourceNames': [
-          'projects/' + projectId,
+        resourceNames: [
+          `projects/${projectId}`,
         ],
       });
       printLogs(data.entries);
