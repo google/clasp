@@ -17,6 +17,8 @@ const oauth2ClientAuthUrlOpts = {
     'https://www.googleapis.com/auth/script.projects',
     'https://www.googleapis.com/auth/drive.metadata.readonly',
     'https://www.googleapis.com/auth/script.webapp.deploy',
+    'https://www.googleapis.com/auth/cloud-platform.read-only',
+    'https://www.googleapis.com/auth/logging.read',
   ],
 };
 const oauth2ClientSettings = {
