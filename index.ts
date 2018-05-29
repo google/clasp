@@ -300,10 +300,12 @@ commander
             q: 'mimeType="application/vnd.google-apps.script"',
           });
           const files = data.files;
-          const fileIds: Array<{ name: string; value: string; }> = [];
           if (files.length) {
-            files.map((file: any) => {
-              fileIds.push({name: `${file.name}`.padEnd(20) + ` - (${file.id})`, value: `${file.id}`});
+            const fileIds = files.map((file: any) => {
+              return {
+                name: `${file.name}`.padEnd(20) + ` - (${file.id})`,
+                value: file.id,
+              };
             });
             await prompt([{
               type : 'list',
