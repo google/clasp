@@ -300,10 +300,10 @@ commander
             q: 'mimeType="application/vnd.google-apps.script"',
           });
           const files = data.files;
-          const fileIds:string[] = [];
+          const fileIds: Array<{ name: string; value: string; }> = [];
           if (files.length) {
             files.map((file: any) => {
-              fileIds.push(`${file.name}`.padEnd(20) + ` - (${file.id})`);
+              fileIds.push({name: `${file.name}`.padEnd(20) + ` - (${file.id})`, value: `${file.id}`});
             });
             await prompt([{
               type : 'list',
@@ -311,8 +311,6 @@ commander
               message : 'Clone which script? ',
               choices : fileIds,
             }]).then((answers: any) => {
-              answers.scriptId = answers.scriptId.substring(answers.scriptId.lastIndexOf('(') + 1,
-                                 answers.scriptId.length - 1);
               checkIfOnline();
               spinner.setSpinnerTitle(LOG.CLONING);
               saveProjectId(answers.scriptId);
@@ -705,7 +703,7 @@ commander
   }) => {
     await checkIfOnline();
     function printLogs(entries: any[]) {
-      for (let i = 0; i < Math.min(50,entries.length); ++i) {
+      for (let i = 0; i < 50 && i < entries.length; ++i) {
         const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
         let functionName = resource.labels.function_name;
         functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
