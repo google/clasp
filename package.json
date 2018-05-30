@@ -25,6 +25,13 @@
     "extension",
     "add-on"
   ],
+  "importSort": {
+    ".ts": {
+      "parser": "typescript",
+      "style": "module-compact"
+    },
+    "on-save": false
+  },
   "author": "Grant Timmerman",
   "license": "Apache-2.0",
   "dependencies": {

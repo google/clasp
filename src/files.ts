@@ -1,11 +1,11 @@
+import * as fs from 'fs';
 import * as anymatch from 'anymatch';
 import * as mkdirp from 'mkdirp';
+import * as recursive from 'recursive-readdir';
 import {getAPICredentials, script} from './auth';
 import {LOG} from './commands';
-import {checkIfOnline, DOTFILE, getAPIFileType, spinner, logError, DOT, ERROR} from './utils';
-import * as fs from 'fs';
+import {DOT, DOTFILE, ERROR, checkIfOnline, getAPIFileType, logError, spinner} from './utils';
 const path = require('path');
-import * as recursive from 'recursive-readdir';
 const readMultipleFiles = require('read-multiple-files');
 
 // An Apps Script API File

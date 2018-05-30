@@ -1,13 +1,23 @@
-import { DOT, PROJECT_NAME, getScriptURL,
-  logError, ClaspSettings, DOTFILE, ERROR,
-  checkIfOnline, spinner, saveProjectId, manifestExists,
-  getProjectSettings, ProjectSettings, PROJECT_MANIFEST_BASENAME } from './utils';
-const open = require('open');
-import {hasProject, fetchProject, getProjectFiles} from './files';
-import { authorize, getAPICredentials, drive, script, logger} from './auth';
-import * as pluralize from 'pluralize';
-const commander = require('commander');
 import * as del from 'del';
+import * as pluralize from 'pluralize';
+import { drive, getAPICredentials, logger, script } from './auth';
+import {fetchProject, getProjectFiles, hasProject} from './files';
+import {
+  DOT,
+  ERROR,
+  PROJECT_MANIFEST_BASENAME,
+  PROJECT_NAME,
+  ProjectSettings,
+  checkIfOnline,
+  getProjectSettings,
+  getScriptURL,
+  logError,
+  manifestExists,
+  saveProjectId,
+  spinner,
+} from './utils';
+const open = require('open');
+const commander = require('commander');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 
@@ -47,6 +57,53 @@ export const LOG = {
         (description || '(no description)'),
     VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
   };
+
+export const pull = async () => {
+  await checkIfOnline();
+  const { scriptId, rootDir } = await getProjectSettings();
+  if (scriptId) {
+    spinner.setSpinnerTitle(LOG.PULLING);
+    fetchProject(scriptId, rootDir);
+  }
+};
+export const push = async () => {
+  await checkIfOnline();
+  spinner.setSpinnerTitle(LOG.PUSHING).start();
+  getAPICredentials(async () => {
+    const { scriptId, rootDir } = await getProjectSettings();
+    if (!scriptId) return;
+      getProjectFiles(rootDir, (err, projectFiles, files) => {
+        if(err) {
+          console.log(err);
+          spinner.stop(true);
+        } else if (projectFiles) {
+          const [nonIgnoredFilePaths] = projectFiles;
+          script.projects.updateContent({
+            scriptId,
+            resource: { files },
+          }, {}, (error: any) => {
+            spinner.stop(true);
+            if (error) {
+              console.error(LOG.PUSH_FAILURE);
+              error.errors.map((err: any) => {
+                console.error(err.message);
+              });
+              console.error(LOG.FILES_TO_PUSH);
+              nonIgnoredFilePaths.map((filePath: string) => {
+                console.error(`└─ ${filePath}`);
+              });
+              process.exit(1);
+            } else {
+              nonIgnoredFilePaths.map((filePath: string) => {
+                console.log(`└─ ${filePath}`);
+              });
+              console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+            }
+        });
+      }
+    });
+  });
+};
 
 export const help = () => {
   commander.outputHelp();

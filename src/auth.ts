@@ -1,14 +1,14 @@
-import { OAuth2Client } from 'google-auth-library';
-import { checkIfOnline, ClaspSettings, DOTFILE, ERROR } from './utils';
 import * as http from 'http';
-import * as url from 'url';
 import { AddressInfo } from 'net';
+import * as url from 'url';
+import { OAuth2Client } from 'google-auth-library';
+import { google } from 'googleapis';
+import { Drive } from 'googleapis/build/src/apis/drive/v3';
+import { Logging } from 'googleapis/build/src/apis/logging/v2';
+import { LOG } from './commands';
+import { ClaspSettings, DOTFILE, ERROR, checkIfOnline } from './utils';
 import open = require('open');
 import readline = require('readline');
-import { LOG } from './commands';
-import { google } from 'googleapis';
-import { Logging } from 'googleapis/build/src/apis/logging/v2';
-import { Drive } from 'googleapis/build/src/apis/drive/v3';
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
@@ -44,6 +44,22 @@ export const drive = google.drive({
   version: 'v3',
   auth: oauth2Client,
 }) as Drive;
+
+/**
+ * Requests authorization to manage Apps Script projects.
+ * @param {boolean} useLocalhost True if a local HTTP server should be run
+ *     to handle the auth response. False if manual entry used.
+ */
+async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
+  try {
+    const token = await (useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
+    await (writeToOwnKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token));
+    console.log(LOG.AUTH_SUCCESSFUL);
+    process.exit(0); // gracefully exit after successful login
+  } catch(err) {
+    console.error(ERROR.ACCESS_TOKEN + err);
+  }
+}
 
 /**
  * Loads the Apps Script API credentials for the CLI.
@@ -124,22 +140,6 @@ async function authorizeWithoutLocalhost() {
     });
   });
   return (await client.getToken(authCode)).tokens;
-}
-
-/**
- * Requests authorization to manage Apps Script projects.
- * @param {boolean} useLocalhost True if a local HTTP server should be run
- *     to handle the auth response. False if manual entry used.
- */
-export async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
-  try {
-    const token = await (useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
-    await (writeToOwnKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token));
-    console.log(LOG.AUTH_SUCCESSFUL);
-    process.exit(0); // gracefully exit after successful login
-  } catch(err) {
-    console.error(ERROR.ACCESS_TOKEN + err);
-  }
 }
 
 /**
