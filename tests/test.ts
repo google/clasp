@@ -9,6 +9,9 @@ import { getScriptURL, getFileType, getAPIFileType,
 import * as path from 'path';
 import * as tmp from 'tmp';
 
+const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
+const TEST_JSON = '{"timeZone": "America/New_York"}';
+
 describe('Test help for each function', () => {
   it('should output help for run command', () => {
     const result = spawnSync(
@@ -94,6 +97,9 @@ describe.skip('Test clasp pull function', () => {
 
 describe.skip('Test clasp push function', () => {
   it('should push local project correctly', () => {
+    fs.removeSync('.claspignore');
+    fs.writeFileSync('Code.js', TEST_CODE_JS);
+    fs.writeFileSync('appsscript.json', TEST_JSON);
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
     const result = spawnSync(
       'clasp', ['push'], { encoding: 'utf8' },
@@ -104,13 +110,14 @@ describe.skip('Test clasp push function', () => {
   });
   it('should return non-0 exit code when push failed', () => {
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
-    fs.writeFileSync('unexpected_file', '');
+    fs.writeFileSync('unexpected_file', TEST_CODE_JS);
     const result = spawnSync(
       'clasp', ['push'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('failed.');
-    expect(result.stdout).to.contain('files.');
-    expect(result.status).to.equal(-1);
+    expect(result.stderr).to.contain('Invalid value at');
+    expect(result.stderr).to.contain('UNEXPECTED_FILE');
+    expect(result.stderr).to.contain('Files to push were:');
+    expect(result.status).to.equal(1);
   });
 });
 
@@ -126,10 +133,10 @@ describe.skip('Test clasp status function', () => {
   it('should respect globs and negation rules', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
-      { file: 'build/main.js', data: ' ' },
-      { file: 'appsscript.json', data: ' ' },
-      { file: 'shouldBeIgnored', data: ' ' },
-      { file: 'should/alsoBeIgnored', data: ' ' },
+      { file: 'build/main.js', data: TEST_CODE_JS },
+      { file: 'appsscript.json', data: TEST_JSON },
+      { file: 'shouldBeIgnored', data: TEST_CODE_JS },
+      { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
     spawnSync('clasp', ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir  });
     const result = spawnSync('clasp', ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
@@ -142,8 +149,8 @@ describe.skip('Test clasp status function', () => {
   it.skip('should ignore dotfiles if the parent folder is ignored', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json' },
-      { file: 'appsscript.json', data: ' ' },
-      { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: ' ' },
+      { file: 'appsscript.json', data: TEST_JSON },
+      { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: TEST_CODE_JS },
     ]);
     spawnSync('clasp', ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
     const result = spawnSync('clasp', ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
@@ -165,31 +172,12 @@ describe.skip('Test clasp open function', () => {
   });
 });
 
-describe.skip('Test clasp clone function', () => {
-  it('should prompt for which script to clone correctly', () => {
-    spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(
-      'clasp', ['clone'], { encoding: 'utf8' },
-    );
-    expect(result.stdout).to.contain('Clone which script?');
-    expect(result.status).to.equal(0);
-  });
-  it('should give an error if .clasp.json already exists', () => {
-    fs.writeFileSync('.clasp.json', '');
-    const result = spawnSync(
-      'clasp', ['clone'], { encoding: 'utf8' },
-    );
-    expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
-    expect(result.status).to.equal(1);
-  });
-});
-
 describe.skip('Test clasp deployments function', () => {
   it('should list deployments correctly', () => {
     const result = spawnSync(
       'clasp', ['deployments'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('Deployments.');
+    expect(result.stdout).to.contain('Deployment');
     expect(result.status).to.equal(0);
   });
 });
@@ -221,6 +209,25 @@ describe.skip('Test clasp version and versions function', () => {
       expect(result.stdout).to.contain(versionNumber + ' - ');
       expect(result.status).to.equal(0);
     });
+  });
+});
+
+describe.skip('Test clasp clone function', () => {
+  it('should prompt for which script to clone correctly', () => {
+    spawnSync('rm', ['.clasp.json']);
+    const result = spawnSync(
+      'clasp', ['clone'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('Clone which script?');
+    expect(result.status).to.equal(0);
+  });
+  it('should give an error if .clasp.json already exists', () => {
+    fs.writeFileSync('.clasp.json', '');
+    const result = spawnSync(
+      'clasp', ['clone'], { encoding: 'utf8' },
+    );
+    expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
+    expect(result.status).to.equal(1);
   });
 });
 
@@ -261,10 +268,10 @@ describe('Test saveProjectId function from utils', () => {
   });
 });
 
-describe.skip('Test clasp logout function', () => {
+describe('Test clasp logout function', () => {
   it('should logout correctly', () => {
-    fs.writeFileSync('.clasprc.json', ' ');
-    fs.writeFileSync(path.join(os.homedir(), '/.clasprc.json'), ' ');
+    fs.writeFileSync('.clasprc.json', TEST_JSON);
+    fs.writeFileSync(path.join(os.homedir(), '/.clasprc.json'), TEST_JSON);
     const result = spawnSync(
       'clasp', ['logout'], { encoding: 'utf8' },
     );
