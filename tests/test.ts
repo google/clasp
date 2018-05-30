@@ -71,6 +71,7 @@ describe.skip('Test clasp create <title> function', () => {
 describe.skip('Test clasp clone <scriptId> function', () => {
   it('should clone an existing project correctly', () => {
     const settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
+    fs.removeSync('.clasp.json');
     const result = spawnSync(
       'clasp', ['clone', settings.scriptId], { encoding: 'utf8' },
     );
@@ -172,6 +173,14 @@ describe.skip('Test clasp clone function', () => {
     );
     expect(result.stdout).to.contain('Clone which script?');
     expect(result.status).to.equal(0);
+  });
+  it('should give an error if .clasp.json already exists', () => {
+    fs.writeFileSync('.clasp.json', '');
+    const result = spawnSync(
+      'clasp', ['clone'], { encoding: 'utf8' },
+    );
+    expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
+    expect(result.status).to.equal(1);
   });
 });
 
