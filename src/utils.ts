@@ -1,11 +1,11 @@
+import * as fs from 'fs';
 import * as os from 'os';
+import { Spinner } from 'cli-spinner';
 const path = require('path');
 const findParentDir = require('find-parent-dir');
 const splitLines = require('split-lines');
-import * as fs from 'fs';
 const dotf = require('dotf');
 const read = require('read-file');
-import { Spinner } from 'cli-spinner';
 const isOnline = require('is-online');
 
 // Names / Paths

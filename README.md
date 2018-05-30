@@ -238,6 +238,11 @@ sudo npm run build;
 npm run test
 ```
 
+#### Lint
+
+- Use `npm run lint` to find common style errors.
+- Download [sort-imports](https://marketplace.visualstudio.com/items?itemName=amatiasq.sort-imports) for VSC to automatically sort imports.
+
 #### Publishing `clasp` to npm (admin)
 
 1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.

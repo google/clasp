@@ -19,67 +19,33 @@
 /**
  * clasp – The Apps Script CLI
  */
-import 'connect';
-const open = require('open');
-const path = require('path');
-const commander = require('commander');
-import * as pluralize from 'pluralize';
-import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME,
-    ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
-    getProjectSettings, getAPIFileType, checkIfOnline,
-    saveProjectId, manifestExists } from './src/utils';
-import { drive, script, logger, getAPICredentials, login } from './src/auth';
-import { LOG, help, defaultCmd, logs, run, logout, create, clone, deploy,
-  undeploy, redeploy, version, versions, list, deployments, openCmd, status} from './src/commands';
-import {getProjectFiles, fetchProject, getFileType, hasProject} from './src/files';
 
-// Functions (not yet moved out of this file)
-const pull = async () => {
-  await checkIfOnline();
-  const { scriptId, rootDir } = await getProjectSettings();
-  if (scriptId) {
-    spinner.setSpinnerTitle(LOG.PULLING);
-    fetchProject(scriptId, rootDir);
-  }
-};
-const push = async () => {
-  await checkIfOnline();
-  spinner.setSpinnerTitle(LOG.PUSHING).start();
-  getAPICredentials(async () => {
-    const { scriptId, rootDir } = await getProjectSettings();
-    if (!scriptId) return;
-      getProjectFiles(rootDir, (err, projectFiles, files) => {
-        if(err) {
-          console.log(err);
-          spinner.stop(true);
-        } else if (projectFiles) {
-          const [nonIgnoredFilePaths] = projectFiles;
-          script.projects.updateContent({
-            scriptId,
-            resource: { files },
-          }, {}, (error: any) => {
-            spinner.stop(true);
-            if (error) {
-              console.error(LOG.PUSH_FAILURE);
-              error.errors.map((err: any) => {
-                console.error(err.message);
-              });
-              console.error(LOG.FILES_TO_PUSH);
-              nonIgnoredFilePaths.map((filePath: string) => {
-                console.error(`└─ ${filePath}`);
-              });
-              process.exit(1);
-            } else {
-              nonIgnoredFilePaths.map((filePath: string) => {
-                console.log(`└─ ${filePath}`);
-              });
-              console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-            }
-        });
-      }
-    });
-  });
-};
+import 'connect';
+
+import { login } from './src/auth';
+import {
+  clone,
+  create,
+  defaultCmd,
+  deploy,
+  deployments,
+  help,
+  list,
+  logout,
+  logs,
+  openCmd,
+  pull,
+  push,
+  redeploy,
+  run,
+  status,
+  undeploy,
+  version,
+  versions,
+} from './src/commands';
+import { PROJECT_NAME } from './src/utils';
+
+const commander = require('commander');
 
 // CLI
 

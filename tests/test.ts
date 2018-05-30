@@ -1,14 +1,12 @@
-import { describe, it } from 'mocha';
+import * as os from 'os';
+import * as path from 'path';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
-import * as os from 'os';
-
-const { spawnSync } = require('child_process');
-import { getScriptURL, getAPIFileType, saveProjectId } from './../src/utils.js';
-import { getFileType } from './../src/files';
-import * as path from 'path';
+import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
-
+import { getFileType } from './../src/files';
+import { getAPIFileType, getScriptURL, saveProjectId } from './../src/utils.js';
+const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
 const TEST_JSON = '{"timeZone": "America/New_York"}';
 
