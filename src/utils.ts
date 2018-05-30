@@ -134,6 +134,7 @@ export const logError = (err: any, description = '') => {
     }
     if (description) console.error(description);
   }
+  process.exit(1);
 };
 
 /**
