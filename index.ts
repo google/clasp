@@ -291,6 +291,10 @@ commander
   .command('clone [scriptId] [versionNumber]')
   .description('Clone a project')
   .action(async (scriptId: string, versionNumber?: number) => {
+    await checkIfOnline();
+    if (fs.existsSync(DOT.PROJECT.PATH)) {
+      logError(null, ERROR.FOLDER_EXISTS);
+    } else {
       if (!scriptId) {
         getAPICredentials(async () => {
           const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
@@ -325,11 +329,11 @@ commander
           }
         });
       } else {
-        await checkIfOnline();
         spinner.setSpinnerTitle(LOG.CLONING);
         saveProjectId(scriptId);
         fetchProject(scriptId, '', versionNumber);
       }
+    }
   });
 
 /**
