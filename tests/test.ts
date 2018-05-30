@@ -9,6 +9,9 @@ import { getScriptURL, getFileType, getAPIFileType,
 import * as path from 'path';
 import * as tmp from 'tmp';
 
+const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
+const TEST_JSON = '{"timeZone": "America/New_York"}';
+
 describe('Test help for each function', () => {
   it('should output help for run command', () => {
     const result = spawnSync(
@@ -92,11 +95,11 @@ describe.skip('Test clasp pull function', () => {
   });
 });
 
-describe.skip('Test clasp push function', () => {
+describe('Test clasp push function', () => {
   it('should push local project correctly', () => {
     fs.removeSync('.claspignore');
-    fs.writeFileSync('Code.js', ' ');
-    fs.writeFileSync('appsscript.json', ' ');
+    fs.writeFileSync('Code.js', TEST_CODE_JS);
+    fs.writeFileSync('appsscript.json', TEST_JSON);
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
     const result = spawnSync(
       'clasp', ['push'], { encoding: 'utf8' },
@@ -107,7 +110,7 @@ describe.skip('Test clasp push function', () => {
   });
   it('should return non-0 exit code when push failed', () => {
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
-    fs.writeFileSync('unexpected_file', ' ');
+    fs.writeFileSync('unexpected_file', TEST_CODE_JS);
     const result = spawnSync(
       'clasp', ['push'], { encoding: 'utf8' },
     );
@@ -118,7 +121,7 @@ describe.skip('Test clasp push function', () => {
   });
 });
 
-describe.skip('Test clasp status function', () => {
+describe('Test clasp status function', () => {
   function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
     fs.ensureDirSync('tmp');
     const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
@@ -130,10 +133,10 @@ describe.skip('Test clasp status function', () => {
   it('should respect globs and negation rules', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
-      { file: 'build/main.js', data: ' ' },
-      { file: 'appsscript.json', data: ' ' },
-      { file: 'shouldBeIgnored', data: ' ' },
-      { file: 'should/alsoBeIgnored', data: ' ' },
+      { file: 'build/main.js', data: TEST_CODE_JS },
+      { file: 'appsscript.json', data: TEST_JSON },
+      { file: 'shouldBeIgnored', data: TEST_CODE_JS },
+      { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
     spawnSync('clasp', ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir  });
     const result = spawnSync('clasp', ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
@@ -146,8 +149,8 @@ describe.skip('Test clasp status function', () => {
   it.skip('should ignore dotfiles if the parent folder is ignored', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json' },
-      { file: 'appsscript.json', data: ' ' },
-      { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: ' ' },
+      { file: 'appsscript.json', data: TEST_JSON },
+      { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: TEST_CODE_JS },
     ]);
     spawnSync('clasp', ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
     const result = spawnSync('clasp', ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
@@ -265,10 +268,10 @@ describe('Test saveProjectId function from utils', () => {
   });
 });
 
-describe.skip('Test clasp logout function', () => {
+describe('Test clasp logout function', () => {
   it('should logout correctly', () => {
-    fs.writeFileSync('.clasprc.json', ' ');
-    fs.writeFileSync(path.join(os.homedir(), '/.clasprc.json'), ' ');
+    fs.writeFileSync('.clasprc.json', TEST_JSON);
+    fs.writeFileSync(path.join(os.homedir(), '/.clasprc.json'), TEST_JSON);
     const result = spawnSync(
       'clasp', ['logout'], { encoding: 'utf8' },
     );
