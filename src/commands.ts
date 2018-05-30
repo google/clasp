@@ -3,7 +3,7 @@ import { DOT, PROJECT_NAME, getScriptURL,
   checkIfOnline, spinner, saveProjectId, manifestExists,
   getProjectSettings, ProjectSettings, PROJECT_MANIFEST_BASENAME } from './utils';
 const open = require('open');
-import {hasProject, fetchProject} from './files';
+import {hasProject, fetchProject, getProjectFiles} from './files';
 import { authorize, getAPICredentials, drive, script, logger} from './auth';
 import * as pluralize from 'pluralize';
 const commander = require('commander');
@@ -374,5 +374,65 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
         }
       });
     });
+  });
+};
+export const status = async (cmd: { json: boolean }) => {
+  await checkIfOnline();
+  getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+    if (!scriptId) return;
+    getProjectFiles(rootDir, (err, projectFiles) => {
+      if(err) return console.log(err);
+      else if (projectFiles) {
+        const [filesToPush, untrackedFiles] = projectFiles;
+        if (cmd.json) {
+          console.log(JSON.stringify({ filesToPush, untrackedFiles }));
+        } else {
+          console.log(LOG.STATUS_PUSH);
+          filesToPush.forEach((file) => console.log(`└─ ${file}`));
+          console.log(LOG.STATUS_IGNORE);
+          untrackedFiles.forEach((file) => console.log(`└─ ${file}`));
+        }
+      }
+    });
+  });
+};
+export const openCmd = async (scriptId: any) => {
+  if (!scriptId) {
+    const settings = await getProjectSettings();
+    scriptId = settings.scriptId;
+  }
+  if (scriptId.length < 30) {
+    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  } else {
+    console.log(LOG.OPEN_PROJECT(scriptId));
+    open(getScriptURL(scriptId));
+  }
+};
+export const deployments = async () => {
+  await checkIfOnline();
+  getAPICredentials(async () => {
+    const { scriptId } = await getProjectSettings();
+    if (!scriptId) return;
+      spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
+      script.projects.deployments.list({
+        scriptId,
+      }, {}, (error: any, { data }: any) => {
+        spinner.stop(true);
+        if (error) {
+          logError(error);
+        } else {
+          const deployments = data.deployments;
+          const numDeployments = deployments.length;
+          const deploymentWord = pluralize('Deployment', numDeployments);
+          console.log(`${numDeployments} ${deploymentWord}.`);
+          deployments.map(({ deploymentId, deploymentConfig }: any) => {
+            const versionString = !!deploymentConfig.versionNumber ?
+              `@${deploymentConfig.versionNumber}` : '@HEAD';
+            const description = deploymentConfig.description ?
+              '- ' + deploymentConfig.description : '';
+            console.log(`- ${deploymentId} ${versionString} ${description}`);
+          });
+        }
+      });
   });
 };
