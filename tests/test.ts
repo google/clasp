@@ -95,7 +95,7 @@ describe.skip('Test clasp pull function', () => {
 describe.skip('Test clasp push function', () => {
   it('should push local project correctly', () => {
     fs.removeSync('.claspignore');
-    fs.writeFileSync('Code.js', '');
+    fs.writeFileSync('Code.js', ' ');
     fs.writeFileSync('appsscript.json', ' ');
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
     const result = spawnSync(
