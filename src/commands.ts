@@ -1,7 +1,7 @@
 import { DOT, PROJECT_NAME, getScriptURL,
   logError, ClaspSettings, DOTFILE, ERROR,
   checkIfOnline, spinner, saveProjectId, manifestExists,
-  getProjectSettings, ProjectSettings } from './utils';
+  getProjectSettings, ProjectSettings, PROJECT_MANIFEST_BASENAME } from './utils';
 const open = require('open');
 import {hasProject, fetchProject} from './files';
 import { authorize, getAPICredentials, drive, script, logger} from './auth';
@@ -215,6 +215,163 @@ export const run = (functionName:string) => {
         console.log(response.data);
       }).catch(e => {
         console.log(e);
+      });
+    });
+  });
+};
+
+export const deploy = async (version: string, description: string) => {
+  await checkIfOnline();
+  description = description || '';
+  getAPICredentials(async () => {
+    const { scriptId } = await getProjectSettings();
+    if (!scriptId) return;
+      spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
+      function createDeployment(versionNumber: string) {
+        spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+        script.projects.deployments.create({
+          scriptId,
+          resource: {
+            versionNumber,
+            manifestFileName: PROJECT_MANIFEST_BASENAME,
+            description,
+          },
+        }, {}, (err: any, response: any) => {
+          spinner.stop(true);
+          if (err) {
+            console.error(ERROR.DEPLOYMENT_COUNT);
+          } else if (response) {
+            console.log(`- ${response.data.deploymentId} @${versionNumber}.`);
+          }
+        });
+      }
+
+      // If the version is specified, update that deployment
+      const versionRequestBody = {
+        description,
+      };
+      if (version) {
+        createDeployment(version);
+      } else { // if no version, create a new version and deploy that
+        script.projects.versions.create({
+          scriptId,
+          resource: versionRequestBody,
+        }, {}, (err: any, { data }: any) => {
+          spinner.stop(true);
+          if (err) {
+            logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
+          } else {
+            console.log(LOG.VERSION_CREATED(data.versionNumber));
+            createDeployment(data.versionNumber);
+          }
+        });
+      }
+  });
+};
+export const undeploy = async (deploymentId: string) => {
+  await checkIfOnline();
+  getAPICredentials(() => {
+    getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      if (!scriptId) return;
+      spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
+      script.projects.deployments.delete({
+        scriptId,
+        deploymentId,
+      }, {}, (err: any, res: any) => {
+        spinner.stop(true);
+        if (err) {
+          logError(null, ERROR.READ_ONLY_DELETE);
+        } else {
+          console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
+        }
+      });
+    });
+  });
+};
+export const versions = async () => {
+  await checkIfOnline();
+  spinner.setSpinnerTitle('Grabbing versions...').start();
+  getAPICredentials(async () => {
+    const { scriptId } = await getProjectSettings();
+    script.projects.versions.list({
+      scriptId,
+    }, {}, (error: any, { data }: any) => {
+      spinner.stop(true);
+      if (error) {
+        logError(error);
+      } else {
+        if (data && data.versions && data.versions.length) {
+          const numVersions = data.versions.length;
+          console.log(LOG.VERSION_NUM(numVersions));
+          data.versions.map((version: string) => {
+            console.log(LOG.VERSION_DESCRIPTION(version));
+          });
+        } else {
+          console.error(LOG.DEPLOYMENT_DNE);
+        }
+      }
+    });
+  });
+};
+export const version = async (description: string) => {
+  await checkIfOnline();
+  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
+  getAPICredentials(async () => {
+    const { scriptId } = await getProjectSettings();
+    script.projects.versions.create({
+      scriptId,
+      description,
+    }, {}, (error: any, { data }: any) => {
+      spinner.stop(true);
+      if (error) {
+        logError(error);
+      } else {
+        console.log(LOG.VERSION_CREATED(data.versionNumber));
+      }
+    });
+  });
+};
+export const list = async () => {
+  await checkIfOnline();
+  spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
+  getAPICredentials(async () => {
+    const res = await drive.files.list({
+      pageSize: 50,
+      fields: 'nextPageToken, files(id, name)',
+      q: 'mimeType="application/vnd.google-apps.script"',
+    });
+    spinner.stop(true);
+    const files = res.data.files;
+    if (files.length) {
+      files.map((file: any) => {
+        console.log(`${file.name.padEnd(20)} – ${getScriptURL(file.id)}`);
+      });
+    } else {
+      console.log('No script files found.');
+    }
+  });
+};
+export const redeploy = async (deploymentId: string, version: string, description: string) => {
+  await checkIfOnline();
+  getAPICredentials(() => {
+    getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      script.projects.deployments.update({
+        scriptId,
+        deploymentId,
+        resource: {
+          deploymentConfig: {
+            versionNumber: version,
+            manifestFileName: PROJECT_MANIFEST_BASENAME,
+            description,
+          },
+        },
+      }, {}, (error: any, res: any) => {
+        spinner.stop(true);
+        if (error) {
+          logError(null, error); // TODO prettier error
+        } else {
+          console.log(LOG.REDEPLOY_END);
+        }
       });
     });
   });
