@@ -2,9 +2,8 @@ import * as fs from 'fs';
 import * as anymatch from 'anymatch';
 import * as mkdirp from 'mkdirp';
 import * as recursive from 'recursive-readdir';
-import {getAPICredentials, script} from './auth';
-import {LOG} from './commands';
-import {DOT, DOTFILE, ERROR, checkIfOnline, getAPIFileType, logError, spinner} from './utils';
+import { getAPICredentials, script } from './auth';
+import { DOT, DOTFILE, ERROR, LOG, checkIfOnline, getAPIFileType, logError, spinner } from './utils';
 const path = require('path');
 const readMultipleFiles = require('read-multiple-files');
 
