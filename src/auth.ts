@@ -1,5 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
-import { ClaspSettings, DOTFILE, ERROR } from './utils';
+import { checkIfOnline, ClaspSettings, DOTFILE, ERROR } from './utils';
 import * as http from 'http';
 import * as url from 'url';
 import { AddressInfo } from 'net';
@@ -123,4 +123,21 @@ export async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
   } catch(err) {
     console.error(ERROR.ACCESS_TOKEN + err);
   }
+}
+
+/**
+ * Logs the user in. Saves the client credentials to an rc file.
+ * @param options the localhost and ownkey options from commander
+ */
+export function login(options: { localhost: boolean, ownkey: boolean}) {
+  DOTFILE.RC.read().then((rc: ClaspSettings) => {
+    console.warn(ERROR.LOGGED_IN);
+  }).catch(async (err: string) => {
+    DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
+      console.warn(ERROR.LOGGED_IN);
+    }).catch(async (err: string) => {
+      await checkIfOnline();
+      authorize(options.localhost, options.ownkey);
+    });
+  });
 }

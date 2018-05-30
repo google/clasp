@@ -38,9 +38,9 @@ import * as pluralize from 'pluralize';
 import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME,
     ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
     getProjectSettings, getFileType, getAPIFileType, checkIfOnline,
-    saveProjectId, manifestExists } from './src/utils.js';
-import { oauth2Client, getAPICredentials } from './src/auth';
-import { LOG, login } from './src/commands.js';
+    saveProjectId, manifestExists } from './src/utils';
+import { oauth2Client, getAPICredentials, login } from './src/auth';
+import { LOG, help, defaultCmd } from './src/commands';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -627,12 +627,6 @@ const run = (functionName:string) => {
       });
     });
   });
-};
-const help = () => {
-  commander.outputHelp();
-};
-const defaultCmd = (command: string) => {
-  console.error(ERROR.COMMAND_DNE(command));
 };
 
 // CLI
