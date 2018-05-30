@@ -1,12 +1,15 @@
+/**
+ * Clasp command method bodies.
+ */
 import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { drive, getAPICredentials, logger, script } from './auth';
-import {fetchProject, getProjectFiles, hasProject} from './files';
+import { fetchProject, getProjectFiles, hasProject } from './files';
 import {
   DOT,
   ERROR,
+  LOG,
   PROJECT_MANIFEST_BASENAME,
-  PROJECT_NAME,
   ProjectSettings,
   checkIfOnline,
   getProjectSettings,
@@ -21,43 +24,9 @@ const commander = require('commander');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 
-// Log messages (some logs take required params)
-export const LOG = {
-    AUTH_CODE: 'Enter the code from that page here: ',
-    AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page.`, // HTML Redirect Page
-    AUTH_SUCCESSFUL: `Saved the credentials to ${DOT.RC.PATH}. You may close the page.`,
-    AUTHORIZE: (authUrl: string) => `🔑  Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
-    CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
-    CLONING: 'Cloning files...',
-    CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${getScriptURL(scriptId)}`,
-    CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
-    DEPLOYMENT_CREATE: 'Creating deployment...',
-    DEPLOYMENT_DNE: 'No deployed versions of script.',
-    DEPLOYMENT_LIST: (scriptId: string) => `Listing deployments...`,
-    DEPLOYMENT_START: (scriptId: string) => `Deploying project...`,
-    FILES_TO_PUSH: 'Files to push were:',
-    FINDING_SCRIPTS: 'Finding your scripts...',
-    FINDING_SCRIPTS_DNE: 'No script files found.',
-    OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
-    PULLING: 'Pulling files...',
-    STATUS_PUSH: 'The following files will be pushed by clasp push:',
-    STATUS_IGNORE: 'Untracked files:',
-    PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
-    PUSH_FAILURE: 'Push failed. Errors:',
-    PUSHING: 'Pushing files...',
-    REDEPLOY_END: 'Updated deployment.',
-    REDEPLOY_START: 'Updating deployment...',
-    RENAME_FILE: (oldName: string, newName: string) => `Renamed file: ${oldName} -> ${newName}`,
-    UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
-    UNDEPLOYMENT_START: (deploymentId: string) => `Undeploy ${deploymentId}...`,
-    UNTITLED_SCRIPT_TITLE: 'Untitled Script',
-    VERSION_CREATE: 'Creating a new version...',
-    VERSION_CREATED: (versionNumber: string) => `Created version ${versionNumber}.`,
-    VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
-        (description || '(no description)'),
-    VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
-  };
-
+/**
+ * Force downloads all Apps Script project files into the local filesystem.
+ */
 export const pull = async () => {
   await checkIfOnline();
   const { scriptId, rootDir } = await getProjectSettings();
@@ -66,6 +35,10 @@ export const pull = async () => {
     fetchProject(scriptId, rootDir);
   }
 };
+
+/**
+ * Uploads all non-ignored files into the script.google.com filesystem.
+ */
 export const push = async () => {
   await checkIfOnline();
   spinner.setSpinnerTitle(LOG.PUSHING).start();
@@ -105,13 +78,26 @@ export const push = async () => {
   });
 };
 
+/**
+ * Outputs the help command.
+ */
 export const help = () => {
   commander.outputHelp();
 };
+
+/**
+ * Displays a default message when an unknown command is typed.
+ * @param command {string} The command that was typed.
+ */
 export const defaultCmd = (command: string) => {
   console.error(ERROR.COMMAND_DNE(command));
 };
 
+/**
+ * Creates a new Apps Script project.
+ * @param title {string} The title of the Apps Script project's file
+ * @param parentId {string} The Drive ID of the G Suite doc this script is bound to.
+ */
 export const create = async (title: string, parentId: string) => {
   await checkIfOnline();
   if (hasProject()) {
@@ -155,6 +141,13 @@ export const create = async (title: string, parentId: string) => {
     });
   }
 };
+
+/**
+ * Fetches an Apps Script project.
+ * Prompts the user if no script ID is provided.
+ * @param scriptId {string} The Apps Script project ID to fetch.
+ * @param versionNumber {string} An optional version to pull the script from.
+ */
 export const clone = async (scriptId: string, versionNumber?: number) => {
   await checkIfOnline();
   if (hasProject()) {
@@ -199,10 +192,20 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
     }
   }
 };
+
+/**
+ * Logs out the user by deleting credentials.
+ */
 export const logout = () => {
   del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
   del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
 };
+
+/**
+ * Prints StackDriver logs from this Apps Script project.
+ * @param cmd.json {boolean} If true, the command will output logs as json.
+ * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
+ */
 export const logs = async (cmd: {
   json: boolean,
   open: boolean,
@@ -259,6 +262,12 @@ export const logs = async (cmd: {
     printLogs(data.entries);
   });
 };
+
+/**
+ * Executes an Apps Script function. Requires additional setup.
+ * @param functionName {string} The function name within the Apps Script project.
+ * @see https://developers.google.com/apps-script/api/how-tos/execute
+ */
 export const run = (functionName:string) => {
   getAPICredentials(async () => {
     await checkIfOnline();
@@ -277,6 +286,11 @@ export const run = (functionName:string) => {
   });
 };
 
+/**
+ * Deploys an Apps Script project.
+ * @param version {string} The project version to deploy at.
+ * @param description {string} The deployment's description.
+ */
 export const deploy = async (version: string, description: string) => {
   await checkIfOnline();
   description = description || '';
@@ -325,6 +339,11 @@ export const deploy = async (version: string, description: string) => {
       }
   });
 };
+
+/**
+ * Removes a deployment from the Apps Script project.
+ * @param deploymentId {string} The deployment's ID
+ */
 export const undeploy = async (deploymentId: string) => {
   await checkIfOnline();
   getAPICredentials(() => {
@@ -345,49 +364,10 @@ export const undeploy = async (deploymentId: string) => {
     });
   });
 };
-export const versions = async () => {
-  await checkIfOnline();
-  spinner.setSpinnerTitle('Grabbing versions...').start();
-  getAPICredentials(async () => {
-    const { scriptId } = await getProjectSettings();
-    script.projects.versions.list({
-      scriptId,
-    }, {}, (error: any, { data }: any) => {
-      spinner.stop(true);
-      if (error) {
-        logError(error);
-      } else {
-        if (data && data.versions && data.versions.length) {
-          const numVersions = data.versions.length;
-          console.log(LOG.VERSION_NUM(numVersions));
-          data.versions.map((version: string) => {
-            console.log(LOG.VERSION_DESCRIPTION(version));
-          });
-        } else {
-          console.error(LOG.DEPLOYMENT_DNE);
-        }
-      }
-    });
-  });
-};
-export const version = async (description: string) => {
-  await checkIfOnline();
-  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
-  getAPICredentials(async () => {
-    const { scriptId } = await getProjectSettings();
-    script.projects.versions.create({
-      scriptId,
-      description,
-    }, {}, (error: any, { data }: any) => {
-      spinner.stop(true);
-      if (error) {
-        logError(error);
-      } else {
-        console.log(LOG.VERSION_CREATED(data.versionNumber));
-      }
-    });
-  });
-};
+
+/**
+ * Lists a user's Apps Script projects using Google Drive.
+ */
 export const list = async () => {
   await checkIfOnline();
   spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
@@ -408,6 +388,13 @@ export const list = async () => {
     }
   });
 };
+
+/**
+ * Redeploys an Apps Script deployment.
+ * @param deploymentId {string} The deployment ID to redeploy.
+ * @param version {string} The version to redeploy at.
+ * @param description {string} A description of the redeployment.
+ */
 export const redeploy = async (deploymentId: string, version: string, description: string) => {
   await checkIfOnline();
   getAPICredentials(() => {
@@ -433,38 +420,10 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
     });
   });
 };
-export const status = async (cmd: { json: boolean }) => {
-  await checkIfOnline();
-  getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
-    if (!scriptId) return;
-    getProjectFiles(rootDir, (err, projectFiles) => {
-      if(err) return console.log(err);
-      else if (projectFiles) {
-        const [filesToPush, untrackedFiles] = projectFiles;
-        if (cmd.json) {
-          console.log(JSON.stringify({ filesToPush, untrackedFiles }));
-        } else {
-          console.log(LOG.STATUS_PUSH);
-          filesToPush.forEach((file) => console.log(`└─ ${file}`));
-          console.log(LOG.STATUS_IGNORE);
-          untrackedFiles.forEach((file) => console.log(`└─ ${file}`));
-        }
-      }
-    });
-  });
-};
-export const openCmd = async (scriptId: any) => {
-  if (!scriptId) {
-    const settings = await getProjectSettings();
-    scriptId = settings.scriptId;
-  }
-  if (scriptId.length < 30) {
-    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  } else {
-    console.log(LOG.OPEN_PROJECT(scriptId));
-    open(getScriptURL(scriptId));
-  }
-};
+
+/**
+ * Lists a script's deployments.
+ */
 export const deployments = async () => {
   await checkIfOnline();
   getAPICredentials(async () => {
@@ -492,4 +451,97 @@ export const deployments = async () => {
         }
       });
   });
+};
+
+/**
+ * Lists versions of an Apps Script project.
+ */
+export const versions = async () => {
+  await checkIfOnline();
+  spinner.setSpinnerTitle('Grabbing versions...').start();
+  getAPICredentials(async () => {
+    const { scriptId } = await getProjectSettings();
+    script.projects.versions.list({
+      scriptId,
+    }, {}, (error: any, { data }: any) => {
+      spinner.stop(true);
+      if (error) {
+        logError(error);
+      } else {
+        if (data && data.versions && data.versions.length) {
+          const numVersions = data.versions.length;
+          console.log(LOG.VERSION_NUM(numVersions));
+          data.versions.map((version: string) => {
+            console.log(LOG.VERSION_DESCRIPTION(version));
+          });
+        } else {
+          console.error(LOG.DEPLOYMENT_DNE);
+        }
+      }
+    });
+  });
+};
+
+/**
+ * Creates a new version of an Apps Script project.
+ */
+export const version = async (description: string) => {
+  await checkIfOnline();
+  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
+  getAPICredentials(async () => {
+    const { scriptId } = await getProjectSettings();
+    script.projects.versions.create({
+      scriptId,
+      description,
+    }, {}, (error: any, { data }: any) => {
+      spinner.stop(true);
+      if (error) {
+        logError(error);
+      } else {
+        console.log(LOG.VERSION_CREATED(data.versionNumber));
+      }
+    });
+  });
+};
+
+/**
+ * Displays the status of which Apps Script files are ignored from .claspignore
+ * @param cmd.json {boolean} Displays the status in json format.
+ */
+export const status = async (cmd: { json: boolean }) => {
+  await checkIfOnline();
+  getProjectSettings().then(({ scriptId, rootDir }: ProjectSettings) => {
+    if (!scriptId) return;
+    getProjectFiles(rootDir, (err, projectFiles) => {
+      if(err) return console.log(err);
+      else if (projectFiles) {
+        const [filesToPush, untrackedFiles] = projectFiles;
+        if (cmd.json) {
+          console.log(JSON.stringify({ filesToPush, untrackedFiles }));
+        } else {
+          console.log(LOG.STATUS_PUSH);
+          filesToPush.forEach((file) => console.log(`└─ ${file}`));
+          console.log(LOG.STATUS_IGNORE);
+          untrackedFiles.forEach((file) => console.log(`└─ ${file}`));
+        }
+      }
+    });
+  });
+};
+
+/**
+ * Opens an Apps Script project's script.google.com editor.
+ * @param scriptId {string} The Apps Script project to open.
+ */
+export const openCmd = async (scriptId: any) => {
+  if (!scriptId) {
+    const settings = await getProjectSettings();
+    scriptId = settings.scriptId;
+  }
+  if (scriptId.length < 30) {
+    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  } else {
+    console.log(LOG.OPEN_PROJECT(scriptId));
+    open(getScriptURL(scriptId));
+  }
 };

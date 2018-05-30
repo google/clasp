@@ -1,3 +1,6 @@
+/**
+ * Authentication with Google's APIs.
+ */
 import * as http from 'http';
 import { AddressInfo } from 'net';
 import * as url from 'url';
@@ -5,8 +8,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import { Logging } from 'googleapis/build/src/apis/logging/v2';
-import { LOG } from './commands';
-import { ClaspSettings, DOTFILE, ERROR, checkIfOnline } from './utils';
+import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline } from './utils';
 import open = require('open');
 import readline = require('readline');
 
