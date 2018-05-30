@@ -4,8 +4,8 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 
 const { spawnSync } = require('child_process');
-import { getScriptURL, getFileType, getAPIFileType,
-         saveProjectId } from './../src/utils.js';
+import { getScriptURL, getAPIFileType, saveProjectId } from './../src/utils.js';
+import { getFileType } from './../src/files';
 import * as path from 'path';
 import * as tmp from 'tmp';
 

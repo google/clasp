@@ -19,184 +19,21 @@
 /**
  * clasp – The Apps Script CLI
  */
-import * as anymatch from 'anymatch';
 import 'connect';
 import * as del from 'del';
-import * as fs from 'fs';
-import { google } from 'googleapis';
-import { Drive } from 'googleapis/build/src/apis/drive/v3';
-import * as mkdirp from 'mkdirp';
 const open = require('open');
 const path = require('path');
 const commander = require('commander');
-const readMultipleFiles = require('read-multiple-files');
-import * as recursive from 'recursive-readdir';
-import { Logging } from 'googleapis/build/src/apis/logging/v2';
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 import * as pluralize from 'pluralize';
 import { DOT, PROJECT_NAME, PROJECT_MANIFEST_BASENAME,
     ProjectSettings, DOTFILE, spinner, logError, ERROR, getScriptURL,
-    getProjectSettings, getFileType, getAPIFileType, checkIfOnline,
+    getProjectSettings, getAPIFileType, checkIfOnline,
     saveProjectId, manifestExists } from './src/utils';
-import { oauth2Client, getAPICredentials, login } from './src/auth';
+import { drive, script, logger, getAPICredentials, login } from './src/auth';
 import { LOG, help, defaultCmd } from './src/commands';
-
-// An Apps Script API File
-interface AppsScriptFile {
-  name: string;
-  type: string;
-  source: string;
-}
-
-// Used to receive files tracked by current project
-interface FilesCallback {
-  (
-    error: Error | boolean,
-    result: string[][] | null,
-    files: Array<AppsScriptFile | undefined> | null,
-  ) : void;
-}
-
-const script = google.script({
-  version: 'v1',
-  auth: oauth2Client,
-});
-
-const logger = google.logging({
-  version: 'v2',
-  auth: oauth2Client,
-}) as Logging;
-
-/**
- * Recursively finds all files that are part of the current project, and those that are ignored
- * by .claspignore and calls the passed callback function with the file lists.
- * @param {string} rootDir The project's root directory
- * @param {FilesCallBack} callback The callback will be called with the following paramters
- * error: Error if there's an error, otherwise null
- * result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
- * files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
- */
-function getProjectFiles(rootDir: string, callback: FilesCallback): void {
-  // Read all filenames as a flattened tree
-  recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
-    if (err) return callback(err, null, null);
-    // Filter files that aren't allowed.
-    filePaths = filePaths.filter((name) => !name.startsWith('.'));
-    DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
-      filePaths = filePaths.sort(); // Sort files alphanumerically
-      let abortPush = false;
-      const nonIgnoredFilePaths: string[] = [];
-      const ignoredFilePaths: string[] = [];
-      // Match the files with ignored glob pattern
-      readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
-        if (err) return callback(new Error(err), null, null);
-        // Check if there are any .gs files
-        // We will prompt the user to rename files
-        //
-        // TODO: implement renaming files from .gs to .js
-        // let canRenameToJS = false;
-        // filePaths.map((name, i) => {
-        //   if (path.extname(name) === '.gs') {
-        //     canRenameToJS = true;
-        //   }
-        // });
-        // Check if there are files that will conflict if renamed .gs to .js
-        filePaths.map((name: string) => {
-          const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
-          if (filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
-            filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1) {
-            // Can't rename, conflicting files
-            abortPush = true;
-            if (path.extname(name) === '.gs') { // only print error once (for .gs)
-              logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
-            }
-          } else if (path.extname(name) === '.gs') {
-            // rename file to js
-            console.log(LOG.RENAME_FILE(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js'));
-            fs.renameSync(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js');
-          }
-        });
-
-        if(abortPush) return callback(new Error(), null, null);
-
-        const files = filePaths.map((name, i) => {
-          let nameWithoutExt = name.slice(0, -path.extname(name).length);
-          // Replace OS specific path separator to common '/' char
-          nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
-
-          // Formats rootDir/appsscript.json to appsscript.json.
-          // Preserves subdirectory names in rootDir
-          // (rootDir/foo/Code.js becomes foo/Code.js)
-          let formattedName = nameWithoutExt;
-          if (rootDir) {
-            formattedName = nameWithoutExt.slice(
-              rootDir.length + 1,
-              nameWithoutExt.length,
-            );
-          }
-          if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
-            nonIgnoredFilePaths.push(name);
-            const file: AppsScriptFile = {
-              name: formattedName, // the file base name
-              type: getAPIFileType(name), // the file extension
-              source: contents[i], //the file contents
-            };
-            return file;
-          } else {
-            ignoredFilePaths.push(name);
-            return; // Skip ignored files
-          }
-        }).filter(Boolean); // remove null values
-        callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
-      });
-    });
-  });
-}
-
-/**
- * Fetches the files for a project from the server and writes files locally to
- * `pwd` with dots converted to subdirectories.
- * @param {string} scriptId The project script id
- * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
- * @param {number?} versionNumber The version of files to fetch.
- */
-function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
-  spinner.start();
-  getAPICredentials(async () => {
-    await checkIfOnline();
-    script.projects.getContent({
-      scriptId,
-      versionNumber,
-    }, {}, (error: any, { data }: any) => {
-      spinner.stop(true);
-      if (error) {
-        if (error.statusCode === 404) return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-        return logError(error, ERROR.SCRIPT_ID);
-      } else {
-        if (!data.files) {
-          return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-        }
-        // Create the files in the cwd
-        console.log(LOG.CLONE_SUCCESS(data.files.length));
-        const sortedFiles = data.files.sort((file: AppsScriptFile) => file.name);
-        sortedFiles.map((file: AppsScriptFile) => {
-          const filePath = `${file.name}.${getFileType(file.type)}`;
-          const truePath = `${rootDir || '.'}/${filePath}`;
-          mkdirp(path.dirname(truePath), (err) => {
-            if (err) return logError(err, ERROR.FS_DIR_WRITE);
-            if (!file.source) return; // disallow empty files
-            fs.writeFile(truePath, file.source, (err) => {
-              if (err) return logError(err, ERROR.FS_FILE_WRITE);
-            });
-            // Log only filename if pulling to root (Code.gs vs ./Code.gs)
-            console.log(`└─ ${rootDir ? truePath : filePath}`);
-          });
-        });
-      }
-    });
-  });
-}
+import {getProjectFiles, fetchProject, getFileType, hasProject} from './src/files';
 
 // Functions (not yet moved out of this file)
 const logout = () => {
@@ -205,7 +42,7 @@ const logout = () => {
 };
 const create = async (title: string, parentId: string) => {
   await checkIfOnline();
-  if (fs.existsSync(DOT.PROJECT.PATH)) {
+  if (hasProject()) {
     logError(null, ERROR.FOLDER_EXISTS);
   } else {
     if (!title) {
@@ -248,12 +85,11 @@ const create = async (title: string, parentId: string) => {
 };
 const clone = async (scriptId: string, versionNumber?: number) => {
   await checkIfOnline();
-  if (fs.existsSync(DOT.PROJECT.PATH)) {
+  if (hasProject()) {
     logError(null, ERROR.FOLDER_EXISTS);
   } else {
     if (!scriptId) {
       getAPICredentials(async () => {
-        const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
         const { data } = await drive.files.list({
           pageSize: 10,
           fields: 'files(id, name)',
@@ -513,7 +349,6 @@ const list = async () => {
   await checkIfOnline();
   spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
   getAPICredentials(async () => {
-    const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
     const res = await drive.files.list({
       pageSize: 50,
       fields: 'nextPageToken, files(id, name)',

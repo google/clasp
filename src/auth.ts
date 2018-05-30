@@ -6,6 +6,9 @@ import { AddressInfo } from 'net';
 import open = require('open');
 import readline = require('readline');
 import { LOG } from './commands';
+import { google } from 'googleapis';
+import { Logging } from 'googleapis/build/src/apis/logging/v2';
+import { Drive } from 'googleapis/build/src/apis/drive/v3';
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
@@ -27,6 +30,20 @@ const oauth2ClientSettings = {
   redirectUri: 'http://localhost',
 };
 export const oauth2Client = new OAuth2Client(oauth2ClientSettings);
+
+// Google API clients
+export const script = google.script({
+  version: 'v1',
+  auth: oauth2Client,
+});
+export const logger = google.logging({
+  version: 'v2',
+  auth: oauth2Client,
+}) as Logging;
+export const drive = google.drive({
+  version: 'v3',
+  auth: oauth2Client,
+}) as Drive;
 
 /**
  * Loads the Apps Script API credentials for the CLI.

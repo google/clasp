@@ -187,16 +187,6 @@ export function getProjectSettings(failSilently?: boolean): Promise<ProjectSetti
 }
 
 /**
- * Gets the local file type from the API FileType.
- * @param  {string} type The file type returned by Apps Script
- * @return {string}      The file type
- * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
- */
-export function getFileType(type: string): string {
-  return (type === 'SERVER_JS') ? 'js' : type.toLowerCase();
-}
-
-/**
  * Gets the API FileType. Assumes the path is valid.
  * @param  {string} path The file path
  * @return {string}      The API's FileType enum (uppercase), null if not valid.
