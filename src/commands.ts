@@ -1,12 +1,14 @@
 import { DOT, PROJECT_NAME, getScriptURL,
   logError, ClaspSettings, DOTFILE, ERROR,
   checkIfOnline, spinner, saveProjectId, manifestExists,
-  getProjectSettings } from './utils';
+  getProjectSettings, ProjectSettings } from './utils';
+const open = require('open');
 import {hasProject, fetchProject} from './files';
-import { authorize, getAPICredentials, drive, script} from './auth';
+import { authorize, getAPICredentials, drive, script, logger} from './auth';
 import * as pluralize from 'pluralize';
 const commander = require('commander');
 import * as del from 'del';
+const chalk = require('chalk');
 const { prompt } = require('inquirer');
 
 // Log messages (some logs take required params)
@@ -143,4 +145,77 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
 export const logout = () => {
   del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
   del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
+};
+export const logs = async (cmd: {
+  json: boolean,
+  open: boolean,
+}) => {
+  await checkIfOnline();
+  function printLogs(entries: any[]) {
+    for (let i = 0; i < 50 && i < entries.length; ++i) {
+      const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
+      let functionName = resource.labels.function_name;
+      functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
+      let payloadData: any = '';
+      if (cmd.json) {
+        payloadData = JSON.stringify(entries[i], null, 2);
+      } else {
+        const data: any = {
+          textPayload,
+          jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
+          protoPayload,
+        };
+        payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
+        if (payloadData && typeof(payloadData) === 'string') {
+          payloadData = payloadData.padEnd(20);
+        }
+      }
+      const coloredStringMap: any = {
+        ERROR: chalk.red(severity),
+        INFO: chalk.blue(severity),
+        DEBUG: chalk.yellow(severity),
+        NOTICE: chalk.magenta(severity),
+      };
+      let coloredSeverity:string = coloredStringMap[severity] || severity;
+      coloredSeverity = String(coloredSeverity).padEnd(20);
+      console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
+    }
+  }
+  const { projectId } = await getProjectSettings();
+  if (!projectId) {
+    console.error(ERROR.NO_GCLOUD_PROJECT);
+    process.exit(-1);
+  }
+  if (cmd.open) {
+    const url = 'https://console.cloud.google.com/logs/viewer?project=' +
+        `${projectId}&resource=app_script_function`;
+    console.log(`Opening logs: ${url}`);
+    open(url);
+    process.exit(0);
+  }
+  getAPICredentials(async () => {
+    const { data } = await logger.entries.list({
+      resourceNames: [
+        `projects/${projectId}`,
+      ],
+    });
+    printLogs(data.entries);
+  });
+};
+export const run = (functionName:string) => {
+  getAPICredentials(async () => {
+    await checkIfOnline();
+    getProjectSettings().then(({ scriptId }: ProjectSettings) => {
+      const params = {
+        scriptId,
+        function: functionName,
+        devMode: false,
+      };
+      script.scripts.run(params).then(response => {
+        console.log(response.data);
+      }).catch(e => {
+        console.log(e);
+      });
+    });
+  });
 };
