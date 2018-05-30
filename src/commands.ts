@@ -1,7 +1,13 @@
-import { DOT, PROJECT_NAME, getScriptURL, ClaspSettings, DOTFILE, ERROR } from './utils.js';
-import { authorize } from './auth.js';
+import { DOT, PROJECT_NAME, getScriptURL,
+  logError, ClaspSettings, DOTFILE, ERROR,
+  checkIfOnline, spinner, saveProjectId, manifestExists,
+  getProjectSettings } from './utils';
+import {hasProject, fetchProject} from './files';
+import { authorize, getAPICredentials, drive, script} from './auth';
 import * as pluralize from 'pluralize';
 const commander = require('commander');
+import * as del from 'del';
+const { prompt } = require('inquirer');
 
 // Log messages (some logs take required params)
 export const LOG = {
@@ -45,4 +51,96 @@ export const help = () => {
 };
 export const defaultCmd = (command: string) => {
   console.error(ERROR.COMMAND_DNE(command));
+};
+
+export const create = async (title: string, parentId: string) => {
+  await checkIfOnline();
+  if (hasProject()) {
+    logError(null, ERROR.FOLDER_EXISTS);
+  } else {
+    if (!title) {
+      await prompt([{
+        type : 'input',
+        name : 'title',
+        message : 'Give a script title:',
+        default: LOG.UNTITLED_SCRIPT_TITLE,
+      }]).then((answers: any) => {
+        title = answers.title;
+      }).catch((err: any) => {
+        console.log(err);
+      });
+    }
+    getAPICredentials(async () => {
+      spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
+      try {
+        const { scriptId } = await getProjectSettings(true);
+        if (scriptId) {
+          console.error(ERROR.NO_NESTED_PROJECTS);
+          process.exit(1);
+        }
+      } catch (err) { // no scriptId (because project doesn't exist)
+        //console.log(err);
+      }
+      script.projects.create({ title, parentId }, {}).then(res => {
+        spinner.stop(true);
+        const createdScriptId = res.data.scriptId;
+        console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
+        saveProjectId(createdScriptId);
+        if (!manifestExists()) {
+          fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
+        }
+      }).catch((error: object) => {
+        spinner.stop(true);
+        logError(error, ERROR.CREATE);
+      });
+    });
+  }
+};
+export const clone = async (scriptId: string, versionNumber?: number) => {
+  await checkIfOnline();
+  if (hasProject()) {
+    logError(null, ERROR.FOLDER_EXISTS);
+  } else {
+    if (!scriptId) {
+      getAPICredentials(async () => {
+        const { data } = await drive.files.list({
+          pageSize: 10,
+          fields: 'files(id, name)',
+          q: 'mimeType="application/vnd.google-apps.script"',
+        });
+        const files = data.files;
+        if (files.length) {
+          const fileIds = files.map((file: any) => {
+            return {
+              name: `${file.name}`.padEnd(20) + ` - (${file.id})`,
+              value: file.id,
+            };
+          });
+          await prompt([{
+            type : 'list',
+            name : 'scriptId',
+            message : 'Clone which script? ',
+            choices : fileIds,
+          }]).then((answers: any) => {
+            checkIfOnline();
+            spinner.setSpinnerTitle(LOG.CLONING);
+            saveProjectId(answers.scriptId);
+            fetchProject(answers.scriptId, '', versionNumber);
+          }).catch((err: any) => {
+            console.log(err);
+          });
+        } else {
+          console.log(LOG.FINDING_SCRIPTS_DNE);
+        }
+      });
+    } else {
+      spinner.setSpinnerTitle(LOG.CLONING);
+      saveProjectId(scriptId);
+      fetchProject(scriptId, '', versionNumber);
+    }
+  }
+};
+export const logout = () => {
+  del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
+  del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
 };
