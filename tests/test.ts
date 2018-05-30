@@ -95,7 +95,7 @@ describe.skip('Test clasp pull function', () => {
   });
 });
 
-describe('Test clasp push function', () => {
+describe.skip('Test clasp push function', () => {
   it('should push local project correctly', () => {
     fs.removeSync('.claspignore');
     fs.writeFileSync('Code.js', TEST_CODE_JS);
@@ -121,7 +121,7 @@ describe('Test clasp push function', () => {
   });
 });
 
-describe('Test clasp status function', () => {
+describe.skip('Test clasp status function', () => {
   function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
     fs.ensureDirSync('tmp');
     const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
