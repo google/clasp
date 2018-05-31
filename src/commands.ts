@@ -3,7 +3,7 @@
  */
 import * as del from 'del';
 import * as pluralize from 'pluralize';
-import { drive, getAPICredentials, logger, script } from './auth';
+import { drive, loadAPICredentials, logger, script } from './auth';
 import { fetchProject, getProjectFiles, hasProject } from './files';
 import {
   DOT,
@@ -41,8 +41,8 @@ export const pull = async () => {
  */
 export const push = async () => {
   await checkIfOnline();
+  await loadAPICredentials();
   spinner.setSpinnerTitle(LOG.PUSHING).start();
-  await getAPICredentials();
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
     getProjectFiles(rootDir, (err, projectFiles, files) => {
@@ -102,6 +102,7 @@ export const create = async (title: string, parentId: string) => {
   if (hasProject()) {
     logError(null, ERROR.FOLDER_EXISTS);
   } else {
+    await loadAPICredentials();
     if (!title) {
       await prompt([{
         type : 'input',
@@ -114,7 +115,6 @@ export const create = async (title: string, parentId: string) => {
         console.log(err);
       });
     }
-    await getAPICredentials();
     spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
     try {
       const { scriptId } = await getProjectSettings(true);
@@ -152,7 +152,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
     logError(null, ERROR.FOLDER_EXISTS);
   } else {
     if (!scriptId) {
-      await getAPICredentials();
+      await loadAPICredentials();
       const { data } = await drive.files.list({
         pageSize: 10,
         fields: 'files(id, name)',
@@ -241,7 +241,7 @@ export const logs = async (cmd: {
   const { projectId } = await getProjectSettings();
   if (!projectId) {
     console.error(ERROR.NO_GCLOUD_PROJECT);
-    process.exit(-1);
+    process.exit(1);
   }
   if (cmd.open) {
     const url = 'https://console.cloud.google.com/logs/viewer?project=' +
@@ -250,7 +250,7 @@ export const logs = async (cmd: {
     open(url);
     process.exit(0);
   }
-  await getAPICredentials();
+  await loadAPICredentials();
   const { data } = await logger.entries.list({
     resourceNames: [
       `projects/${projectId}`,
@@ -265,8 +265,8 @@ export const logs = async (cmd: {
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  */
 export const run = async (functionName:string) => {
-  await getAPICredentials();
   await checkIfOnline();
+  await loadAPICredentials();
   getProjectSettings().then(({ scriptId }: ProjectSettings) => {
     const params = {
       scriptId,
@@ -288,8 +288,8 @@ export const run = async (functionName:string) => {
  */
 export const deploy = async (version: string, description: string) => {
   await checkIfOnline();
+  await loadAPICredentials();
   description = description || '';
-  await getAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
     spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
@@ -340,7 +340,7 @@ export const deploy = async (version: string, description: string) => {
  */
 export const undeploy = async (deploymentId: string) => {
   await checkIfOnline();
-  await getAPICredentials();
+  await loadAPICredentials();
   getProjectSettings().then(({ scriptId }: ProjectSettings) => {
     if (!scriptId) return;
     spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
@@ -363,8 +363,8 @@ export const undeploy = async (deploymentId: string) => {
  */
 export const list = async () => {
   await checkIfOnline();
+  await loadAPICredentials();
   spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
-  await getAPICredentials();
   const res = await drive.files.list({
     pageSize: 50,
     fields: 'nextPageToken, files(id, name)',
@@ -389,7 +389,7 @@ export const list = async () => {
  */
 export const redeploy = async (deploymentId: string, version: string, description: string) => {
   await checkIfOnline();
-  await getAPICredentials();
+  await loadAPICredentials();
   getProjectSettings().then(({ scriptId }: ProjectSettings) => {
     script.projects.deployments.update({
       scriptId,
@@ -417,7 +417,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
  */
 export const deployments = async () => {
   await checkIfOnline();
-  await getAPICredentials();
+  await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
     spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
@@ -448,8 +448,8 @@ export const deployments = async () => {
  */
 export const versions = async () => {
   await checkIfOnline();
+  await loadAPICredentials();
   spinner.setSpinnerTitle('Grabbing versions...').start();
-  await getAPICredentials();
   const { scriptId } = await getProjectSettings();
   script.projects.versions.list({
     scriptId,
@@ -476,8 +476,8 @@ export const versions = async () => {
  */
 export const version = async (description: string) => {
   await checkIfOnline();
+  await loadAPICredentials();
   spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
-  await getAPICredentials();
   const { scriptId } = await getProjectSettings();
   script.projects.versions.create({
     scriptId,

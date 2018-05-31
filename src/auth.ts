@@ -67,7 +67,7 @@ async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
  * Loads the Apps Script API credentials for the CLI.
  * Required before every API call.
  */
-export async function getAPICredentials() {
+export async function loadAPICredentials() {
     return DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
       oauth2Client.setCredentials(rc);
       return rc;

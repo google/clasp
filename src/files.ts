@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as anymatch from 'anymatch';
 import * as mkdirp from 'mkdirp';
 import * as recursive from 'recursive-readdir';
-import { getAPICredentials, script } from './auth';
+import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE, ERROR, LOG, checkIfOnline, getAPIFileType, logError, spinner } from './utils';
 const path = require('path');
 const readMultipleFiles = require('read-multiple-files');
@@ -135,9 +135,9 @@ export function getProjectFiles(rootDir: string, callback: FilesCallback): void 
  * @param {number?} versionNumber The version of files to fetch.
  */
 export async function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
-  spinner.start();
-  await getAPICredentials();
   await checkIfOnline();
+  await loadAPICredentials();
+  spinner.start();
   script.projects.getContent({
     scriptId,
     versionNumber,
