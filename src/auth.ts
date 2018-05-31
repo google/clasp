@@ -68,22 +68,17 @@ async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
  * Required before every API call.
  */
 export async function loadAPICredentials() {
-    return new Promise((resolve, reject) => {
-      DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
-        oauth2Client.setCredentials(rc);
-        resolve();
-      }).catch((err: any) => {
-        DOTFILE.RC.read().then((rc: ClaspSettings) => {
-          oauth2Client.setCredentials(rc);
-          resolve();
-        }).catch((err: any) => {
-          console.error('Could not read API credentials. Error:');
-          console.error(err);
-          reject();
-          process.exit(1);
-        });
-      });
+  return DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
+    oauth2Client.setCredentials(rc);
+  }).catch((err: any) => {
+    return DOTFILE.RC.read().then((rc: ClaspSettings) => {
+      oauth2Client.setCredentials(rc);
+    }).catch((err: any) => {
+      console.error('Could not read API credentials. Error:');
+      console.error(err);
+      process.exit(1);
     });
+  });
   }
 
 /**
