@@ -134,39 +134,38 @@ export function getProjectFiles(rootDir: string, callback: FilesCallback): void 
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  * @param {number?} versionNumber The version of files to fetch.
  */
-export function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
+export async function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
   spinner.start();
-  getAPICredentials(async () => {
-    await checkIfOnline();
-    script.projects.getContent({
-      scriptId,
-      versionNumber,
-    }, {}, (error: any, { data }: any) => {
-      spinner.stop(true);
-      if (error) {
-        if (error.statusCode === 404) return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-        return logError(error, ERROR.SCRIPT_ID);
-      } else {
-        if (!data.files) {
-          return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-        }
-        // Create the files in the cwd
-        console.log(LOG.CLONE_SUCCESS(data.files.length));
-        const sortedFiles = data.files.sort((file: AppsScriptFile) => file.name);
-        sortedFiles.map((file: AppsScriptFile) => {
-          const filePath = `${file.name}.${getFileType(file.type)}`;
-          const truePath = `${rootDir || '.'}/${filePath}`;
-          mkdirp(path.dirname(truePath), (err) => {
-            if (err) return logError(err, ERROR.FS_DIR_WRITE);
-            if (!file.source) return; // disallow empty files
-            fs.writeFile(truePath, file.source, (err) => {
-              if (err) return logError(err, ERROR.FS_FILE_WRITE);
-            });
-            // Log only filename if pulling to root (Code.gs vs ./Code.gs)
-            console.log(`└─ ${rootDir ? truePath : filePath}`);
-          });
-        });
+  await getAPICredentials();
+  await checkIfOnline();
+  script.projects.getContent({
+    scriptId,
+    versionNumber,
+  }, {}, (error: any, { data }: any) => {
+    spinner.stop(true);
+    if (error) {
+      if (error.statusCode === 404) return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+      return logError(error, ERROR.SCRIPT_ID);
+    } else {
+      if (!data.files) {
+        return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
       }
-    });
+      // Create the files in the cwd
+      console.log(LOG.CLONE_SUCCESS(data.files.length));
+      const sortedFiles = data.files.sort((file: AppsScriptFile) => file.name);
+      sortedFiles.map((file: AppsScriptFile) => {
+        const filePath = `${file.name}.${getFileType(file.type)}`;
+        const truePath = `${rootDir || '.'}/${filePath}`;
+        mkdirp(path.dirname(truePath), (err) => {
+          if (err) return logError(err, ERROR.FS_DIR_WRITE);
+          if (!file.source) return; // disallow empty files
+          fs.writeFile(truePath, file.source, (err) => {
+            if (err) return logError(err, ERROR.FS_FILE_WRITE);
+          });
+          // Log only filename if pulling to root (Code.gs vs ./Code.gs)
+          console.log(`└─ ${rootDir ? truePath : filePath}`);
+        });
+      });
+    }
   });
 }
