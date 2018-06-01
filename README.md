@@ -64,80 +64,196 @@ clasp
 
 ## How To...
 
-### Login/Logout
-```
-clasp login
-clasp logout
-```
+### Login
 
-Run `clasp login --no-localhost` to manually enter a code instead of running a local server.
+Logs the user in. Saves the client credentials to an rc file.
 
-Run `clasp login --ownkey` to save the `.clasprc.json` file to your current working directory.
+#### Options
 
-### Create a New Apps Script Project
+- `--no-localhost`: Do not run a local server, manually enter code instead.
+- `--ownkey`: Save .clasprc.json file to current working directory.
 
-Files in the current directory are added to the project. Optinally provide a script title or parent G Suite doc ID.
+### Logout
 
-```
-clasp create [scriptTitle] [scriptParentId]
-```
+Logs out the user by deleteing client credentials.
 
-### Clone an Existing Project in the Current Directory
+#### Examples
 
-```
-clasp clone <scriptId>
-```
+- `clasp logout`
 
-### Push/Pull
+### Create
 
-```
-clasp push # Updates Apps Script project with local files
-clasp pull # Updates local files with Apps Script project
-```
+Creates a new script project.
 
-### Update a Published Project / Deploy
+#### Options
 
-To deploy a project:
+- `scriptTitle`: An optional project title.
+- `scriptParentId`: An optional project parent Id. The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
 
-1. Create an immutable version of the Apps Script project using `clasp version`
-1. Deploy the version using `clasp deploy [version]`
+#### Examples
 
-```
-clasp versions # List versions
-clasp version [description] # Create a new version with a description
-```
+- `clasp create`
+- `clasp create "My Script"`
+- `clasp create "My Script" "1D_Gxyv*****************************NXO7o"`
 
-then deploy...
+### Pull
 
-```
-clasp deploy [version] [description]
-clasp undeploy <deploymentId>
-clasp deployments # List all deployment IDs
-```
+Fetches a project from either a provided or saved script id.
+Updates local files with Apps Script project.
 
-### Open the Project on script.google.com
+#### Examples
 
-```
-clasp open [scriptId]
-```
+- `clasp pull`
+
+### Push
+
+Force writes all local files to the script management server.
+
+#### Examples
+
+- `clasp push`
+
+Ignores files:
+- That start with a .
+- That don't have an accepted file extension
+- That are ignored (filename matches a glob pattern in the ignore file)
+
+### Status
+
+Lists files that will be written to the server on `push`.
+
+#### Examples
+
+- `clasp status`
+
+Ignores files:
+- That start with a .
+- That don't have an accepted file extension
+- That are ignored (filename matches a glob pattern in the ignore file)
+
+### Open
 
 Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.
 
-### List your App Scripts (In Development)
+#### Options
 
-```
-clasp list
-My Project           (1_M8ExSD9KI33fiVYbIOv-Cze0gWAzPYnPoSFb41eisVUOtyne8IDUjJ3)
-Testing SlidesApp    (Cze0gWAzPYnPoSFb41eisVUOtyne8IDUjJg-1_M8ExSD9KI33fiVYbIOv)
-Send Email           (isVUOtyne8IDUjJg-1_M8ExSD9KI33fiVYbIOvCze0gWAzPYnPoSFb41e)
-...
-```
+- `scriptId`: The optional script project to open.
 
-This shows your 50 most recent scripts.
+#### Examples
 
-### See your Logs (In Development)
+- `clasp open`
+- `clasp open [scriptId]`
 
-To use `clasp logs`, you need to enter your script's Google Cloud `projectId` into `.clasp.json`.
+### Deployments
+
+List deployments of a script
+
+#### Examples
+
+- `clasp deployments`
+
+### Deploy
+
+Creates a version and deploys a script.
+The response gives the version of the deployment.
+
+#### Options
+
+- `version`: The version number.
+- `description`: The deployment description.
+
+#### Examples
+
+- `clasp deploy`
+- `clasp deploy 4`
+- `clasp deploy 7 "Updates sidebar logo."`
+
+### Undeploy
+
+Undeploys a deployment of a script.
+
+#### Options
+
+- `deploymentId`: deploymentId The deployment ID.
+
+#### Examples
+
+- `clasp "undeploy 123"`
+
+### Redeploy
+
+Updates deployments of a script.
+
+#### Options
+
+- `deploymentId`: deploymentId The deployment ID.
+- `version`: version The target deployment version.
+- `description`: description The reason why the script was redeployed.
+
+#### Examples
+
+- `clasp redeploy 123 3 "Why I updated the deployment"`
+
+### Versions
+
+List versions of a script.
+
+#### Examples
+
+- `clasp versions`
+
+### Version
+
+Creates an immutable version of the script.
+
+#### Options
+
+- `description`: description The description of the script version.
+
+#### Examples
+
+- `clasp version`
+- `clasp version "Bump the version."`
+
+### List
+
+Lists your most recent 10 Apps Script projects.
+
+#### Examples
+
+- `clasp list # helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...`
+
+### Logs
+
+Prints out 5 most recent the StackDriver logs.
+
+#### Options
+
+- `json`: json Output logs in json format.
+- `open`: open Open StackDriver logs in a browser.
+
+### Run
+
+Remotely executes an Apps Script function.
+This function runs your script in the cloud. You must supply
+the functionName params. For now, it can
+only run functions that do not require other authorization.
+
+#### Options
+
+- `functionName`: functionName The function in the script that you want to run.
+
+#### Examples
+
+- `clasp run 'sendEmail'`
+
+### Help
+
+Displays the help function.
+
+#### Examples
+
+- `clasp help`
 
 #### [Get Project ID](#get-project-id)
 
@@ -242,6 +358,12 @@ npm run test
 
 - Use `npm run lint` to find common style errors.
 - Download [sort-imports](https://marketplace.visualstudio.com/items?itemName=amatiasq.sort-imports) for VSC to automatically sort imports.
+
+#### Generate Docs
+
+The core "How To" section of the docs is generated from JSDoc comments from `index.ts`.
+
+Run `npm run docs` to build the "How To" section. Copy/paste that section into the README.md.
 
 #### Publishing `clasp` to npm (admin)
 
