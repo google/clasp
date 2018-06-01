@@ -82,6 +82,7 @@ export const push = async () => {
  */
 export const help = () => {
   commander.outputHelp();
+  process.exit(1);
 };
 
 /**
