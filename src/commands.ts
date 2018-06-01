@@ -90,7 +90,7 @@ export const help = () => {
  * @param command {string} The command that was typed.
  */
 export const defaultCmd = (command: string) => {
-  console.error(ERROR.COMMAND_DNE(command));
+  logError(null, ERROR.COMMAND_DNE(command));
 };
 
 /**
