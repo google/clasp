@@ -7,6 +7,7 @@ const splitLines = require('split-lines');
 const dotf = require('dotf');
 const read = require('read-file');
 const isOnline = require('is-online');
+import * as pluralize from 'pluralize';
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';

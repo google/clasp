@@ -66,23 +66,19 @@ async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
 /**
  * Loads the Apps Script API credentials for the CLI.
  * Required before every API call.
- * @param {Function} cb The callback
- * @param {boolean} isLocal If we should load local API credentials for this clasp project.
  */
-export function getAPICredentials(cb: (rc: ClaspSettings | void) => void) {
-    DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
+export async function loadAPICredentials() {
+  return DOTFILE.RC_LOCAL.read().then((rc: ClaspSettings) => {
+    oauth2Client.setCredentials(rc);
+  }).catch((err: any) => {
+    return DOTFILE.RC.read().then((rc: ClaspSettings) => {
       oauth2Client.setCredentials(rc);
-      cb(rc);
     }).catch((err: any) => {
-      DOTFILE.RC.read().then((rc: ClaspSettings) => {
-        oauth2Client.setCredentials(rc);
-        cb(rc);
-      }).catch((err: any) => {
-        console.error('Could not read API credentials. Error:');
-        console.error(err);
-        process.exit(-1);
-      });
+      console.error('Could not read API credentials. Error:');
+      console.error(err);
+      process.exit(1);
     });
+  });
   }
 
 /**
