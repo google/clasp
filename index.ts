@@ -58,6 +58,10 @@ commander
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
+ * @name login
+ * @param {string?} [--no-localhost] Do not run a local server, manually enter code instead.
+ * @param {string?} [--ownkey] Save .clasprc.json file to current working directory.
+ * @see test
  */
 commander
   .command('login')
@@ -68,6 +72,8 @@ commander
 
 /**
  * Logs out the user by deleteing client credentials.
+ * @name logout
+ * @example logout
  */
 commander
   .command('logout')
@@ -76,12 +82,15 @@ commander
 
 /**
  * Creates a new script project.
- * @param {string} [scriptTitle] An optional project title.
- * @param {string} [scriptParentId] An optional project parent Id. The Drive ID of a parent file
+ * @name create
+ * @param {string?} [scriptTitle] An optional project title.
+ * @param {string?} [scriptParentId] An optional project parent Id. The Drive ID of a parent file
  *   that the created script project is bound to. This is usually the ID of a
  *   Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a
  *   standalone script project is created.
- * @example `create "My Script" "1D_Gxyv*****************************NXO7o"`
+ * @example create
+ * @example create "My Script"
+ * @example create "My Script" "1D_Gxyv*****************************NXO7o"
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/projects/create
  */
 commander
@@ -91,6 +100,8 @@ commander
 
 /**
  * Fetches a project and saves the script id locally.
+ * @param {string?} [scriptId] The script ID to clone.
+ * @param {string?} [versionNumber] The version of the script to clone.
  */
 commander
   .command('clone [scriptId] [versionNumber]')
@@ -99,6 +110,9 @@ commander
 
 /**
  * Fetches a project from either a provided or saved script id.
+ * Updates local files with Apps Script project.
+ * @name pull
+ * @example pull
  */
 commander
   .command('pull')
@@ -107,10 +121,12 @@ commander
 
 /**
  * Force writes all local files to the script management server.
- * Ignores files:
+ * @name push
+ * @desc Ignores files:
  * - That start with a .
  * - That don't have an accepted file extension
  * - That are ignored (filename matches a glob pattern in the ignore file)
+ * @example push
  */
 commander
   .command('push')
@@ -119,10 +135,12 @@ commander
 
 /**
  * Lists files that will be written to the server on `push`.
- * Ignores files:
+ * @name status
+ * @desc Ignores files:
  * - That start with a .
  * - That don't have an accepted file extension
  * - That are ignored (filename matches a glob pattern in the ignore file)
+ * @example status
  */
 commander
 .command('status')
@@ -131,7 +149,11 @@ commander
 .action(status);
 
 /**
- * Opens the script editor in the user's browser.
+ * Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.
+ * @name open
+ * @param {string?} [scriptId] The optional script project to open.
+ * @example open
+ * @example open [scriptId]
  */
 commander
   .command('open [scriptId]')
@@ -140,6 +162,8 @@ commander
 
 /**
  * List deployments of a script
+ * @name deployments
+ * @example deployments
  */
 commander
   .command('deployments')
@@ -149,6 +173,12 @@ commander
 /**
  * Creates a version and deploys a script.
  * The response gives the version of the deployment.
+ * @name deploy
+ * @param {number} [version] The version number.
+ * @param {string} [description] The deployment description.
+ * @example deploy
+ * @example deploy 4
+ * @example deploy 7 "Updates sidebar logo."
  */
 commander
   .command('deploy [version] [description]')
@@ -157,6 +187,8 @@ commander
 
 /**
  * Undeploys a deployment of a script.
+ * @name undeploy
+ * @param {string} deploymentId The deployment ID.
  * @example "undeploy 123"
  */
 commander
@@ -165,7 +197,12 @@ commander
   .action(undeploy);
 
 /**
- * Updates deployments of a script
+ * Updates deployments of a script.
+ * @name redeploy
+ * @param {number} deploymentId The deployment ID.
+ * @param {number} version The target deployment version.
+ * @param {string} description The reason why the script was redeployed.
+ * @example redeploy 123 3 "Why I updated the deployment"
  */
 commander
   .command('redeploy <deploymentId> <version> <description>')
@@ -173,7 +210,9 @@ commander
   .action(redeploy);
 
 /**
- * List versions of a script
+ * List versions of a script.
+ * @name versions
+ * @example versions
  */
 commander
   .command('versions')
@@ -181,7 +220,11 @@ commander
   .action(versions);
 
 /**
- * Creates an immutable version of the script
+ * Creates an immutable version of the script.
+ * @name version
+ * @param {string?} description The description of the script version.
+ * @example version
+ * @example version "Bump the version."
  */
 commander
   .command('version [description]')
@@ -189,13 +232,10 @@ commander
   .action(version);
 
 /**
- * Lists your most recent 10 apps scripts
- * TODO: add --all flag
- * @example `list`
- * This would show someting like:
- * helloworld1          – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
- * helloworld2          – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
- * helloworld3          – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ * Lists your most recent 10 Apps Script projects.
+ * @name list
+ * @example list # helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
+ * @todo Add --all flag to list all projects.
  */
 commander
   .command('list')
@@ -204,8 +244,9 @@ commander
 
 /**
  * Prints out 5 most recent the StackDriver logs.
- * Use --json for output in json format
- * Use --open to open logs in StackDriver
+ * @name logs
+ * @param {boolean?} json Output logs in json format.
+ * @param {boolean?} open Open StackDriver logs in a browser.
  */
 commander
   .command('logs')
@@ -215,13 +256,15 @@ commander
   .action(logs);
 
 /**
- * Clasp run <functionName>
+ * Remotely executes an Apps Script function.
  * This function runs your script in the cloud. You must supply
  * the functionName params. For now, it can
  * only run functions that do not require other authorization.
- * @param functionName function in the script that you want to run
+ * @name run
+ * @param {string} functionName The function in the script that you want to run.
+ * @example run 'sendEmail'
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run
- * Note: to use this command, you must have used `clasp login --ownkey`
+ * @requires `clasp login --ownkey` to be run beforehand.
  */
 commander
   .command('run <functionName>')
@@ -229,7 +272,9 @@ commander
   .action(run);
 
 /**
- * Displays the help function
+ * Displays the help function.
+ * @name help
+ * @example help
  */
 commander
   .command('help')
@@ -238,6 +283,7 @@ commander
 
 /**
  * All other commands are given a help message.
+ * @example random
  */
 commander
   .command('*', { isDefault: true })
