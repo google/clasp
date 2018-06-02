@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --project tsconfig.json; npm i -g;",
+    "docs": "tsc docs.ts && node docs.js",
     "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
     "test": "nyc --cache false mocha --timeout 100000 -- tests/*.js",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls"
@@ -79,11 +80,14 @@
     "@types/tmp": "0.0.33",
     "chai": "^4.1.2",
     "coveralls": "^3.0.1",
+    "extract-comments": "^1.0.0",
     "fs-extra": "^6.0.1",
     "mocha": "^5.2.0",
     "nyc": "^11.8.0",
+    "parse-comments": "^0.4.3",
     "tmp": "0.0.33",
     "tslint": "^5.10.0",
-    "typescript": "^2.8.3"
+    "typescript": "^2.8.4",
+    "ucfirst": "^1.0.0"
   }
 }
