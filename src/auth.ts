@@ -8,6 +8,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import { Logging } from 'googleapis/build/src/apis/logging/v2';
+import { Script } from 'googleapis/build/src/apis/script/v1';
 import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline } from './utils';
 import open = require('open');
 import readline = require('readline');
@@ -37,7 +38,7 @@ export const oauth2Client = new OAuth2Client(oauth2ClientSettings);
 export const script = google.script({
   version: 'v1',
   auth: oauth2Client,
-});
+}) as Script;
 export const logger = google.logging({
   version: 'v2',
   auth: oauth2Client,
