@@ -141,12 +141,13 @@ export async function fetchProject(scriptId: string, rootDir = '', versionNumber
   script.projects.getContent({
     scriptId,
     versionNumber,
-  }, {}, (error: any, { data }: any) => {
+  }, {}, (error: any, res: any) => {
     spinner.stop(true);
     if (error) {
       if (error.statusCode === 404) return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
       return logError(error, ERROR.SCRIPT_ID);
     } else {
+      const data = res.data;
       if (!data.files) {
         return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
       }
