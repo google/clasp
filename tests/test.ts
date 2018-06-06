@@ -80,6 +80,13 @@ describe.skip('Test clasp clone <scriptId> function', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
   });
+  it('should give an error on a non-existing project', () => {
+    const result = spawnSync(
+      'clasp', ['clone', 'non-existing-project'], { encoding: 'utf8' },
+    );
+    expect(result.stderr).to.contain('> Did you provide the correct scriptId?');
+    expect(result.status).to.equal(1);
+  });
 });
 
 describe.skip('Test clasp pull function', () => {
