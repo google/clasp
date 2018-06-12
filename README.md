@@ -75,7 +75,7 @@ Logs the user in. Saves the client credentials to an rc file.
 
 ### Logout
 
-Logs out the user by deleteing client credentials.
+Logs out the user by deleting client credentials.
 
 #### Examples
 
@@ -290,7 +290,7 @@ INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
 Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to not upload on `clasp push`. Steps:
 
 1. Create a file called `.claspignore` in your project's root directory.
-1. Add patterns as if it were a .gitignore, and they will be excluded from `clasp push`.
+1. Add patterns as if it were a `.gitignore`, and they will be excluded from `clasp push`.
 
 A sample `.claspignore` could look like:
 
