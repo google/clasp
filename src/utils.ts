@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import { Spinner } from 'cli-spinner';
+import * as pluralize from 'pluralize';
 const path = require('path');
 const findParentDir = require('find-parent-dir');
 const splitLines = require('split-lines');
 const dotf = require('dotf');
 const read = require('read-file');
 const isOnline = require('is-online');
-import * as pluralize from 'pluralize';
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
@@ -136,7 +136,6 @@ export const LOG = {
   PUSHING: 'Pushing files...',
   REDEPLOY_END: 'Updated deployment.',
   REDEPLOY_START: 'Updating deployment...',
-  RENAME_FILE: (oldName: string, newName: string) => `Renamed file: ${oldName} -> ${newName}`,
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploy ${deploymentId}...`,
   UNTITLED_SCRIPT_TITLE: 'Untitled Script',

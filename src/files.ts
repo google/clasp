@@ -84,10 +84,6 @@ export function getProjectFiles(rootDir: string, callback: FilesCallback): void 
             if (path.extname(name) === '.gs') { // only print error once (for .gs)
               logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
             }
-          } else if (path.extname(name) === '.gs') {
-            // rename file to js
-            console.log(LOG.RENAME_FILE(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js'));
-            fs.renameSync(fileNameWithoutExt + '.gs', fileNameWithoutExt + '.js');
           }
         });
 
