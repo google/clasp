@@ -9,7 +9,7 @@ import { google } from 'googleapis';
 import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import { Logging } from 'googleapis/build/src/apis/logging/v2';
 import { Script } from 'googleapis/build/src/apis/script/v1';
-import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline } from './utils';
+import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline, logError } from './utils';
 import open = require('open');
 import readline = require('readline');
 
@@ -60,7 +60,7 @@ async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
     console.log(LOG.AUTH_SUCCESSFUL);
     process.exit(0); // gracefully exit after successful login
   } catch(err) {
-    console.error(ERROR.ACCESS_TOKEN + err);
+    logError(null, ERROR.ACCESS_TOKEN + err);
   }
 }
 
@@ -75,9 +75,7 @@ export async function loadAPICredentials() {
     return DOTFILE.RC.read().then((rc: ClaspSettings) => {
       oauth2Client.setCredentials(rc);
     }).catch((err: any) => {
-      console.error('Could not read API credentials. Error:');
-      console.error(err);
-      process.exit(1);
+      logError(err, 'Could not read API credentials. Error:');
     });
   });
   }
