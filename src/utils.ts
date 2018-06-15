@@ -158,20 +158,20 @@ export const logError = (err: any, description = '') => {
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
   // change error model. Don't review this method now.
   if (err && typeof err.error === 'string') {
-    console.error(JSON.parse(err.error).error);
+    logError(null, JSON.parse(err.error).error);
   } else if (err && err.statusCode === 401 || err && err.error &&
              err.error.error && err.error.error.code === 401) {
-    console.error(ERROR.UNAUTHENTICATED);
+    logError(null, ERROR.UNAUTHENTICATED);
   } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
-    console.error(ERROR.PERMISSION_DENIED);
+    logError(null, ERROR.PERMISSION_DENIED);
   } else {
     if (err && err.error) {
       console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
       console.error(err.error);
     }
     if (description) console.error(description);
+    process.exit(1);
   }
-  process.exit(1);
 };
 
 /**
