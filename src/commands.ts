@@ -57,13 +57,13 @@ export const push = async () => {
         }, {}, (error: any) => {
           spinner.stop(true);
           if (error) {
-            console.error(LOG.PUSH_FAILURE);
+            logError(null, LOG.PUSH_FAILURE);
             error.errors.map((err: any) => {
-              console.error(err.message);
+              logError(null, err.message);
             });
-            console.error(LOG.FILES_TO_PUSH);
+            logError(null, LOG.FILES_TO_PUSH);
             nonIgnoredFilePaths.map((filePath: string) => {
-              console.error(`└─ ${filePath}`);
+              logError(null, `└─ ${filePath}`);
             });
             process.exit(1);
           } else {
@@ -120,7 +120,7 @@ export const create = async (title: string, parentId: string) => {
     try {
       const { scriptId } = await getProjectSettings(true);
       if (scriptId) {
-        console.error(ERROR.NO_NESTED_PROJECTS);
+        logError(null, ERROR.NO_NESTED_PROJECTS);
         process.exit(1);
       }
     } catch (err) { // no scriptId (because project doesn't exist)
@@ -240,10 +240,7 @@ export const logs = async (cmd: {
     }
   }
   const { projectId } = await getProjectSettings();
-  if (!projectId) {
-    console.error(ERROR.NO_GCLOUD_PROJECT);
-    process.exit(1);
-  }
+  if (!projectId) logError(null, ERROR.NO_GCLOUD_PROJECT);
   if (cmd.open) {
     const url = 'https://console.cloud.google.com/logs/viewer?project=' +
         `${projectId}&resource=app_script_function`;
@@ -306,7 +303,7 @@ export const deploy = async (version: string, description: string) => {
       }, {}, (err: any, response: any) => {
         spinner.stop(true);
         if (err) {
-          console.error(ERROR.DEPLOYMENT_COUNT);
+          logError(null, ERROR.DEPLOYMENT_COUNT);
         } else if (response) {
           console.log(`- ${response.data.deploymentId} @${versionNumber}.`);
         }
@@ -466,7 +463,7 @@ export const versions = async () => {
           console.log(LOG.VERSION_DESCRIPTION(version));
         });
       } else {
-        console.error(LOG.DEPLOYMENT_DNE);
+        logError(null, LOG.DEPLOYMENT_DNE);
       }
     }
   });
