@@ -210,7 +210,7 @@ export const logs = async (cmd: {
 }) => {
   await checkIfOnline();
   function printLogs(entries: any[]) {
-    for (let i = 0; i < 50 && i < entries.length; ++i) {
+    for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
       const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
       let functionName = resource.labels.function_name;
       functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
@@ -253,6 +253,7 @@ export const logs = async (cmd: {
     resourceNames: [
       `projects/${projectId}`,
     ],
+    orderBy: 'timestamp desc',
   });
   printLogs(data.entries);
 };
