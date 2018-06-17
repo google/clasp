@@ -368,7 +368,8 @@ Run `npm run docs` to build the "How To" section. Copy/paste that section into t
 #### Publishing `clasp` to npm (admin)
 
 1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.
-1. Bump versions, then publish with: `npm publish --access public`
+1. Bump version: `npm version [major|minor|patch] -m "Bump version to %s"`
+1. Publish with: `npm publish --access public && git push --follow-tags`
 
 ### Contributing
 
