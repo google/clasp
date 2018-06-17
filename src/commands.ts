@@ -224,6 +224,10 @@ export const logs = async (cmd: {
           protoPayload,
         };
         payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
+        if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
+          payloadData = LOG.STACKDRIVER_SETUP;
+          functionName = protoPayload.methodName.padEnd(15);
+        }
         if (payloadData && typeof(payloadData) === 'string') {
           payloadData = payloadData.padEnd(20);
         }
