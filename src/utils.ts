@@ -136,7 +136,7 @@ export const LOG = {
   PUSHING: 'Pushing files...',
   REDEPLOY_END: 'Updated deployment.',
   REDEPLOY_START: 'Updating deployment...',
-  STACKDRIVER_SETUP: 'Setting up Logging',
+  STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploy ${deploymentId}...`,
   UNTITLED_SCRIPT_TITLE: 'Untitled Script',
