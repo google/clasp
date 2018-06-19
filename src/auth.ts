@@ -12,6 +12,7 @@ import { Script } from 'googleapis/build/src/apis/script/v1';
 import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline, logError } from './utils';
 import open = require('open');
 import readline = require('readline');
+import * as fs from 'fs';
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
@@ -32,7 +33,7 @@ const oauth2ClientSettings = {
   clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
   redirectUri: 'http://localhost',
 };
-export const oauth2Client = new OAuth2Client(oauth2ClientSettings);
+const oauth2Client = new OAuth2Client(oauth2ClientSettings);
 
 // Google API clients
 export const script = google.script({
@@ -53,10 +54,20 @@ export const drive = google.drive({
  * @param {boolean} useLocalhost True if a local HTTP server should be run
  *     to handle the auth response. False if manual entry used.
  */
-async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
+async function authorize(useLocalhost: boolean, creds: string) {
+  let ownCreds = false;
+  try {
+    const credentials = JSON.parse(fs.readFileSync(creds, 'utf8'));
+    oauth2ClientSettings.clientId = credentials.installed.client_id;
+    oauth2ClientSettings.clientSecret = credentials.installed.client_secret;
+    ownCreds = true;
+    console.log('Credentials found, using those to login.');
+  } catch(err) {
+    console.log('No credentials given or found, continuing with default.');
+  }
   try {
     const token = await (useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
-    await (writeToOwnKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token));
+    await (ownCreds ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token));
     console.log(LOG.AUTH_SUCCESSFUL);
     process.exit(0); // gracefully exit after successful login
   } catch(err) {
@@ -143,7 +154,7 @@ async function authorizeWithoutLocalhost() {
  * Logs the user in. Saves the client credentials to an rc file.
  * @param options the localhost and ownkey options from commander
  */
-export function login(options: { localhost: boolean, ownkey: boolean}) {
+export function login(options: { localhost: boolean, creds: string}) {
   DOTFILE.RC.read().then((rc: ClaspSettings) => {
     console.warn(ERROR.LOGGED_IN);
   }).catch(async (err: string) => {
@@ -151,7 +162,7 @@ export function login(options: { localhost: boolean, ownkey: boolean}) {
       console.warn(ERROR.LOGGED_IN);
     }).catch(async (err: string) => {
       await checkIfOnline();
-      authorize(options.localhost, options.ownkey);
+      authorize(options.localhost, options.creds);
     });
   });
 }
