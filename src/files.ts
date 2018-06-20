@@ -3,7 +3,17 @@ import * as anymatch from 'anymatch';
 import * as mkdirp from 'mkdirp';
 import * as recursive from 'recursive-readdir';
 import { loadAPICredentials, script } from './auth';
-import { DOT, DOTFILE, ERROR, LOG, checkIfOnline, getAPIFileType, logError, spinner } from './utils';
+import {
+  DOT,
+  DOTFILE,
+  ERROR,
+  LOG,
+  checkIfOnline,
+  getAPIFileType,
+  getProjectSettings,
+  logError,
+  spinner,
+} from './utils';
 const path = require('path');
 const readMultipleFiles = require('read-multiple-files');
 
@@ -162,6 +172,44 @@ export async function fetchProject(scriptId: string, rootDir = '', versionNumber
           // Log only filename if pulling to root (Code.gs vs ./Code.gs)
           console.log(`└─ ${rootDir ? truePath : filePath}`);
         });
+      });
+    }
+  });
+}
+
+/**
+ * Pushes project files to script.google.com.
+ */
+export async function pushFiles() {
+  const { scriptId, rootDir } = await getProjectSettings();
+  if (!scriptId) return;
+    getProjectFiles(rootDir, (err, projectFiles, files) => {
+      if (err) {
+        logError(err, LOG.PUSH_FAILURE);
+        spinner.stop(true);
+      } else if (projectFiles) {
+        const [nonIgnoredFilePaths] = projectFiles;
+        script.projects.updateContent({
+          scriptId,
+          resource: { files },
+        }, {}, (error: any) => {
+          spinner.stop(true);
+          if (error) {
+            logError(null, LOG.PUSH_FAILURE);
+            error.errors.map((err: any) => {
+              logError(null, err.message);
+            });
+            logError(null, LOG.FILES_TO_PUSH);
+            nonIgnoredFilePaths.map((filePath: string) => {
+              logError(null, `└─ ${filePath}`);
+            });
+            process.exit(1);
+          } else {
+            nonIgnoredFilePaths.map((filePath: string) => {
+              console.log(`└─ ${filePath}`);
+            });
+            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+          }
       });
     }
   });
