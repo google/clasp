@@ -3,8 +3,9 @@
  */
 import * as del from 'del';
 import * as pluralize from 'pluralize';
+import { watchTree } from 'watch';
 import { drive, loadAPICredentials, logger, script } from './auth';
-import { fetchProject, getProjectFiles, hasProject } from './files';
+import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
   DOT,
   ERROR,
@@ -37,44 +38,30 @@ export const pull = async () => {
 };
 
 /**
- * Uploads all non-ignored files into the script.google.com filesystem.
+ * Uploads all files into the script.google.com filesystem.
+ * TODO: Only push when a non-ignored file is changed.
+ * TODO: Only push the specific files that changed (rather than all files).
+ * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export const push = async () => {
+export const push = async (cmd: {
+  watch: boolean,
+}) => {
   await checkIfOnline();
   await loadAPICredentials();
-  spinner.setSpinnerTitle(LOG.PUSHING).start();
-  const { scriptId, rootDir } = await getProjectSettings();
-  if (!scriptId) return;
-    getProjectFiles(rootDir, (err, projectFiles, files) => {
-      if(err) {
-        console.log(err);
-        spinner.stop(true);
-      } else if (projectFiles) {
-        const [nonIgnoredFilePaths] = projectFiles;
-        script.projects.updateContent({
-          scriptId,
-          resource: { files },
-        }, {}, (error: any) => {
-          spinner.stop(true);
-          if (error) {
-            logError(null, LOG.PUSH_FAILURE);
-            error.errors.map((err: any) => {
-              logError(null, err.message);
-            });
-            logError(null, LOG.FILES_TO_PUSH);
-            nonIgnoredFilePaths.map((filePath: string) => {
-              logError(null, `└─ ${filePath}`);
-            });
-            process.exit(1);
-          } else {
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.log(`└─ ${filePath}`);
-            });
-            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-          }
-      });
-    }
-  });
+  if (cmd.watch) {
+    console.log(LOG.PUSH_WATCH);
+    // @see https://www.npmjs.com/package/watch
+    watchTree('.', (f, curr, prev) => {
+      if (typeof f === 'string') { // The first watch doesn't give a string for some reason.
+        console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
+      }
+      console.log(LOG.PUSHING);
+      pushFiles();
+    });
+  } else {
+    spinner.setSpinnerTitle(LOG.PUSHING).start();
+    pushFiles();
+  }
 };
 
 /**
