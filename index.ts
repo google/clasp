@@ -127,10 +127,12 @@ commander
  * - That don't have an accepted file extension
  * - That are ignored (filename matches a glob pattern in the ignore file)
  * @example push
+ * @example push --watch
  */
 commander
   .command('push')
   .description('Update the remote project')
+  .option('--watch', 'Watches for local file changes. Pushes when a non-ignored file changs.')
   .action(push);
 
 /**

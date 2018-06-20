@@ -133,6 +133,8 @@ export const LOG = {
   STATUS_IGNORE: 'Untracked files:',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_FAILURE: 'Push failed. Errors:',
+  PUSH_WATCH: 'Watching for changed files...\n',
+  PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSHING: 'Pushing files...',
   REDEPLOY_END: 'Updated deployment.',
   REDEPLOY_START: 'Updating deployment...',
