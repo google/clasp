@@ -53,17 +53,26 @@ export const drive = google.drive({
  * Requests authorization to manage Apps Script projects.
  * @param {boolean} useLocalhost True if a local HTTP server should be run
  *     to handle the auth response. False if manual entry used.
+ * @param {any} creds either boolean or string. If true (boolean), then --creds
+ *     was used without any input file. Otherwise creds is a string of the file
+ *     they entered.
  */
-async function authorize(useLocalhost: boolean, creds: string) {
+async function authorize(useLocalhost: boolean, creds: any) {
   let ownCreds = false;
+  creds = creds === true ? 'credentials.json' : creds;
   try {
     const credentials = JSON.parse(fs.readFileSync(creds, 'utf8'));
-    oauth2ClientSettings.clientId = credentials.installed.client_id;
-    oauth2ClientSettings.clientSecret = credentials.installed.client_secret;
-    ownCreds = true;
-    console.log('Credentials found, using those to login.');
+    if (credentials && credentials.installed && credentials.installed.client_id
+      && credentials.installed.client_secret) {
+        oauth2ClientSettings.clientId = credentials.installed.client_id;
+        oauth2ClientSettings.clientSecret = credentials.installed.client_secret;
+        ownCreds = true;
+        console.log(LOG.CREDENTIALS_FOUND);
+    } else {
+      logError(null, ERROR.BAD_CREDENTIALS_FILE);
+    }
   } catch(err) {
-    console.log('No credentials given or found, continuing with default.');
+    console.log(LOG.DEFAULT_CREDENTIALS);
   }
   try {
     const token = await (useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
@@ -152,9 +161,13 @@ async function authorizeWithoutLocalhost() {
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
- * @param options the localhost and ownkey options from commander
+ * @param {object} options the localhost and creds options from commander.
+ * @param {boolean} options.localhost authorize without http server.
+ * @param {any} options.creds location of credentials JSON file
+ *    (default is credentials.json). If creds is boolean (true) then it uses default
+ *    otherwise, uses their input as a string.
  */
-export function login(options: { localhost: boolean, creds: string}) {
+export function login(options: { localhost: boolean, creds: any}) {
   DOTFILE.RC.read().then((rc: ClaspSettings) => {
     console.warn(ERROR.LOGGED_IN);
   }).catch(async (err: string) => {

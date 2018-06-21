@@ -81,6 +81,7 @@ export const DOTFILE = {
 // Error messages (some errors take required params)
 export const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
+  BAD_CREDENTIALS_FILE: 'Incorrect credentials file format.',
   COMMAND_DNE: (command: string) => `🤔  Unknown command "${command}"\n
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
@@ -120,6 +121,8 @@ export const LOG = {
   CLONING: 'Cloning files...',
   CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${getScriptURL(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
+  CREDENTIALS_FOUND: 'Credentials found, using those to login...',
+  DEFAULT_CREDENTIALS: 'No credentials given or found, continuing with default...',
   DEPLOYMENT_CREATE: 'Creating deployment...',
   DEPLOYMENT_DNE: 'No deployed versions of script.',
   DEPLOYMENT_LIST: (scriptId: string) => `Listing deployments...`,
