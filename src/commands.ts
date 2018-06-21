@@ -25,6 +25,14 @@ const commander = require('commander');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 
+// List of all apis that users could enable.
+// Details here: https://developers.google.com/identity/protocols/googlescopes
+const APIS = [
+  'drive.googleapis.com',
+  'moreexamples.googleapis.com',
+  'anotherexample.googleapis.com',
+];
+
 /**
  * Force downloads all Apps Script project files into the local filesystem.
  */
@@ -521,5 +529,39 @@ export const openCmd = async (scriptId: any) => {
   } else {
     console.log(LOG.OPEN_PROJECT(scriptId));
     open(getScriptURL(scriptId));
+  }
+};
+
+/**
+ * Lists available apis for the user.
+ */
+const apisList = async () => {
+  APIS.forEach((api:string) => {
+    console.log(api);
+  });
+};
+
+/**
+ * Acts as a router to apis subcommands
+ */
+export const apis = async () => {
+  const subcommand = process.argv[3];
+  switch (subcommand) {
+    case 'list': {
+      apisList();
+      break;
+    }
+    case 'enable': {
+      console.log('In development...');
+      break;
+    }
+    case 'disable': {
+      console.log('In development...');
+      break;
+    }
+    default: {
+      logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
+      break;
+    }
   }
 };

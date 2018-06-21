@@ -24,6 +24,7 @@ import 'connect';
 
 import { login } from './src/auth';
 import {
+  apis,
   clone,
   create,
   defaultCmd,
@@ -272,6 +273,16 @@ commander
   .command('run <functionName>')
   .description('Run a function in your Apps Scripts project')
   .action(run);
+
+/**
+ * @name apis
+ * @example apis list
+ * @example apis enable "drive.googleapis.com"
+ */
+commander
+  .command('apis')
+  .description('List, enable, or disable apis')
+  .action(apis);
 
 /**
  * Displays the help function.
