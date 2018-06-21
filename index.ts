@@ -284,6 +284,12 @@ commander
   .action(help);
 
 /**
+ * Displays clasp version
+ */
+commander
+.version('1.3.1', '-v, --version');
+
+/**
  * All other commands are given a help message.
  * @example random
  */
