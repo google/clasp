@@ -345,6 +345,8 @@ sudo npm run build;
 clasp <command>
 ```
 
+(If you see build errors, run `sudo npm run build-fresh`)
+
 #### Run Tests (experimental)
 
 Change `describe.skip(...)` to `describe(...)` for relevant tests.
@@ -369,7 +371,7 @@ Run `npm run docs` to build the "How To" section. Copy/paste that section into t
 
 1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.
 1. Bump version: `npm version [major|minor|patch] -m "Bump version to %s"`
-1. Publish with: `npm publish --access public && git push --follow-tags`
+1. Publish with: `npm run publish`
 
 ### Contributing
 
