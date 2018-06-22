@@ -60,14 +60,14 @@ commander
  * Logs the user in. Saves the client credentials to an rc file.
  * @name login
  * @param {string?} [--no-localhost] Do not run a local server, manually enter code instead.
- * @param {string?} [--creds] Relative path to credentials (from GCP). Defaults to ./credentials.json.
+ * @param {string?} [--creds] Relative path to credentials (from GCP).
  * @see test
  */
 commander
   .command('login')
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
-  .option('--creds [file]', 'Relative path to credentials (from GCP).  Defaults to ./credentials.json.')
+  .option('--creds <file>', 'Relative path to credentials (from GCP).')
   .action(login);
 
 /**

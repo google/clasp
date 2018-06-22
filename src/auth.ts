@@ -53,13 +53,10 @@ export const drive = google.drive({
  * Requests authorization to manage Apps Script projects.
  * @param {boolean} useLocalhost True if a local HTTP server should be run
  *     to handle the auth response. False if manual entry used.
- * @param {any} creds either boolean or string. If true (boolean), then --creds
- *     was used without any input file. Otherwise creds is a string of the file
- *     they entered.
+ * @param {string} creds location of credentials file.
  */
-async function authorize(useLocalhost: boolean, creds: any) {
+async function authorize(useLocalhost: boolean, creds: string) {
   let ownCreds = false;
-  creds = creds === true ? 'credentials.json' : creds;
   try {
     const credentials = JSON.parse(fs.readFileSync(creds, 'utf8'));
     if (credentials && credentials.installed && credentials.installed.client_id
@@ -72,6 +69,9 @@ async function authorize(useLocalhost: boolean, creds: any) {
       logError(null, ERROR.BAD_CREDENTIALS_FILE);
     }
   } catch(err) {
+    if (err.code === 'ENOENT') {
+      logError(null, ERROR.CREDENTIALS_DNE);
+    }
     console.log(LOG.DEFAULT_CREDENTIALS);
   }
   try {
@@ -163,11 +163,9 @@ async function authorizeWithoutLocalhost() {
  * Logs the user in. Saves the client credentials to an rc file.
  * @param {object} options the localhost and creds options from commander.
  * @param {boolean} options.localhost authorize without http server.
- * @param {any} options.creds location of credentials JSON file
- *    (default is credentials.json). If creds is boolean (true) then it uses default
- *    otherwise, uses their input as a string.
+ * @param {string} options.creds location of credentials file.
  */
-export function login(options: { localhost: boolean, creds: any}) {
+export function login(options: { localhost: boolean, creds: string}) {
   DOTFILE.RC.read().then((rc: ClaspSettings) => {
     console.warn(ERROR.LOGGED_IN);
   }).catch(async (err: string) => {
