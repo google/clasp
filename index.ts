@@ -287,7 +287,7 @@ commander
  * Displays clasp version
  */
 commander
-.version('1.3.1', '-v, --version');
+.version(require('./package.json').version, '-v, --version');
 
 /**
  * All other commands are given a help message.
