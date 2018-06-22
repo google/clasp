@@ -61,6 +61,8 @@ commander
  * @name login
  * @param {string?} [--no-localhost] Do not run a local server, manually enter code instead.
  * @param {string?} [--creds] Relative path to credentials (from GCP).
+ * @example login (uses default clasp credentials)
+ * @example login --creds credentials.json (uses your credentials file).
  * @see test
  */
 commander
