@@ -14,6 +14,6 @@
 
 ## Specifications
 
-  - Node version (`node -v`)
-  - Version (`npm list -g | grep clasp`):
-  - OS (Mac/Linux/Windows)
+  - Node version (`node -v`):
+  - Version (`clasp -v`):
+  - OS (Mac/Linux/Windows):
