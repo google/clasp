@@ -60,14 +60,16 @@ commander
  * Logs the user in. Saves the client credentials to an rc file.
  * @name login
  * @param {string?} [--no-localhost] Do not run a local server, manually enter code instead.
- * @param {string?} [--ownkey] Save .clasprc.json file to current working directory.
+ * @param {string?} [--creds] Relative path to credentials (from GCP).
+ * @example login (uses default clasp credentials)
+ * @example login --creds credentials.json (uses your credentials file).
  * @see test
  */
 commander
   .command('login')
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
-  .option('--ownkey', 'Save .clasprc.json file to current working directory')
+  .option('--creds <file>', 'Relative path to credentials (from GCP).')
   .action(login);
 
 /**
