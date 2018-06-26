@@ -52,7 +52,7 @@ clasp
 - `clasp create [scriptTitle] [scriptParentId]`
 - `clasp clone <scriptId>`
 - `clasp pull`
-- `clasp push`
+- `clasp push [--watch]`
 - `clasp open [scriptId]`
 - `clasp deployments`
 - `clasp deploy [version] [description]`
