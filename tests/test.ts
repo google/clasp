@@ -82,11 +82,14 @@ describe.skip('Test clasp clone <scriptId> function', () => {
     expect(result.status).to.equal(0);
   });
   it('should give an error on a non-existing project', () => {
+    const settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
+    fs.removeSync('.clasp.json');
     const result = spawnSync(
       CLASP, ['clone', 'non-existing-project'], { encoding: 'utf8' },
     );
     expect(result.stderr).to.contain('> Did you provide the correct scriptId?');
     expect(result.status).to.equal(1);
+    fs.writeFileSync('.clasp.json', JSON.stringify(settings));
   });
 });
 

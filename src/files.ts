@@ -195,13 +195,13 @@ export async function pushFiles() {
         }, {}, (error: any) => {
           spinner.stop(true);
           if (error) {
-            logError(null, LOG.PUSH_FAILURE);
+            console.error(LOG.PUSH_FAILURE);
             error.errors.map((err: any) => {
-              logError(null, err.message);
+              console.error(err.message);
             });
-            logError(null, LOG.FILES_TO_PUSH);
+            console.error(LOG.FILES_TO_PUSH);
             nonIgnoredFilePaths.map((filePath: string) => {
-              logError(null, `└─ ${filePath}`);
+              console.error(`└─ ${filePath}`);
             });
             process.exit(1);
           } else {
