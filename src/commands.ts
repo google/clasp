@@ -521,5 +521,6 @@ export const openCmd = async (scriptId: any) => {
   } else {
     console.log(LOG.OPEN_PROJECT(scriptId));
     open(getScriptURL(scriptId));
+    process.exit(0);
   }
 };
