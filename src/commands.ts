@@ -367,7 +367,7 @@ export const list = async () => {
       console.log(`${file.name.padEnd(20)} – ${getScriptURL(file.id)}`);
     });
   } else {
-    console.log('No script files found.');
+    console.log(LOG.FINDING_SCRIPTS_DNE);
   }
 };
 
