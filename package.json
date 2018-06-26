@@ -4,8 +4,8 @@
   "description": "Develop Apps Script Projects locally",
   "main": "index.js",
   "scripts": {
-    "build": "tsc --project tsconfig.json; npm i -g --loglevel=error;",
-    "build-fresh": "npm cache clean --force; npm i; npm run build;",
+    "build": "tsc --project tsconfig.json && npm i -g --loglevel=error",
+    "build-fresh": "npm cache clean --force && npm i && npm run build",
     "publish": "npm publish --access public && git push --follow-tags",
     "docs": "tsc docs.ts && node docs.js",
     "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
