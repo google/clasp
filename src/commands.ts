@@ -443,6 +443,7 @@ export const versions = async () => {
   const { scriptId } = await getProjectSettings();
   script.projects.versions.list({
     scriptId,
+    pageSize: 500,
   }, {}, (error: any, { data }: any) => {
     spinner.stop(true);
     if (error) {
@@ -451,7 +452,7 @@ export const versions = async () => {
       if (data && data.versions && data.versions.length) {
         const numVersions = data.versions.length;
         console.log(LOG.VERSION_NUM(numVersions));
-        data.versions.map((version: string) => {
+        data.versions.reverse().map((version: string) => {
           console.log(LOG.VERSION_DESCRIPTION(version));
         });
       } else {
