@@ -35,18 +35,20 @@ const oauth2ClientSettings = {
 };
 const oauth2Client = new OAuth2Client(oauth2ClientSettings);
 
+// Set client for all googleapis calls
+google.options({
+  auth: oauth2Client,
+});
+
 // Google API clients
 export const script = google.script({
   version: 'v1',
-  auth: oauth2Client,
 }) as Script;
 export const logger = google.logging({
   version: 'v2',
-  auth: oauth2Client,
 }) as Logging;
 export const drive = google.drive({
   version: 'v3',
-  auth: oauth2Client,
 }) as Drive;
 
 /**
