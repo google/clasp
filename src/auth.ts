@@ -41,15 +41,9 @@ google.options({
 });
 
 // Google API clients
-export const script = google.script({
-  version: 'v1',
-}) as Script;
-export const logger = google.logging({
-  version: 'v2',
-}) as Logging;
-export const drive = google.drive({
-  version: 'v3',
-}) as Drive;
+export const script = google.script({version: 'v1'}) as Script;
+export const logger = google.logging({version: 'v2'}) as Logging;
+export const drive = google.drive({version: 'v3'}) as Drive;
 
 /**
  * Requests authorization to manage Apps Script projects.
