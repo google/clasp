@@ -20,7 +20,7 @@ import {
   saveProjectId,
   spinner,
 } from './utils';
-const open = require('open');
+const open = require('opn');
 const commander = require('commander');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');

@@ -10,7 +10,7 @@ import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import { Logging } from 'googleapis/build/src/apis/logging/v2';
 import { Script } from 'googleapis/build/src/apis/script/v1';
 import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline, logError } from './utils';
-import open = require('open');
+import open = require('opn');
 import readline = require('readline');
 import * as fs from 'fs';
 
