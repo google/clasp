@@ -15,7 +15,6 @@ import readline = require('readline');
 import { Discovery } from 'googleapis/build/src/apis/discovery/v1';
 import * as fs from 'fs';
 
-
 // API settings
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
