@@ -194,14 +194,18 @@ export async function pushFiles() {
           resource: { files },
         }, {}, (error: any) => {
           spinner.stop(true);
+          // In the following code, we favor console.error()
+          // over logError() because logError() exits, whereas
+          // we want to log multiple lines of messages, and
+          // eventually exit after logging everything.
           if (error) {
-            logError(null, LOG.PUSH_FAILURE);
+            console.error(LOG.PUSH_FAILURE);
             error.errors.map((err: any) => {
-              logError(null, err.message);
+              console.error(err.message);
             });
-            logError(null, LOG.FILES_TO_PUSH);
+            console.error(LOG.FILES_TO_PUSH);
             nonIgnoredFilePaths.map((filePath: string) => {
-              logError(null, `└─ ${filePath}`);
+              console.error(`└─ ${filePath}`);
             });
             process.exit(1);
           } else {
