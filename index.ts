@@ -277,6 +277,8 @@ commander
   .action(run);
 
 /**
+ * List, enable, or disable APIs for your project.
+ * Currently, only list is supported.
  * @name apis
  * @example apis list
  * @example apis enable "drive.googleapis.com"

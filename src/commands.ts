@@ -527,39 +527,29 @@ export const openCmd = async (scriptId: any) => {
 };
 
 /**
- * Lists available apis for the user.
- */
-const apisList = async () => {
-  await checkIfOnline();
-  const {data} = await discovery.apis.list({
-    preferred: true,
-  });
-  data.items.forEach((api) => {
-    console.log(`${api.name.padEnd(25)} - ${api.id.padEnd(30)}`);
-  });
-};
-
-/**
  * Acts as a router to apis subcommands
+ * Calls functions for list, enable, or disable
+ * Otherwise returns an error of command not supported
  */
 export const apis = async () => {
-  const subcommand = process.argv[3];
-  switch (subcommand) {
-    case 'list': {
-      apisList();
-      break;
-    }
-    case 'enable': {
-      console.log('In development...');
-      break;
-    }
-    case 'disable': {
-      console.log('In development...');
-      break;
-    }
-    default: {
-      logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
-      break;
-    }
+  const list = async () => {
+    await checkIfOnline();
+    const {data} = await discovery.apis.list({
+      preferred: true,
+    });
+    data.items.forEach((api) => {
+      console.log(`${api.name.padEnd(25)} - ${api.id.padEnd(30)}`);
+    });
+  };
+  const subcommand: string = process.argv[3]; // clasp apis list => "list"
+  const command: any = {
+    list,
+    enable: () => {console.log('In development...');},
+    disable: () => {console.log('In development...');},
+  };
+  if (command[subcommand]) {
+    command[subcommand]();
+  } else {
+    logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
   }
 };
