@@ -537,12 +537,12 @@ export const apis = async () => {
     const {data} = await discovery.apis.list({
       preferred: true,
     });
-    data.items.forEach((api) => {
+    for (const api of data.items) {
       console.log(`${api.name.padEnd(25)} - ${api.id.padEnd(30)}`);
-    });
+    }
   };
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
-  const command: any = {
+  const command: {[key: string]: Function} = {
     list,
     enable: () => {console.log('In development...');},
     disable: () => {console.log('In development...');},
