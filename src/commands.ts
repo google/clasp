@@ -4,7 +4,7 @@
 import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
-import { drive, loadAPICredentials, logger, script } from './auth';
+import { drive, loadAPICredentials, logger, script, discovery } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
   DOT,
@@ -24,14 +24,6 @@ const open = require('open');
 const commander = require('commander');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
-
-// List of all apis that users could enable.
-// Details here: https://developers.google.com/identity/protocols/googlescopes
-const APIS = [
-  'drive.googleapis.com',
-  'moreexamples.googleapis.com',
-  'anotherexample.googleapis.com',
-];
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
@@ -536,8 +528,12 @@ export const openCmd = async (scriptId: any) => {
  * Lists available apis for the user.
  */
 const apisList = async () => {
-  APIS.forEach((api:string) => {
-    console.log(api);
+  await checkIfOnline();
+  const {data} = await discovery.apis.list({
+    preferred: true,
+  });
+  data.items.forEach((api) => {
+    console.log(`${api.name.padEnd(25)} - ${api.id.padEnd(30)}`);
   });
 };
 

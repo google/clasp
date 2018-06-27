@@ -12,6 +12,7 @@ import { Script } from 'googleapis/build/src/apis/script/v1';
 import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline, logError } from './utils';
 import open = require('open');
 import readline = require('readline');
+import { Discovery } from 'googleapis/build/src/apis/discovery/v1';
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
@@ -47,6 +48,9 @@ export const drive = google.drive({
   version: 'v3',
   auth: oauth2Client,
 }) as Drive;
+export const discovery = google.discovery({
+  version: 'v1',
+}) as Discovery;
 
 /**
  * Requests authorization to manage Apps Script projects.
