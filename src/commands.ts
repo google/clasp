@@ -4,7 +4,7 @@
 import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
-import { drive, loadAPICredentials, logger, script } from './auth';
+import { drive, loadAPICredentials, logger, script, discovery } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
   DOT,
@@ -24,6 +24,7 @@ const open = require('opn');
 const commander = require('commander');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
+const padEnd = require('string.prototype.padend');
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
@@ -523,5 +524,33 @@ export const openCmd = async (scriptId: any) => {
     console.log(LOG.OPEN_PROJECT(scriptId));
     open(getScriptURL(scriptId));
     process.exit(0);
+  }
+};
+
+/**
+ * Acts as a router to apis subcommands
+ * Calls functions for list, enable, or disable
+ * Otherwise returns an error of command not supported
+ */
+export const apis = async () => {
+  const list = async () => {
+    await checkIfOnline();
+    const {data} = await discovery.apis.list({
+      preferred: true,
+    });
+    for (const api of data.items) {
+      console.log(`${padEnd(api.name, 25)} - ${padEnd(api.id, 30)}`);
+    }
+  };
+  const subcommand: string = process.argv[3]; // clasp apis list => "list"
+  const command: {[key: string]: Function} = {
+    list,
+    enable: () => {console.log('In development...');},
+    disable: () => {console.log('In development...');},
+  };
+  if (command[subcommand]) {
+    command[subcommand]();
+  } else {
+    logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
   }
 };

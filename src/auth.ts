@@ -12,6 +12,7 @@ import { Script } from 'googleapis/build/src/apis/script/v1';
 import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline, logError } from './utils';
 import open = require('opn');
 import readline = require('readline');
+import { Discovery } from 'googleapis/build/src/apis/discovery/v1';
 import * as fs from 'fs';
 
 // API settings
@@ -35,15 +36,11 @@ const oauth2ClientSettings = {
 };
 const oauth2Client = new OAuth2Client(oauth2ClientSettings);
 
-// Set client for all googleapis calls
-google.options({
-  auth: oauth2Client,
-});
-
 // Google API clients
-export const script = google.script({version: 'v1'}) as Script;
-export const logger = google.logging({version: 'v2'}) as Logging;
-export const drive = google.drive({version: 'v3'}) as Drive;
+export const script = google.script({version: 'v1', auth: oauth2Client}) as Script;
+export const logger = google.logging({version: 'v2', auth: oauth2Client}) as Logging;
+export const drive = google.drive({version: 'v3', auth: oauth2Client}) as Drive;
+export const discovery = google.discovery({version: 'v1'}) as Discovery;
 
 /**
  * Requests authorization to manage Apps Script projects.
