@@ -279,7 +279,8 @@ describe('Test clasp apis functions', () => {
       'clasp', ['apis', 'list'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('drive.googleapis.com');
+    expect(result.stdout).to.contain('abusiveexperiencereport   - abusiveexperiencereport:v1');
+    expect(result.stdout).to.contain('youtubereporting          - youtubereporting:v1');
   });
   it('should enable apis correctly', () => {
     const result = spawnSync(
