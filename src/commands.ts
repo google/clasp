@@ -24,6 +24,7 @@ const open = require('opn');
 const commander = require('commander');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
+const padEnd = require('string.prototype.padend');
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
@@ -538,7 +539,7 @@ export const apis = async () => {
       preferred: true,
     });
     for (const api of data.items) {
-      console.log(`${api.name.padEnd(25)} - ${api.id.padEnd(30)}`);
+      console.log(`${padEnd(api.name, 25)} - ${padEnd(api.id, 30)}`);
     }
   };
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
