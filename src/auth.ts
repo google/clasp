@@ -10,9 +10,11 @@ import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import { Logging } from 'googleapis/build/src/apis/logging/v2';
 import { Script } from 'googleapis/build/src/apis/script/v1';
 import { ClaspSettings, DOTFILE, ERROR, LOG, checkIfOnline, logError } from './utils';
-import open = require('open');
+import open = require('opn');
 import readline = require('readline');
 import { Discovery } from 'googleapis/build/src/apis/discovery/v1';
+import * as fs from 'fs';
+
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
@@ -33,34 +35,47 @@ const oauth2ClientSettings = {
   clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
   redirectUri: 'http://localhost',
 };
-export const oauth2Client = new OAuth2Client(oauth2ClientSettings);
+const oauth2Client = new OAuth2Client(oauth2ClientSettings);
+
+// Set client for all googleapis calls
+google.options({
+  auth: oauth2Client,
+});
 
 // Google API clients
-export const script = google.script({
-  version: 'v1',
-  auth: oauth2Client,
-}) as Script;
-export const logger = google.logging({
-  version: 'v2',
-  auth: oauth2Client,
-}) as Logging;
-export const drive = google.drive({
-  version: 'v3',
-  auth: oauth2Client,
-}) as Drive;
-export const discovery = google.discovery({
-  version: 'v1',
-}) as Discovery;
+export const script = google.script({version: 'v1'}) as Script;
+export const logger = google.logging({version: 'v2'}) as Logging;
+export const drive = google.drive({version: 'v3'}) as Drive;
+export const discovery = google.discovery({version: 'v1'}) as Discovery;
 
 /**
  * Requests authorization to manage Apps Script projects.
  * @param {boolean} useLocalhost True if a local HTTP server should be run
  *     to handle the auth response. False if manual entry used.
+ * @param {string} creds location of credentials file.
  */
-async function authorize(useLocalhost: boolean, writeToOwnKey: boolean) {
+async function authorize(useLocalhost: boolean, creds: string) {
+  let ownCreds = false;
+  try {
+    const credentials = JSON.parse(fs.readFileSync(creds, 'utf8'));
+    if (credentials && credentials.installed && credentials.installed.client_id
+      && credentials.installed.client_secret) {
+        oauth2ClientSettings.clientId = credentials.installed.client_id;
+        oauth2ClientSettings.clientSecret = credentials.installed.client_secret;
+        ownCreds = true;
+        console.log(LOG.CREDENTIALS_FOUND);
+    } else {
+      logError(null, ERROR.BAD_CREDENTIALS_FILE);
+    }
+  } catch(err) {
+    if (err.code === 'ENOENT') {
+      logError(null, ERROR.CREDENTIALS_DNE);
+    }
+    console.log(LOG.DEFAULT_CREDENTIALS);
+  }
   try {
     const token = await (useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
-    await (writeToOwnKey ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token));
+    await (ownCreds ? DOTFILE.RC_LOCAL.write(token) : DOTFILE.RC.write(token));
     console.log(LOG.AUTH_SUCCESSFUL);
     process.exit(0); // gracefully exit after successful login
   } catch(err) {
@@ -112,6 +127,7 @@ async function authorizeWithLocalhost() {
     const authUrl = client.generateAuthUrl(oauth2ClientAuthUrlOpts);
     console.log(LOG.AUTHORIZE(authUrl));
     open(authUrl);
+    process.exit(0);
   });
   server.close();
   return (await client.getToken(authCode)).tokens;
@@ -145,9 +161,11 @@ async function authorizeWithoutLocalhost() {
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
- * @param options the localhost and ownkey options from commander
+ * @param {object} options the localhost and creds options from commander.
+ * @param {boolean} options.localhost authorize without http server.
+ * @param {string} options.creds location of credentials file.
  */
-export function login(options: { localhost: boolean, ownkey: boolean}) {
+export function login(options: { localhost: boolean, creds: string}) {
   DOTFILE.RC.read().then((rc: ClaspSettings) => {
     console.warn(ERROR.LOGGED_IN);
   }).catch(async (err: string) => {
@@ -155,7 +173,7 @@ export function login(options: { localhost: boolean, ownkey: boolean}) {
       console.warn(ERROR.LOGGED_IN);
     }).catch(async (err: string) => {
       await checkIfOnline();
-      authorize(options.localhost, options.ownkey);
+      authorize(options.localhost, options.creds);
     });
   });
 }

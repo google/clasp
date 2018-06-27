@@ -52,7 +52,7 @@ clasp
 - `clasp create [scriptTitle] [scriptParentId]`
 - `clasp clone <scriptId>`
 - `clasp pull`
-- `clasp push`
+- `clasp push [--watch]`
 - `clasp open [scriptId]`
 - `clasp deployments`
 - `clasp deploy [version] [description]`
@@ -290,19 +290,15 @@ INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
 Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to not upload on `clasp push`. Steps:
 
 1. Create a file called `.claspignore` in your project's root directory.
-1. Add patterns as if it were a `.gitignore`, and they will be excluded from `clasp push`.
+2. Add patterns to be excluded from `clasp push`. _Note_: The `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), which is different from `.gitignore`, especially for directories. To ignore a directory, use syntax like `**/node_modules/**`.
 
-A sample `.claspignore` could look like:
+A sample `.claspignore` ignoring everything except the manifest and `build/main.js`:
 
 ```
 **/**
 !build/main.js
 !appsscript.json
 ```
-
-In this example, `clasp` ignores everything but the manifest and `build/main.js`.
-
-_Note_: the `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), making it match files differently from a typical `.gitignore`, especially with directories. To ignore a directory, use syntax like `**/node_modules/**`.
 
 ### Project Settings File (`.clasp.json`)
 
