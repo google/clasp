@@ -121,7 +121,6 @@ async function authorizeWithLocalhost() {
     const authUrl = client.generateAuthUrl(oauth2ClientAuthUrlOpts);
     console.log(LOG.AUTHORIZE(authUrl));
     open(authUrl);
-    process.exit(0);
   });
   server.close();
   return (await client.getToken(authCode)).tokens;
