@@ -22,5 +22,5 @@ before_script:
 - npm run build
 script:
 - npm run lint
-- 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash npm run test; fi'
+- 'if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then npm run test; fi'
 after_success: npm run coverage
