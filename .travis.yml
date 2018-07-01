@@ -19,7 +19,7 @@ before_install:
   -in ./tests/.clasprc.json.enc -out .clasprc.json -d || true
 - npm install -g npm@latest
 install:
-# npm-ci (https://docs.npmjs.com/cli/ci) is used for the install step instead	+- npm ci
+# npm-ci (https://docs.npmjs.com/cli/ci) is used for the install step instead
 # of npm-install because it ensures that the package-lock.json is up to date	
 # with the package.json in order for the travis tests to pass.
 - npm ci

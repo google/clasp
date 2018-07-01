@@ -343,9 +343,14 @@ clasp <command>
 
 (If you see build errors, run `sudo npm run build-fresh`)
 
-#### Run Tests (experimental)
+#### Run Tests
 
-See `/tests/README.md`
+```sh
+sudo npm run build;
+npm run test
+```
+
+See `/tests/README.md` for more information.
 
 #### Lint
 
