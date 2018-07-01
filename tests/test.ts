@@ -31,7 +31,7 @@ describe('Test help for each function', () => {
 
 describe('Test clasp list function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -49,7 +49,7 @@ describe('Test clasp list function', () => {
 
 describe('Test clasp create function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -72,7 +72,7 @@ describe('Test clasp create function', () => {
 
 describe('Test clasp create <title> function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -88,7 +88,7 @@ describe('Test clasp create <title> function', () => {
 
 describe('Test clasp clone <scriptId> function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -116,7 +116,7 @@ describe('Test clasp clone <scriptId> function', () => {
 
 describe('Test clasp pull function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -132,7 +132,7 @@ describe('Test clasp pull function', () => {
 
 describe('Test clasp push function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -163,7 +163,7 @@ describe('Test clasp push function', () => {
 
 describe('Test clasp status function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -209,7 +209,7 @@ describe('Test clasp status function', () => {
 
 describe('Test clasp open function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -224,7 +224,7 @@ describe('Test clasp open function', () => {
 
 describe('Test clasp deployments function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -239,7 +239,7 @@ describe('Test clasp deployments function', () => {
 
 describe('Test clasp deploy function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -254,7 +254,7 @@ describe('Test clasp deploy function', () => {
 
 describe('Test clasp version and versions function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
@@ -279,7 +279,7 @@ describe('Test clasp version and versions function', () => {
 
 describe('Test clasp clone function', () => {
   before(function() {
-    if (isPR === 'false') {
+    if (isPR !== 'false') {
       this.skip();
     }
   });
