@@ -10,6 +10,7 @@ const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
 const TEST_JSON = '{"timeZone": "America/New_York"}';
 const CLASP = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp';
+const isPR = process.env.TRAVIS_PULL_REQUEST;
 
 describe('Test help for each function', () => {
   it('should output help for run command', () => {
@@ -29,6 +30,11 @@ describe('Test help for each function', () => {
 });
 
 describe('Test clasp list function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should list clasp projects correctly', () => {
     const result = spawnSync(
       CLASP, ['list'], { encoding: 'utf8' },
@@ -42,6 +48,11 @@ describe('Test clasp list function', () => {
 });
 
 describe('Test clasp create function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should prompt for a project name correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
@@ -60,6 +71,11 @@ describe('Test clasp create function', () => {
 });
 
 describe('Test clasp create <title> function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should create a new project named <title> correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
@@ -71,6 +87,11 @@ describe('Test clasp create <title> function', () => {
 });
 
 describe('Test clasp clone <scriptId> function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should clone an existing project correctly', () => {
     const settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
     fs.removeSync('.clasp.json');
@@ -94,6 +115,11 @@ describe('Test clasp clone <scriptId> function', () => {
 });
 
 describe('Test clasp pull function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should pull an existing project correctly', () => {
     const result = spawnSync(
       CLASP, ['pull'], { encoding: 'utf8' },
@@ -105,6 +131,11 @@ describe('Test clasp pull function', () => {
 });
 
 describe('Test clasp push function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should push local project correctly', () => {
     fs.removeSync('.claspignore');
     fs.writeFileSync('Code.js', TEST_CODE_JS);
@@ -131,6 +162,11 @@ describe('Test clasp push function', () => {
 });
 
 describe('Test clasp status function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
     fs.ensureDirSync('tmp');
     const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
@@ -172,6 +208,11 @@ describe('Test clasp status function', () => {
 });
 
 describe('Test clasp open function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should open a project correctly', () => {
     const result = spawnSync(
       CLASP, ['open'], { encoding: 'utf8' },
@@ -182,6 +223,11 @@ describe('Test clasp open function', () => {
 });
 
 describe('Test clasp deployments function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should list deployments correctly', () => {
     const result = spawnSync(
       CLASP, ['deployments'], { encoding: 'utf8' },
@@ -192,6 +238,11 @@ describe('Test clasp deployments function', () => {
 });
 
 describe('Test clasp deploy function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should deploy correctly', () => {
     const result = spawnSync(
       CLASP, ['deploy'], { encoding: 'utf8' },
@@ -202,6 +253,11 @@ describe('Test clasp deploy function', () => {
 });
 
 describe('Test clasp version and versions function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   let versionNumber = '';
   it('should create new version correctly', () => {
     const result = spawnSync(
@@ -222,6 +278,11 @@ describe('Test clasp version and versions function', () => {
 });
 
 describe('Test clasp clone function', () => {
+  before(function() {
+    if (isPR) {
+      this.skip();
+    }
+  });
   it('should prompt for which script to clone correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(

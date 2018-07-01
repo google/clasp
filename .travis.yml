@@ -27,6 +27,5 @@ before_script:
 - npm run build
 script:
 - npm run lint
-# Only run test if not a PR (thus the file was decrypted)
-- 'if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then npm run test; fi'
+- npm run test
 after_success: npm run coverage
