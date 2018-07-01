@@ -1,27 +1,31 @@
 sudo: required
 os:
-  - linux
-  - osx
+- linux
+- osx
 language: node_js
 node_js:
-  - node
-  - '9'
-  - '8'
-  - '7'
-  - '6'
+- node
+- '9'
+- '8'
+- '7'
+- '6'
 cache:
   directories:
   - "$HOME/.npm"
 before_install:
-  - npm install -g npm@latest
+# Decrypt the .clasprc.json.enc file used for authentication for clasp commands
+# Will not decrypt on PRs from forks.
+- openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv
+  -in ./tests/.clasprc.json.enc -out .clasprc.json -d || true
+- npm install -g npm@latest
 install:
 # npm-ci (https://docs.npmjs.com/cli/ci) is used for the install step instead
-# of npm-install because it ensures that the package-lock.json is up to date
+# of npm-install because it ensures that the package-lock.json is up to date	
 # with the package.json in order for the travis tests to pass.
-  - npm ci
+- npm ci
 before_script:
-  - npm run build
+- npm run build
 script:
-  - npm run lint
-  - npm run test
+- npm run lint
+- npm run test
 after_success: npm run coverage

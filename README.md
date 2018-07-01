@@ -343,14 +343,14 @@ clasp <command>
 
 (If you see build errors, run `sudo npm run build-fresh`)
 
-#### Run Tests (experimental)
-
-Change `describe.skip(...)` to `describe(...)` for relevant tests.
+#### Run Tests
 
 ```sh
 sudo npm run build;
 npm run test
 ```
+
+See `/tests/README.md` for more information.
 
 #### Lint
 
