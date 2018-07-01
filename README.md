@@ -345,12 +345,7 @@ clasp <command>
 
 #### Run Tests (experimental)
 
-Change `describe.skip(...)` to `describe(...)` for relevant tests.
-
-```sh
-sudo npm run build;
-npm run test
-```
+See `/tests/README.md`
 
 #### Lint
 

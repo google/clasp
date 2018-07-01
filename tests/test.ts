@@ -323,35 +323,3 @@ describe('Test clasp logout function', () => {
     expect(dotExists).to.equal(false);
   });
 });
-
-/**
- * TODO: Test these commands and configs.
- *
- * # Commands:
- * [ ] clasp;
- * [ ] clasp login';
- * [ ] clasp login --no-localhost;
- * [x] clasp logout;
- * [x] clasp create "myTitle"
- * [x] clasp create <untitled>
- * [x] clasp list
- * [x] clasp clone <scriptId>
- * [x] clasp clone
- * [x] clasp pull
- * [x] clasp push
- * [ ] echo '// test' >> index.js && clasp push
- * [x] clasp open
- * [ ] clasp deployments
- * [ ] clasp deploy [version] [description]
- * [ ] clasp redeploy <deploymentId> <version> <description>
- * [ ] clasp version [description]
- * [x] clasp versions
- * [x] saveProjectId
- * [x] getScriptURL
- * [x] getFileType
- * [x] getAPIFileType
- *
- * # Configs
- * - .js and .gs files
- * - Ignored files
- */
