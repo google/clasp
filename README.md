@@ -350,7 +350,7 @@ sudo npm run build;
 npm run test
 ```
 
-See `/tests/README.md` for more information.
+See [tests/](tests/) for more information.
 
 #### Lint
 
