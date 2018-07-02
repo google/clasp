@@ -151,7 +151,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       if (files.length) {
         const fileIds = files.map((file: any) => {
           return {
-            name: `${padEnd(file.name, 20)}` + ` - (${file.id})`,
+            name: `${padEnd(file.name, 20)} - (${file.id})`,
             value: file.id,
           };
         });
