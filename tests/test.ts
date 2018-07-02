@@ -1,4 +1,4 @@
-import * as os from 'os';
+  import * as os from 'os';
 import * as path from 'path';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
@@ -26,6 +26,118 @@ describe('Test help for each function', () => {
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include('Shows the StackDriver logs');
+  });
+  it('should output help for login command', () => {
+    const result = spawnSync(
+      CLASP, ['login', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Log in to script.google.com');
+  });
+  it('should output help for logout command', () => {
+    const result = spawnSync(
+      CLASP, ['logout', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Log out');
+  });
+  it('should output help for create command', () => {
+    const result = spawnSync(
+      CLASP, ['create', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Create a script');
+  });
+  it('should output help for clone command', () => {
+    const result = spawnSync(
+      CLASP, ['clone', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Clone a project');
+  });
+  it('should output help for pull command', () => {
+    const result = spawnSync(
+      CLASP, ['pull', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Fetch a remote project');
+  });
+  it('should output help for push command', () => {
+    const result = spawnSync(
+      CLASP, ['push', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Update the remote project');
+  });
+  it('should output help for status command', () => {
+    const result = spawnSync(
+      CLASP, ['status', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Lists files that will be pushed by clasp');
+  });
+  it('should output help for open command', () => {
+    const result = spawnSync(
+      CLASP, ['open', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Open a script');
+  });
+  it('should output help for deployments command', () => {
+    const result = spawnSync(
+      CLASP, ['deployments', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('List deployment ids of a script');
+  });
+  it('should output help for undeploy command', () => {
+    const result = spawnSync(
+      CLASP, ['undeploy', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Undeploy a deployment of a project');
+  });
+  it('should output help for redeploy command', () => {
+    const result = spawnSync(
+      CLASP, ['redeploy', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Update a deployment');
+  });
+  it('should output help for versions command', () => {
+    const result = spawnSync(
+      CLASP, ['versions', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('List versions of a script');
+  });
+  it('should output help for version command', () => {
+    const result = spawnSync(
+      CLASP, ['version', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Creates an immutable version of the script');
+  });
+  it('should output help for list command', () => {
+    const result = spawnSync(
+      CLASP, ['list', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('List App Scripts projects');
+  });
+  it('should output help for apis command', () => {
+    const result = spawnSync(
+      CLASP, ['apis', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('List, enable, or disable apis');
+  });
+  it('should output help for help command', () => {
+    const result = spawnSync(
+      CLASP, ['help', '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include('Display help');
   });
 });
 
