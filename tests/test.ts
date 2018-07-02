@@ -59,7 +59,6 @@ describe('Test clasp create function', () => {
       CLASP, ['create'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain('Give a script title:');
-    expect(result.status).to.equal(0);
   });
   it('should not prompt for project name', () => {
     fs.writeFileSync('.clasp.json', '');
@@ -289,7 +288,6 @@ describe('Test clasp clone function', () => {
       CLASP, ['clone'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain('Clone which script?');
-    expect(result.status).to.equal(0);
   });
   it('should give an error if .clasp.json already exists', () => {
     fs.writeFileSync('.clasp.json', '');
