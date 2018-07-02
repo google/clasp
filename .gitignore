@@ -11,4 +11,3 @@ node_modules/
 *.lock
 /tmp
 .clasprc.json
-/tests/.clasprc.json
