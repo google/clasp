@@ -13,15 +13,10 @@ cache:
   directories:
   - "$HOME/.npm"
 before_install:
-- openssl aes-256-cbc -K $encrypted_078ec85b282a_key -iv $encrypted_078ec85b282a_iv
-  -in ./tests/.clasprc.json.enc -out .clasprc.json -d || true
-- openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv
+- openssl aes-256-cbc -K $encrypted_2d2c56c5efb5_key -iv $encrypted_2d2c56c5efb5_iv
   -in ./tests/.clasprc.json.enc -out .clasprc.json -d || true
 - npm install -g npm@latest
 install:
-# npm-ci (https://docs.npmjs.com/cli/ci) is used for the install step instead
-# of npm-install because it ensures that the package-lock.json is up to date	
-# with the package.json in order for the travis tests to pass.
 - npm ci
 before_script:
 - npm run build
