@@ -13,8 +13,8 @@ cache:
   directories:
   - "$HOME/.npm"
 before_install:
-# Decrypt the .clasprc.json.enc file used for authentication for clasp commands
-# Will not decrypt on PRs from forks.
+- openssl aes-256-cbc -K $encrypted_078ec85b282a_key -iv $encrypted_078ec85b282a_iv
+  -in .clasprc.json.enc -out ./tests/.clasprc.json -d
 - openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv
   -in ./tests/.clasprc.json.enc -out .clasprc.json -d || true
 - npm install -g npm@latest
