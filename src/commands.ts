@@ -151,7 +151,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       if (files.length) {
         const fileIds = files.map((file: any) => {
           return {
-            name: `${file.name}`.padEnd(20) + ` - (${file.id})`,
+            name: `${padEnd(file.name, 20)} - (${file.id})`,
             value: file.id,
           };
         });
@@ -201,7 +201,7 @@ export const logs = async (cmd: {
     for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
       const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
       let functionName = resource.labels.function_name;
-      functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
+      functionName = functionName ? padEnd(functionName, 15) : ERROR.NO_FUNCTION_NAME;
       let payloadData: any = '';
       if (cmd.json) {
         payloadData = JSON.stringify(entries[i], null, 2);
@@ -214,10 +214,10 @@ export const logs = async (cmd: {
         payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
         if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
           payloadData = LOG.STACKDRIVER_SETUP;
-          functionName = protoPayload.methodName.padEnd(15);
+          functionName = padEnd(protoPayload.methodName, 15);
         }
         if (payloadData && typeof(payloadData) === 'string') {
-          payloadData = payloadData.padEnd(20);
+          payloadData = padEnd(payloadData, 20);
         }
       }
       const coloredStringMap: any = {
@@ -227,7 +227,7 @@ export const logs = async (cmd: {
         NOTICE: chalk.magenta(severity),
       };
       let coloredSeverity:string = coloredStringMap[severity] || severity;
-      coloredSeverity = String(coloredSeverity).padEnd(20);
+      coloredSeverity = padEnd(String(coloredSeverity), 20);
       console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
     }
   }
@@ -365,7 +365,7 @@ export const list = async () => {
   const files = res.data.files;
   if (files.length) {
     files.map((file: any) => {
-      console.log(`${file.name.padEnd(20)} – ${getScriptURL(file.id)}`);
+      console.log(`${padEnd(file.name, 20)} – ${getScriptURL(file.id)}`);
     });
   } else {
     console.log(LOG.FINDING_SCRIPTS_DNE);
