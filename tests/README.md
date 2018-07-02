@@ -18,7 +18,7 @@ Travis (https://travis-ci.org/) is used to automatically build and run tests on 
 
 Since Travis cannot `clasp login`, a `.clasprc.json` file is included that was created locally using `clasp login`.
 
-To then encrypt the `.clasprc.json` file, use these commands:
+To then encrypt the `.clasprc.json` file, use these commands using the [Travis CLI](https://github.com/travis-ci/travis.rb):
 
 ```sh
 clasp login
@@ -30,7 +30,7 @@ This will add the following line to `.travis.yml`, which decrypts that file:
 
 ```openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv -in .clasprc.json.enc -out .clasprc.json -d || true```
 
-Make sure to commit the `./tests/.clasprc.json.enc` and __not__ `./tests/.clasprc.json`
+Make sure to commit the `./tests/.clasprc.json.enc`.
 
 Travis will not decrypt files on a Pull Request from a fork (see: https://docs.travis-ci.com/user/encrypting-files/).
 

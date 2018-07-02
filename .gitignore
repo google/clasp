@@ -10,3 +10,5 @@ node_modules/
 .nyc_output
 *.lock
 /tmp
+.clasprc.json
+/tests/.clasprc.json
