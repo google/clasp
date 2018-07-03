@@ -12,15 +12,14 @@ const TEST_JSON = '{"timeZone": "America/New_York"}';
 const CLASP = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp';
 const isPR = process.env.TRAVIS_PULL_REQUEST;
 
-function expectHelp(command: string, expected: string) {
-  const result = spawnSync(
-    CLASP, [command, '--help'], { encoding : 'utf8' },
-  );
-  expect(result.status).to.equal(0);
-  expect(result.stdout).to.include(expected);
-}
-
 describe('Test --help for each function', () => {
+  const expectHelp = (command: string, expected: string) => {
+    const result = spawnSync(
+      CLASP, [command, '--help'], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include(expected);
+  };
   it('should run --help', () => expectHelp('run', 'Run a function in your Apps Scripts project'));
   it('should logs --help', () => expectHelp('logs', 'Shows the StackDriver logs'));
   it('should login --help', () => expectHelp('login', 'Log in to script.google.com'));
