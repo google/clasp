@@ -14,6 +14,8 @@ To run tests yourself, follow the __Local Configuration__ instructions.
 
 ## Configuration using Travis
 
+> Note: If the build is failing, it may be because of API quota limits. Wait a bit and then rebuild Travis.
+
 Travis (https://travis-ci.org/) is used to automatically build and run tests on `clasp`. Every version of `clasp` should pass the Travis build step before release.
 
 Since Travis cannot `clasp login`, a `.clasprc.json` file is included that was created locally using `clasp login`.
