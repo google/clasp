@@ -105,6 +105,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
 https://script.google.com/home/usersettings`,
+  RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
   SCRIPT_ID_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
@@ -171,6 +172,8 @@ export const logError = (err: any, description = '') => {
     logError(null, ERROR.UNAUTHENTICATED);
   } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
     logError(null, ERROR.PERMISSION_DENIED);
+  } else if (err && err.code === 429) {
+    logError(null, ERROR.RATE_LIMIT);
   } else {
     if (err && err.error) {
       console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
