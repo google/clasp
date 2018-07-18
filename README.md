@@ -31,7 +31,7 @@ clear
 
 **🔢 Manage Deployment Versions:** Create, update, and view your multiple deployments of your project.
 
-**📁 Structure Code:** `clasp` automatically converts your flat project on [script.google.com](script.google.com) into **folders**. For example:
+**📁 Structure Code:** `clasp` automatically converts your flat project on [script.google.com](https://script.google.com) into **folders**. For example:
 - _On script.google.com_:
   - `tests/slides.gs`
   - `tests/sheets.gs`
