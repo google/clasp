@@ -8,6 +8,8 @@
 
 > Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
+<!-- GIF bash prompt: PS1='\[\033[38;5;9m\]❤ \[$(tput sgr0)\]' -->
+<!-- Width: 888px -->
 ![clasp](https://user-images.githubusercontent.com/744973/35164939-43fd32ae-fd01-11e7-8916-acd70fff3383.gif)
 
 **To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
@@ -26,6 +28,16 @@
   - `tests/`
     - `slides.js`
     - `sheets.js`
+
+**[🔷 Write Apps Script in TypeScript](docs/typescript):** Write your Apps Script projects using TypeScript features:
+- Arrow functions
+- Optional structural typing
+- Classes
+- Type inference
+- Interfaces
+- And more...
+
+Read the [TypeScript guide](docs/typescript) to get started.
 
 ## Install
 
@@ -47,20 +59,20 @@ sudo npm i -g grpc @google/clasp --unsafe-perm
 ```sh
 clasp
 ```
-- `clasp login [--no-localhost]`
-- `clasp logout`
-- `clasp create [scriptTitle] [scriptParentId]`
-- `clasp clone <scriptId>`
-- `clasp pull`
-- `clasp push [--watch]`
-- `clasp open [scriptId]`
-- `clasp deployments`
-- `clasp deploy [version] [description]`
-- `clasp redeploy <deploymentId> <version> <description>`
-- `clasp version [description]`
-- `clasp versions`
-- `clasp list`
-- `clasp logs [--json] [--open]`
+- [`clasp login [--no-localhost]`](#login)
+- [`clasp logout`](#logout)
+- [`clasp create [scriptTitle] [scriptParentId]`](#create)
+- [`clasp clone <scriptId>`](#clone)
+- [`clasp pull`](#pull)
+- [`clasp push [--watch]`](#push)
+- [`clasp open [scriptId]`](#open)
+- [`clasp deployments`](#deployments)
+- [`clasp deploy [version] [description]`](#deploy)
+- [`clasp redeploy <deploymentId> <version> <description>`](#redeploy)
+- [`clasp version [description]`](#version)
+- [`clasp versions`](#versions)
+- [`clasp list`](#list)
+- [`clasp logs [--json] [--open]`](#logs)
 
 ## How To...
 
