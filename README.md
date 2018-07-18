@@ -8,9 +8,20 @@
 
 > Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
-<!-- GIF bash prompt: PS1='\[\033[38;5;9m\]❤ \[$(tput sgr0)\]' -->
+<!-- GIF bash prompt: PS1='\[\033[38;5;9m\]❤  \[$(tput sgr0)\]' -->
 <!-- Width: 888px -->
-![clasp](https://user-images.githubusercontent.com/744973/35164939-43fd32ae-fd01-11e7-8916-acd70fff3383.gif)
+<!-- Commands:
+clasp create "Hello"
+ls
+echo 'function hello() {
+  Logger.log("Hello, Apps Script!");
+}' >> hello.js
+clasp push
+clasp deploy
+rm .clasp.json appsscript.json hello.js
+clear
+-->
+![clasp](https://user-images.githubusercontent.com/744973/42856573-a5d96d7c-89fa-11e8-9d69-8d2c66f00d8d.gif)
 
 **To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
 
