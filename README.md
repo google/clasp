@@ -40,15 +40,13 @@ clear
     - `slides.js`
     - `sheets.js`
 
-**[🔷 Write Apps Script in TypeScript](docs/typescript):** Write your Apps Script projects using TypeScript features:
+**🔷 Write Apps Script in TypeScript:** Write your Apps Script projects using [TypeScript features](docs/typescript.md):
 - Arrow functions
 - Optional structural typing
 - Classes
 - Type inference
 - Interfaces
 - And more...
-
-Read the [TypeScript guide](docs/typescript) to get started.
 
 ## Install
 
