@@ -4,7 +4,7 @@
 import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
-import { drive, loadAPICredentials, logger, script, discovery } from './auth';
+import { discovery, drive, loadAPICredentials, logger, script } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
   DOT,
@@ -501,6 +501,7 @@ export const status = async (cmd: { json: boolean }) => {
         } else {
           console.log(LOG.STATUS_PUSH);
           filesToPush.forEach((file) => console.log(`└─ ${file}`));
+          console.log(); // Separate Ignored files list.
           console.log(LOG.STATUS_IGNORE);
           untrackedFiles.forEach((file) => console.log(`└─ ${file}`));
         }

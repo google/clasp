@@ -14,6 +14,7 @@ import {
   logError,
   spinner,
 } from './utils';
+const ts2gas = require('ts2gas');
 const path = require('path');
 const readMultipleFiles = require('read-multiple-files');
 
@@ -96,13 +97,24 @@ export function getProjectFiles(rootDir: string, callback: FilesCallback): void 
             }
           }
         });
+        if (abortPush) return callback(new Error(), null, null);
 
-        if(abortPush) return callback(new Error(), null, null);
-
+        // Loop through every file.
         const files = filePaths.map((name, i) => {
+          // File name
           let nameWithoutExt = name.slice(0, -path.extname(name).length);
           // Replace OS specific path separator to common '/' char
           nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
+          let type = getAPIFileType(name);
+
+          // File source
+          let source = contents[i];
+          if (type === 'TS') {
+            // Transpile TypeScript to Google Apps Script
+            // @see github.com/grant/ts2gas
+            source = ts2gas(source);
+            type = 'SERVER_JS';
+          }
 
           // Formats rootDir/appsscript.json to appsscript.json.
           // Preserves subdirectory names in rootDir
@@ -114,12 +126,40 @@ export function getProjectFiles(rootDir: string, callback: FilesCallback): void 
               nameWithoutExt.length,
             );
           }
-          if (getAPIFileType(name) && !anymatch(ignorePatterns, name)) {
+
+          /**
+           * If the file is valid, add it to our file list.
+           * We generally want to allow for all file types, including files in node_modules/.
+           * However, node_modules/@types/ files should be ignored.
+           */
+          const isValidFileName = (name: string) => {
+            let valid = true; // Valid by default, until proven otherwise.
+            // Has a type or is appsscript.json
+            let isValidJSONIfJSON = true;
+            if (type === 'JSON') {
+              isValidJSONIfJSON = (name === 'appsscript.json');
+            } else {
+              // Must be SERVER_JS or HTML.
+              // https://developers.google.com/apps-script/api/reference/rest/v1/File
+              valid = (type === 'SERVER_JS' || type === 'HTML');
+            }
+            // Prevent node_modules/@types/
+            if (name.includes('node_modules/@types')) {
+              return false;
+            }
+            const validType = type && isValidJSONIfJSON;
+            const notIgnored = !anymatch(ignorePatterns, name);
+            valid = !!(valid && validType && notIgnored);
+            return valid;
+          };
+
+          // If the file is valid, return the file in a format suited for the Apps Script API.
+          if (isValidFileName(name)) {
             nonIgnoredFilePaths.push(name);
             const file: AppsScriptFile = {
               name: formattedName, // the file base name
-              type: getAPIFileType(name), // the file extension
-              source: contents[i], //the file contents
+              type, // the file extension
+              source, //the file contents
             };
             return file;
           } else {
