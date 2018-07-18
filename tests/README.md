@@ -8,6 +8,8 @@ To run tests yourself, follow the __Local Configuration__ instructions.
 
 ## Local Configuration
 
+> Note: Requires `tsc` installed `npm install -g typescript`
+
 1. Make sure you are logged in (`clasp login`).
 1. Rebuild: `sudo npm run build`
 1. Run `npm run test`
