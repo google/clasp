@@ -1,22 +1,29 @@
 # Tests
 
-Many of `clasp`'s CLI commands have unit tests that run the `clasp` command and asserts the std output and std error code is as expected.
+`clasp`'s CLI commands have unit tests that:
+- Run the `clasp` command
+- Compares the expected `stdout` text and `stderr` code
 
-These tests should ideally be run for every Pull Request, though due to the need to run `clasp login` before some commands, some tests are not run.
+## Testing Tools
 
-To run tests yourself, follow the __Local Configuration__ instructions.
+- Testing framework: [Mocha.js](https://mochajs.org/)
+- Testing tool: [Travis CI](https://travis-ci.org/google/clasp)
+  - Unit tests run for every Pull Request
+- Testing % coverage: [Coveralls](https://coveralls.io/github/google/clasp?branch=master)
 
-## Local Configuration
+## How to Run Tests
 
-1. Make sure you are logged in (`clasp login`).
+1. Log in: `clasp login`
 1. Rebuild: `sudo npm run build`
-1. Run `npm run test`
+1. Test: `npm run test`
 
 ## Configuration using Travis
 
-> Note: If the build is failing, it may be because of API quota limits. Wait a bit and then rebuild Travis.
+> Note: The build may fail due to API quota limits. To solve this, wait 24 hours and then rebuild Travis.
 
-Travis (https://travis-ci.org/) is used to automatically build and run tests on `clasp`. Every version of `clasp` should pass the Travis build step before release.
+[Travis](https://travis-ci.org/) automatically build and run tests on `clasp` for.
+
+### Clasp login
 
 Since Travis cannot `clasp login`, a `.clasprc.json` file is included that was created locally using `clasp login`.
 
@@ -30,41 +37,48 @@ travis encrypt-file ./tests/.clasprc.json --add
 
 This will add the following line to `.travis.yml`, which decrypts that file:
 
-```openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv -in .clasprc.json.enc -out .clasprc.json -d || true```
+```
+openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv -in .clasprc.json.enc -out .clasprc.json -d || true
+```
 
-Make sure to commit the `./tests/.clasprc.json.enc`.
+Make sure to commit the file to the path: `./tests/.clasprc.json.enc`
 
-Travis will not decrypt files on a Pull Request from a fork (see: https://docs.travis-ci.com/user/encrypting-files/).
+> Note: [Travis will not decrypt files on a Pull Request from a fork.](https://docs.travis-ci.com/user/encrypting-files/)
 
-There are complicated ways around this, see (https://blog.algolia.com/travis-encrypted-variables-external-contributions/) for ideas.
+There are complicated ways around this. [Ideas](https://blog.algolia.com/travis-encrypted-variables-external-contributions/).
 
-The command ends with ` || true` so Travis doesn't immediately fail on any PR.
+> Note: The command ends with ` || true` so Travis doesn't immediately fail on any PR.
 
-## Test these commands and configs.
+## Testing Status
 
-### Commands:
- * [ ] clasp;
- * [ ] clasp login';
- * [ ] clasp login --no-localhost;
- * [x] clasp logout;
- * [x] clasp create "myTitle"
- * [x] clasp create <untitled>
- * [x] clasp list
- * [x] clasp clone <scriptId>
- * [x] clasp clone
- * [x] clasp pull
- * [x] clasp push
- * [ ] echo '// test' >> index.js && clasp push
- * [x] clasp open
- * [ ] clasp deployments
- * [ ] clasp deploy [version] [description]
- * [ ] clasp redeploy <deploymentId> <version> <description>
- * [ ] clasp version [description]
- * [x] clasp versions
- * [x] saveProjectId
- * [x] getScriptURL
- * [x] getFileType
- * [x] getAPIFileType
- ### Configs
- * [ ] .js and .gs files
- * [ ] Ignored files
+This section tracks which `clasp` commands are tested. Unchecked checkboxes are test cases that still need to be added.
+
+### Commands
+
+* [ ] clasp;
+* [ ] clasp login';
+* [ ] clasp login --no-localhost;
+* [x] clasp logout;
+* [x] clasp create "myTitle"
+* [x] clasp create <untitled>
+* [x] clasp list
+* [x] clasp clone <scriptId>
+* [x] clasp clone
+* [x] clasp pull
+* [x] clasp push
+* [ ] echo '// test' >> index.js && clasp push
+* [x] clasp open
+* [ ] clasp deployments
+* [ ] clasp deploy [version] [description]
+* [ ] clasp redeploy <deploymentId> <version> <description>
+* [ ] clasp version [description]
+* [x] clasp versions
+* [x] saveProjectId
+* [x] getScriptURL
+* [x] getFileType
+* [x] getAPIFileType
+
+### Configs
+
+* [ ] .js, .gs, .ts files
+* [ ] Ignored files
