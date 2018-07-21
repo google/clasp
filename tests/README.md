@@ -19,7 +19,7 @@
 
 ## Configuration using Travis
 
-> Note: The build may fail due to API quota limits. To solve this, wait a few minutes and then rebuild Travis.
+> Note: The build may fail due to API quota limits. To solve this, wait 24 hours and then rebuild Travis.
 
 [Travis](https://travis-ci.org/) automatically build and run tests on `clasp` for.
 
