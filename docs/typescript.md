@@ -79,15 +79,20 @@ These features allow you to write Apps Script concisely with intelligent IDE err
 
 ```ts
 // Optional Types
-let x: string  = 'string';
-let y: string  = 'string2';
-const doc: GoogleAppsScript.Document.Document = DocumentApp.create('Hello, world!');
-var foo = (a, b) => a + b;
-
-const add = function(x: number, y: number): number {
-  return x + y;
+let isDone: boolean = false;
+let height: number = 6;
+let bob: string = "bob";
+let list1: number[] = [1, 2, 3];
+let list2: Array<number> = [1, 2, 3];
+enum Color {Red, Green, Blue};
+let c: Color = Color.Green;
+let notSure: any = 4;
+notSure = "maybe a string instead";
+notSure = false; // okay, definitely a boolean
+function showMessage(data: string): void { // Void
+ alert(data);
 }
-add(4_232, 1e3);
+showMessage('hello');
 
 // Classes
 class Hamburger {
