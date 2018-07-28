@@ -89,9 +89,7 @@ describe('Test clasp create function', () => {
     );
     expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe.skip('Test clasp create <title> function', () => {
