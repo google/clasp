@@ -15,6 +15,14 @@ const CLASP_SETTINGS: string = JSON.stringify({
   scriptId: process.env.SCRIPT_ID,
 });
 
+const cleanup = () => {
+  fs.removeSync('.clasp.json');
+};
+
+const setup = () => {
+  fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+};
+
 describe('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
     const result = spawnSync(
@@ -83,7 +91,7 @@ describe('Test clasp create function', () => {
   });
   after(() => {
     fs.removeSync('.clasp.json');
-});
+  });
 });
 
 describe.skip('Test clasp create <title> function', () => {
@@ -107,7 +115,7 @@ describe('Test clasp clone <scriptId> function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   it('should clone an existing project correctly', () => {
     const settings = JSON.parse(fs.readFileSync('.clasp.json', 'utf8'));
@@ -127,9 +135,7 @@ describe('Test clasp clone <scriptId> function', () => {
     expect(result.stderr).to.contain('> Did you provide the correct scriptId?');
     expect(result.status).to.equal(1);
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test clasp pull function', () => {
@@ -137,7 +143,7 @@ describe('Test clasp pull function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   it('should pull an existing project correctly', () => {
     const result = spawnSync(
@@ -147,9 +153,7 @@ describe('Test clasp pull function', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test clasp push function', () => {
@@ -157,7 +161,7 @@ describe('Test clasp push function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   it('should push local project correctly', () => {
     fs.removeSync('.claspignore');
@@ -182,9 +186,7 @@ describe('Test clasp push function', () => {
     expect(result.stderr).to.contain('Files to push were:');
     expect(result.status).to.equal(1);
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test clasp status function', () => {
@@ -192,7 +194,7 @@ describe('Test clasp status function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
     fs.ensureDirSync('tmp');
@@ -232,9 +234,7 @@ describe('Test clasp status function', () => {
       'node_modules/fsevents/build/Release/.deps/Release/.node.d']);
     expect(resultJson.filesToPush).to.have.members(['appsscript.json']);
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test clasp open function', () => {
@@ -242,7 +242,7 @@ describe('Test clasp open function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   it('should open a project correctly', () => {
     const result = spawnSync(
@@ -251,9 +251,7 @@ describe('Test clasp open function', () => {
     //should open a browser with the project
     expect(result.status).to.equal(0);
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test clasp deployments function', () => {
@@ -261,7 +259,7 @@ describe('Test clasp deployments function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   it('should list deployments correctly', () => {
     const result = spawnSync(
@@ -270,9 +268,7 @@ describe('Test clasp deployments function', () => {
     expect(result.stdout).to.contain('Deployment');
     expect(result.status).to.equal(0);
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test clasp deploy function', () => {
@@ -280,7 +276,7 @@ describe('Test clasp deploy function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   // Could fail to to maximum deployments (20)
   // TODO: skip test if at maximum
@@ -291,9 +287,7 @@ describe('Test clasp deploy function', () => {
     expect(result.stdout).to.contain('Created version ');
     expect(result.status).to.equal(0);
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test clasp version and versions function', () => {
@@ -301,7 +295,7 @@ describe('Test clasp version and versions function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   let versionNumber = '';
   it('should create new version correctly', () => {
@@ -320,9 +314,7 @@ describe('Test clasp version and versions function', () => {
       expect(result.status).to.equal(0);
     });
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test clasp clone function', () => {
@@ -330,7 +322,7 @@ describe('Test clasp clone function', () => {
     if (isPR !== 'false') {
       this.skip();
     }
-    fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+    setup();
   });
   it('should prompt for which script to clone correctly', () => {
     spawnSync('rm', ['.clasp.json']);
@@ -347,9 +339,7 @@ describe('Test clasp clone function', () => {
     expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
     expect(result.status).to.equal(1);
   });
-  after(() => {
-    fs.removeSync('.clasp.json');
-  });
+  after(cleanup);
 });
 
 describe('Test getScriptURL function from utils', () => {
