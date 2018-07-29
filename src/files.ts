@@ -137,7 +137,12 @@ export function getProjectFiles(rootDir: string, callback: FilesCallback): void 
             // Has a type or is appsscript.json
             let isValidJSONIfJSON = true;
             if (type === 'JSON') {
-              isValidJSONIfJSON = (name === 'appsscript.json');
+              if (rootDir) {
+                isValidJSONIfJSON = (name === path.join(rootDir, 'appsscript.json'));
+              }
+              else {
+                isValidJSONIfJSON = (name === 'appsscript.json');
+              }
             } else {
               // Must be SERVER_JS or HTML.
               // https://developers.google.com/apps-script/api/reference/rest/v1/File
