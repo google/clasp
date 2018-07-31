@@ -6,7 +6,7 @@
 const fs = require('fs');
 const parseComments = require('parse-comments');
 const extract = require('extract-comments');
-const file = fs.readFileSync('./index.ts').toString();
+const file = fs.readFileSync('src/index.ts').toString();
 const ucfirst = require('ucfirst');
 
 // The README will be a concatenation of lines in this variable.
