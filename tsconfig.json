@@ -12,8 +12,7 @@
   },
   "moduleResolution": "node",
   "files": [
-    "index.ts",
-    "tests/test.ts",
-    "src/utils.ts"
+    "src/index.ts",
+    "tests/test.ts"
   ]
 }
