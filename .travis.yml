@@ -11,7 +11,7 @@ node_js:
 - '6'
 env:
   global:
-    - SCRIPT_ID=1Q3zCVgK53kEiacR0qvBYFr-A4d720UgZh3cdfDF2oFVJE5SgFiXO0AVZ
+    - SCRIPT_ID=1yEDNF3n5q2abYndZeqzJBVFjrP4hhMWTeoVFE-Car9UQYc6T2b_LfjJa
 cache:
   directories:
   - "$HOME/.npm"
