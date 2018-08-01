@@ -282,8 +282,14 @@ describe('Test clasp deploy function', () => {
     const result = spawnSync(
       CLASP, ['deploy'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('Created version ');
-    expect(result.status).to.equal(0);
+    if (result.stderr) {
+      expect(result.stderr).to.contain('Unable to deploy;');
+      expect(result.stderr).to.contain('Scripts may only have up to 20 versioned deployments at a time.');
+      expect(result.status).to.equal(1);
+    } else {
+      expect(result.stdout).to.contain('Created version ');
+      expect(result.status).to.equal(0);
+    }
   });
   after(cleanup);
 });
