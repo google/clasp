@@ -161,7 +161,7 @@ describe('Test clasp push function', () => {
     }
     setup();
   });
-  it('should push local project correctly', () => {
+  it.skip('should push local project correctly', () => {
     fs.removeSync('.claspignore');
     fs.writeFileSync('Code.js', TEST_CODE_JS);
     fs.writeFileSync('appsscript.json', TEST_JSON);
