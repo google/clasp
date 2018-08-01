@@ -142,11 +142,13 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
   } else {
     if (!scriptId) {
       await loadAPICredentials();
-      const { data } = await drive.files.list({
+      const list = await drive.files.list({
         pageSize: 10,
         fields: 'files(id, name)',
         q: 'mimeType="application/vnd.google-apps.script"',
       });
+      const data = list.data;
+      if (!data) return logError(list.statusText, 'Unable to use the Drive API.');
       const files = data.files;
       if (files.length) {
         const fileIds = files.map((file: any) => {
@@ -241,12 +243,14 @@ export const logs = async (cmd: {
     process.exit(0);
   }
   await loadAPICredentials();
-  const { data } = await logger.entries.list({
+  const logs = await logger.entries.list({
     resourceNames: [
       `projects/${projectId}`,
     ],
     orderBy: 'timestamp desc',
   });
+  const data = logs.data;
+  if (!data) return logError(logs.statusText, 'Unable to query StackDriver logs');
   printLogs(data.entries);
 };
 
@@ -313,11 +317,12 @@ export const deploy = async (version: string, description: string) => {
       script.projects.versions.create({
         scriptId,
         resource: versionRequestBody,
-      }, {}, (err: any, { data }: any) => {
+      }, {}, (err: any, versionResponse: any) => {
         spinner.stop(true);
         if (err) {
           logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
         } else {
+          const data = versionResponse.data;
           console.log(LOG.VERSION_CREATED(data.versionNumber));
           createDeployment(data.versionNumber);
         }
@@ -414,12 +419,12 @@ export const deployments = async () => {
     spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
     script.projects.deployments.list({
       scriptId,
-    }, {}, (error: any, { data }: any) => {
+    }, {}, (error: any, deploymentResponse: any) => {
       spinner.stop(true);
       if (error) {
         logError(error);
       } else {
-        const deployments = data.deployments;
+        const deployments = deploymentResponse.data.deployments;
         const numDeployments = deployments.length;
         const deploymentWord = pluralize('Deployment', numDeployments);
         console.log(`${numDeployments} ${deploymentWord}.`);
@@ -445,11 +450,12 @@ export const versions = async () => {
   script.projects.versions.list({
     scriptId,
     pageSize: 500,
-  }, {}, (error: any, { data }: any) => {
+  }, {}, (error: any, versionResponse: any) => {
     spinner.stop(true);
     if (error) {
       logError(error);
     } else {
+      const data = versionResponse.data;
       if (data && data.versions && data.versions.length) {
         const numVersions = data.versions.length;
         console.log(LOG.VERSION_NUM(numVersions));
@@ -474,12 +480,12 @@ export const version = async (description: string) => {
   script.projects.versions.create({
     scriptId,
     description,
-  }, {}, (error: any, { data }: any) => {
+  }, {}, (error: any, versionResponse: any) => {
     spinner.stop(true);
     if (error) {
       logError(error);
     } else {
-      console.log(LOG.VERSION_CREATED(data.versionNumber));
+      console.log(LOG.VERSION_CREATED(versionResponse.data.versionNumber));
     }
   });
 };
