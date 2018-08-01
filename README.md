@@ -248,10 +248,23 @@ Lists your most recent 10 Apps Script projects.
 
 Prints out 5 most recent the StackDriver logs.
 
+> **NOTE**: It requires Project ID setup (see below).
+
 #### Options
 
 - `json`: json Output logs in json format.
 - `open`: open Open StackDriver logs in a browser.
+
+#### Examples
+
+```
+clasp logs
+ERROR Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      my log error
+INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
+```
+
+- `clasp logs --json`: See the logs in JSON format.
+- `clasp logs --open`: Open the StackDriver logs in your browser.
 
 ### Run
 
@@ -259,6 +272,8 @@ Remotely executes an Apps Script function.
 This function runs your script in the cloud. You must supply
 the functionName params. For now, it can
 only run functions that do not require other authorization.
+
+> **NOTE**: It requires Project ID setup (see below).
 
 #### Options
 
@@ -276,7 +291,9 @@ Displays the help function.
 
 - `clasp help`
 
-#### [Get Project ID](#get-project-id)
+## Guides
+
+### [Get Project ID](#get-project-id)
 
 1. Run `clasp open`.
 1. Click `Resources > Cloud Platform project...`
@@ -290,21 +307,6 @@ Displays the help function.
 ```
 
 Now you can run `clasp logs` for this project.
-
-#### Run `clasp logs`
-
-Use `clasp logs` to see recent log messages from StackDriver. For example:
-
-```
-clasp logs
-ERROR Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      my log error
-INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
-```
-
-#### Other Options
-
-- `clasp logs --json`: See the logs in JSON format.
-- `clasp logs --open`: Open the StackDriver logs in your browser.
 
 ### Ignore File (`.claspignore`)
 
@@ -321,15 +323,15 @@ A sample `.claspignore` ignoring everything except the manifest and `build/main.
 !appsscript.json
 ```
 
-### Project Settings File (`.clasp.json`)
+## Project Settings File (`.clasp.json`)
 
 When running `clone` or `create`, a file named `.clasp.json` is created in the current directory to describe `clasp`'s configuration for the current project. The following configuration values can be used in it:
 
-#### `scriptId` (required)
+### `scriptId` (required)
 
 Specifies the id of the Google Script project that clasp will target. It is the part located inbetween `/d/` and `/edit` in your project's URL: `https://script.google.com/d/<SCRIPT_ID>/edit`.
 
-#### `rootDir` (optional)
+### `rootDir` (optional)
 
 Specifies the **local** directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
 
@@ -355,7 +357,7 @@ Use an IDE like **Visual Studio Code** for TypeScript autocompletion.
   - This will prevent errors when updating `node_modules`.
 - Install dependencies: `npm i`
 
-#### After Making a Change
+### After Making a Change
 
 ```sh
 sudo npm run build;
@@ -364,7 +366,7 @@ clasp <command>
 
 (If you see build errors, run `sudo npm run build-fresh`)
 
-#### Run Tests
+### Run Tests
 
 ```sh
 sudo npm run build;
@@ -373,31 +375,31 @@ npm run test
 
 See [tests/](tests/) for more information.
 
-#### Lint
+### Lint
 
 - Use `npm run lint` to find common style errors.
 - Download [sort-imports](https://marketplace.visualstudio.com/items?itemName=amatiasq.sort-imports) for VSC to automatically sort imports.
 
-#### Generate Docs
+### Generate Docs
 
 The core "How To" section of the docs is generated from JSDoc comments from `index.ts`.
 
 Run `npm run docs` to build the "How To" section. Copy/paste that section into the README.md.
 
-#### Publishing `clasp` to npm (admin)
+### Publishing `clasp` to npm (admin)
 
 1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.
 1. Bump version: `npm version [major|minor|patch] -m "Bump version to %s"`
 1. Publish with: `npm run publish`
 
-### Contributing
+## Contributing
 
 The main purpose of this tool is to enable local Apps Script development.
 If you have a core feature or use-case you'd like to see, find a GitHub issue or
 create a detailed proposal of the use-case.
 PRs are very welcome! See the [issues](https://github.com/google/clasp/issues) (especially **good first issue** and **help wanted**).
 
-#### How to Submit a Pull Request
+### How to Submit a Pull Request
 
 1. Look over the test cases in `tests/test.ts`, try cases that the PR may affect.
 1. Run [tslint](https://palantir.github.io/tslint/): `npm run lint`.
