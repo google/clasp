@@ -13,6 +13,8 @@ Clasp `1.5.0` allows **new** and **existing** Apps Script projects to use TypeSc
 
 > Note: Once you use TypeScript, you cannot develop on script.google.com (the [transpiled](https://en.wikipedia.org/wiki/Source-to-source_compiler) code).
 
+> Warning: Apps Script's runtime/execution is different than Node or web browers. In particular, you cannot use the terms `export` or `require` in the same way you would with Node. You cannot use `window` like in web browsers.
+
 ## Quickstart
 
 This quickstart guide describes how to create a TypeScript project from scratch.

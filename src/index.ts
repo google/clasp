@@ -22,7 +22,7 @@
 
 import 'connect';
 
-import { login } from './src/auth';
+import { login } from './auth';
 import {
   apis,
   clone,
@@ -43,8 +43,8 @@ import {
   undeploy,
   version,
   versions,
-} from './src/commands';
-import { PROJECT_NAME } from './src/utils';
+} from './commands';
+import { PROJECT_NAME } from './utils';
 
 const commander = require('commander');
 
@@ -302,7 +302,7 @@ commander
  * Displays clasp version
  */
 commander
-.version(require('./package.json').version, '-v, --version');
+.version(require('../package.json').version, '-v, --version');
 
 /**
  * All other commands are given a help message.
