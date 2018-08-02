@@ -232,6 +232,24 @@ describe('Test clasp status function', () => {
       'node_modules/fsevents/build/Release/.deps/Release/.node.d']);
     expect(resultJson.filesToPush).to.have.members(['appsscript.json']);
   });
+  it('should respect globs and negation rules when rootDir given', () => {
+    const tmpdir = setupTmpDirectory([
+      { file: '.clasp.json', data: '{ "scriptId":"1234", "rootDir":"dist" }' },
+      { file: '.claspignore', data: '**/**\n!dist/build/main.js\n!dist/appsscript.json' },
+      { file: 'dist/build/main.js', data: TEST_CODE_JS },
+      { file: 'dist/appsscript.json', data: TEST_JSON },
+      { file: 'dist/shouldBeIgnored', data: TEST_CODE_JS },
+      { file: 'dist/should/alsoBeIgnored', data: TEST_CODE_JS },
+    ]);
+    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir  });
+    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
+    console.log(result.stdout);
+    console.log(result.stderr);
+    expect(result.status).to.equal(0);
+    const resultJson = JSON.parse(result.stdout);
+    expect(resultJson.untrackedFiles).to.have.members(['dist/shouldBeIgnored', 'dist/should/alsoBeIgnored']);
+    expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
+  });
   after(cleanup);
 });
 
