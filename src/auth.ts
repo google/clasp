@@ -63,7 +63,7 @@ async function authorize(useLocalhost: boolean, creds: string) {
     }
   } catch(err) {
     if (err.code === 'ENOENT') {
-      logError(null, ERROR.CREDENTIALS_DNE);
+      logError(null, ERROR.NO_CREDENTIALS);
     }
     console.log(LOG.DEFAULT_CREDENTIALS);
   }
@@ -88,7 +88,7 @@ export async function loadAPICredentials() {
     return DOTFILE.RC.read().then((rc: ClaspSettings) => {
       oauth2Client.setCredentials(rc);
     }).catch((err: any) => {
-      logError(err, 'Could not read API credentials. Error:');
+      logError(err, ERROR.NO_CREDENTIALS);
     });
   });
   }
