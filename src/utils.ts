@@ -86,7 +86,6 @@ export const ERROR = {
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
   CREATE: 'Error creating script.',
-  CREDENTIALS_DNE: 'Credentials file not found.',
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
@@ -96,6 +95,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
+  NO_CREDENTIALS: 'Could not read API credentials. Error:',
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
   You can find your projectId by following the instructions in the README here: \n
