@@ -70,7 +70,7 @@ export const push = async (cmd: {
  */
 export const help = () => {
   commander.outputHelp();
-  process.exit(1);
+  process.exit(0);
 };
 
 /**

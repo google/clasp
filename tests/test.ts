@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
 import { getFileType } from './../src/files';
-import { getAPIFileType, getScriptURL, saveProjectId } from './../src/utils.js';
+import { getAPIFileType, getScriptURL, saveProjectId, ERROR } from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
 const TEST_JSON = '{"timeZone": "America/New_York"}';
@@ -14,6 +14,7 @@ const isPR = process.env.TRAVIS_PULL_REQUEST;
 const CLASP_SETTINGS: string = JSON.stringify({
   scriptId: process.env.SCRIPT_ID,
 });
+const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
 const cleanup = () => {
   fs.removeSync('.clasp.json');
@@ -445,5 +446,103 @@ describe('Test clasp logout function', () => {
     expect(localDotExists).to.equal(false);
     const dotExists = fs.existsSync('~/.clasprc.json');
     expect(dotExists).to.equal(false);
+  });
+});
+
+describe('Test variations of clasp help', () => {
+  const expectHelp = (variation: string) => {
+    const result = spawnSync(
+      CLASP, [variation], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include(CLASP_USAGE);
+  };
+  it('should show help for clasp help', () => expectHelp('help'));
+  it('should show help for clasp --help', () => expectHelp('--help'));
+  it('should show help for clasp -h', () => expectHelp('-h'));
+});
+
+describe('Test variations of clasp --version', () => {
+  const expectVersion = (variation: string) => {
+    const result = spawnSync(
+      CLASP, [variation], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.include(require('./../package.json').version);
+  };
+  it('should show version for clasp --version', () => expectVersion('--version'));
+  it('should show version for clasp -v', () => expectVersion('-v'));
+});
+
+describe('Test unknown functions', () => {
+  it('should show version correctly', () => {
+    const result = spawnSync(
+      CLASP, ['unknown'], { encoding: 'utf8' },
+    );
+    expect(result.stderr).to.contain('🤔  Unknown command "unknown"');
+    expect(result.status).to.equal(1);
+  });
+});
+
+describe('Test all functions while logged out', () => {
+  const expectNoCredentials = (command: string) => {
+    const result = spawnSync(
+      CLASP, [command], { encoding : 'utf8' },
+    );
+    expect(result.status).to.equal(1);
+    expect(result.stderr).to.include(ERROR.NO_CREDENTIALS);
+  };
+  it('should fail to list (no credentials)', () => expectNoCredentials('list'));
+  it('should fail to clone (no credentials)', () => expectNoCredentials('clone'));
+  it('should fail to push (no credentials)', () => expectNoCredentials('push'));
+  it('should fail to deployments (no credentials)', () => expectNoCredentials('deployments'));
+  it('should fail to deploy (no credentials)', () => expectNoCredentials('deploy'));
+  it('should fail to version (no credentials)', () => expectNoCredentials('version'));
+  it('should fail to versions (no credentials)', () => expectNoCredentials('versions'));
+
+  // TODO: all test should have same order of checks
+  // and should all return ERROR.NO_CREDENTIALS
+  it('should fail to pull (no .clasp.json file)', () => {
+    const result = spawnSync(
+      CLASP, ['pull'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(1);
+    // Should be ERROR.NO_CREDENTIALS
+    // see: https://github.com/google/clasp/issues/278
+    expect(result.stderr).to.contain(ERROR.SCRIPT_ID_DNE);
+  });
+  it('should fail to open (no .clasp.json file)', () => {
+    const result = spawnSync(
+      CLASP, ['open'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(1);
+    // Should be ERROR.NO_CREDENTIALS
+    // see: https://github.com/google/clasp/issues/278
+    expect(result.stderr).to.contain(ERROR.SCRIPT_ID_DNE);
+  });
+  // Skipping this, see: https://github.com/tj/commander.js/issues/840
+  it.skip('should fail to redeploy (missing argument version)', () => {
+    const result = spawnSync(
+      CLASP, ['redeploy', '1234'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(1);
+    expect(result.stderr).to.contain('error: missing required argument \'version\'');
+  });
+  // Skipping this, see: https://github.com/tj/commander.js/issues/840
+  it.skip('should fail to redeploy (missing argument deploymentId)', () => {
+    const result = spawnSync(
+      CLASP, ['redeploy'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(1);
+    expect(result.stderr).to.contain('error: missing required argument \'deploymentId\'');
+  });
+  it('should fail to show logs (no .clasp.json file)', () => {
+    const result = spawnSync(
+      CLASP, ['logs'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(1);
+    // Should be ERROR.NO_CREDENTIALS
+    // see: https://github.com/google/clasp/issues/278
+    expect(result.stderr).to.contain(ERROR.SCRIPT_ID_DNE);
   });
 });
