@@ -19,6 +19,7 @@ import {
   manifestExists,
   saveProjectId,
   spinner,
+  getWebApplicationURL,
 } from './utils';
 const open = require('opn');
 const commander = require('commander');
@@ -520,7 +521,8 @@ export const status = async (cmd: { json: boolean }) => {
  * Opens an Apps Script project's script.google.com editor.
  * @param scriptId {string} The Apps Script project to open.
  */
-export const openCmd = async (scriptId: any) => {
+export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
+  await checkIfOnline();
   if (!scriptId) {
     const settings = await getProjectSettings();
     scriptId = settings.scriptId;
@@ -528,9 +530,31 @@ export const openCmd = async (scriptId: any) => {
   if (scriptId.length < 30) {
     logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   } else {
-    console.log(LOG.OPEN_PROJECT(scriptId));
-    open(getScriptURL(scriptId));
-    process.exit(0);
+    if (cmd.webapp) {
+      await loadAPICredentials();
+      script.projects.deployments.list({
+        scriptId,
+      }, {}, (error: any, deploymentResponse: any) => {
+        if (error) {
+          logError(error);
+        } else {
+          const deployments = deploymentResponse.data.deployments;
+          if (!deployments.length) {
+            logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+          } else {
+            deployments.sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime));
+            const deployment = deployments[deployments.length - 1];
+            console.log(LOG.OPEN_WEBAPP(deployment.deploymentId));
+            open(getWebApplicationURL(deployment));
+            process.exit(0);
+          }
+        }
+      });
+    } else {
+      console.log(LOG.OPEN_PROJECT(scriptId));
+      open(getScriptURL(scriptId));
+      process.exit(0);
+    }
   }
 };
 

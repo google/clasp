@@ -163,6 +163,7 @@ commander
 commander
   .command('open [scriptId]')
   .description('Open a script')
+  .option('--webapp', 'Open web application in browser')
   .action(openCmd);
 
 /**
