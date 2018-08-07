@@ -74,7 +74,7 @@ clasp
 - [`clasp clone <scriptId>`](#clone)
 - [`clasp pull`](#pull)
 - [`clasp push [--watch]`](#push)
-- [`clasp open [scriptId]`](#open)
+- [`clasp open [scriptId] [--webapp]`](#open)
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [version] [description]`](#deploy)
 - [`clasp redeploy <deploymentId> <version> <description>`](#redeploy)
@@ -159,11 +159,13 @@ Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a d
 #### Options
 
 - `scriptId`: The optional script project to open.
+- `webapp`: open web application in a browser.
 
 #### Examples
 
 - `clasp open`
 - `clasp open [scriptId]`
+- `clasp open --webapp`
 
 ### Deployments
 
