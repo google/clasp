@@ -201,7 +201,7 @@ Undeploys a deployment of a script.
 
 #### Examples
 
-- `clasp "undeploy 123"`
+- `clasp undeploy "123"`
 
 ### Redeploy
 
