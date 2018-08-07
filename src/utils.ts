@@ -96,6 +96,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   NO_CREDENTIALS: 'Could not read API credentials. Error:',
+  NO_WEBAPP: (deploymentId: string) => `Deployment "${deploymentId}" is not deployed as WebApp.`,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
   You can find your projectId by following the instructions in the README here: \n
@@ -133,6 +134,7 @@ export const LOG = {
   FINDING_SCRIPTS: 'Finding your scripts...',
   FINDING_SCRIPTS_DNE: 'No script files found.',
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
+  OPEN_WEBAPP: (deploymentId: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
   STATUS_PUSH: 'Not ignored files:',
   STATUS_IGNORE: 'Ignored files:',
@@ -192,6 +194,22 @@ export const logError = (err: any, description = '') => {
  * @return {string}          The URL of the script in the online script editor.
  */
 export const getScriptURL = (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`;
+
+/**
+ * Gets the web application URL from a deployment.
+ *
+ * It is too expensive to get the web application URL from the Drive API. (Async/not offline)
+ * @param  {any} deployment The deployment
+ * @return {string}          The URL of the web application in the online script editor.
+ */
+export function getWebApplicationURL(deployment: any) {
+  const entryPoints = deployment.entryPoints || [];
+  const webEntryPoint = entryPoints.find((entryPoint: any) => entryPoint.entryPointType === 'WEB_APP');
+  if (!webEntryPoint) {
+    logError(null, ERROR.NO_WEBAPP(deployment.deploymentId));
+  }
+  return webEntryPoint.webApp.url;
+}
 
 /**
  * Gets the project settings from the project dotfile. Logs errors.
