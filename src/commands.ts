@@ -240,8 +240,7 @@ export const logs = async (cmd: {
     const url = 'https://console.cloud.google.com/logs/viewer?project=' +
         `${projectId}&resource=app_script_function`;
     console.log(`Opening logs: ${url}`);
-    open(url);
-    process.exit(0);
+    open(url, {wait: false});
   }
   await loadAPICredentials();
   const logs = await logger.entries.list({
@@ -545,15 +544,13 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
             deployments.sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime));
             const deployment = deployments[deployments.length - 1];
             console.log(LOG.OPEN_WEBAPP(deployment.deploymentId));
-            open(getWebApplicationURL(deployment));
-            process.exit(0);
+            open(getWebApplicationURL(deployment), {wait: false});
           }
         }
       });
     } else {
       console.log(LOG.OPEN_PROJECT(scriptId));
-      open(getScriptURL(scriptId));
-      process.exit(0);
+      open(getScriptURL(scriptId), {wait: false});
     }
   }
 };
