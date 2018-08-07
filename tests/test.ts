@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
 import { getFileType } from './../src/files';
-import { getAPIFileType, getScriptURL, saveProjectId, ERROR } from './../src/utils.js';
+import { getAPIFileType, getScriptURL, getWebApplicationURL, saveProjectId, ERROR } from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
 const TEST_JSON = '{"timeZone": "America/New_York"}';
@@ -369,6 +369,22 @@ describe('Test getScriptURL function from utils', () => {
   it('should return the scriptURL correctly', () => {
     const url = getScriptURL('abcdefghijklmnopqrstuvwxyz');
     expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
+  });
+});
+
+describe('Test getWebApplicationURL function from utils', () => {
+  it('should return the scriptURL correctly', () => {
+    const url = getWebApplicationURL({
+      entryPoints: [
+        {
+          entryPointType: 'WEB_APP',
+          webApp: {
+            url: 'https://script.google.com/macros/s/abcdefghijklmnopqrstuvwxyz/exec',
+          },
+        },
+      ],
+    });
+    expect(url).to.equal('https://script.google.com/macros/s/abcdefghijklmnopqrstuvwxyz/exec');
   });
 });
 
