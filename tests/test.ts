@@ -218,8 +218,7 @@ describe('Test clasp status function', () => {
     expect(resultJson.untrackedFiles).to.have.members(['shouldBeIgnored', 'should/alsoBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['build/main.js', 'appsscript.json']);
   });
-  // https://github.com/google/clasp/issues/67 - This test currently fails
-  it.skip('should ignore dotfiles if the parent folder is ignored', () => {
+  it('should ignore dotfiles if the parent folder is ignored', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json' },
       { file: 'appsscript.json', data: TEST_JSON },
