@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
 import { getFileType } from './../src/files';
-import { getAPIFileType, getScriptURL, getWebApplicationURL, saveProjectId, ERROR } from './../src/utils.js';
+import { ERROR, getAPIFileType, getScriptURL, getWebApplicationURL, saveProjectId } from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
 const TEST_JSON = '{"timeZone": "America/New_York"}';
@@ -249,6 +249,7 @@ describe('Test clasp status function', () => {
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members(['dist/shouldBeIgnored', 'dist/should/alsoBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
+    // TODO test with a rootDir with a relative directory like "../src"
   });
   after(cleanup);
 });
