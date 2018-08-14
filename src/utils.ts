@@ -95,7 +95,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
-  NO_CREDENTIALS: 'Could not read API credentials. Error:',
+  NO_CREDENTIALS: 'Could not read API credentials. Are you logged in?',
   NO_WEBAPP: (deploymentId: string) => `Deployment "${deploymentId}" is not deployed as WebApp.`,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
