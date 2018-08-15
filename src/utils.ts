@@ -82,7 +82,7 @@ export const DOTFILE = {
 export const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
   BAD_CREDENTIALS_FILE: 'Incorrect credentials file format.',
-  COMMAND_DNE: (command: string) => `🤔  Unknown command "${command}"\n
+  COMMAND_DNE: (command: string) => `🤔  Unknown command "${PROJECT_NAME} ${command}"\n
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
   CREATE: 'Error creating script.',
