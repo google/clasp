@@ -5,7 +5,14 @@ import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
 import { getFileType } from './../src/files';
-import { ERROR, getAPIFileType, getScriptURL, getWebApplicationURL, saveProjectId } from './../src/utils.js';
+import {
+  ERROR,
+  getAPIFileType,
+  getScriptURL,
+  getWebApplicationURL,
+  saveProjectId,
+  PROJECT_NAME,
+} from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
 const TEST_JSON = '{"timeZone": "America/New_York"}';
@@ -454,7 +461,7 @@ describe('Test clasp apis functions', () => {
       CLASP, ['apis', 'unknown'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain('Unknown command "apis unknown"');
+    expect(result.stderr).to.contain(`Unknown command "${PROJECT_NAME} apis unknown"`);
   });
 });
 
@@ -503,7 +510,7 @@ describe('Test unknown functions', () => {
     const result = spawnSync(
       CLASP, ['unknown'], { encoding: 'utf8' },
     );
-    expect(result.stderr).to.contain('🤔  Unknown command "unknown"');
+    expect(result.stderr).to.contain(`🤔  Unknown command "${PROJECT_NAME} unknown"`);
     expect(result.status).to.equal(1);
   });
 });
