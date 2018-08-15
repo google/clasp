@@ -454,7 +454,7 @@ describe('Test clasp apis functions', () => {
       CLASP, ['apis', 'unknown'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain('Unknown command "clasp apis unknown"');
+    expect(result.stderr).to.contain('Unknown command "apis unknown"');
   });
 });
 
@@ -503,7 +503,7 @@ describe('Test unknown functions', () => {
     const result = spawnSync(
       CLASP, ['unknown'], { encoding: 'utf8' },
     );
-    expect(result.stderr).to.contain('🤔  Unknown command "clasp unknown"');
+    expect(result.stderr).to.contain('🤔  Unknown command "unknown"');
     expect(result.status).to.equal(1);
   });
 });
