@@ -575,6 +575,10 @@ export const apis = async () => {
     list,
     enable: () => {console.log('In development...');},
     disable: () => {console.log('In development...');},
+    undefined: () => {console.log(`Try:
+    clasp apis list
+    clasp apis enable abusiveexperiencereport:v1
+    clasp apis disable abusiveexperiencereport:v1`);},
   };
   if (command[subcommand]) {
     command[subcommand]();
