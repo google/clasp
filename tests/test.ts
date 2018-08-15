@@ -447,9 +447,7 @@ describe('Test clasp apis functions', () => {
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain(`Try:
-    clasp apis list
-    clasp apis enable abusiveexperiencereport:v1
-    clasp apis disable abusiveexperiencereport:v1`);
+    clasp apis list`);
   });
   it('should error with unknown subcommand', () => {
     const result = spawnSync(
