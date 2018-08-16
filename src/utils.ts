@@ -44,8 +44,8 @@ export interface ClaspSettings {
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
   scriptId: string;
-  rootDir: string;
-  projectId: string;
+  rootDir?: string;
+  projectId?: string;
 }
 
 export const DOTFILE = {
@@ -272,11 +272,14 @@ export async function checkIfOnline() {
 }
 
 /**
- * Saves the script ID in the project dotfile.
+ * Saves the script ID, rootDir in the project dotfile.
  * @param  {string} scriptId The script ID
+ * @param  {string} rootDir Local root directory that store your project files
  */
-export async function saveProjectId(scriptId: string): Promise<string> {
-  return DOTFILE.PROJECT().write({ scriptId }); // Save the script id
+export async function saveProject(scriptId: string, rootDir?: string): Promise<ProjectSettings> {
+  const project: ProjectSettings = { scriptId };
+  project.rootDir = project.rootDir || rootDir;
+  return DOTFILE.PROJECT().write(project);
 }
 
 /**

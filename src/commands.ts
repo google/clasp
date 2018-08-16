@@ -17,7 +17,7 @@ import {
   getScriptURL,
   logError,
   manifestExists,
-  saveProjectId,
+  saveProject,
   spinner,
   getWebApplicationURL,
 } from './utils';
@@ -86,8 +86,12 @@ export const defaultCmd = (command: string) => {
  * Creates a new Apps Script project.
  * @param title {string} The title of the Apps Script project's file
  * @param parentId {string} The Drive ID of the G Suite doc this script is bound to.
+ * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
+ *                    If not specified, clasp will default to the current directory.
  */
-export const create = async (title: string, parentId: string) => {
+export const create = async (title: string, parentId: string, cmd: {
+  rootDir: string,
+}) => {
   await checkIfOnline();
   if (hasProject()) {
     logError(null, ERROR.FOLDER_EXISTS);
@@ -119,9 +123,10 @@ export const create = async (title: string, parentId: string) => {
       spinner.stop(true);
       const createdScriptId = res.data.scriptId;
       console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
-      saveProjectId(createdScriptId);
+      const rootDir = cmd.rootDir;
+      saveProject(createdScriptId, rootDir);
       if (!manifestExists()) {
-        fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
+        fetchProject(createdScriptId, rootDir); // fetches appsscript.json, o.w. `push` breaks
       }
     }).catch((error: object) => {
       spinner.stop(true);
@@ -166,7 +171,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
         }]).then((answers: any) => {
           checkIfOnline();
           spinner.setSpinnerTitle(LOG.CLONING);
-          saveProjectId(answers.scriptId);
+          saveProject(answers.scriptId);
           fetchProject(answers.scriptId, '', versionNumber);
         }).catch((err: any) => {
           console.log(err);
@@ -176,7 +181,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       }
     } else {
       spinner.setSpinnerTitle(LOG.CLONING);
-      saveProjectId(scriptId);
+      saveProject(scriptId);
       fetchProject(scriptId, '', versionNumber);
     }
   }
