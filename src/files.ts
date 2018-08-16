@@ -55,16 +55,16 @@ export function hasProject(): boolean {
 /**
  * Recursively finds all files that are part of the current project, and those that are ignored
  * by .claspignore and calls the passed callback function with the file lists.
- * @param {string | undefined} rootDir The project's root directory
+ * @param {string} rootDir The project's root directory
  * @param {FilesCallBack} callback The callback will be called with the following paramters
  *   error: Error if there's an error, otherwise null
  *   result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
  *   files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
  */
-export function getProjectFiles(rootDir: string | undefined, callback: FilesCallback): void {
+export function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback): void {
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-  recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
+  recursive(rootDir, (err, filePaths) => {
     if (err) return callback(err, null, null);
     // Filter files that aren't allowed.
     DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
