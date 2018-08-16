@@ -278,9 +278,7 @@ export async function checkIfOnline() {
  */
 export async function saveProject(scriptId: string, rootDir?: string): Promise<ProjectSettings> {
   const project: ProjectSettings = { scriptId };
-  if (rootDir) {
-    project.rootDir = rootDir;
-  }
+  project.rootDir = project.rootDir || rootDir;
   return DOTFILE.PROJECT().write(project);
 }
 
