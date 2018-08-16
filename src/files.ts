@@ -61,10 +61,10 @@ export function hasProject(): boolean {
  *   result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
  *   files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
  */
-export function getProjectFiles(rootDir: string, callback: FilesCallback): void {
+export function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback): void {
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-  recursive(rootDir || path.join('.', '/'), (err, filePaths) => {
+  recursive(rootDir, (err, filePaths) => {
     if (err) return callback(err, null, null);
     // Filter files that aren't allowed.
     DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
