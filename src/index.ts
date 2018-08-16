@@ -91,6 +91,7 @@ commander
  *   that the created script project is bound to. This is usually the ID of a
  *   Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a
  *   standalone script project is created.
+ * @param {string?} [--rootDir] Local root directory that store your project files.
  * @example create
  * @example create "My Script"
  * @example create "My Script" "1D_Gxyv*****************************NXO7o"
@@ -99,6 +100,7 @@ commander
 commander
   .command('create [scriptTitle] [scriptParentId]')
   .description('Create a script')
+  .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
   .action(create);
 
 /**
