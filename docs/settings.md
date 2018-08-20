@@ -33,6 +33,11 @@ You can get autocompletion for `appsscript.json` and `.clasp.json` in VSCode by 
     - `appsscript.json` – Apps Script manifest
     - `.clasp.json` – Clasp Project settings
 
+### Other IDEs
+
+- [IntelliJ instructions](https://www.jetbrains.com/help/idea/settings-languages-json-schema.html)
+- [Sublime instructions](https://packagecontrol.io/packages/Schema%20Validator)
+
 ## `.gs` Syntax highlighting
 
 You can also add `gs` color coding if you prefer not to use `js` or `ts` via this property in the same settings file:
