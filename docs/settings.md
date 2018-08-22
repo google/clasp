@@ -4,6 +4,8 @@ These 1-time-setup settings can enhance your Google Apps Script developer experi
 
 ## `appsscript.json` and `.clasp.json` Autocompletion
 
+![autocompletion](https://user-images.githubusercontent.com/744973/44441171-2b8f2b00-a580-11e8-9470-4a846066de8e.gif)
+
 You can get autocompletion for `appsscript.json` and `.clasp.json` in VSCode by following these steps:
 
 1. Open VSCode settings.
