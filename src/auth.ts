@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as fs from 'fs';
 /**
  * Authentication with Google's APIs.
  */
@@ -8,7 +7,6 @@ import { AddressInfo } from 'net';
 import * as url from 'url';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import { Discovery } from 'googleapis/build/src/apis/discovery/v1';
 import { Discovery } from 'googleapis/build/src/apis/discovery/v1';
 import { Drive } from 'googleapis/build/src/apis/drive/v3';
 import { Logging } from 'googleapis/build/src/apis/logging/v2';
