@@ -349,52 +349,9 @@ sudo npm install n -g
 sudo n latest
 ```
 
-## Develop
+## Develop clasp
 
-The Apps Script CLI uses TypeScript to provide autocompletion and linting when developing.
-Use an IDE like **Visual Studio Code** for TypeScript autocompletion.
-
-### Setup
-
-- Install `tsc`: `npm install -g typescript`
-- Remove your local version of `clasp`: `sudo npm uninstall -g @google/clasp`
-  - This will prevent errors when updating `node_modules`.
-- Install dependencies: `npm i`
-
-### After Making a Change
-
-```sh
-sudo npm run build;
-clasp <command>
-```
-
-(If you see build errors, run `sudo npm run build-fresh`)
-
-### Run Tests
-
-```sh
-sudo npm run build;
-npm run test
-```
-
-See [tests/](tests/) for more information.
-
-### Lint
-
-- Use `npm run lint` to find common style errors.
-- Download [sort-imports](https://marketplace.visualstudio.com/items?itemName=amatiasq.sort-imports) for VSC to automatically sort imports.
-
-### Generate Docs
-
-The core "How To" section of the docs is generated from JSDoc comments from `index.ts`.
-
-Run `npm run docs` to build the "How To" section. Copy/paste that section into the README.md.
-
-### Publishing `clasp` to npm (admin)
-
-1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.
-1. Bump version: `npm version [major|minor|patch] -m "Bump version to %s"`
-1. Publish with: `npm run publish`
+See [docs/develop](docs/develop) for instructions on how to build `clasp`. It's not that hard!
 
 ## Contributing
 
