@@ -15,11 +15,11 @@ import {
   checkIfOnline,
   getProjectSettings,
   getScriptURL,
+  getWebApplicationURL,
   logError,
   manifestExists,
   saveProjectId,
   spinner,
-  getWebApplicationURL,
 } from './utils';
 const open = require('opn');
 const commander = require('commander');
@@ -123,8 +123,11 @@ export const create = async (title: string, parentId: string) => {
       if (!manifestExists()) {
         fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
       }
-    }).catch((error: object) => {
+    }).catch((error: any) => {
       spinner.stop(true);
+      if (parentId) {
+        console.log(error.errors[0].message, ERROR.CREATE_WITH_PARENT);
+      }
       logError(error, ERROR.CREATE);
     });
   }
@@ -146,6 +149,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       const list = await drive.files.list({
         pageSize: 10,
         fields: 'files(id, name)',
+        orderBy: 'modifiedByMeTime desc',
         q: 'mimeType="application/vnd.google-apps.script"',
       });
       const data = list.data;
