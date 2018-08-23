@@ -22,9 +22,9 @@ This quickstart guide describes how to create a TypeScript project from scratch.
 ### Prerequisites
 
 1. Ensure you have upgrade to clasp >= 1.5.0
-  - `clasp -v`
+    - `clasp -v`
 1. Install TypeScript definitions for Apps Script in your project's folder.
-  - `npm i -S @types/google-apps-script`
+    - `npm i -S @types/google-apps-script`
 
 ### Create the TypeScript Project
 
@@ -188,6 +188,8 @@ In most cases, the inferred type is sufficient for Apps Script autocompletion.
 ### Advanced Services
 
 Enableing advanced services modifies the `appsscript.json` file on script.google.com. After enabling an advanced service in the UI, copy the `appsscript.json` file from script.google.com into your editor to use the advanced services in your project.
+
+Advanced Service currently do not have TypeScript autocompletion.
 
 ### TypeScript Support
 

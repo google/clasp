@@ -40,13 +40,13 @@ clear
     - `slides.js`
     - `sheets.js`
 
-**🔷 (experimental!) Write Apps Script in TypeScript:** Write your Apps Script projects using [TypeScript features](docs/typescript.md):
+**🔷 Write Apps Script in TypeScript:** Write your Apps Script projects using TypeScript features:
 - Arrow functions
 - Optional structural typing
 - Classes
 - Type inference
 - Interfaces
-- And more...
+- [And more...](docs/typescript.md)
 
 ## Install
 
@@ -70,7 +70,7 @@ clasp
 ```
 - [`clasp login [--no-localhost]`](#login)
 - [`clasp logout`](#logout)
-- [`clasp create [scriptTitle] [scriptParentId]`](#create)
+- [`clasp create [scriptTitle] [scriptParentId] [--rootDir]`](#create)
 - [`clasp clone <scriptId>`](#clone)
 - [`clasp pull`](#pull)
 - [`clasp push [--watch]`](#push)
@@ -110,12 +110,14 @@ Creates a new script project.
 
 - `scriptTitle`: An optional project title.
 - `scriptParentId`: An optional project parent Id. The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
+- `rootDir`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
 
 #### Examples
 
 - `clasp create`
 - `clasp create "My Script"`
 - `clasp create "My Script" "1D_Gxyv*****************************NXO7o"`
+- `clasp create "My Script" "1D_Gxyv*****************************NXO7o" --rootDir ./dist`
 
 ### Pull
 
