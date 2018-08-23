@@ -7,11 +7,11 @@ import * as tmp from 'tmp';
 import { getFileType } from './../src/files';
 import {
   ERROR,
+  PROJECT_NAME,
   getAPIFileType,
   getScriptURL,
   getWebApplicationURL,
   saveProject,
-  PROJECT_NAME,
 } from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
@@ -222,7 +222,11 @@ describe('Test clasp status function', () => {
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
-    expect(resultJson.untrackedFiles).to.have.members(['shouldBeIgnored', 'should/alsoBeIgnored']);
+    expect(resultJson.untrackedFiles).to.have.members([
+      '.claspignore', // TODO Should these be untracked?
+      'should/alsoBeIgnored',
+      'shouldBeIgnored',
+    ]);
     expect(resultJson.filesToPush).to.have.members(['build/main.js', 'appsscript.json']);
   });
   it('should ignore dotfiles if the parent folder is ignored', () => {
@@ -236,7 +240,9 @@ describe('Test clasp status function', () => {
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
-      'node_modules/fsevents/build/Release/.deps/Release/.node.d']);
+      '.claspignore', // TODO Should these be untracked?
+      'node_modules/fsevents/build/Release/.deps/Release/.node.d',
+    ]);
     expect(resultJson.filesToPush).to.have.members(['appsscript.json']);
   });
   it('should respect globs and negation rules when rootDir given', () => {
