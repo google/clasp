@@ -76,7 +76,7 @@ This section tracks which `clasp` commands are tested. Unchecked checkboxes are 
 * [ ] clasp redeploy <deploymentId> <version> <description>
 * [ ] clasp version [description]
 * [x] clasp versions
-* [x] saveProjectId
+* [x] saveProject
 * [x] getScriptURL
 * [x] getFileType
 * [x] getAPIFileType

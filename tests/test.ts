@@ -5,7 +5,14 @@ import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
 import { getFileType } from './../src/files';
-import { ERROR, getAPIFileType, getScriptURL, getWebApplicationURL, saveProjectId } from './../src/utils.js';
+import {
+  ERROR,
+  getAPIFileType,
+  getScriptURL,
+  getWebApplicationURL,
+  saveProject,
+  PROJECT_NAME,
+} from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
 const TEST_JSON = '{"timeZone": "America/New_York"}';
@@ -406,13 +413,23 @@ describe('Test getAPIFileType function from utils', () => {
   });
 });
 
-describe('Test saveProjectId function from utils', () => {
+describe('Test saveProject function from utils', () => {
   it('should save the scriptId correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
-      await saveProjectId('12345');
+      await saveProject('12345');
       const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345"}');
+    };
+    expect(isSaved).to.not.equal(null);
+  });
+
+  it('should save the scriptId, rootDir correctly', () => {
+    spawnSync('rm', ['.clasp.json']);
+    const isSaved = async () => {
+      await saveProject('12345', './dist');
+      const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
+      expect(id).to.equal('{"scriptId":"12345","rootDir":"./dist"}');
     };
     expect(isSaved).to.not.equal(null);
   });
@@ -421,7 +438,7 @@ describe('Test saveProjectId function from utils', () => {
 describe('Test clasp apis functions', () => {
   it('should list apis correctly', () => {
     const result = spawnSync(
-      'clasp', ['apis', 'list'], { encoding: 'utf8' },
+      CLASP, ['apis', 'list'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('abusiveexperiencereport   - abusiveexperiencereport:v1');
@@ -429,24 +446,32 @@ describe('Test clasp apis functions', () => {
   });
   it('should enable apis correctly', () => {
     const result = spawnSync(
-      'clasp', ['apis', 'enable'], { encoding: 'utf8' },
+      CLASP, ['apis', 'enable'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('In development...');
   });
   it('should disable apis correctly', () => {
     const result = spawnSync(
-      'clasp', ['apis', 'disable'], { encoding: 'utf8' },
+      CLASP, ['apis', 'disable'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('In development...');
   });
+  it('should show suggestions for using clasp apis', () => {
+    const result = spawnSync(
+      CLASP, ['apis'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(`Try:
+    clasp apis list`);
+  });
   it('should error with unknown subcommand', () => {
     const result = spawnSync(
-      'clasp', ['apis', 'unknown'], { encoding: 'utf8' },
+      CLASP, ['apis', 'unknown'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain('Unknown command "apis unknown"');
+    expect(result.stderr).to.contain(`Unknown command "${PROJECT_NAME} apis unknown"`);
   });
 });
 
@@ -495,7 +520,7 @@ describe('Test unknown functions', () => {
     const result = spawnSync(
       CLASP, ['unknown'], { encoding: 'utf8' },
     );
-    expect(result.stderr).to.contain('🤔  Unknown command "unknown"');
+    expect(result.stderr).to.contain(`🤔  Unknown command "${PROJECT_NAME} unknown"`);
     expect(result.status).to.equal(1);
   });
 });
