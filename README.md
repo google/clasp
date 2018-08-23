@@ -351,7 +351,7 @@ sudo n latest
 
 ## Develop clasp
 
-See [docs/develop](docs/develop) for instructions on how to build `clasp`. It's not that hard!
+See [the develop guide](docs/develop.md) for instructions on how to build `clasp`. It's not that hard!
 
 ## Contributing
 
