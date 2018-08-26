@@ -102,7 +102,7 @@ async function authorizeWithLocalhost() {
   // the server port needed to set up the Oauth2Client.
   const server = await new Promise<http.Server>((resolve, _) => {
     const s = http.createServer();
-    s.listen(0, () => resolve(s));
+    s.listen(process.env.CLASP_AUTH_PORT || 0, () => resolve(s));
   });
   const port = (server.address() as AddressInfo).port; // (Cast from <string | AddressInfo>)
   const client = new OAuth2Client({
