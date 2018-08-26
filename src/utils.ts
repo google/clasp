@@ -99,9 +99,6 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   NO_CREDENTIALS: 'Could not read API credentials. Are you logged in?',
   NO_WEBAPP: (deploymentId: string) => `Deployment "${deploymentId}" is not deployed as WebApp.`,
   NO_FUNCTION_NAME: 'N/A',
-  NO_GCLOUD_PROJECT: `\nPlease set your projectId in your .clasp.json file to your Google Cloud project ID. \n
-  You can find your projectId by following the instructions in the README here: \n
-  https://github.com/google/clasp#get-project-id`,
   NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
   PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
@@ -109,9 +106,10 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
 https://script.google.com/home/usersettings`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
-  SCRIPT_ID_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
+  SCRIPT_ID_DNE: `No scriptId found in your ${DOT.PROJECT.PATH} file.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
+  SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
 };
 
@@ -134,9 +132,12 @@ export const LOG = {
   FILES_TO_PUSH: 'Files to push were:',
   FINDING_SCRIPTS: 'Finding your scripts...',
   FINDING_SCRIPTS_DNE: 'No script files found.',
+  LOGS_SETUP: 'Finished setting up logs.\n',
+  NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   OPEN_WEBAPP: (deploymentId: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
+  SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit \n`,
   STATUS_PUSH: 'Not ignored files:',
   STATUS_IGNORE: 'Ignored files:',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
@@ -222,7 +223,7 @@ export function getProjectSettings(failSilently?: boolean): Promise<ProjectSetti
   const promise = new Promise<ProjectSettings>((resolve, reject) => {
     const fail = (failSilently?: boolean) => {
       if (!failSilently) {
-        logError(null, ERROR.SCRIPT_ID_DNE);
+        logError(null, ERROR.SETTINGS_DNE);
         reject();
       }
       resolve();

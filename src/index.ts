@@ -251,7 +251,7 @@ commander
   .action(list);
 
 /**
- * Prints out 5 most recent the StackDriver logs.
+ * Prints out the StackDriver logs.
  * @name logs
  * @param {boolean?} json Output logs in json format.
  * @param {boolean?} open Open StackDriver logs in a browser.
@@ -261,6 +261,7 @@ commander
   .description('Shows the StackDriver logs')
   .option('--json', 'Show logs in JSON form')
   .option('--open', 'Open the StackDriver logs in browser')
+  .option('--setup', 'Setup StackDriver logs')
   .action(logs);
 
 /**

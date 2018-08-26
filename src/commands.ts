@@ -8,6 +8,7 @@ import { discovery, drive, loadAPICredentials, logger, script } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
   DOT,
+  DOTFILE,
   ERROR,
   LOG,
   PROJECT_MANIFEST_BASENAME,
@@ -207,6 +208,7 @@ export const logout = () => {
 export const logs = async (cmd: {
   json: boolean,
   open: boolean,
+  setup: boolean,
 }) => {
   await checkIfOnline();
   function printLogs(entries: any[]) {
@@ -243,8 +245,48 @@ export const logs = async (cmd: {
       console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
     }
   }
-  const { projectId } = await getProjectSettings();
-  if (!projectId) logError(null, ERROR.NO_GCLOUD_PROJECT);
+  async function setupLogs(projectId?: string): Promise<string> {
+    const promise = new Promise<string>((resolve, reject) => {
+      getProjectSettings().then((projectSettings) => {
+        console.log('Open this link: ', LOG.SCRIPT_LINK(projectSettings.scriptId));
+        console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
+(including "project-id-")\n`);
+        prompt([{
+          type : 'input',
+          name : 'projectId',
+          message : 'What is your GCP projectId?',
+        }]).then((answers: any) => {
+          projectId = answers.projectId;
+          const dotfile = DOTFILE.PROJECT();
+          if (dotfile) {
+            dotfile.read().then((settings: ProjectSettings) => {
+              if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
+              dotfile.write({scriptId: settings.scriptId, projectId});
+              resolve(projectId);
+            }).catch((err: object) => {
+              reject(logError(err));
+            });
+          } else {
+            reject(logError(null, ERROR.SETTINGS_DNE));
+          }
+        }).catch((err: any) => {
+          reject(console.log(err));
+        });
+      });
+    });
+    promise.catch(err => {
+      logError(err);
+      spinner.stop(true);
+    });
+    return promise;
+  }
+  let { projectId } = await getProjectSettings();
+  projectId = cmd.setup ? await setupLogs() : projectId;
+  if (!projectId) {
+    console.log(LOG.NO_GCLOUD_PROJECT);
+    projectId = await setupLogs();
+    console.log(LOG.LOGS_SETUP);
+  }
   if (cmd.open) {
     const url = 'https://console.cloud.google.com/logs/viewer?project=' +
         `${projectId}&resource=app_script_function`;
@@ -261,6 +303,7 @@ export const logs = async (cmd: {
   const data = logs.data;
   if (!data) return logError(logs.statusText, 'Unable to query StackDriver logs');
   printLogs(data.entries);
+
 };
 
 /**

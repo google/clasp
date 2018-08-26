@@ -481,6 +481,28 @@ describe('Test clasp apis functions', () => {
   });
 });
 
+describe('Test clasp logs function', () => {
+  before(function() {
+    if (isPR !== 'false') {
+      this.skip();
+    }
+    setup();
+  });
+  it('should prompt for logs setup', () => {
+    const result = spawnSync(
+      CLASP, ['logs', '--setup'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain('Open this link:');
+    const scriptId = JSON.parse(CLASP_SETTINGS).scriptId;
+    expect(result.stdout).to.include(`https://script.google.com/d/${scriptId}/edit`);
+    expect(result.stdout).to.contain('Go to *Resource > Cloud Platform Project...*');
+    expect(result.stdout).to.include('and copy your projectId\n(including "project-id-")');
+    expect(result.stdout).to.contain('What is your GCP projectId?');
+  });
+  after(cleanup);
+});
+
 describe('Test clasp logout function', () => {
   it('should logout correctly', () => {
     fs.writeFileSync('.clasprc.json', TEST_JSON);
@@ -556,7 +578,7 @@ describe('Test all functions while logged out', () => {
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SCRIPT_ID_DNE);
+    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
   });
   it('should fail to open (no .clasp.json file)', () => {
     const result = spawnSync(
@@ -565,7 +587,7 @@ describe('Test all functions while logged out', () => {
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SCRIPT_ID_DNE);
+    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
   });
   // Skipping this, see: https://github.com/tj/commander.js/issues/840
   it.skip('should fail to redeploy (missing argument version)', () => {
@@ -590,6 +612,6 @@ describe('Test all functions while logged out', () => {
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SCRIPT_ID_DNE);
+    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
   });
 });
