@@ -251,7 +251,7 @@ commander
   .action(list);
 
 /**
- * Prints out the StackDriver logs.
+ * Prints StackDriver logs.
  * @name logs
  * @param {boolean?} json Output logs in json format.
  * @param {boolean?} open Open StackDriver logs in a browser.

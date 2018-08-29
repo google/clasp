@@ -303,7 +303,6 @@ export const logs = async (cmd: {
   const data = logs.data;
   if (!data) return logError(logs.statusText, 'Unable to query StackDriver logs');
   printLogs(data.entries);
-
 };
 
 /**
