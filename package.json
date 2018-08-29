@@ -64,6 +64,7 @@
     "split-lines": "^1.1.0",
     "string.prototype.padend": "^3.0.0",
     "ts2gas": "^1.2.0",
+    "ucfirst": "^1.0.0",
     "url": "^0.11.0",
     "watch": "^1.0.2"
   },
@@ -93,7 +94,6 @@
     "parse-comments": "^0.4.3",
     "tmp": "0.0.33",
     "tslint": "^5.10.0",
-    "typescript": "^2.8.4",
-    "ucfirst": "^1.0.0"
+    "typescript": "^2.8.4"
   }
 }

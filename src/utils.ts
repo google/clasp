@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { Spinner } from 'cli-spinner';
 import * as pluralize from 'pluralize';
+const ucfirst = require('ucfirst');
 const path = require('path');
 const findParentDir = require('find-parent-dir');
 const splitLines = require('split-lines');
@@ -149,7 +150,6 @@ export const LOG = {
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploy ${deploymentId}...`,
-  UNTITLED_SCRIPT_TITLE: 'Untitled Script',
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: string) => `Created version ${versionNumber}.`,
   VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
@@ -210,6 +210,14 @@ export function getWebApplicationURL(deployment: any) {
     logError(null, ERROR.NO_WEBAPP(deployment.deploymentId));
   }
   return webEntryPoint.webApp.url;
+}
+
+/**
+ * Gets default project name.
+ * @return {string} default project name.
+ */
+export function getDefaultProjectName(): string {
+  return ucfirst(path.basename(process.cwd()));
 }
 
 /**

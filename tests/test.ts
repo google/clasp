@@ -12,6 +12,7 @@ import {
   getScriptURL,
   getWebApplicationURL,
   saveProject,
+  getDefaultProjectName,
 } from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
@@ -398,6 +399,12 @@ describe('Test getWebApplicationURL function from utils', () => {
       ],
     });
     expect(url).to.equal('https://script.google.com/macros/s/abcdefghijklmnopqrstuvwxyz/exec');
+  });
+});
+
+describe('Test getDefaultProjectName function from utils', () => {
+  it('should return the current directory name correctly', () => {
+    expect(getDefaultProjectName()).to.equal('Clasp');
   });
 });
 
