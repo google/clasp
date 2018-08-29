@@ -13,6 +13,7 @@ import {
   PROJECT_MANIFEST_BASENAME,
   ProjectSettings,
   checkIfOnline,
+  getDefaultProjectName,
   getProjectSettings,
   getScriptURL,
   getWebApplicationURL,
@@ -102,7 +103,7 @@ export const create = async (title: string, parentId: string, cmd: {
         type : 'input',
         name : 'title',
         message : 'Give a script title:',
-        default: LOG.UNTITLED_SCRIPT_TITLE,
+        default: getDefaultProjectName(),
       }]).then((answers: any) => {
         title = answers.title;
       }).catch((err: any) => {
