@@ -47,6 +47,7 @@ export interface ProjectSettings {
   scriptId: string;
   rootDir?: string;
   projectId?: string;
+  fileExtension?: string;
 }
 
 export const DOTFILE = {
