@@ -413,6 +413,14 @@ describe('Test getFileType function from utils', () => {
     expect(getFileType('SERVER_JS')).to.equal('js');
     expect(getFileType('GS')).to.equal('gs');
     expect(getFileType('JS')).to.equal('js');
+    expect(getFileType('HTML')).to.equal('html');
+  });
+
+  it('should return the specified file extention if the file type is SERVER_JS', () => {
+    expect(getFileType('SERVER_JS', 'gs')).to.equal('gs');
+    expect(getFileType('GS', 'js')).to.equal('gs');
+    expect(getFileType('JS', 'gs')).to.equal('js');
+    expect(getFileType('HTML', 'js')).to.equal('html');
   });
 });
 
