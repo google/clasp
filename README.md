@@ -339,6 +339,10 @@ Specifies the id of the Google Script project that clasp will target. It is the 
 
 Specifies the **local** directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
 
+### `fileExtension` (optional)
+
+Specifies the file extension for **local** script files in your Apps Script project.
+
 ## Troubleshooting
 
 The library requires **Node version >= 4.7.4**. Use this script to check your version and **upgrade Node if necessary**:
