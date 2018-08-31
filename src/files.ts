@@ -40,8 +40,10 @@ interface FilesCallback {
  * @return {string}      The file type
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
  */
-export function getFileType(type: string): string {
-  return (type === 'SERVER_JS') ? 'js' : type.toLowerCase();
+export function getFileType(type: string, fileExtension?: string): string {
+  return (type === 'SERVER_JS')
+    ? fileExtension || 'js'
+    : type.toLowerCase();
 }
 
 /**
@@ -188,6 +190,7 @@ export function getProjectFiles(rootDir: string = path.join('.', '/'), callback:
 export async function fetchProject(scriptId: string, rootDir = '', versionNumber?: number) {
   await checkIfOnline();
   await loadAPICredentials();
+  const { fileExtension } = await getProjectSettings();
   spinner.start();
   script.projects.getContent({
     scriptId,
@@ -206,7 +209,7 @@ export async function fetchProject(scriptId: string, rootDir = '', versionNumber
       console.log(LOG.CLONE_SUCCESS(data.files.length));
       const sortedFiles = data.files.sort((file: AppsScriptFile) => file.name);
       sortedFiles.map((file: AppsScriptFile) => {
-        const filePath = `${file.name}.${getFileType(file.type)}`;
+        const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
         const truePath = `${rootDir || '.'}/${filePath}`;
         mkdirp(path.dirname(truePath), (err) => {
           if (err) return logError(err, ERROR.FS_DIR_WRITE);
