@@ -94,6 +94,9 @@ Logs the user in. Saves the client credentials to an rc file.
 - `--no-localhost`: Do not run a local server, manually enter code instead.
 - `--ownkey`: Save .clasprc.json file to current working directory.
 
+##### Environment Variables
+- CLASP_AUTH_PORT - Clasp uses a random port when running the local server. If you need to set the port explicity you can use this environment variable to set it. Ex: CLASP_AUTH_PORT=9000.
+
 ### Logout
 
 Logs out the user by deleting client credentials.
