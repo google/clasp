@@ -119,6 +119,18 @@ Creates a new script project.
 - `clasp create "My Script" "1D_Gxyv*****************************NXO7o"`
 - `clasp create "My Script" "1D_Gxyv*****************************NXO7o" --rootDir ./dist`
 
+### Clone
+
+Clones the script from script.google.com
+
+#### Options
+
+- `scriptId`: The script project to clone.
+
+#### Examples
+
+- `clasp clone scriptId`
+
 ### Pull
 
 Fetches a project from either a provided or saved script id.
