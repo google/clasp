@@ -92,7 +92,7 @@ Logs the user in. Saves the client credentials to an rc file.
 #### Options
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
-- `--ownkey`: Save .clasprc.json file to current working directory.
+- `--creds`: Save .clasprc.json file to current working directory.
 
 ### Logout
 

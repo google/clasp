@@ -273,7 +273,7 @@ commander
  * @param {string} functionName The function in the script that you want to run.
  * @example run 'sendEmail'
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run
- * @requires `clasp login --ownkey` to be run beforehand.
+ * @requires `clasp login --creds` to be run beforehand.
  */
 commander
   .command('run <functionName>')
