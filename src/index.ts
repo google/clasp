@@ -122,6 +122,7 @@ commander
 commander
   .command('pull')
   .description('Fetch a remote project')
+  .option('--version <version>', 'The version number of the project to retrieve.')
   .action(pull);
 
 /**
@@ -303,12 +304,6 @@ commander
   .action(help);
 
 /**
- * Displays clasp version
- */
-commander
-.version(require('../package.json').version, '-v, --version');
-
-/**
  * All other commands are given a help message.
  * @example random
  */
@@ -322,5 +317,20 @@ if (!process.argv.slice(2).length) {
   commander.outputHelp();
 }
 
+const versionOption = Symbol('version');
+/**
+ * Displays clasp version
+ */
+commander
+  .option('-v, --version')
+  .on('option:version', () => {
+    commander[versionOption] = true;
+  });
+
 // User input is provided from the process' arguments
 commander.parse(process.argv);
+
+// Specified `--version` option with no sub-command
+if (commander[versionOption] && !commander.args[0]) {
+  console.log(require('../package.json').version);
+}
