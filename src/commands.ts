@@ -31,13 +31,17 @@ const padEnd = require('string.prototype.padend');
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
+ * @param cmd.version {number} The version number of the project to retrieve.
+ *                             If not provided, the project's HEAD version is returned.
  */
-export const pull = async () => {
+export const pull = async (cmd: {
+  version: number;
+}) => {
   await checkIfOnline();
   const { scriptId, rootDir } = await getProjectSettings();
   if (scriptId) {
     spinner.setSpinnerTitle(LOG.PULLING);
-    fetchProject(scriptId, rootDir);
+    fetchProject(scriptId, rootDir, cmd.version);
   }
 };
 

@@ -72,7 +72,7 @@ clasp
 - [`clasp logout`](#logout)
 - [`clasp create [scriptTitle] [scriptParentId] [--rootDir]`](#create)
 - [`clasp clone <scriptId>`](#clone)
-- [`clasp pull`](#pull)
+- [`clasp pull [--version]`](#pull)
 - [`clasp push [--watch]`](#push)
 - [`clasp open [scriptId] [--webapp]`](#open)
 - [`clasp deployments`](#deployments)
@@ -136,9 +136,14 @@ Clones the script from script.google.com
 Fetches a project from either a provided or saved script id.
 Updates local files with Apps Script project.
 
+#### Options
+
+- `version`: The version number of the project to retrieve.
+
 #### Examples
 
 - `clasp pull`
+- `clasp pull --version 23`
 
 ### Push
 
