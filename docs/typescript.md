@@ -92,7 +92,7 @@ let notSure: any = 4;
 notSure = "maybe a string instead";
 notSure = false; // okay, definitely a boolean
 function showMessage(data: string): void { // Void
- alert(data);
+ console.log(data);
 }
 showMessage('hello');
 
