@@ -37,12 +37,39 @@ export const DOT = {
   },
 };
 
-// Clasp settings file (Saved in ~/.clasprc.json)
-export interface ClaspSettings {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
+// Default OAuth client settings file (Saved in ~/.clasprc.json)
+// google-auth-library { Credentials }
+interface ClaspSettingsDefault {
+  access_token?: string | null;
+  refresh_token?: string | null;
+  token_type?: string | null;
 }
+
+// Local OAuth client settings file (Saved in ./.clasprc.json)
+interface ClaspSettingsLocal {
+  // google-auth-library { Credentials }
+  token: {
+    access_token?: string | null;
+    refresh_token?: string | null;
+    token_type?: string | null;
+  };
+  oauth2ClientSettings: {
+    clientId: string;
+    clientSecret: string;
+  };
+}
+
+// TODO should be single iface { token: {}, oauth2ClientSettings: {} }
+export type ClaspSettings = ClaspSettingsDefault | ClaspSettingsLocal;
+
+/**
+ * Type guard for {ClaspSettings} union
+ * @param {ClaspSettings} settings
+ * @return {boolean}
+ */
+export const isLocalCreds = (settings: ClaspSettings): settings is ClaspSettingsLocal =>
+  (settings as ClaspSettingsLocal).oauth2ClientSettings !== undefined;
+
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
   scriptId: string;
@@ -76,10 +103,43 @@ export const DOTFILE = {
     const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
     return dotf(projectDirectory, DOT.PROJECT.NAME);
   },
-  // See `login`: Stores { accessToken, refreshToken }
+  // Stores {ClaspSettingsDefault}
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
+  // Stores {ClaspSettingsLocal}
   RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME),
 };
+
+/**
+ * Checks if local OAuth client settings rc file exisits.
+ * @return {boolean}
+ */
+export const localOathSettingsExist = (): boolean =>
+  fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH);
+
+/**
+ * Checks if default OAuth client settings rc file exisits.
+ * @return {boolean}
+ */
+export const defaultOathSettingsExist = (): boolean =>
+  fs.existsSync(DOT.RC.ABSOLUTE_PATH);
+
+/**
+ * Gets the OAuth client settings from rc file.
+ * Should be used instead of `DOTFILE.RC?().read()`
+ * TODO sanity checks & single ClaspSettings iface with backwards compatibility
+ * @returns {Promise<ClaspSettings>} A promise to get the rc file as object.
+ */
+export function getOAuthSettings(): Promise<ClaspSettings> {
+  return DOTFILE.RC_LOCAL.read()
+    .then((rc: ClaspSettingsLocal) => rc)
+    .catch((err: any) => {
+      return DOTFILE.RC.read()
+        .then((rc: ClaspSettingsDefault) => rc)
+        .catch((err: any) => {
+          logError(err, ERROR.NO_CREDENTIALS);
+        });
+    });
+}
 
 // Error messages (some errors take required params)
 export const ERROR = {
@@ -140,6 +200,8 @@ export const LOG = {
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   OPEN_WEBAPP: (deploymentId: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
+  SAVED_CREDS: `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
+  SAVED_LOCAL_CREDS: `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME}.`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit \n`,
   STATUS_PUSH: 'Not ignored files:',
   STATUS_IGNORE: 'Ignored files:',
