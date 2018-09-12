@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
-import { getFileType } from './../src/files';
+import { getFileType, getAppsScriptFileName } from './../src/files';
 import {
   ERROR,
   PROJECT_NAME,
@@ -26,6 +26,9 @@ const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
 const cleanup = () => {
   fs.removeSync('.clasp.json');
+  fs.removeSync('.claspignore');
+  fs.removeSync('Code.js');
+  fs.removeSync('appsscript.json');
 };
 
 const setup = () => {
@@ -316,8 +319,10 @@ describe('Test clasp deploy function', () => {
       CLASP, ['deploy'], { encoding: 'utf8' },
     );
     if (result.stderr) {
-      expect(result.stderr).to.contain('Unable to deploy;');
-      expect(result.stderr).to.contain('Scripts may only have up to 20 versioned deployments at a time.');
+      const err1 = 'Scripts may only have up to 20 versioned deployments at a time';
+      const err2 = 'Currently just one deployment can be created at a time';
+      const re = `(?:${err1}|${err2})`;
+      expect([result.stderr]).to.match(new RegExp(re));
       expect(result.status).to.equal(1);
     } else {
       expect(result.stdout).to.contain('Created version ');
@@ -339,15 +344,19 @@ describe('Test clasp version and versions function', () => {
     const result = spawnSync(
       CLASP, ['version'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('Created version ');
-    expect(result.status).to.equal(0);
-    versionNumber = result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2);
+    if (result.stderr) {
+      expect(result.status).to.equal(1);
+    } else {
+      expect(result.stdout).to.contain('Created version ');
+      expect(result.status).to.equal(0);
+      versionNumber = result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2);
+    }
     it('should list versions correctly', () => {
       const result = spawnSync(
         CLASP, ['versions'], { encoding: 'utf8' },
       );
       expect(result.stdout).to.contain('Versions');
-      expect(result.stdout).to.contain(versionNumber + ' - ');
+      if (versionNumber) expect(result.stdout).to.contain(versionNumber + ' - ');
       expect(result.status).to.equal(0);
     });
   });
@@ -377,6 +386,15 @@ describe('Test clasp clone function', () => {
     expect(result.status).to.equal(1);
   });
   after(cleanup);
+});
+
+describe('Test getAppsScriptFileName function from files', () => {
+  it('should return the basename correctly', () => {
+    expect(getAppsScriptFileName('./', 'appsscript.json')).to.equal('appsscript');
+    expect(getAppsScriptFileName('', 'appsscript.json')).to.equal('appsscript');
+    expect(getAppsScriptFileName('./dist', './dist/appsscript.json')).to.equal('appsscript');
+    expect(getAppsScriptFileName('./dist', './dist/foo/Code.js')).to.equal('foo/Code');
+  });
 });
 
 describe('Test getScriptURL function from utils', () => {
