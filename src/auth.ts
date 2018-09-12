@@ -14,12 +14,12 @@ import { Script } from 'googleapis/build/src/apis/script/v1';
 import {
   checkIfOnline,
   ClaspSettings,
-  defaultOathSettingsExist,
   DOTFILE,
   ERROR,
   getOAuthSettings,
+  hasDefaultOathSettings,
+  hasLocalOathSettings,
   isLocalCreds,
-  localOathSettingsExist,
   LOG,
   logError,
 } from './utils';
@@ -61,15 +61,19 @@ export const discovery = google.discovery({version: 'v1'}) as Discovery;
  * @param {boolean} ownCreds save local rc file.
  * @param {Array<string>} [scopes=[]] authorize additional OAuth scopes.
  */
-export async function authorize(useLocalhost: boolean, ownCreds: boolean, scopes: string[] = []) {
+export async function authorize(options: {
+  useLocalhost: boolean,
+  ownCreds: boolean,
+  scopes?: string[],
+}) {
   try {
-    oauth2ClientAuthUrlOpts.scope = [...oauth2ClientAuthUrlOpts.scope, ...scopes];
-    const token = await (useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
+    oauth2ClientAuthUrlOpts.scope = [...oauth2ClientAuthUrlOpts.scope, ...options.scopes || []];
+    const token = await (options.useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
     console.log(LOG.AUTH_SUCCESSFUL);
-    await (ownCreds ?
+    await (options.ownCreds ?
       DOTFILE.RC_LOCAL.write({token, oauth2ClientSettings}) :
       DOTFILE.RC.write(token));
-    console.log(ownCreds ? LOG.SAVED_LOCAL_CREDS : LOG.SAVED_CREDS);
+    console.log(options.ownCreds ? LOG.SAVED_LOCAL_CREDS : LOG.SAVED_CREDS);
     globalOauth2Client.setCredentials(token);
   } catch(err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
@@ -152,20 +156,24 @@ async function authorizeWithoutLocalhost() {
  * @param {string} options.creds location of credentials file.
  */
 export async function login(options: { localhost: boolean, creds: string }) {
-  if ((options.creds && localOathSettingsExist()) ||
-      (!options.creds && defaultOathSettingsExist())) {
+  const hasLoginLocal = options.creds && hasLocalOathSettings();
+  const hasLoginDefault = !options.creds && hasDefaultOathSettings();
+  if (hasLoginLocal || hasLoginDefault) {
     logError(null, ERROR.LOGGED_IN);
   }
   await checkIfOnline();
   let ownCreds = false;
   try {
     const credentials = JSON.parse(fs.readFileSync(options.creds, 'utf8'));
-    if (credentials && credentials.installed && credentials.installed.client_id
-      && credentials.installed.client_secret) {
-        oauth2ClientSettings.clientId = credentials.installed.client_id;
-        oauth2ClientSettings.clientSecret = credentials.installed.client_secret;
-        ownCreds = true;
-        console.log(LOG.CREDENTIALS_FOUND);
+    const isValidCreds = credentials &&
+      credentials.installed &&
+      credentials.installed.client_id &&
+      credentials.installed.client_secret;
+    if (isValidCreds) {
+      oauth2ClientSettings.clientId = credentials.installed.client_id;
+      oauth2ClientSettings.clientSecret = credentials.installed.client_secret;
+      ownCreds = true;
+      console.log(LOG.CREDENTIALS_FOUND);
     } else {
       logError(null, ERROR.BAD_CREDENTIALS_FILE);
     }
@@ -175,7 +183,7 @@ export async function login(options: { localhost: boolean, creds: string }) {
     }
     console.log(LOG.DEFAULT_CREDENTIALS);
   }
-  await authorize(options.localhost, ownCreds);
+  await authorize({useLocalhost: options.localhost, ownCreds});
   process.exit(0); // gracefully exit after successful login
 }
 
