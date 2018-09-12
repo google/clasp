@@ -103,10 +103,6 @@ export function getProjectFiles(rootDir: string = path.join('.', '/'), callback:
 
         // Loop through every file.
         const files = filePaths.map((name, i) => {
-          // File name
-          let nameWithoutExt = name.slice(0, -path.extname(name).length);
-          // Replace OS specific path separator to common '/' char
-          nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
           let type = getAPIFileType(name);
 
           // File source
@@ -121,13 +117,7 @@ export function getProjectFiles(rootDir: string = path.join('.', '/'), callback:
           // Formats rootDir/appsscript.json to appsscript.json.
           // Preserves subdirectory names in rootDir
           // (rootDir/foo/Code.js becomes foo/Code.js)
-          let formattedName = nameWithoutExt;
-          if (rootDir) {
-            formattedName = nameWithoutExt.slice(
-              rootDir.length + 1,
-              nameWithoutExt.length,
-            );
-          }
+          const formattedName = getAppsScriptFileName(rootDir, name);
 
           /**
            * If the file is valid, add it to our file list.
@@ -178,6 +168,21 @@ export function getProjectFiles(rootDir: string = path.join('.', '/'), callback:
       });
     });
   });
+}
+
+/**
+ * Gets the name of the file for Apps Script.
+ * Formats rootDir/appsscript.json to appsscript.json.
+ * Preserves subdirectory names in rootDir
+ * (rootDir/foo/Code.js becomes foo/Code.js)
+ * @param {string} rootDir The directory to save the project files to.
+ * @param {string} filePath Path of file that is part of the current project
+ */
+export function getAppsScriptFileName(rootDir: string, filePath: string) {
+  let nameWithoutExt = filePath.slice(0, -path.extname(filePath).length);
+  // Replace OS specific path separator to common '/' char
+  nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
+  return rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt;
 }
 
 /**
