@@ -4,24 +4,26 @@
 import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
-import { discovery, drive, loadAPICredentials, logger, script } from './auth';
+import { discovery, drive, loadAPICredentials, checkOauthScopes, logger, script } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
+  checkIfOnline,
   DOT,
   ERROR,
-  LOG,
-  PROJECT_MANIFEST_BASENAME,
-  ProjectSettings,
-  checkIfOnline,
   getDefaultProjectName,
   getProjectId,
   getProjectSettings,
-  getScriptURL,
   getWebApplicationURL,
+  isLocalCreds,
+  localOathSettingsExist,
+  LOG,
   logError,
   manifestExists,
+  PROJECT_MANIFEST_BASENAME,
+  ProjectSettings,
   saveProject,
   spinner,
+  URL,
 } from './utils';
 const open = require('opn');
 const commander = require('commander');
@@ -201,8 +203,11 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
  * Logs out the user by deleting credentials.
  */
 export const logout = () => {
-  del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
-  del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
+  if (localOathSettingsExist()) {
+    del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
+  } else {
+    del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
+  }
 };
 
 /**
@@ -251,15 +256,16 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
     }
   }
   const projectId = await getProjectId(); // will prompt user to set up if required
-  if (!projectId) return logError(null, LOG.NO_GCLOUD_PROJECT);
+  if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
   if (cmd.open) {
-    const url = 'https://console.cloud.google.com/logs/viewer?project=' +
-        `${projectId}&resource=app_script_function`;
+    const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
     open(url, {wait: false});
   }
-  await loadAPICredentials();
-  spinner.setSpinnerTitle('Grabbing logs...').start();
+  const oauthSettings = await loadAPICredentials();
+  spinner.setSpinnerTitle(
+    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}Grabbing logs...`,
+  ).start();
   logger.entries.list({
     resourceNames: [
       'projects/' + projectId,
@@ -270,9 +276,13 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
     if (err) { // TODO move these to logError when stable?
       switch (err.code) {
         case 401:
-          logError(null, ERROR.UNAUTHENTICATED);
+          logError(null, isLocalCreds(oauthSettings) ?
+            ERROR.UNAUTHENTICATED_LOCAL :
+            ERROR.UNAUTHENTICATED);
         case 403:
-          logError(null, ERROR.PERMISSION_DENIED);
+          logError(null, isLocalCreds(oauthSettings) ?
+            ERROR.PERMISSION_DENIED_LOCAL :
+            ERROR.PERMISSION_DENIED);
         default:
           logError(null, `(${err.code}) Error: ${err.message}`);
       }
@@ -288,21 +298,56 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
  * Executes an Apps Script function. Requires additional setup.
  * @param functionName {string} The function name within the Apps Script project.
  * @see https://developers.google.com/apps-script/api/how-tos/execute
+ * @requires `clasp login --creds` to be run beforehand.
  */
 export const run = async (functionName:string, cmd: { dev: boolean }) => {
   await checkIfOnline();
-  await loadAPICredentials();
-  getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-    const params = {
-      scriptId,
-      function: functionName,
-      devMode: cmd.dev,
-    };
-    script.scripts.run(params).then(response => {
-      console.log(response.data);
-    }).catch(e => {
-      console.log(e);
-    });
+  const oauthSettings = await loadAPICredentials();
+  if (!isLocalCreds(oauthSettings)) {
+    // script and the calling application share a common GCP project
+    console.log(`\n${chalk.yellow('BASIC SCRIPT EXECUTION API SETUP')}\n`);
+    const projectId = await getProjectId(); // will prompt user to set up if required
+    if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
+    logError(null, LOG.SETUP_LOCAL_OAUTH(projectId)); // process.exit(1);
+  }
+  await checkOauthScopes(oauthSettings);
+  const { scriptId } = await getProjectSettings();
+  spinner.setSpinnerTitle(
+    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}Executing: ${functionName}`,
+  ).start();
+  script.scripts.run({
+    scriptId,
+    function: functionName,
+    devMode: cmd.dev,
+  }, {}, (err: any, response: any) => {
+    spinner.stop(true);
+    if (err) { // TODO move these to logError when stable?
+      switch (err.code) {
+        case 401:
+          logError(null, ERROR.UNAUTHENTICATED_LOCAL);
+        case 403:
+          logError(null, ERROR.PERMISSION_DENIED_LOCAL);
+        case 404:
+          logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
+        default:
+          logError(null, `(${err.code}) Error: ${err.message}`);
+      }
+    } else if (response && response.data.done) {
+      const data = response.data;
+      // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
+      if (data.response) {
+        console.log(`${chalk.green('Result:')}`, data.response.result);
+      } else if (data.error) {
+        // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
+        console.error(`${chalk.red('Exception:')}`,
+          data.error.details[0].errorType,
+          data.error.details[0].errorMessage,
+          data.error.details[0].scriptStackTraceElements || []);
+      }
+    } else {
+      logError(null, 'Script execution API returned no data.');
+    }
+    process.exit(0); // exit gracefully in case localhost server spun up for authorize
   });
 };
 
@@ -400,7 +445,7 @@ export const list = async () => {
   const files = res.data.files;
   if (files.length) {
     files.map((file: any) => {
-      console.log(`${padEnd(file.name, 20)} – ${getScriptURL(file.id)}`);
+      console.log(`${padEnd(file.name, 20)} – ${URL.SCRIPT(file.id)}`);
     });
   } else {
     console.log(LOG.FINDING_SCRIPTS_DNE);
@@ -580,7 +625,7 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
       });
     } else {
       console.log(LOG.OPEN_PROJECT(scriptId));
-      open(getScriptURL(scriptId), {wait: false});
+      open(URL.SCRIPT(scriptId), {wait: false});
     }
   }
 };
