@@ -259,10 +259,10 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
     open(url, {wait: false});
   }
   await loadAPICredentials();
-  spinner.setSpinnerTitle('Grabbing logs...').start();
+  spinner.setSpinnerTitle(LOG.GRAB_LOGS).start();
   logger.entries.list({
     resourceNames: [
-      'projects/' + projectId,
+      `projects/${projectId}`,
     ],
     orderBy: 'timestamp desc',
   }, {}, (err: any, response: any) => {
@@ -279,7 +279,7 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
     } else if (response) {
       printLogs(response.data.entries);
     } else {
-      logError(null, 'StackDriver logs query returned no data.');
+      logError(null, ERROR.LOGS_NODATA);
     }
   });
 };

@@ -96,6 +96,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
+  LOGS_NODATA: 'StackDriver logs query returned no data.',
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
@@ -135,6 +136,7 @@ export const LOG = {
   FILES_TO_PUSH: 'Files to push were:',
   FINDING_SCRIPTS: 'Finding your scripts...',
   FINDING_SCRIPTS_DNE: 'No script files found.',
+  GRAB_LOGS: 'Grabbing logs...',
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
@@ -307,10 +309,11 @@ export function manifestExists(): boolean {
  * or prompt user & save
  * @returns {Promise} A promise to get the projectId string.
  */
-export async function getProjectId(): Promise<string|undefined> {
+export async function getProjectId(promptUser = true): Promise<string|undefined> {
   try {
     const projectSettings: ProjectSettings = await getProjectSettings();
     if (projectSettings.projectId) return projectSettings.projectId;
+    if (!promptUser) return;
     console.log('Open this link: ', LOG.SCRIPT_LINK(projectSettings.scriptId));
     console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
