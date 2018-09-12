@@ -299,6 +299,7 @@ only run functions that do not require other authorization.
 #### Options
 
 - `functionName`: functionName The function in the script that you want to run.
+- `dev`: dev Run script function in devMode.
 
 #### Examples
 
