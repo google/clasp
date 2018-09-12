@@ -39,7 +39,7 @@ export const DOT = {
 };
 
 // Default OAuth client settings file (Saved in ~/.clasprc.json)
-// google-auth-library { Credentials }
+// @see google-auth-library {Credentials}
 interface ClaspSettingsDefault {
   access_token?: string | null;
   refresh_token?: string | null;
@@ -48,7 +48,7 @@ interface ClaspSettingsDefault {
 
 // Local OAuth client settings file (Saved in ./.clasprc.json)
 interface ClaspSettingsLocal {
-  // google-auth-library { Credentials }
+  // @see {ClaspSettingsDefault}
   token: {
     access_token?: string | null;
     refresh_token?: string | null;
@@ -111,17 +111,17 @@ export const DOTFILE = {
 };
 
 /**
- * Checks if local OAuth client settings rc file exisits.
+ * Checks if local OAuth client settings rc file exists.
  * @return {boolean}
  */
-export const localOathSettingsExist = (): boolean =>
+export const hasLocalOathSettings = (): boolean =>
   fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH);
 
 /**
- * Checks if default OAuth client settings rc file exisits.
+ * Checks if default OAuth client settings rc file exists.
  * @return {boolean}
  */
-export const defaultOathSettingsExist = (): boolean =>
+export const hasDefaultOathSettings = (): boolean =>
   fs.existsSync(DOT.RC.ABSOLUTE_PATH);
 
 /**

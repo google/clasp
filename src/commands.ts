@@ -14,8 +14,8 @@ import {
   getProjectId,
   getProjectSettings,
   getWebApplicationURL,
+  hasLocalOathSettings,
   isLocalCreds,
-  localOathSettingsExist,
   LOG,
   logError,
   manifestExists,
@@ -203,7 +203,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
  * Logs out the user by deleting credentials.
  */
 export const logout = () => {
-  if (localOathSettingsExist()) {
+  if (hasLocalOathSettings()) {
     del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
   } else {
     del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
