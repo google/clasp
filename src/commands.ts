@@ -264,11 +264,11 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
   }
   const oauthSettings = await loadAPICredentials();
   spinner.setSpinnerTitle(
-    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}Grabbing logs...`,
+    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
   ).start();
   logger.entries.list({
     resourceNames: [
-      'projects/' + projectId,
+      `projects/${projectId}`,
     ],
     orderBy: 'timestamp desc',
   }, {}, (err: any, response: any) => {
@@ -289,7 +289,7 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
     } else if (response) {
       printLogs(response.data.entries);
     } else {
-      logError(null, 'StackDriver logs query returned no data.');
+      logError(null, ERROR.LOGS_NODATA);
     }
   });
 };
