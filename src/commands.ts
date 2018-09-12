@@ -289,14 +289,14 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
  * @param functionName {string} The function name within the Apps Script project.
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  */
-export const run = async (functionName:string) => {
+export const run = async (functionName:string, cmd: { dev: boolean }) => {
   await checkIfOnline();
   await loadAPICredentials();
   getProjectSettings().then(({ scriptId }: ProjectSettings) => {
     const params = {
       scriptId,
       function: functionName,
-      devMode: false,
+      devMode: cmd.dev,
     };
     script.scripts.run(params).then(response => {
       console.log(response.data);
