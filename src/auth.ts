@@ -20,11 +20,13 @@ import {
   hasDefaultOathSettings,
   hasLocalOathSettings,
   isLocalCreds,
+  loadManifest,
   LOG,
   logError,
 } from './utils';
 import open = require('opn');
 import readline = require('readline');
+const { prompt } = require('inquirer');
 
 // API settings
 // @see https://developers.google.com/oauthplayground/
@@ -220,5 +222,47 @@ async function setOauthCredentials(rc: ClaspSettings) {
     }
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
+  }
+}
+
+/**
+ * Compare global OAuth client scopes against manifest and prompt user to
+ * authorize if new scopes found (local OAuth credentails only).
+ * @param {ClaspSettings} rc OAuth client settings from rc file.
+ */
+export async function checkOauthScopes(rc: ClaspSettings) {
+  try {
+    await checkIfOnline();
+    await setOauthCredentials(rc);
+    const { scopes } = await globalOauth2Client.getTokenInfo(
+      globalOauth2Client.credentials.access_token as string);
+    const { oauthScopes } = await loadManifest();
+    const newScopes = oauthScopes &&
+      oauthScopes.length ? (oauthScopes as string[]).filter(x => !scopes.includes(x)) : [];
+    if (!newScopes.length) return;
+    console.log('New authoization scopes detected in manifest:\n', newScopes);
+    await prompt([{
+      type : 'confirm',
+      name : 'doAuth',
+      message : 'Authorize new scopes?',
+    },
+    {
+      type : 'confirm',
+      name : 'localhost',
+      message : 'Use localhost?',
+      when(answers: any) {
+        return answers.doAuth;
+      },
+    }]).then(async (answers: any) => {
+      if (answers.doAuth) {
+        if (!isLocalCreds(rc)) return logError(null, ERROR.NO_LOCAL_CREDENTIALS);
+        await authorize({
+          useLocalhost: answers.localhost,
+          ownCreds: true,
+          scopes: newScopes});
+      }
+    });
+  } catch (err) {
+    logError(null, ERROR.BAD_REQUEST(err.message));
   }
 }
