@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
-import { getFileType } from './../src/files';
+import { getFileType, getAppsScriptFileName } from './../src/files';
 import {
   ERROR,
   PROJECT_NAME,
@@ -377,6 +377,15 @@ describe('Test clasp clone function', () => {
     expect(result.status).to.equal(1);
   });
   after(cleanup);
+});
+
+describe('Test getAppsScriptFileName function from files', () => {
+  it('should return the basename correctly', () => {
+    expect(getAppsScriptFileName('./', 'appsscript.json')).to.equal('appsscript');
+    expect(getAppsScriptFileName('', 'appsscript.json')).to.equal('appsscript');
+    expect(getAppsScriptFileName('./dist', './dist/appsscript.json')).to.equal('appsscript');
+    expect(getAppsScriptFileName('./dist', './dist/foo/Code.js')).to.equal('foo/Code');
+  });
 });
 
 describe('Test getScriptURL function from utils', () => {
