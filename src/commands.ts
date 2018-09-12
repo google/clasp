@@ -308,7 +308,8 @@ export const run = async (functionName:string, cmd: { dev: boolean }) => {
     console.log(`\n${chalk.yellow('BASIC SCRIPT EXECUTION API SETUP')}\n`);
     const projectId = await getProjectId(); // will prompt user to set up if required
     if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
-    logError(null, LOG.SETUP_LOCAL_OAUTH(projectId)); // process.exit(1);
+    console.log(LOG.SETUP_LOCAL_OAUTH(projectId));
+    process.exit(0);
   }
   await checkOauthScopes(oauthSettings);
   const { scriptId } = await getProjectSettings();
