@@ -287,7 +287,7 @@ export async function checkIfOnline() {
  * @param  {string} scriptId The script ID
  * @param  {string} rootDir Local root directory that store your project files
  */
-export async function saveProject(scriptId: string, rootDir?: string): Promise<ProjectSettings> {
+export async function saveNewProject(scriptId: string, rootDir?: string): Promise<ProjectSettings> {
   const project: ProjectSettings = { scriptId };
   project.rootDir = project.rootDir || rootDir;
   return DOTFILE.PROJECT().write(project);
