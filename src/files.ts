@@ -103,7 +103,6 @@ export function getProjectFiles(rootDir: string = path.join('.', '/'), callback:
 
         // Loop through every file.
         const files = filePaths.map((name, i) => {
-          // File name
           let type = getAPIFileType(name);
 
           // File source
