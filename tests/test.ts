@@ -505,14 +505,8 @@ describe('Test clasp logs function', () => {
   });
   it('should prompt for logs setup', () => {
     const result = spawnSync(
-      CLASP, ['logs', '--setup'], { encoding: 'utf8' },
+      CLASP, ['logs'], { encoding: 'utf8' },  // --setup is default behaviour
     );
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('Open this link:');
-    const scriptId = JSON.parse(CLASP_SETTINGS).scriptId;
-    expect(result.stdout).to.include(`https://script.google.com/d/${scriptId}/edit`);
-    expect(result.stdout).to.contain('Go to *Resource > Cloud Platform Project...*');
-    expect(result.stdout).to.include('and copy your projectId\n(including "project-id-")');
     expect(result.stdout).to.contain('What is your GCP projectId?');
   });
   after(cleanup);

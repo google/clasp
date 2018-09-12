@@ -9,6 +9,7 @@ const splitLines = require('split-lines');
 const dotf = require('dotf');
 const read = require('read-file');
 const isOnline = require('is-online');
+const { prompt } = require('inquirer');
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
@@ -299,4 +300,30 @@ export async function saveProject(scriptId: string, rootDir?: string): Promise<P
  */
 export function manifestExists(): boolean {
   return fs.existsSync(`${PROJECT_MANIFEST_BASENAME}.json`);
+}
+
+/**
+ * Get App Script project ID from project settings file
+ * or prompt user & save
+ * @returns {Promise} A promise to get the projectId string.
+ */
+export async function getProjectId(): Promise<string|undefined> {
+  try {
+    const projectSettings: ProjectSettings = await getProjectSettings();
+    if (projectSettings.projectId) return projectSettings.projectId;
+    console.log('Open this link: ', LOG.SCRIPT_LINK(projectSettings.scriptId));
+    console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
+(including "project-id-")\n`);
+    await prompt([{
+      type : 'input',
+      name : 'projectId',
+      message : 'What is your GCP projectId?',
+    }]).then(async (answers: any) => {
+      projectSettings.projectId = answers.projectId;
+      await DOTFILE.PROJECT().write(projectSettings);
+    });
+    return projectSettings.projectId;
+  } catch (err) {
+    logError(null, err.message);
+  }
 }

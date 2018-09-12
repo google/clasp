@@ -8,13 +8,13 @@ import { discovery, drive, loadAPICredentials, logger, script } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
   DOT,
-  DOTFILE,
   ERROR,
   LOG,
   PROJECT_MANIFEST_BASENAME,
   ProjectSettings,
   checkIfOnline,
   getDefaultProjectName,
+  getProjectId,
   getProjectSettings,
   getScriptURL,
   getWebApplicationURL,
@@ -210,13 +210,10 @@ export const logout = () => {
  * @param cmd.json {boolean} If true, the command will output logs as json.
  * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
  */
-export const logs = async (cmd: {
-  json: boolean,
-  open: boolean,
-  setup: boolean,
-}) => {
+export const logs = async (cmd: { json: boolean, open: boolean }) => {
   await checkIfOnline();
-  function printLogs(entries: any[]) {
+  function printLogs(entries: any[] = []) {
+    entries = entries.reverse(); // print in syslog ascending order
     for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
       const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
       let functionName = resource.labels.function_name;
@@ -227,7 +224,9 @@ export const logs = async (cmd: {
       } else {
         const data: any = {
           textPayload,
-          jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
+          // chokes on unmatched json payloads
+          // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
+          jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).substr(0, 255) : '',
           protoPayload,
         };
         payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
@@ -241,57 +240,18 @@ export const logs = async (cmd: {
       }
       const coloredStringMap: any = {
         ERROR: chalk.red(severity),
-        INFO: chalk.blue(severity),
-        DEBUG: chalk.yellow(severity),
+        INFO: chalk.cyan(severity),
+        DEBUG: chalk.green(severity), // includes timeEnd
         NOTICE: chalk.magenta(severity),
+        WARNING: chalk.yellow(severity),
       };
       let coloredSeverity:string = coloredStringMap[severity] || severity;
       coloredSeverity = padEnd(String(coloredSeverity), 20);
       console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
     }
   }
-  async function setupLogs(projectId?: string): Promise<string> {
-    const promise = new Promise<string>((resolve, reject) => {
-      getProjectSettings().then((projectSettings) => {
-        console.log('Open this link: ', LOG.SCRIPT_LINK(projectSettings.scriptId));
-        console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
-(including "project-id-")\n`);
-        prompt([{
-          type : 'input',
-          name : 'projectId',
-          message : 'What is your GCP projectId?',
-        }]).then((answers: any) => {
-          projectId = answers.projectId;
-          const dotfile = DOTFILE.PROJECT();
-          if (dotfile) {
-            dotfile.read().then((settings: ProjectSettings) => {
-              if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write({scriptId: settings.scriptId, projectId});
-              resolve(projectId);
-            }).catch((err: object) => {
-              reject(logError(err));
-            });
-          } else {
-            reject(logError(null, ERROR.SETTINGS_DNE));
-          }
-        }).catch((err: any) => {
-          reject(console.log(err));
-        });
-      });
-    });
-    promise.catch(err => {
-      logError(err);
-      spinner.stop(true);
-    });
-    return promise;
-  }
-  let { projectId } = await getProjectSettings();
-  projectId = cmd.setup ? await setupLogs() : projectId;
-  if (!projectId) {
-    console.log(LOG.NO_GCLOUD_PROJECT);
-    projectId = await setupLogs();
-    console.log(LOG.LOGS_SETUP);
-  }
+  const projectId = await getProjectId(); // will prompt user to set up if required
+  if (!projectId) return logError(null, LOG.NO_GCLOUD_PROJECT);
   if (cmd.open) {
     const url = 'https://console.cloud.google.com/logs/viewer?project=' +
         `${projectId}&resource=app_script_function`;
@@ -299,15 +259,29 @@ export const logs = async (cmd: {
     open(url, {wait: false});
   }
   await loadAPICredentials();
-  const logs = await logger.entries.list({
+  spinner.setSpinnerTitle('Grabbing logs...').start();
+  logger.entries.list({
     resourceNames: [
-      `projects/${projectId}`,
+      'projects/' + projectId,
     ],
     orderBy: 'timestamp desc',
+  }, {}, (err: any, response: any) => {
+    spinner.stop(true);
+    if (err) { // TODO move these to logError when stable?
+      switch (err.code) {
+        case 401:
+          logError(null, ERROR.UNAUTHENTICATED);
+        case 403:
+          logError(null, ERROR.PERMISSION_DENIED);
+        default:
+          logError(null, `(${err.code}) Error: ${err.message}`);
+      }
+    } else if (response) {
+      printLogs(response.data.entries);
+    } else {
+      logError(null, 'StackDriver logs query returned no data.');
+    }
   });
-  const data = logs.data;
-  if (!data) return logError(logs.statusText, 'Unable to query StackDriver logs');
-  printLogs(data.entries);
 };
 
 /**
