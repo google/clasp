@@ -314,7 +314,7 @@ export const run = async (functionName:string, cmd: { dev: boolean }) => {
   await checkOauthScopes(oauthSettings);
   const { scriptId } = await getProjectSettings();
   spinner.setSpinnerTitle(
-    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}Executing: ${functionName}`,
+    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.SCRIPT_RUN(functionName)}`,
   ).start();
   script.scripts.run({
     scriptId,
@@ -346,7 +346,7 @@ export const run = async (functionName:string, cmd: { dev: boolean }) => {
           data.error.details[0].scriptStackTraceElements || []);
       }
     } else {
-      logError(null, 'Script execution API returned no data.');
+      logError(null, ERROR.RUN_NODATA);
     }
     process.exit(0); // exit gracefully in case localhost server spun up for authorize
   });
