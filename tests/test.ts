@@ -11,7 +11,7 @@ import {
   getAPIFileType,
   getScriptURL,
   getWebApplicationURL,
-  saveProject,
+  saveNewProject,
   getDefaultProjectName,
 } from './../src/utils.js';
 const { spawnSync } = require('child_process');
@@ -434,11 +434,11 @@ describe('Test getAPIFileType function from utils', () => {
   });
 });
 
-describe('Test saveProject function from utils', () => {
+describe('Test saveNewProject function from utils', () => {
   it('should save the scriptId correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
-      await saveProject('12345');
+      await saveNewProject('12345');
       const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345"}');
     };
@@ -448,7 +448,7 @@ describe('Test saveProject function from utils', () => {
   it('should save the scriptId, rootDir correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
-      await saveProject('12345', './dist');
+      await saveNewProject('12345', './dist');
       const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345","rootDir":"./dist"}');
     };

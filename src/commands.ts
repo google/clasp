@@ -20,7 +20,7 @@ import {
   getWebApplicationURL,
   logError,
   manifestExists,
-  saveProject,
+  saveNewProject,
   spinner,
 } from './utils';
 const open = require('opn');
@@ -130,7 +130,7 @@ export const create = async (title: string, parentId: string, cmd: {
       const createdScriptId = res.data.scriptId;
       console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
       const rootDir = cmd.rootDir;
-      saveProject(createdScriptId, rootDir);
+      saveNewProject(createdScriptId, rootDir);
       if (!manifestExists()) {
         fetchProject(createdScriptId, rootDir); // fetches appsscript.json, o.w. `push` breaks
       }
@@ -181,7 +181,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
         }]).then((answers: any) => {
           checkIfOnline();
           spinner.setSpinnerTitle(LOG.CLONING);
-          saveProject(answers.scriptId);
+          saveNewProject(answers.scriptId);
           fetchProject(answers.scriptId, '', versionNumber);
         }).catch((err: any) => {
           console.log(err);
@@ -191,7 +191,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       }
     } else {
       spinner.setSpinnerTitle(LOG.CLONING);
-      saveProject(scriptId);
+      saveNewProject(scriptId);
       fetchProject(scriptId, '', versionNumber);
     }
   }
