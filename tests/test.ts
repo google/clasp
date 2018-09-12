@@ -9,7 +9,7 @@ import {
   ERROR,
   PROJECT_NAME,
   getAPIFileType,
-  getScriptURL,
+  URL,
   getWebApplicationURL,
   saveProject,
   getDefaultProjectName,
@@ -397,9 +397,9 @@ describe('Test getAppsScriptFileName function from files', () => {
   });
 });
 
-describe('Test getScriptURL function from utils', () => {
+describe('Test URL helper from utils', () => {
   it('should return the scriptURL correctly', () => {
-    const url = getScriptURL('abcdefghijklmnopqrstuvwxyz');
+    const url = URL.SCRIPT('abcdefghijklmnopqrstuvwxyz');
     expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
   });
 });
@@ -523,30 +523,33 @@ describe('Test clasp logs function', () => {
   });
   it('should prompt for logs setup', () => {
     const result = spawnSync(
-      CLASP, ['logs', '--setup'], { encoding: 'utf8' },
+      CLASP, ['logs'], { encoding: 'utf8' },  // --setup is default behaviour
     );
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('Open this link:');
-    const scriptId = JSON.parse(CLASP_SETTINGS).scriptId;
-    expect(result.stdout).to.include(`https://script.google.com/d/${scriptId}/edit`);
-    expect(result.stdout).to.contain('Go to *Resource > Cloud Platform Project...*');
-    expect(result.stdout).to.include('and copy your projectId\n(including "project-id-")');
     expect(result.stdout).to.contain('What is your GCP projectId?');
   });
   after(cleanup);
 });
 
 describe('Test clasp logout function', () => {
-  it('should logout correctly', () => {
-    fs.writeFileSync('.clasprc.json', TEST_JSON);
-    fs.writeFileSync(path.join(os.homedir(), '/.clasprc.json'), TEST_JSON);
+  it('should logout local *only* if local credentails', () => {
+    fs.writeFileSync(path.join('./', '.clasprc.json'), TEST_JSON);
+    fs.writeFileSync(path.join(os.homedir(), '.clasprc.json'), TEST_JSON);
     const result = spawnSync(
       CLASP, ['logout'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    const localDotExists = fs.existsSync('.clasprc.json');
+    const localDotExists = fs.existsSync(path.join('./', '.clasprc.json'));
     expect(localDotExists).to.equal(false);
-    const dotExists = fs.existsSync('~/.clasprc.json');
+    const dotExists = fs.existsSync(path.join(os.homedir(), '.clasprc.json'));
+    expect(dotExists).to.equal(true);
+  });
+
+  it('should logout global (default) if no local credentials', () => {
+    const result = spawnSync(
+      CLASP, ['logout'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    const dotExists = fs.existsSync(path.join(os.homedir(), '.clasprc.json'));
     expect(dotExists).to.equal(false);
   });
 });

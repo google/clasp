@@ -4,24 +4,26 @@
 import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
-import { discovery, drive, loadAPICredentials, logger, script } from './auth';
+import { discovery, drive, loadAPICredentials, checkOauthScopes, logger, script } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
-  DOT,
-  DOTFILE,
-  ERROR,
-  LOG,
-  PROJECT_MANIFEST_BASENAME,
-  ProjectSettings,
   checkIfOnline,
+  DOT,
+  ERROR,
   getDefaultProjectName,
+  getProjectId,
   getProjectSettings,
-  getScriptURL,
   getWebApplicationURL,
+  hasLocalOathSettings,
+  isLocalCreds,
+  LOG,
   logError,
   manifestExists,
+  PROJECT_MANIFEST_BASENAME,
+  ProjectSettings,
   saveProject,
   spinner,
+  URL,
 } from './utils';
 const open = require('opn');
 const commander = require('commander');
@@ -201,8 +203,11 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
  * Logs out the user by deleting credentials.
  */
 export const logout = () => {
-  del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
-  del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
+  if (hasLocalOathSettings()) {
+    del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
+  } else {
+    del(DOT.RC.ABSOLUTE_PATH, { force: true }); // del doesn't work with a relative path (~)
+  }
 };
 
 /**
@@ -210,13 +215,10 @@ export const logout = () => {
  * @param cmd.json {boolean} If true, the command will output logs as json.
  * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
  */
-export const logs = async (cmd: {
-  json: boolean,
-  open: boolean,
-  setup: boolean,
-}) => {
+export const logs = async (cmd: { json: boolean, open: boolean }) => {
   await checkIfOnline();
-  function printLogs(entries: any[]) {
+  function printLogs(entries: any[] = []) {
+    entries = entries.reverse(); // print in syslog ascending order
     for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
       const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
       let functionName = resource.labels.function_name;
@@ -227,7 +229,9 @@ export const logs = async (cmd: {
       } else {
         const data: any = {
           textPayload,
-          jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
+          // chokes on unmatched json payloads
+          // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
+          jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).substr(0, 255) : '',
           protoPayload,
         };
         payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
@@ -241,94 +245,110 @@ export const logs = async (cmd: {
       }
       const coloredStringMap: any = {
         ERROR: chalk.red(severity),
-        INFO: chalk.blue(severity),
-        DEBUG: chalk.yellow(severity),
+        INFO: chalk.cyan(severity),
+        DEBUG: chalk.green(severity), // includes timeEnd
         NOTICE: chalk.magenta(severity),
+        WARNING: chalk.yellow(severity),
       };
       let coloredSeverity:string = coloredStringMap[severity] || severity;
       coloredSeverity = padEnd(String(coloredSeverity), 20);
       console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
     }
   }
-  async function setupLogs(projectId?: string): Promise<string> {
-    const promise = new Promise<string>((resolve, reject) => {
-      getProjectSettings().then((projectSettings) => {
-        console.log('Open this link: ', LOG.SCRIPT_LINK(projectSettings.scriptId));
-        console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
-(including "project-id-")\n`);
-        prompt([{
-          type : 'input',
-          name : 'projectId',
-          message : 'What is your GCP projectId?',
-        }]).then((answers: any) => {
-          projectId = answers.projectId;
-          const dotfile = DOTFILE.PROJECT();
-          if (dotfile) {
-            dotfile.read().then((settings: ProjectSettings) => {
-              if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write({scriptId: settings.scriptId, projectId});
-              resolve(projectId);
-            }).catch((err: object) => {
-              reject(logError(err));
-            });
-          } else {
-            reject(logError(null, ERROR.SETTINGS_DNE));
-          }
-        }).catch((err: any) => {
-          reject(console.log(err));
-        });
-      });
-    });
-    promise.catch(err => {
-      logError(err);
-      spinner.stop(true);
-    });
-    return promise;
-  }
-  let { projectId } = await getProjectSettings();
-  projectId = cmd.setup ? await setupLogs() : projectId;
-  if (!projectId) {
-    console.log(LOG.NO_GCLOUD_PROJECT);
-    projectId = await setupLogs();
-    console.log(LOG.LOGS_SETUP);
-  }
+  const projectId = await getProjectId(); // will prompt user to set up if required
+  if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
   if (cmd.open) {
-    const url = 'https://console.cloud.google.com/logs/viewer?project=' +
-        `${projectId}&resource=app_script_function`;
+    const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
     open(url, {wait: false});
   }
-  await loadAPICredentials();
-  const logs = await logger.entries.list({
+  const oauthSettings = await loadAPICredentials();
+  spinner.setSpinnerTitle(
+    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
+  ).start();
+  logger.entries.list({
     resourceNames: [
       `projects/${projectId}`,
     ],
     orderBy: 'timestamp desc',
+  }, {}, (err: any, response: any) => {
+    spinner.stop(true);
+    if (err) { // TODO move these to logError when stable?
+      switch (err.code) {
+        case 401:
+          logError(null, isLocalCreds(oauthSettings) ?
+            ERROR.UNAUTHENTICATED_LOCAL :
+            ERROR.UNAUTHENTICATED);
+        case 403:
+          logError(null, isLocalCreds(oauthSettings) ?
+            ERROR.PERMISSION_DENIED_LOCAL :
+            ERROR.PERMISSION_DENIED);
+        default:
+          logError(null, `(${err.code}) Error: ${err.message}`);
+      }
+    } else if (response) {
+      printLogs(response.data.entries);
+    } else {
+      logError(null, ERROR.LOGS_NODATA);
+    }
   });
-  const data = logs.data;
-  if (!data) return logError(logs.statusText, 'Unable to query StackDriver logs');
-  printLogs(data.entries);
 };
 
 /**
  * Executes an Apps Script function. Requires additional setup.
  * @param functionName {string} The function name within the Apps Script project.
  * @see https://developers.google.com/apps-script/api/how-tos/execute
+ * @requires `clasp login --creds` to be run beforehand.
  */
 export const run = async (functionName:string, cmd: { dev: boolean }) => {
   await checkIfOnline();
-  await loadAPICredentials();
-  getProjectSettings().then(({ scriptId }: ProjectSettings) => {
-    const params = {
-      scriptId,
-      function: functionName,
-      devMode: cmd.dev,
-    };
-    script.scripts.run(params).then(response => {
-      console.log(response.data);
-    }).catch(e => {
-      console.log(e);
-    });
+  const oauthSettings = await loadAPICredentials();
+  if (!isLocalCreds(oauthSettings)) {
+    // script and the calling application share a common GCP project
+    console.log(`\n${chalk.yellow('BASIC SCRIPT EXECUTION API SETUP')}\n`);
+    const projectId = await getProjectId(); // will prompt user to set up if required
+    if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
+    console.log(LOG.SETUP_LOCAL_OAUTH(projectId));
+    process.exit(0);
+  }
+  await checkOauthScopes(oauthSettings);
+  const { scriptId } = await getProjectSettings();
+  spinner.setSpinnerTitle(
+    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.SCRIPT_RUN(functionName)}`,
+  ).start();
+  script.scripts.run({
+    scriptId,
+    function: functionName,
+    devMode: cmd.dev,
+  }, {}, (err: any, response: any) => {
+    spinner.stop(true);
+    if (err) { // TODO move these to logError when stable?
+      switch (err.code) {
+        case 401:
+          logError(null, ERROR.UNAUTHENTICATED_LOCAL);
+        case 403:
+          logError(null, ERROR.PERMISSION_DENIED_LOCAL);
+        case 404:
+          logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
+        default:
+          logError(null, `(${err.code}) Error: ${err.message}`);
+      }
+    } else if (response && response.data.done) {
+      const data = response.data;
+      // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
+      if (data.response) {
+        console.log(`${chalk.green('Result:')}`, data.response.result);
+      } else if (data.error) {
+        // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
+        console.error(`${chalk.red('Exception:')}`,
+          data.error.details[0].errorType,
+          data.error.details[0].errorMessage,
+          data.error.details[0].scriptStackTraceElements || []);
+      }
+    } else {
+      logError(null, ERROR.RUN_NODATA);
+    }
+    process.exit(0); // exit gracefully in case localhost server spun up for authorize
   });
 };
 
@@ -426,7 +446,7 @@ export const list = async () => {
   const files = res.data.files;
   if (files.length) {
     files.map((file: any) => {
-      console.log(`${padEnd(file.name, 20)} – ${getScriptURL(file.id)}`);
+      console.log(`${padEnd(file.name, 20)} – ${URL.SCRIPT(file.id)}`);
     });
   } else {
     console.log(LOG.FINDING_SCRIPTS_DNE);
@@ -606,7 +626,7 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
       });
     } else {
       console.log(LOG.OPEN_PROJECT(scriptId));
-      open(getScriptURL(scriptId), {wait: false});
+      open(URL.SCRIPT(scriptId), {wait: false});
     }
   }
 };
