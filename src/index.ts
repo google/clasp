@@ -272,7 +272,6 @@ commander
  * only run functions that do not require other authorization.
  * @name run
  * @param {string} functionName The function in the script that you want to run.
- * @param {boolean?} dev Run script function in devMode.
  * @example run 'sendEmail'
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run
  * @requires `clasp login --creds` to be run beforehand.
@@ -280,7 +279,6 @@ commander
 commander
   .command('run <functionName>')
   .description('Run a function in your Apps Scripts project')
-  .option('--dev', 'Run script function in devMode')
   .action(run);
 
 /**

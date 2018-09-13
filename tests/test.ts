@@ -4,12 +4,12 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
-import { getFileType, getAppsScriptFileName } from './../src/files';
+import { getFileType } from './../src/files';
 import {
   ERROR,
   PROJECT_NAME,
   getAPIFileType,
-  URL,
+  getScriptURL,
   getWebApplicationURL,
   saveProject,
   getDefaultProjectName,
@@ -26,9 +26,6 @@ const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
 const cleanup = () => {
   fs.removeSync('.clasp.json');
-  fs.removeSync('.claspignore');
-  fs.removeSync('Code.js');
-  fs.removeSync('appsscript.json');
 };
 
 const setup = () => {
@@ -319,10 +316,8 @@ describe('Test clasp deploy function', () => {
       CLASP, ['deploy'], { encoding: 'utf8' },
     );
     if (result.stderr) {
-      const err1 = 'Scripts may only have up to 20 versioned deployments at a time';
-      const err2 = 'Currently just one deployment can be created at a time';
-      const re = `(?:${err1}|${err2})`;
-      expect([result.stderr]).to.match(new RegExp(re));
+      expect(result.stderr).to.contain('Unable to deploy;');
+      expect(result.stderr).to.contain('Scripts may only have up to 20 versioned deployments at a time.');
       expect(result.status).to.equal(1);
     } else {
       expect(result.stdout).to.contain('Created version ');
@@ -344,19 +339,15 @@ describe('Test clasp version and versions function', () => {
     const result = spawnSync(
       CLASP, ['version'], { encoding: 'utf8' },
     );
-    if (result.stderr) {
-      expect(result.status).to.equal(1);
-    } else {
-      expect(result.stdout).to.contain('Created version ');
-      expect(result.status).to.equal(0);
-      versionNumber = result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2);
-    }
+    expect(result.stdout).to.contain('Created version ');
+    expect(result.status).to.equal(0);
+    versionNumber = result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2);
     it('should list versions correctly', () => {
       const result = spawnSync(
         CLASP, ['versions'], { encoding: 'utf8' },
       );
       expect(result.stdout).to.contain('Versions');
-      if (versionNumber) expect(result.stdout).to.contain(versionNumber + ' - ');
+      expect(result.stdout).to.contain(versionNumber + ' - ');
       expect(result.status).to.equal(0);
     });
   });
@@ -388,18 +379,9 @@ describe('Test clasp clone function', () => {
   after(cleanup);
 });
 
-describe('Test getAppsScriptFileName function from files', () => {
-  it('should return the basename correctly', () => {
-    expect(getAppsScriptFileName('./', 'appsscript.json')).to.equal('appsscript');
-    expect(getAppsScriptFileName('', 'appsscript.json')).to.equal('appsscript');
-    expect(getAppsScriptFileName('./dist', './dist/appsscript.json')).to.equal('appsscript');
-    expect(getAppsScriptFileName('./dist', './dist/foo/Code.js')).to.equal('foo/Code');
-  });
-});
-
-describe('Test URL helper from utils', () => {
+describe('Test getScriptURL function from utils', () => {
   it('should return the scriptURL correctly', () => {
-    const url = URL.SCRIPT('abcdefghijklmnopqrstuvwxyz');
+    const url = getScriptURL('abcdefghijklmnopqrstuvwxyz');
     expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
   });
 });
@@ -523,33 +505,30 @@ describe('Test clasp logs function', () => {
   });
   it('should prompt for logs setup', () => {
     const result = spawnSync(
-      CLASP, ['logs'], { encoding: 'utf8' },  // --setup is default behaviour
+      CLASP, ['logs', '--setup'], { encoding: 'utf8' },
     );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain('Open this link:');
+    const scriptId = JSON.parse(CLASP_SETTINGS).scriptId;
+    expect(result.stdout).to.include(`https://script.google.com/d/${scriptId}/edit`);
+    expect(result.stdout).to.contain('Go to *Resource > Cloud Platform Project...*');
+    expect(result.stdout).to.include('and copy your projectId\n(including "project-id-")');
     expect(result.stdout).to.contain('What is your GCP projectId?');
   });
   after(cleanup);
 });
 
 describe('Test clasp logout function', () => {
-  it('should logout local *only* if local credentails', () => {
-    fs.writeFileSync(path.join('./', '.clasprc.json'), TEST_JSON);
-    fs.writeFileSync(path.join(os.homedir(), '.clasprc.json'), TEST_JSON);
+  it('should logout correctly', () => {
+    fs.writeFileSync('.clasprc.json', TEST_JSON);
+    fs.writeFileSync(path.join(os.homedir(), '/.clasprc.json'), TEST_JSON);
     const result = spawnSync(
       CLASP, ['logout'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    const localDotExists = fs.existsSync(path.join('./', '.clasprc.json'));
+    const localDotExists = fs.existsSync('.clasprc.json');
     expect(localDotExists).to.equal(false);
-    const dotExists = fs.existsSync(path.join(os.homedir(), '.clasprc.json'));
-    expect(dotExists).to.equal(true);
-  });
-
-  it('should logout global (default) if no local credentials', () => {
-    const result = spawnSync(
-      CLASP, ['logout'], { encoding: 'utf8' },
-    );
-    expect(result.status).to.equal(0);
-    const dotExists = fs.existsSync(path.join(os.homedir(), '.clasprc.json'));
+    const dotExists = fs.existsSync('~/.clasprc.json');
     expect(dotExists).to.equal(false);
   });
 });

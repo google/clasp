@@ -9,8 +9,6 @@ const splitLines = require('split-lines');
 const dotf = require('dotf');
 const read = require('read-file');
 const isOnline = require('is-online');
-const { prompt } = require('inquirer');
-const chalk = require('chalk');
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
@@ -142,63 +140,38 @@ export function getOAuthSettings(): Promise<ClaspSettings> {
     });
 }
 
-// Helpers to get Apps Script project URLs
-export const URL = {
-  CREDS: (projectId: string) =>
-    `https://console.developers.google.com/apis/credentials?project=${projectId}`,
-  LOGGING_API_PROJECT: (projectId: string) =>
-    `https://console.cloud.google.com/apis/library/logging.googleapis.com?project=${projectId}`,
-  LOGS: (projectId: string) =>
-    `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`,
-  SCRIPT_API_PROJECT: (projectId: string) =>
-    `https://console.cloud.google.com/apis/library/script.googleapis.com/?project=${projectId}`,
-  SCRIPT_API_USER: 'https://script.google.com/home/usersettings',
-  // It is too expensive to get the script URL from the Drive API. (Async/not offline)
-  SCRIPT: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
-};
-
 // Error messages (some errors take required params)
 export const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
   BAD_CREDENTIALS_FILE: 'Incorrect credentials file format.',
-  BAD_REQUEST: (message: string) => `Error: ${message}
-Your credentials may be invalid. Try logging in again.`,
   COMMAND_DNE: (command: string) => `🤔  Unknown command "${PROJECT_NAME} ${command}"\n
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
-  CREATE_WITH_PARENT: 'Did you provide the correct parentId?',
   CREATE: 'Error creating script.',
+  CREATE_WITH_PARENT: 'Did you provide the correct parentId?',
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
-  EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
-  LOGS_NODATA: 'StackDriver logs query returned no data.',
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
-  NO_CREDENTIALS: 'Could not read API credentials. Are you logged in?',
-  NO_FUNCTION_NAME: 'N/A',
-  NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
-  NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
-  NO_MANIFEST: (filename: string) =>
-    `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
-  NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
-  NO_WEBAPP: (deploymentId: string) => `Deployment "${deploymentId}" is not deployed as WebApp.`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
-  PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
-  PERMISSION_DENIED_LOCAL: `Error: Permission denied. Enable required APIs (eg. Script/Logging) for project.`,
-  PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:\n${URL.SCRIPT_API_USER}`,
-  RATE_LIMIT: 'Rate limit exceeded. Check quota.',
-  RUN_NODATA: 'Script execution API returned no data.',
+  NO_CREDENTIALS: 'Could not read API credentials. Are you logged in?',
+  NO_WEBAPP: (deploymentId: string) => `Deployment "${deploymentId}" is not deployed as WebApp.`,
+  NO_FUNCTION_NAME: 'N/A',
+  NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
+  PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
+  PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:
+https://script.google.com/home/usersettings`,
+  RATE_LIMIT: 'Rate limit exceeded. Check quota.',
+  SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
   SCRIPT_ID_DNE: `No scriptId found in your ${DOT.PROJECT.PATH} file.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
-  SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
   SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
-  UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
 };
 
@@ -206,11 +179,11 @@ Did you provide the correct scriptId?`,
 export const LOG = {
   AUTH_CODE: 'Enter the code from that page here: ',
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page.`, // HTML Redirect Page
-  AUTH_SUCCESSFUL: `Authorization successful.`,
+  AUTH_SUCCESSFUL: `Saved the credentials to ${DOT.RC.PATH}. You may close the page.`,
   AUTHORIZE: (authUrl: string) => `🔑  Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
-  CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${URL.SCRIPT(scriptId)}`,
+  CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${getScriptURL(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
   CREDENTIALS_FOUND: 'Credentials found, using those to login...',
   DEFAULT_CREDENTIALS: 'No credentials given, continuing with default...',
@@ -219,10 +192,10 @@ export const LOG = {
   DEPLOYMENT_LIST: (scriptId: string) => `Listing deployments...`,
   DEPLOYMENT_START: (scriptId: string) => `Deploying project...`,
   FILES_TO_PUSH: 'Files to push were:',
-  FINDING_SCRIPTS_DNE: 'No script files found.',
   FINDING_SCRIPTS: 'Finding your scripts...',
-  GRAB_LOGS: 'Grabbing logs...',
-  LOCAL_CREDS: `Using local credentials: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME} 🔐 `,
+  FINDING_SCRIPTS_DNE: 'No script files found.',
+  LOGS_SETUP: 'Finished setting up logs.\n',
+  NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   OPEN_WEBAPP: (deploymentId: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
@@ -233,18 +206,12 @@ export const LOG = {
   STATUS_IGNORE: 'Ignored files:',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_FAILURE: 'Push failed. Errors:',
-  PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
-  PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files...\n',
+  PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSHING: 'Pushing files...',
   REDEPLOY_END: 'Updated deployment.',
   REDEPLOY_START: 'Updating deployment...',
-  SAVED_CREDS: `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
-  SAVED_LOCAL_CREDS: `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME}.`,
-  SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
-  STATUS_IGNORE: 'Ignored files:',
-  STATUS_PUSH: 'Not ignored files:',
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploy ${deploymentId}...`,
   VERSION_CREATE: 'Creating a new version...',
@@ -252,24 +219,6 @@ export const LOG = {
   VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
       (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
-
-  SETUP_LOCAL_OAUTH: (projectId: string) => `1. Enable the Script & Logging APIs for the project:
-  a. Open this link: ${chalk.blue(URL.SCRIPT_API_PROJECT(projectId))}
-      Click ${chalk.cyan('ENABLE')}.
-  b. Open this link: ${chalk.blue(URL.LOGGING_API_PROJECT(projectId))}
-      Click ${chalk.cyan('ENABLE')}.
-
-2. Create a valid Client ID and client secret:
-    Open this link: ${chalk.blue(URL.CREDS(projectId))}
-    Click ${chalk.cyan('Create credentials')}, then select ${chalk.yellow('OAuth client ID')}.
-    Select ${chalk.yellow('Other')}.
-    Give the client a ${chalk.yellow('name')}.
-    Click ${chalk.cyan('Create')}.
-    Click ${chalk.cyan('Download JSON')} for the new client ID: ${chalk.yellow('name')} (right-hand side).
-
-3. Authenticate clasp with your credentials json file:
-    clasp login --creds <client_credentials.json>`,
-
 };
 
 export const spinner = new Spinner();
@@ -280,7 +229,6 @@ export const spinner = new Spinner();
  * @param  {string} description The description of the error
  */
 export const logError = (err: any, description = '') => {
-  spinner.stop(true);
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
   // change error model. Don't review this method now.
@@ -288,12 +236,8 @@ export const logError = (err: any, description = '') => {
     logError(null, JSON.parse(err.error).error);
   } else if (err && err.statusCode === 401 || err && err.error &&
              err.error.error && err.error.error.code === 401) {
-    // TODO check if local creds exist:
-    //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
     logError(null, ERROR.UNAUTHENTICATED);
   } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
-    // TODO check if local creds exist:
-    //  localOathSettingsExist() ? ERROR.PERMISSION_DENIED : ERROR.PERMISSION_DENIED_LOCAL
     logError(null, ERROR.PERMISSION_DENIED);
   } else if (err && err.code === 429) {
     logError(null, ERROR.RATE_LIMIT);
@@ -306,6 +250,15 @@ export const logError = (err: any, description = '') => {
     process.exit(1);
   }
 };
+
+/**
+ * Gets the script URL from a script ID.
+ *
+ * It is too expensive to get the script URL from the Drive API. (Async/not offline)
+ * @param  {string} scriptId The script ID
+ * @return {string}          The URL of the script in the online script editor.
+ */
+export const getScriptURL = (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`;
 
 /**
  * Gets the web application URL from a deployment.
@@ -335,7 +288,7 @@ export function getDefaultProjectName(): string {
  * Gets the project settings from the project dotfile. Logs errors.
  * Should be used instead of `DOTFILE.PROJECT().read()`
  * @param  {boolean} failSilently Don't err when dot file DNE.
- * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
+ * @return {Promise} A promise to get the project script ID.
  */
 export function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
   const promise = new Promise<ProjectSettings>((resolve, reject) => {
@@ -366,6 +319,7 @@ export function getProjectSettings(failSilently?: boolean): Promise<ProjectSetti
   });
   promise.catch(err => {
     logError(err);
+    spinner.stop(true);
   });
   return promise;
 }
@@ -402,51 +356,9 @@ export async function saveProject(scriptId: string, rootDir?: string): Promise<P
 }
 
 /**
- * Checks if the rootDir appears to be a valid project.
+ * Checks if the current directory appears to be a valid project.
  * @return {boolean} True if valid project, false otherwise
  */
-export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
-  fs.existsSync(path.join(rootDir, `${PROJECT_MANIFEST_BASENAME}.json`));
-
-/**
- * Load appsscript.json manifest file.
- * @returns {Promise} A promise to get the manifest file as object.
- * @see https://developers.google.com/apps-script/concepts/manifests
- */
-export async function loadManifest(): Promise<any> {
-  let { rootDir } = await getProjectSettings();
-  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifest = path.join(rootDir, `${PROJECT_MANIFEST_BASENAME}.json`);
-  try {
-    return JSON.parse(fs.readFileSync(manifest, 'utf8'));
-  } catch(err) {
-    logError(null, ERROR.NO_MANIFEST(manifest));
-  }
-}
-
-/**
- * Get App Script project ID from project settings file
- * or prompt user & save
- * @returns {Promise} A promise to get the projectId string.
- */
-export async function getProjectId(promptUser = true): Promise<string|undefined> {
-  try {
-    const projectSettings: ProjectSettings = await getProjectSettings();
-    if (projectSettings.projectId) return projectSettings.projectId;
-    if (!promptUser) return;
-    console.log('Open this link: ', URL.SCRIPT(projectSettings.scriptId));
-    console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
-(including "project-id-")\n`);
-    await prompt([{
-      type : 'input',
-      name : 'projectId',
-      message : 'What is your GCP projectId?',
-    }]).then(async (answers: any) => {
-      projectSettings.projectId = answers.projectId;
-      await DOTFILE.PROJECT().write(projectSettings);
-    });
-    return projectSettings.projectId;
-  } catch (err) {
-    logError(null, err.message);
-  }
+export function manifestExists(): boolean {
+  return fs.existsSync(`${PROJECT_MANIFEST_BASENAME}.json`);
 }
