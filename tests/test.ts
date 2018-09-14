@@ -13,6 +13,8 @@ import {
   getWebApplicationURL,
   saveProject,
   getDefaultProjectName,
+  hasOauthClientSettings,
+  LOG,
 } from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
@@ -24,6 +26,11 @@ const CLASP_SETTINGS: string = JSON.stringify({
 });
 const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
+const claspSettingsLocalPath  = '.clasp.json'; // path.join('./', '.clasp.json');
+const claspRcGlobalPath = path.join(os.homedir(), '.clasprc.json');
+const claspRcLocalPath  = '.clasprc.json'; // path.join('./', '.clasprc.json');
+const clientCredsLocalPath  = 'client_credentials.json'; // path.join('./', 'client_credentials.json');
+
 const cleanup = () => {
   fs.removeSync('.clasp.json');
   fs.removeSync('.claspignore');
@@ -33,6 +40,62 @@ const cleanup = () => {
 
 const setup = () => {
   fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+};
+
+const rndStr = () => Math.random().toString(36).substr(2);
+
+const FAKE_CLASPRC: string = JSON.stringify({
+  access_token: rndStr(),
+  refresh_token: rndStr(),
+  scope: 'https://www.googleapis.com/auth/script.projects',
+  token_type: 'Bearer',
+  expiry_date: (new Date()).getTime(),
+});
+const FAKE_CLASPRC_LOCAL: string = JSON.stringify({
+  token: FAKE_CLASPRC,
+  oauth2ClientSettings: {
+    clientId: `${rndStr()}.apps.googleusercontent.com`,
+    clientSecret: rndStr(),
+  },
+});
+const CLASP_SETTINGS_FAKE_PROJECTID: string = JSON.stringify({
+  scriptId: process.env.SCRIPT_ID,
+  projectId: `project-id-${rndStr()}`,
+});
+const FAKE_CLIENT_CREDS: string = JSON.stringify({
+  installed: {
+    client_id: `${rndStr()}.apps.googleusercontent.com`,
+    client_secret: rndStr(),
+  },
+});
+const INVALID_CLIENT_CREDS: string = JSON.stringify({
+  installed: {
+    client_id: `${rndStr()}.apps.googleusercontent.com`,
+  },
+});
+
+const backupSettings = () => {
+  if (fs.existsSync(claspRcGlobalPath)) {
+    fs.copyFileSync(claspRcGlobalPath, `${claspRcGlobalPath}~`);
+  }
+  if (fs.existsSync(claspRcLocalPath)) {
+    fs.copyFileSync(claspRcLocalPath, `${claspRcLocalPath}~`);
+  }
+  if (fs.existsSync(claspSettingsLocalPath)) {
+    fs.copyFileSync(claspSettingsLocalPath, `${claspSettingsLocalPath}~`);
+  }
+};
+
+const restoreSettings = () => {
+  if (fs.existsSync(`${claspRcGlobalPath}~`)) {
+    fs.renameSync(`${claspRcGlobalPath}~`, claspRcGlobalPath);
+  }
+  if (fs.existsSync(`${claspRcLocalPath}~`)) {
+    fs.renameSync(`${claspRcLocalPath}~`, claspRcLocalPath);
+  }
+  if (fs.existsSync(`${claspSettingsLocalPath}~`)) {
+    fs.renameSync(`${claspSettingsLocalPath}~`, claspSettingsLocalPath);
+  }
 };
 
 describe('Test --help for each function', () => {
@@ -530,28 +593,131 @@ describe('Test clasp logs function', () => {
   after(cleanup);
 });
 
-describe('Test clasp logout function', () => {
-  it('should logout local *only* if local credentails', () => {
-    fs.writeFileSync(path.join('./', '.clasprc.json'), TEST_JSON);
-    fs.writeFileSync(path.join(os.homedir(), '.clasprc.json'), TEST_JSON);
-    const result = spawnSync(
-      CLASP, ['logout'], { encoding: 'utf8' },
-    );
-    expect(result.status).to.equal(0);
-    const localDotExists = fs.existsSync(path.join('./', '.clasprc.json'));
-    expect(localDotExists).to.equal(false);
-    const dotExists = fs.existsSync(path.join(os.homedir(), '.clasprc.json'));
-    expect(dotExists).to.equal(true);
+describe('Test clasp login function', () => {
+  before(function() {
+    if (isPR !== 'false') {
+      this.skip();
+    }
+    setup();
   });
+  beforeEach(backupSettings);
+  afterEach(restoreSettings);
+  it('should exit(0) with LOG.DEFAULT_CREDENTIALS for default login (no global or local rc)', () => {
+    if (fs.existsSync(claspRcGlobalPath)) fs.removeSync(claspRcGlobalPath);
+    if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
+    const result = spawnSync(
+      CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain(LOG.DEFAULT_CREDENTIALS);
+    expect(result.status).to.equal(0);
+  });
+  it('should exit(1) with ERROR.LOGGED_IN if global rc and no --creds option', () => {
+    fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
+    const result = spawnSync(
+      CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
+    );
+    fs.removeSync(claspRcGlobalPath);
+    expect(result.stderr).to.contain(ERROR.LOGGED_IN);
+    expect(result.status).to.equal(1);
+  });
+  it('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
+    fs.writeFileSync(claspRcLocalPath, FAKE_CLASPRC_LOCAL);
+    const result = spawnSync(
+      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+    );
+    fs.removeSync(claspRcLocalPath);
+    expect(result.stderr).to.contain(ERROR.LOGGED_IN);
+    expect(result.status).to.equal(1);
+  });
+  it('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {
+    if (fs.existsSync(clientCredsLocalPath)) fs.removeSync(clientCredsLocalPath);
+    const result = spawnSync(
+      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+    );
+    expect(result.stderr).to.contain(ERROR.CREDENTIALS_DNE(clientCredsLocalPath));
+    expect(result.status).to.equal(1);
+  });
+  it('should exit(1) with ERROR.BAD_CREDENTIALS_FILE if --creds file invalid', () => {
+    fs.writeFileSync(clientCredsLocalPath, INVALID_CLIENT_CREDS);
+    const result = spawnSync(
+      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+    );
+    fs.removeSync(clientCredsLocalPath);
+    expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
+    expect(result.status).to.equal(1);
+  });
+  it('should exit(0) with ERROR.BAD_CREDENTIALS_FILE if --creds file corrupt json', () => {
+    fs.writeFileSync(clientCredsLocalPath, rndStr());
+    const result = spawnSync(
+      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+    );
+    fs.removeSync(clientCredsLocalPath);
+    expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
+    expect(result.status).to.equal(1);
+  });
+  it('should exit(0) with LOG.CREDENTIALS_FOUND if global rc and --creds file valid', () => {
+    if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
+    fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
+    fs.writeFileSync(clientCredsLocalPath, FAKE_CLIENT_CREDS);
+    const result = spawnSync(
+      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+    );
+    fs.removeSync(claspRcGlobalPath);
+    fs.removeSync(clientCredsLocalPath);
+    expect(result.stdout).to.contain(LOG.CREDENTIALS_FOUND);
+    expect(result.status).to.equal(0);
+  });
+  after(cleanup);
+});
 
-  it('should logout global (default) if no local credentials', () => {
+describe('Test clasp logout function', () => {
+  before(function() {
+    if (isPR !== 'false') {
+      this.skip();
+    }
+    setup();
+  });
+  beforeEach(backupSettings);
+  afterEach(restoreSettings);
+  it('should remove global AND local credentails', () => {
+    fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
+    fs.writeFileSync(claspRcLocalPath, FAKE_CLASPRC_LOCAL);
     const result = spawnSync(
       CLASP, ['logout'], { encoding: 'utf8' },
     );
+    expect(fs.existsSync(claspRcGlobalPath)).to.equal(false);
+    expect(hasOauthClientSettings()).to.equal(false);
+    expect(fs.existsSync(claspRcLocalPath)).to.equal(false);
+    expect(hasOauthClientSettings(true)).to.equal(false);
     expect(result.status).to.equal(0);
-    const dotExists = fs.existsSync(path.join(os.homedir(), '.clasprc.json'));
-    expect(dotExists).to.equal(false);
   });
+  after(cleanup);
+});
+
+describe('Test clasp run function', () => {
+  before(function() {
+    if (isPR !== 'false') {
+      this.skip();
+    }
+    setup();
+  });
+  it('should prompt for project ID', () => {
+    const result = spawnSync(
+      CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('What is your GCP projectId?');
+  });
+  it('should prompt to set up new OAuth client', () => {
+    fs.writeFileSync(claspSettingsLocalPath, CLASP_SETTINGS_FAKE_PROJECTID);
+    const result = spawnSync(
+      CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
+    );
+    fs.removeSync(claspSettingsLocalPath);
+    expect(result.stdout)
+      .to.contain('https://console.developers.google.com/apis/credentials?project=');
+    expect(result.status).to.equal(0);
+    });
+  after(cleanup);
 });
 
 describe('Test variations of clasp help', () => {
@@ -590,6 +756,10 @@ describe('Test unknown functions', () => {
 });
 
 describe('Test all functions while logged out', () => {
+  before(() => {
+    if (fs.existsSync(claspRcGlobalPath)) fs.removeSync(claspRcGlobalPath);
+    if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
+  });
   const expectNoCredentials = (command: string) => {
     const result = spawnSync(
       CLASP, [command], { encoding : 'utf8' },
