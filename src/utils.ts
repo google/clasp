@@ -111,18 +111,12 @@ export const DOTFILE = {
 };
 
 /**
- * Checks if local OAuth client settings rc file exists.
+ * Checks if OAuth client settings rc file exists.
+ * @param  {boolean} local check ./clasprc.json instead of ~/.clasprc.json
  * @return {boolean}
  */
-export const hasLocalOathSettings = (): boolean =>
-  fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH);
-
-/**
- * Checks if default OAuth client settings rc file exists.
- * @return {boolean}
- */
-export const hasDefaultOathSettings = (): boolean =>
-  fs.existsSync(DOT.RC.ABSOLUTE_PATH);
+export const hasOauthClientSettings = (local = false): boolean =>
+  local ? fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH) : fs.existsSync(DOT.RC.ABSOLUTE_PATH);
 
 /**
  * Gets the OAuth client settings from rc file.
@@ -168,6 +162,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
   CREATE_WITH_PARENT: 'Did you provide the correct parentId?',
   CREATE: 'Error creating script.',
+  CREDENTIALS_DNE: (filename: string) => `Credentials file "${filename}" not found.`,
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
   EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
@@ -226,12 +221,6 @@ export const LOG = {
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
   OPEN_WEBAPP: (deploymentId: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
-  SAVED_CREDS: `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
-  SAVED_LOCAL_CREDS: `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME}.`,
-  SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit \n`,
-  STATUS_PUSH: 'Not ignored files:',
-  STATUS_IGNORE: 'Ignored files:',
-  PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_FAILURE: 'Push failed. Errors:',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,

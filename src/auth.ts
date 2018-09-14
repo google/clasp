@@ -17,8 +17,7 @@ import {
   DOTFILE,
   ERROR,
   getOAuthSettings,
-  hasDefaultOathSettings,
-  hasLocalOathSettings,
+  hasOauthClientSettings,
   isLocalCreds,
   loadManifest,
   LOG,
@@ -158,33 +157,40 @@ async function authorizeWithoutLocalhost() {
  * @param {string} options.creds location of credentials file.
  */
 export async function login(options: { localhost: boolean, creds: string }) {
-  const hasLoginLocal = options.creds && hasLocalOathSettings();
-  const hasLoginDefault = !options.creds && hasDefaultOathSettings();
-  if (hasLoginLocal || hasLoginDefault) {
+  const loggedInLocal = options.creds && hasOauthClientSettings(true);
+  const loggedInGlobal = !options.creds && hasOauthClientSettings();
+  if (loggedInLocal || loggedInGlobal) {
     logError(null, ERROR.LOGGED_IN);
   }
   await checkIfOnline();
   let ownCreds = false;
-  try {
-    const credentials = JSON.parse(fs.readFileSync(options.creds, 'utf8'));
-    const isValidCreds = credentials &&
-      credentials.installed &&
-      credentials.installed.client_id &&
-      credentials.installed.client_secret;
-    if (isValidCreds) {
-      oauth2ClientSettings.clientId = credentials.installed.client_id;
-      oauth2ClientSettings.clientSecret = credentials.installed.client_secret;
-      ownCreds = true;
-      console.log(LOG.CREDENTIALS_FOUND);
-    } else {
+  if (options.creds) {
+    try {
+      const credentials = JSON.parse(fs.readFileSync(options.creds, 'utf8'));
+      // Validates the parsed creds object
+      const isValidCreds = credentials &&
+        credentials.installed &&
+        credentials.installed.client_id &&
+        credentials.installed.client_secret;
+      if (isValidCreds) {
+        oauth2ClientSettings.clientId = credentials.installed.client_id;
+        oauth2ClientSettings.clientSecret = credentials.installed.client_secret;
+        ownCreds = true;
+        console.log(LOG.CREDENTIALS_FOUND);
+      } else {
+        // --creds json parses but invalid
+        logError(null, ERROR.BAD_CREDENTIALS_FILE);
+      }
+    } catch(err) {
+      if (err.code === 'ENOENT') {
+        // --creds file not found
+        logError(null, ERROR.CREDENTIALS_DNE(options.creds));
+      }
+      // --creds json parse fails
       logError(null, ERROR.BAD_CREDENTIALS_FILE);
     }
-  } catch(err) {
-    if (err.code === 'ENOENT') {
-      logError(null, ERROR.NO_CREDENTIALS);
-    }
-    console.log(LOG.DEFAULT_CREDENTIALS);
   }
+  if (!ownCreds) console.log(LOG.DEFAULT_CREDENTIALS);
   await authorize({useLocalhost: options.localhost, ownCreds});
   process.exit(0); // gracefully exit after successful login
 }
@@ -245,12 +251,11 @@ export async function checkOauthScopes(rc: ClaspSettings) {
       type : 'confirm',
       name : 'doAuth',
       message : 'Authorize new scopes?',
-    },
-    {
+    }, {
       type : 'confirm',
       name : 'localhost',
       message : 'Use localhost?',
-      when(answers: any) {
+      when: (answers: any ) => {
         return answers.doAuth;
       },
     }]).then(async (answers: any) => {
