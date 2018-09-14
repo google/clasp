@@ -248,7 +248,7 @@ export const LOG = {
   b. Open this link: ${chalk.blue(URL.LOGGING_API_PROJECT(projectId))}
       Click ${chalk.cyan('ENABLE')}.
 
-2. Create a valid Client ID and client secret:
+2. Create a client ID and secret:
     Open this link: ${chalk.blue(URL.CREDS(projectId))}
     Click ${chalk.cyan('Create credentials')}, then select ${chalk.yellow('OAuth client ID')}.
     Select ${chalk.yellow('Other')}.
