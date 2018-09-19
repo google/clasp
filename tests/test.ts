@@ -4,17 +4,16 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
-import { getFileType, getAppsScriptFileName } from './../src/files';
+import { getAppsScriptFileName, getFileType } from './../src/files';
 import {
   ERROR,
-  PROJECT_NAME,
-  getAPIFileType,
-  URL,
-  getWebApplicationURL,
-  saveProject,
-  getDefaultProjectName,
-  hasOauthClientSettings,
   LOG,
+  URL,
+  getAPIFileType,
+  getDefaultProjectName,
+  getWebApplicationURL,
+  hasOauthClientSettings,
+  saveProject,
 } from './../src/utils.js';
 const { spawnSync } = require('child_process');
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
@@ -573,7 +572,7 @@ describe('Test clasp apis functions', () => {
       CLASP, ['apis', 'unknown'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain(`Unknown command "${PROJECT_NAME} apis unknown"`);
+    expect(result.stderr).to.contain(`Unknown command`);
   });
 });
 
@@ -750,7 +749,7 @@ describe('Test unknown functions', () => {
     const result = spawnSync(
       CLASP, ['unknown'], { encoding: 'utf8' },
     );
-    expect(result.stderr).to.contain(`🤔  Unknown command "${PROJECT_NAME} unknown"`);
+    expect(result.stderr).to.contain(`Unknown command`);
     expect(result.status).to.equal(1);
   });
 });
