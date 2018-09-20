@@ -11,11 +11,13 @@ node_js:
 - '6'
 env:
   global:
-    - SCRIPT_ID=1Q3zCVgK53kEiacR0qvBYFr-A4d720UgZh3cdfDF2oFVJE5SgFiXO0AVZ
+  - SCRIPT_ID=1Q3zCVgK53kEiacR0qvBYFr-A4d720UgZh3cdfDF2oFVJE5SgFiXO0AVZ
 cache:
   directories:
   - "$HOME/.npm"
 before_install:
+- openssl aes-256-cbc -K $encrypted_078ec85b282a_key -iv $encrypted_078ec85b282a_iv
+  -in .clasprc.json.enc -out ./tests/.clasprc.json -d
 - openssl aes-256-cbc -K $encrypted_2d2c56c5efb5_key -iv $encrypted_2d2c56c5efb5_iv
   -in ./tests/.clasprc.json.enc -out .clasprc.json -d || true
 - npm install -g npm@latest
