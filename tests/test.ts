@@ -125,7 +125,7 @@ describe('Test --help for each function', () => {
   it('should help --help', () => expectHelp('help', 'Display help'));
 });
 
-describe('Test clasp list function', () => {
+describe.skip('Test clasp list function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -143,7 +143,7 @@ describe('Test clasp list function', () => {
   });
 });
 
-describe('Test clasp create function', () => {
+describe.skip('Test clasp create function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -182,7 +182,7 @@ describe.skip('Test clasp create <title> function', () => {
   });
 });
 
-describe('Test clasp clone <scriptId> function', () => {
+describe.skip('Test clasp clone <scriptId> function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -210,7 +210,7 @@ describe('Test clasp clone <scriptId> function', () => {
   after(cleanup);
 });
 
-describe('Test clasp pull function', () => {
+describe.skip('Test clasp pull function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -350,7 +350,7 @@ describe('Test clasp open function', () => {
   after(cleanup);
 });
 
-describe('Test clasp deployments function', () => {
+describe.skip('Test clasp deployments function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -367,7 +367,7 @@ describe('Test clasp deployments function', () => {
   after(cleanup);
 });
 
-describe('Test clasp deploy function', () => {
+describe.skip('Test clasp deploy function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -425,7 +425,7 @@ describe('Test clasp version and versions function', () => {
   after(cleanup);
 });
 
-describe('Test clasp clone function', () => {
+describe.skip('Test clasp clone function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -693,7 +693,7 @@ describe('Test clasp logout function', () => {
   after(cleanup);
 });
 
-describe('Test clasp run function', () => {
+describe.skip('Test clasp run function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
