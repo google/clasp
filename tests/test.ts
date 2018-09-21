@@ -15,7 +15,9 @@ import {
   hasOauthClientSettings,
   saveProject,
 } from './../src/utils.js';
+const copyFileSync = require('fs-copy-file-sync');
 const { spawnSync } = require('child_process');
+
 const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
 const TEST_JSON = '{"timeZone": "America/New_York"}';
 const CLASP = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp';
@@ -74,14 +76,15 @@ const INVALID_CLIENT_CREDS: string = JSON.stringify({
 });
 
 const backupSettings = () => {
+  // fs.copyFileSync isn't supported in Node 6/7
   if (fs.existsSync(claspRcGlobalPath)) {
-    fs.copyFileSync(claspRcGlobalPath, `${claspRcGlobalPath}~`);
+    copyFileSync(claspRcGlobalPath, `${claspRcGlobalPath}~`);
   }
   if (fs.existsSync(claspRcLocalPath)) {
-    fs.copyFileSync(claspRcLocalPath, `${claspRcLocalPath}~`);
+    copyFileSync(claspRcLocalPath, `${claspRcLocalPath}~`);
   }
   if (fs.existsSync(claspSettingsLocalPath)) {
-    fs.copyFileSync(claspSettingsLocalPath, `${claspSettingsLocalPath}~`);
+    copyFileSync(claspSettingsLocalPath, `${claspSettingsLocalPath}~`);
   }
 };
 
