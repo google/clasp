@@ -128,7 +128,7 @@ describe('Test --help for each function', () => {
   it('should help --help', () => expectHelp('help', 'Display help'));
 });
 
-describe.skip('Test clasp list function', () => {
+describe('Test clasp list function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
