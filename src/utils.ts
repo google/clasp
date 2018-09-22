@@ -218,7 +218,7 @@ export const LOG = {
   FINDING_SCRIPTS: 'Finding your scripts...',
   GRAB_LOGS: 'Grabbing logs...',
   LOCAL_CREDS: `Using local credentials: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME} 🔐 `,
-  OPEN_PROJECT: (scriptId: string) => `Opening script: ${scriptId}`,
+  OPEN_PROJECT: (scriptId: string) => `Opening script: ${URL.SCRIPT(scriptId)}`,
   OPEN_WEBAPP: (deploymentId: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
   PUSH_FAILURE: 'Push failed. Errors:',
