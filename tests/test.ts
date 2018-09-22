@@ -146,7 +146,7 @@ describe('Test clasp list function', () => {
   });
 });
 
-describe.skip('Test clasp create function', () => {
+describe('Test clasp create function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -185,7 +185,7 @@ describe.skip('Test clasp create <title> function', () => {
   });
 });
 
-describe.skip('Test clasp clone <scriptId> function', () => {
+describe('Test clasp clone <scriptId> function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -213,7 +213,7 @@ describe.skip('Test clasp clone <scriptId> function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp pull function', () => {
+describe('Test clasp pull function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -353,7 +353,7 @@ describe('Test clasp open function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp deployments function', () => {
+describe('Test clasp deployments function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -370,7 +370,7 @@ describe.skip('Test clasp deployments function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp deploy function', () => {
+describe('Test clasp deploy function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -428,7 +428,7 @@ describe('Test clasp version and versions function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp clone function', () => {
+describe('Test clasp clone function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -595,6 +595,30 @@ describe('Test clasp logs function', () => {
   after(cleanup);
 });
 
+describe('Test clasp logout function', () => {
+  before(function() {
+    if (isPR !== 'false') {
+      this.skip();
+    }
+    setup();
+  });
+  beforeEach(backupSettings);
+  afterEach(restoreSettings);
+  it('should remove global AND local credentails', () => {
+    fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
+    fs.writeFileSync(claspRcLocalPath, FAKE_CLASPRC_LOCAL);
+    const result = spawnSync(
+      CLASP, ['logout'], { encoding: 'utf8' },
+    );
+    expect(fs.existsSync(claspRcGlobalPath)).to.equal(false);
+    expect(hasOauthClientSettings()).to.equal(false);
+    expect(fs.existsSync(claspRcLocalPath)).to.equal(false);
+    expect(hasOauthClientSettings(true)).to.equal(false);
+    expect(result.status).to.equal(0);
+  });
+  after(cleanup);
+});
+
 describe('Test clasp login function', () => {
   before(function() {
     if (isPR !== 'false') {
@@ -672,31 +696,7 @@ describe('Test clasp login function', () => {
   after(cleanup);
 });
 
-describe('Test clasp logout function', () => {
-  before(function() {
-    if (isPR !== 'false') {
-      this.skip();
-    }
-    setup();
-  });
-  beforeEach(backupSettings);
-  afterEach(restoreSettings);
-  it('should remove global AND local credentails', () => {
-    fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
-    fs.writeFileSync(claspRcLocalPath, FAKE_CLASPRC_LOCAL);
-    const result = spawnSync(
-      CLASP, ['logout'], { encoding: 'utf8' },
-    );
-    expect(fs.existsSync(claspRcGlobalPath)).to.equal(false);
-    expect(hasOauthClientSettings()).to.equal(false);
-    expect(fs.existsSync(claspRcLocalPath)).to.equal(false);
-    expect(hasOauthClientSettings(true)).to.equal(false);
-    expect(result.status).to.equal(0);
-  });
-  after(cleanup);
-});
-
-describe.skip('Test clasp run function', () => {
+describe('Test clasp run function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
