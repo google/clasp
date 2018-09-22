@@ -256,6 +256,7 @@ commander
  * @name logs
  * @param {boolean?} json Output logs in json format.
  * @param {boolean?} open Open StackDriver logs in a browser.
+ * @param {boolean?} setup Setup StackDriver logs.
  */
 commander
   .command('logs')

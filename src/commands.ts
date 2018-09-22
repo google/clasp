@@ -9,6 +9,7 @@ import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
   checkIfOnline,
   DOT,
+  DOTFILE,
   ERROR,
   getDefaultProjectName,
   getProjectId,
@@ -212,8 +213,13 @@ export const logout = () => {
  * Prints StackDriver logs from this Apps Script project.
  * @param cmd.json {boolean} If true, the command will output logs as json.
  * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
+ * @param cmd.setup {boolean} If true, the command will help you setup logs.
  */
-export const logs = async (cmd: { json: boolean, open: boolean }) => {
+export const logs = async (cmd: {
+  json: boolean,
+  open: boolean
+  setup: boolean,
+}) => {
   await checkIfOnline();
   function printLogs(entries: any[] = []) {
     entries = entries.reverse(); // print in syslog ascending order
@@ -253,8 +259,48 @@ export const logs = async (cmd: { json: boolean, open: boolean }) => {
       console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
     }
   }
-  const projectId = await getProjectId(); // will prompt user to set up if required
-  if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
+  async function setupLogs(projectId?: string): Promise<string> {
+    const promise = new Promise<string>((resolve, reject) => {
+      getProjectSettings().then((projectSettings) => {
+        console.log('Open this link: ', LOG.SCRIPT_LINK(projectSettings.scriptId));
+        console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
+(including "project-id-")\n`);
+        prompt([{
+          type : 'input',
+          name : 'projectId',
+          message : 'What is your GCP projectId?',
+        }]).then((answers: any) => {
+          projectId = answers.projectId;
+          const dotfile = DOTFILE.PROJECT();
+          if (dotfile) {
+            dotfile.read().then((settings: ProjectSettings) => {
+              if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
+              dotfile.write({scriptId: settings.scriptId, projectId});
+              resolve(projectId);
+            }).catch((err: object) => {
+              reject(logError(err));
+            });
+          } else {
+            reject(logError(null, ERROR.SETTINGS_DNE));
+          }
+        }).catch((err: any) => {
+          reject(console.log(err));
+        });
+      });
+    });
+    promise.catch(err => {
+      logError(err);
+      spinner.stop(true);
+    });
+    return promise;
+  }
+  let { projectId } = await getProjectSettings();
+  projectId = cmd.setup ? await setupLogs() : projectId;
+  if (!projectId) {
+    console.log(LOG.NO_GCLOUD_PROJECT);
+    projectId = await setupLogs();
+    console.log(LOG.LOGS_SETUP);
+  }
   if (cmd.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
