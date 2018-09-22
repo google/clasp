@@ -146,7 +146,7 @@ describe('Test clasp list function', () => {
   });
 });
 
-describe.skip('Test clasp create function', () => {
+describe('Test clasp create function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -185,7 +185,7 @@ describe.skip('Test clasp create <title> function', () => {
   });
 });
 
-describe.skip('Test clasp clone <scriptId> function', () => {
+describe('Test clasp clone <scriptId> function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -213,7 +213,7 @@ describe.skip('Test clasp clone <scriptId> function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp pull function', () => {
+describe('Test clasp pull function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -353,7 +353,7 @@ describe('Test clasp open function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp deployments function', () => {
+describe('Test clasp deployments function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -370,7 +370,7 @@ describe.skip('Test clasp deployments function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp deploy function', () => {
+describe('Test clasp deploy function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -428,7 +428,7 @@ describe('Test clasp version and versions function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp clone function', () => {
+describe('Test clasp clone function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
@@ -631,7 +631,7 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.LOGGED_IN);
     expect(result.status).to.equal(1);
   });
-  it('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {
+  it.skip('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {
     if (fs.existsSync(clientCredsLocalPath)) fs.removeSync(clientCredsLocalPath);
     const result = spawnSync(
       CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
@@ -639,7 +639,7 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.CREDENTIALS_DNE(clientCredsLocalPath));
     expect(result.status).to.equal(1);
   });
-  it('should exit(1) with ERROR.BAD_CREDENTIALS_FILE if --creds file invalid', () => {
+  it.skip('should exit(1) with ERROR.BAD_CREDENTIALS_FILE if --creds file invalid', () => {
     fs.writeFileSync(clientCredsLocalPath, INVALID_CLIENT_CREDS);
     const result = spawnSync(
       CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
@@ -648,7 +648,7 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
   });
-  it('should exit(0) with ERROR.BAD_CREDENTIALS_FILE if --creds file corrupt json', () => {
+  it.skip('should exit(0) with ERROR.BAD_CREDENTIALS_FILE if --creds file corrupt json', () => {
     fs.writeFileSync(clientCredsLocalPath, rndStr());
     const result = spawnSync(
       CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
@@ -696,7 +696,7 @@ describe('Test clasp logout function', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp run function', () => {
+describe('Test clasp run function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
