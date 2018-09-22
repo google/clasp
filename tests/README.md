@@ -44,7 +44,17 @@ This will add the following line to `.travis.yml`, which decrypts that file:
 openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv -in .clasprc.json.enc -out .clasprc.json -d || true
 ```
 
-Make sure to commit the file to the path: `./tests/.clasprc.json.enc`
+Now move `.clasprc.json.enc` to the `/tests/` folder:
+
+```
+rm ./tests/.clasprc.json.enc
+cp .clasprc.json.enc ./tests/.clasprc.json.enc
+```
+
+And edit the `openssl` command in `.travis.yml` file:
+
+* Change the `-in` file to `./tests/.clasprc.json.enc`
+* Change the `-out` file to `.clasprc.json`
 
 > Note: [Travis will not decrypt files on a Pull Request from a fork.](https://docs.travis-ci.com/user/encrypting-files/)
 
