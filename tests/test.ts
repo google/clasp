@@ -579,7 +579,7 @@ describe('Test clasp apis functions', () => {
   });
 });
 
-describe('Test clasp logs function', () => {
+describe.skip('Test clasp logs function', () => {
   before(function() {
     if (isPR !== 'false') {
       this.skip();
