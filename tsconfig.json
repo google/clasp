@@ -9,6 +9,7 @@
       "es2017"
     ],
     "strict": true,
+    "allowSyntheticDefaultImports": true,
   },
   "moduleResolution": "node",
   "files": [

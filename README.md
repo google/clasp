@@ -82,6 +82,7 @@ clasp
 - [`clasp versions`](#versions)
 - [`clasp list`](#list)
 - [`clasp logs [--json] [--open]`](#logs)
+- [`clasp compile [options]`](#compile) ***Experimental***
 
 ## How To...
 
@@ -304,6 +305,20 @@ only run functions that do not require other authorization.
 #### Examples
 
 - `clasp run 'sendEmail'`
+
+### Compile
+
+Transpile ES5+ code to GAS-compatible javascript project (Experimental)
+(ES6 modules, core-js@2 polyfills & platform-independent Node modules.)
+
+#### Examples
+
+- `clasp compile --src ./source --dist ./build --entry code.js --no-lint`
+
+**Note**
+- Top level entry functions must be assigned to `global` object.
+- Local .eslintrc (if exists) overrides builtin defaults for linting.
+- Must provide global `setTimeout()` (synchronous) shim for Promise support.
 
 ### Help
 
