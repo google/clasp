@@ -126,7 +126,7 @@ export const buildWebpackConfig = (options: {
       modules: ['node_modules', path.resolve(__dirname, '../node_modules')],
     },
     resolveLoader: {
-      modules: [path.resolve(__dirname, '../node_modules')],
+      modules: ['node_modules', path.resolve(__dirname, '../node_modules')],
     },
     output: {
       path: path.resolve(_cwd, opt.dist),
