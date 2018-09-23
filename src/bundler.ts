@@ -1,8 +1,9 @@
+import webpack from 'webpack';
+import { IgnorePlugin } from 'webpack';
+
 const path = require('path');
 const { readdirSync, statSync } = require('fs');
 
-import webpack from 'webpack';
-import { IgnorePlugin } from 'webpack';
 const cleanWebpackPlugin = require('clean-webpack-plugin');
 const gasPlugin = require('gas-webpack-plugin');
 const lodashModuleReplacementPlugin = require('lodash-webpack-plugin');
@@ -188,7 +189,7 @@ export const buildWebpackConfig = (options: {
     optimization: {
       providedExports: true,
       usedExports: true,
-        concatenateModules: true,
+      concatenateModules: true,
       runtimeChunk: {
         name: 'runtime-loader',
       },
