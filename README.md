@@ -371,6 +371,14 @@ sudo npm install n -g
 sudo n latest
 ```
 
+## README Badge
+
+Using clasp for your project? Add a README badge to show it off: [![clasp](https://img.shields.io/badge/built%20with-clasp-4285f4.svg)](https://github.com/google/clasp)
+
+```
+[![clasp](https://img.shields.io/badge/built%20with-clasp-4285f4.svg)](https://github.com/google/clasp)
+```
+
 ## Develop clasp
 
 See [the develop guide](docs/develop.md) for instructions on how to build `clasp`. It's not that hard!
