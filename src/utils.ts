@@ -231,7 +231,7 @@ export const LOG = {
   REDEPLOY_END: 'Updated deployment.',
   REDEPLOY_START: 'Updating deployment...',
   SAVED_CREDS: `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
-  SAVED_LOCAL_CREDS: `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME}.`,
+  SAVED_LOCAL_CREDS: `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit \n`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
