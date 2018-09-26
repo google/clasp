@@ -68,7 +68,7 @@ sudo npm i -g grpc @google/clasp --unsafe-perm
 ```sh
 clasp
 ```
-- [`clasp login [--no-localhost]`](#login)
+- [`clasp login [--no-localhost] [--creds <file>]`](#login)
 - [`clasp logout`](#logout)
 - [`clasp create [scriptTitle] [scriptParentId] [--rootDir]`](#create)
 - [`clasp clone <scriptId>`](#clone)
