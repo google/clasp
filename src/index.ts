@@ -151,10 +151,10 @@ commander
  * @example status
  */
 commander
-.command('status')
-.description('Lists files that will be pushed by clasp')
-.option('--json', 'Show status in JSON form')
-.action(status);
+  .command('status')
+  .description('Lists files that will be pushed by clasp')
+  .option('--json', 'Show status in JSON form')
+  .action(status);
 
 /**
  * Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.
