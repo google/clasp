@@ -236,37 +236,37 @@ export async function fetchProject(scriptId: string, rootDir = '', versionNumber
 export async function pushFiles() {
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
-    getProjectFiles(rootDir, (err, projectFiles, files) => {
-      if (err) {
-        logError(err, LOG.PUSH_FAILURE);
+  getProjectFiles(rootDir, (err, projectFiles, files) => {
+    if (err) {
+      logError(err, LOG.PUSH_FAILURE);
+      spinner.stop(true);
+    } else if (projectFiles) {
+      const [nonIgnoredFilePaths] = projectFiles;
+      script.projects.updateContent({
+        scriptId,
+        resource: { files },
+      }, {}, (error: any) => {
         spinner.stop(true);
-      } else if (projectFiles) {
-        const [nonIgnoredFilePaths] = projectFiles;
-        script.projects.updateContent({
-          scriptId,
-          resource: { files },
-        }, {}, (error: any) => {
-          spinner.stop(true);
-          // In the following code, we favor console.error()
-          // over logError() because logError() exits, whereas
-          // we want to log multiple lines of messages, and
-          // eventually exit after logging everything.
-          if (error) {
-            console.error(LOG.PUSH_FAILURE);
-            error.errors.map((err: any) => {
-              console.error(err.message);
-            });
-            console.error(LOG.FILES_TO_PUSH);
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.error(`└─ ${filePath}`);
-            });
-            process.exit(1);
-          } else {
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.log(`└─ ${filePath}`);
-            });
-            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-          }
+        // In the following code, we favor console.error()
+        // over logError() because logError() exits, whereas
+        // we want to log multiple lines of messages, and
+        // eventually exit after logging everything.
+        if (error) {
+          console.error(LOG.PUSH_FAILURE);
+          error.errors.map((err: any) => {
+            console.error(err.message);
+          });
+          console.error(LOG.FILES_TO_PUSH);
+          nonIgnoredFilePaths.map((filePath: string) => {
+            console.error(`└─ ${filePath}`);
+          });
+          process.exit(1);
+        } else {
+          nonIgnoredFilePaths.map((filePath: string) => {
+            console.log(`└─ ${filePath}`);
+          });
+          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+        }
       });
     }
   });
