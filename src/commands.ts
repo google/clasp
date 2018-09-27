@@ -407,47 +407,47 @@ export const deploy = async (version: string, description: string) => {
   description = description || '';
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
-    spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
-    function createDeployment(versionNumber: string) {
-      spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
-      script.projects.deployments.create({
-        scriptId,
-        resource: {
-          versionNumber,
-          manifestFileName: PROJECT_MANIFEST_BASENAME,
-          description,
-        },
-      }, {}, (err: any, response: any) => {
-        spinner.stop(true);
-        if (err) {
-          logError(null, ERROR.DEPLOYMENT_COUNT);
-        } else if (response) {
-          console.log(`- ${response.data.deploymentId} @${versionNumber}.`);
-        }
-      });
-    }
+  spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
+  function createDeployment(versionNumber: string) {
+    spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+    script.projects.deployments.create({
+      scriptId,
+      resource: {
+        versionNumber,
+        manifestFileName: PROJECT_MANIFEST_BASENAME,
+        description,
+      },
+    }, {}, (err: any, response: any) => {
+      spinner.stop(true);
+      if (err) {
+        logError(null, ERROR.DEPLOYMENT_COUNT);
+      } else if (response) {
+        console.log(`- ${response.data.deploymentId} @${versionNumber}.`);
+      }
+    });
+  }
 
-    // If the version is specified, update that deployment
-    const versionRequestBody = {
-      description,
-    };
-    if (version) {
-      createDeployment(version);
-    } else { // if no version, create a new version and deploy that
-      script.projects.versions.create({
-        scriptId,
-        resource: versionRequestBody,
-      }, {}, (err: any, versionResponse: any) => {
-        spinner.stop(true);
-        if (err) {
-          logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
-        } else {
-          const data = versionResponse.data;
-          console.log(LOG.VERSION_CREATED(data.versionNumber));
-          createDeployment(data.versionNumber);
-        }
-      });
-    }
+  // If the version is specified, update that deployment
+  const versionRequestBody = {
+    description,
+  };
+  if (version) {
+    createDeployment(version);
+  } else { // if no version, create a new version and deploy that
+    script.projects.versions.create({
+      scriptId,
+      resource: versionRequestBody,
+    }, {}, (err: any, versionResponse: any) => {
+      spinner.stop(true);
+      if (err) {
+        logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
+      } else {
+        const data = versionResponse.data;
+        console.log(LOG.VERSION_CREATED(data.versionNumber));
+        createDeployment(data.versionNumber);
+      }
+    });
+  }
 };
 
 /**
@@ -536,27 +536,27 @@ export const deployments = async () => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
-    spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
-    script.projects.deployments.list({
-      scriptId,
-    }, {}, (error: any, deploymentResponse: any) => {
-      spinner.stop(true);
-      if (error) {
-        logError(error);
-      } else {
-        const deployments = deploymentResponse.data.deployments;
-        const numDeployments = deployments.length;
-        const deploymentWord = pluralize('Deployment', numDeployments);
-        console.log(`${numDeployments} ${deploymentWord}.`);
-        deployments.map(({ deploymentId, deploymentConfig }: any) => {
-          const versionString = !!deploymentConfig.versionNumber ?
-            `@${deploymentConfig.versionNumber}` : '@HEAD';
-          const description = deploymentConfig.description ?
-            '- ' + deploymentConfig.description : '';
-          console.log(`- ${deploymentId} ${versionString} ${description}`);
-        });
-      }
-    });
+  spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
+  script.projects.deployments.list({
+    scriptId,
+  }, {}, (error: any, deploymentResponse: any) => {
+    spinner.stop(true);
+    if (error) {
+      logError(error);
+    } else {
+      const deployments = deploymentResponse.data.deployments;
+      const numDeployments = deployments.length;
+      const deploymentWord = pluralize('Deployment', numDeployments);
+      console.log(`${numDeployments} ${deploymentWord}.`);
+      deployments.map(({ deploymentId, deploymentConfig }: any) => {
+        const versionString = !!deploymentConfig.versionNumber ?
+          `@${deploymentConfig.versionNumber}` : '@HEAD';
+        const description = deploymentConfig.description ?
+          '- ' + deploymentConfig.description : '';
+        console.log(`- ${deploymentId} ${versionString} ${description}`);
+      });
+    }
+  });
 };
 
 /**
