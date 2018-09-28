@@ -72,7 +72,7 @@ clasp
 - [`clasp logout`](#logout)
 - [`clasp create [scriptTitle] [scriptParentId] [--rootDir]`](#create)
 - [`clasp clone <scriptId>`](#clone)
-- [`clasp pull [--version]`](#pull)
+- [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch]`](#push)
 - [`clasp open [scriptId] [--webapp]`](#open)
 - [`clasp deployments`](#deployments)
@@ -138,12 +138,12 @@ Updates local files with Apps Script project.
 
 #### Options
 
-- `version`: The version number of the project to retrieve.
+- `versionNumber`: The version number of the project to retrieve.
 
 #### Examples
 
 - `clasp pull`
-- `clasp pull --version 23`
+- `clasp pull --versionNumber 23`
 
 ### Push
 
