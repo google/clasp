@@ -31,6 +31,8 @@ const commander = require('commander');
 const chalk = require('chalk');
 const { prompt } = require('inquirer');
 const padEnd = require('string.prototype.padend');
+const webpack = require('webpack');
+import { buildWebpackConfig } from './bundler';
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
@@ -703,4 +705,42 @@ export const apis = async () => {
   } else {
     logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
   }
+};
+
+/**
+ * Run Eslint + Babel@7 + Webpack@4 config to create GAS-compatible js.
+ * @param cmd.src {string} Source path, webpack config default './src'
+ * @param cmd.dist {string} Output path, (set/use) rootDir or webpack config default: './dist'
+ * @param cmd.entry {string} Entry point filename (relative to src), webpack config default 'index.js'
+ * @param cmd.lint {boolean} Run eslint, default true
+ */
+export const compile = async (cmd: {
+  src?: string,
+  dist?: string,
+  entry?: string,
+  lint?: boolean,
+}) => {
+  const settings = await getProjectSettings();
+  if (cmd.dist && !settings.rootDir) saveProject(settings.scriptId, cmd.dist);
+  if (!cmd.dist && settings.rootDir) cmd.dist = settings.rootDir;
+  spinner.setSpinnerTitle(LOG.COMPILE).start();
+  const compiler = webpack(buildWebpackConfig(cmd));
+  await compiler.run((err: any, stats: any) => {
+    spinner.stop(true);
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    }
+    console.log(stats.toString({
+      // https://webpack.js.org/configuration/stats/#stats
+      assets: true,
+      cached: false,
+      chunks: false,
+      colors: true,
+      entrypoints: true,
+      modules: false,
+      version: false,
+    }));
+    process.exit(0);
+  });
 };

@@ -262,6 +262,7 @@ export const LOG = {
 3. Authenticate clasp with your credentials json file:
     clasp login --creds <client_credentials.json>`,
 
+  COMPILE: 'Compiling...',
 };
 
 export const spinner = new Spinner();

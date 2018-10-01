@@ -26,6 +26,7 @@ import { login } from './auth';
 import {
   apis,
   clone,
+  compile,
   create,
   defaultCmd,
   deploy,
@@ -295,6 +296,25 @@ commander
   .command('apis')
   .description('List, enable, or disable apis')
   .action(apis);
+
+/**
+ * Transpile ES5+ code to GAS-compatible javascript project (Experimental)
+ * (ES6 modules, core-js@2 polyfills & platform-independent Node modules.)
+ * @desc **Note**
+ * - Top level entry functions must be assigned to `global` object.
+ * - Local .eslintrc (if exists) overrides builtin defaults for linting.
+ * - Must provide global `setTimeout()` (synchronous) shim for Promise support.
+ * @name compile
+ * @example compile --src ./source --dist ./build --entry code.js --no-lint
+ */
+commander
+  .command('compile')
+  .description('Transpile ES5+ code to GAS-compatible javascript (Experimental)')
+  .option('--src <path>', 'Source directory', 'src')
+  .option('--dist <path>', 'Build output directory [sets/uses project rootDir]', 'dist')
+  .option('--entry <filename>', '"Main" entry point', 'index')
+  .option('--no-lint', 'Disable linting before compile.')
+  .action(compile);
 
 /**
  * Displays the help function.
