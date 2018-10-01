@@ -38,13 +38,13 @@ const padEnd = require('string.prototype.padend');
  *                             If not provided, the project's HEAD version is returned.
  */
 export const pull = async (cmd: {
-  version: number;
+  versionNumber: number;
 }) => {
   await checkIfOnline();
   const { scriptId, rootDir } = await getProjectSettings();
   if (scriptId) {
     spinner.setSpinnerTitle(LOG.PULLING);
-    fetchProject(scriptId, rootDir, cmd.version);
+    fetchProject(scriptId, rootDir, cmd.versionNumber);
   }
 };
 
