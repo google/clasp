@@ -122,7 +122,7 @@ commander
 commander
   .command('pull')
   .description('Fetch a remote project')
-  .option('--version <version>', 'The version number of the project to retrieve.')
+  .option('--versionNumber <version>', 'The version number of the project to retrieve.')
   .action(pull);
 
 /**
