@@ -243,7 +243,7 @@ export const LOG = {
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
   VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
-      (description || '(no description)'),
+    (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
 
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Enable the Script & Logging APIs for the project:
@@ -280,7 +280,7 @@ export const logError = (err: any, description = '') => {
   if (err && typeof err.error === 'string') {
     logError(null, JSON.parse(err.error).error);
   } else if (err && err.statusCode === 401 || err && err.error &&
-             err.error.error && err.error.error.code === 401) {
+    err.error.error && err.error.error.code === 401) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
     logError(null, ERROR.UNAUTHENTICATED);
@@ -412,7 +412,7 @@ export async function loadManifest(): Promise<any> {
   const manifest = path.join(rootDir, `${PROJECT_MANIFEST_BASENAME}.json`);
   try {
     return JSON.parse(fs.readFileSync(manifest, 'utf8'));
-  } catch(err) {
+  } catch (err) {
     logError(null, ERROR.NO_MANIFEST(manifest));
   }
 }
@@ -422,7 +422,7 @@ export async function loadManifest(): Promise<any> {
  * or prompt user & save
  * @returns {Promise} A promise to get the projectId string.
  */
-export async function getProjectId(promptUser = true): Promise<string|undefined> {
+export async function getProjectId(promptUser = true): Promise<string | undefined> {
   try {
     const projectSettings: ProjectSettings = await getProjectSettings();
     if (projectSettings.projectId) return projectSettings.projectId;
@@ -431,9 +431,9 @@ export async function getProjectId(promptUser = true): Promise<string|undefined>
     console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
     await prompt([{
-      type : 'input',
-      name : 'projectId',
-      message : 'What is your GCP projectId?',
+      type: 'input',
+      name: 'projectId',
+      message: 'What is your GCP projectId?',
     }]).then(async (answers: any) => {
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);

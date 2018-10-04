@@ -48,10 +48,10 @@ const oauth2ClientSettings = {
 const globalOauth2Client = new OAuth2Client(oauth2ClientSettings);
 
 // *Global* Google API clients
-export const script = google.script({version: 'v1', auth: globalOauth2Client}) as script_v1.Script;
-export const logger = google.logging({version: 'v2', auth: globalOauth2Client}) as logging_v2.Logging;
-export const drive = google.drive({version: 'v3', auth: globalOauth2Client}) as drive_v3.Drive;
-export const discovery = google.discovery({version: 'v1'}) as discovery_v1.Discovery;
+export const script = google.script({ version: 'v1', auth: globalOauth2Client }) as script_v1.Script;
+export const logger = google.logging({ version: 'v2', auth: globalOauth2Client }) as logging_v2.Logging;
+export const drive = google.drive({ version: 'v3', auth: globalOauth2Client }) as drive_v3.Drive;
+export const discovery = google.discovery({ version: 'v1' }) as discovery_v1.Discovery;
 
 /**
  * Requests authorization to manage Apps Script projects.
@@ -70,11 +70,11 @@ export async function authorize(options: {
     const token = await (options.useLocalhost ? authorizeWithLocalhost() : authorizeWithoutLocalhost());
     console.log(LOG.AUTH_SUCCESSFUL);
     await (options.ownCreds ?
-      DOTFILE.RC_LOCAL.write({token, oauth2ClientSettings}) :
+      DOTFILE.RC_LOCAL.write({ token, oauth2ClientSettings }) :
       DOTFILE.RC.write(token));
     console.log(options.ownCreds ? LOG.SAVED_LOCAL_CREDS : LOG.SAVED_CREDS);
     globalOauth2Client.setCredentials(token);
-  } catch(err) {
+  } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
   }
 }
@@ -103,7 +103,8 @@ async function authorizeWithLocalhost() {
   const port = (server.address() as AddressInfo).port; // (Cast from <string | AddressInfo>)
   const client = new OAuth2Client({
     ...oauth2ClientSettings,
-    redirectUri: `http://localhost:${port}`});
+    redirectUri: `http://localhost:${port}`,
+  });
   const authCode = await new Promise<string>((res, rej) => {
     server.on('request', (req: http.ServerRequest, resp: http.ServerResponse) => {
       const urlParts = url.parse(req.url || '', true);
@@ -128,7 +129,7 @@ async function authorizeWithLocalhost() {
  * used.
  */
 async function authorizeWithoutLocalhost() {
-  const client = new OAuth2Client({...oauth2ClientSettings, redirectUri: REDIRECT_URI_OOB});
+  const client = new OAuth2Client({ ...oauth2ClientSettings, redirectUri: REDIRECT_URI_OOB });
   const authUrl = client.generateAuthUrl(oauth2ClientAuthUrlOpts);
   console.log(LOG.AUTHORIZE(authUrl));
   const authCode = await new Promise<string>((res, rej) => {
@@ -179,7 +180,7 @@ export async function login(options: { localhost: boolean, creds: string }) {
         // --creds json parses but invalid
         logError(null, ERROR.BAD_CREDENTIALS_FILE);
       }
-    } catch(err) {
+    } catch (err) {
       if (err.code === 'ENOENT') {
         // --creds file not found
         logError(null, ERROR.CREDENTIALS_DNE(options.creds));
@@ -189,7 +190,7 @@ export async function login(options: { localhost: boolean, creds: string }) {
     }
   }
   if (!ownCreds) console.log(LOG.DEFAULT_CREDENTIALS);
-  await authorize({useLocalhost: options.localhost, ownCreds});
+  await authorize({ useLocalhost: options.localhost, ownCreds });
   process.exit(0); // gracefully exit after successful login
 }
 
@@ -246,14 +247,14 @@ export async function checkOauthScopes(rc: ClaspSettings) {
     if (!newScopes.length) return;
     console.log('New authoization scopes detected in manifest:\n', newScopes);
     await prompt([{
-      type : 'confirm',
-      name : 'doAuth',
-      message : 'Authorize new scopes?',
+      type: 'confirm',
+      name: 'doAuth',
+      message: 'Authorize new scopes?',
     }, {
-      type : 'confirm',
-      name : 'localhost',
-      message : 'Use localhost?',
-      when: (answers: any ) => {
+      type: 'confirm',
+      name: 'localhost',
+      message: 'Use localhost?',
+      when: (answers: any) => {
         return answers.doAuth;
       },
     }]).then(async (answers: any) => {
@@ -262,7 +263,8 @@ export async function checkOauthScopes(rc: ClaspSettings) {
         await authorize({
           useLocalhost: answers.localhost,
           ownCreds: true,
-          scopes: newScopes});
+          scopes: newScopes,
+        });
       }
     });
   } catch (err) {
