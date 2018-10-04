@@ -347,7 +347,18 @@ A sample `.claspignore` ignoring everything except the manifest and `build/main.
 
 ## Project Settings File (`.clasp.json`)
 
-When running `clone` or `create`, a file named `.clasp.json` is created in the current directory to describe `clasp`'s configuration for the current project. The following configuration values can be used in it:
+When running `clone` or `create`, a file named `.clasp.json` is created in the current directory to describe `clasp`'s configuration for the current project. Example `.clasp.json`:
+
+```json
+{
+  "scriptId": "",
+  "rootDir": "build/",
+  "fileExtension": "ts",
+  "filePushOrder": ["file1.ts", "file2.ts"]
+}
+```
+
+The following configuration values can be used:
 
 ### `scriptId` (required)
 
@@ -360,6 +371,10 @@ Specifies the **local** directory in which clasp will store your project files. 
 ### `fileExtension` (optional)
 
 Specifies the file extension for **local** script files in your Apps Script project.
+
+### `filePushOrder` (optional)
+
+Specifies the files that should be pushed first, useful for scripts that rely on order of execution. All other files are pushed after this list of files.
 
 ## Troubleshooting
 

@@ -63,7 +63,8 @@ export function hasProject(): boolean {
  *   result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
  *   files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
  */
-export function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback): void {
+export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
+  const { filePushOrder } = await getProjectSettings();
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
   recursive(rootDir, (err, filePaths) => {
@@ -72,22 +73,13 @@ export function getProjectFiles(rootDir: string = path.join('.', '/'), callback:
     DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
       filePaths = filePaths.sort(); // Sort files alphanumerically
       let abortPush = false;
-      const nonIgnoredFilePaths: string[] = [];
+      let nonIgnoredFilePaths: string[] = [];
       const ignoredFilePaths: string[] = [];
       // Match the files with ignored glob pattern
       readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
         if (err) return callback(new Error(err), null, null);
-        // Check if there are any .gs files
-        // We will prompt the user to rename files
-        //
-        // TODO: implement renaming files from .gs to .js
-        // let canRenameToJS = false;
-        // filePaths.map((name, i) => {
-        //   if (path.extname(name) === '.gs') {
-        //     canRenameToJS = true;
-        //   }
-        // });
-        // Check if there are files that will conflict if renamed .gs to .js
+        // Check if there are files that will conflict if renamed .gs to .js.
+        // When pushing to Apps Script, these files will overwrite each other.
         filePaths.map((name: string) => {
           const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
           if (filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
@@ -164,7 +156,33 @@ export function getProjectFiles(rootDir: string = path.join('.', '/'), callback:
             return; // Skip ignored files
           }
         }).filter(Boolean); // remove null values
-        callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
+
+        // This statement customizes the order in which the files are pushed.
+        // It puts the files in the setting's filePushOrder first.
+        // This is needed because Apps Script blindly executes files in order of creation time.
+        // The Apps Script API updates the creation time of files.
+        if (filePushOrder) {
+          spinner.stop(true);
+          console.log('Detected filePushOrder setting. Pushing these files first:');
+          filePushOrder.map((file) => {
+            console.log(`└─ ${file}`);
+          });
+          console.log('');
+          nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1:string, path2:string) => {
+            // Get the file order index
+            let path1Index = filePushOrder.indexOf(path1);
+            let path2Index = filePushOrder.indexOf(path2);
+            // If a file path isn't in the filePushOrder array, set the order to -∞.
+            path1Index = (path1Index === -1) ? Number.NEGATIVE_INFINITY : path1Index;
+            path2Index = (path2Index === -1) ? Number.NEGATIVE_INFINITY : path2Index;
+            return path2Index - path1Index;
+          });
+        }
+
+        callback(false, [
+          nonIgnoredFilePaths,
+          ignoredFilePaths,
+        ], files);
       });
     });
   });
