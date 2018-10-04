@@ -164,6 +164,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CREATE: 'Error creating script.',
   CREDENTIALS_DNE: (filename: string) => `Credentials file "${filename}" not found.`,
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
+  DRIVE: `Something went wrong with the Google Drive API`,
   EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
@@ -221,7 +222,7 @@ export const LOG = {
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${URL.SCRIPT(scriptId)}`,
-  OPEN_WEBAPP: (deploymentId: string) => `Opening web application: ${deploymentId}`,
+  OPEN_WEBAPP: (deploymentId?: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
   PUSH_FAILURE: 'Push failed. Errors:',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
@@ -240,7 +241,7 @@ export const LOG = {
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploy ${deploymentId}...`,
   VERSION_CREATE: 'Creating a new version...',
-  VERSION_CREATED: (versionNumber: string) => `Created version ${versionNumber}.`,
+  VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
   VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
       (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
@@ -329,7 +330,7 @@ export function getDefaultProjectName(): string {
  * @param  {boolean} failSilently Don't err when dot file DNE.
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
-export function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
+export async function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
   const promise = new Promise<ProjectSettings>((resolve, reject) => {
     const fail = (failSilently?: boolean) => {
       if (!failSilently) {
