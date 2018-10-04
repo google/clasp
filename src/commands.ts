@@ -106,9 +106,9 @@ export const create = async (title: string, parentId: string, cmd: {
   await loadAPICredentials();
   if (!title) {
     await prompt([{
-      type : 'input',
-      name : 'title',
-      message : 'Give a script title:',
+      type: 'input',
+      name: 'title',
+      message: 'Give a script title:',
       default: getDefaultProjectName(),
     }]).then((answers: any) => {
       title = answers.title;
@@ -181,10 +181,10 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
           };
         });
         await prompt([{
-          type : 'list',
-          name : 'scriptId',
-          message : 'Clone which script? ',
-          choices : fileIds,
+          type: 'list',
+          name: 'scriptId',
+          message: 'Clone which script? ',
+          choices: fileIds,
         }]).then((answers: any) => {
           checkIfOnline();
           spinner.setSpinnerTitle(LOG.CLONING);
@@ -247,7 +247,7 @@ export const logs = async (cmd: {
           payloadData = LOG.STACKDRIVER_SETUP;
           functionName = padEnd(protoPayload.methodName, 15);
         }
-        if (payloadData && typeof(payloadData) === 'string') {
+        if (payloadData && typeof (payloadData) === 'string') {
           payloadData = padEnd(payloadData, 20);
         }
       }
@@ -258,7 +258,7 @@ export const logs = async (cmd: {
         NOTICE: chalk.magenta(severity),
         WARNING: chalk.yellow(severity),
       };
-      let coloredSeverity:string = coloredStringMap[severity] || severity;
+      let coloredSeverity: string = coloredStringMap[severity] || severity;
       coloredSeverity = padEnd(String(coloredSeverity), 20);
       console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
     }
@@ -270,16 +270,16 @@ export const logs = async (cmd: {
         console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
         prompt([{
-          type : 'input',
-          name : 'projectId',
-          message : 'What is your GCP projectId?',
+          type: 'input',
+          name: 'projectId',
+          message: 'What is your GCP projectId?',
         }]).then((answers: any) => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
           if (dotfile) {
             dotfile.read().then((settings: ProjectSettings) => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write({scriptId: settings.scriptId, projectId});
+              dotfile.write({ scriptId: settings.scriptId, projectId });
               resolve(projectId);
             }).catch((err: object) => {
               reject(logError(err));
@@ -308,14 +308,14 @@ export const logs = async (cmd: {
   if (cmd.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
-    open(url, {wait: false});
+    open(url, { wait: false });
   }
   const oauthSettings = await loadAPICredentials();
   spinner.setSpinnerTitle(
     `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
   ).start();
   logger.entries.list({
-    requestBody:{
+    requestBody: {
       resourceNames: [
         `projects/${projectId}`,
       ],
@@ -350,7 +350,7 @@ export const logs = async (cmd: {
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  * @requires `clasp login --creds` to be run beforehand.
  */
-export const run = async (functionName:string, cmd: { dev: boolean }) => {
+export const run = async (functionName: string, cmd: { dev: boolean }) => {
   await checkIfOnline();
   const oauthSettings = await loadAPICredentials();
   if (!isLocalCreds(oauthSettings)) {
@@ -647,7 +647,7 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
     // If we're not a web app, open the script URL.
     if (!cmd.webapp) {
       console.log(LOG.OPEN_PROJECT(scriptId));
-      return open(URL.SCRIPT(scriptId), {wait: false});
+      return open(URL.SCRIPT(scriptId), { wait: false });
     }
     // Otherwise, open the latest deployment.
     await loadAPICredentials();
@@ -664,7 +664,7 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
       deployments.sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime));
       const deployment = deployments[deployments.length - 1];
       console.log(LOG.OPEN_WEBAPP(deployment.deploymentId));
-      open(getWebApplicationURL(deployment), {wait: false});
+      open(getWebApplicationURL(deployment), { wait: false });
     }
   }
 };
@@ -676,10 +676,10 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
  */
 export const apis = async () => {
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
-  const command: {[key: string]: Function} = {
+  const command: { [key: string]: Function } = {
     list: async () => {
       await checkIfOnline();
-      const {data} = await discovery.apis.list({
+      const { data } = await discovery.apis.list({
         preferred: true,
       });
       data.items = data.items || [];
@@ -687,10 +687,12 @@ export const apis = async () => {
         console.log(`${padEnd(api.name, 25)} - ${padEnd(api.id, 30)}`);
       }
     },
-    enable: () => {console.log('In development...');},
-    disable: () => {console.log('In development...');},
-    undefined: () => {console.log(`Try:
-    clasp apis list`);},
+    enable: () => { console.log('In development...'); },
+    disable: () => { console.log('In development...'); },
+    undefined: () => {
+      console.log(`Try:
+    clasp apis list`);
+    },
   };
   if (command[subcommand]) {
     command[subcommand]();

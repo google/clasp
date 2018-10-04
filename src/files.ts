@@ -31,7 +31,7 @@ interface FilesCallback {
     error: Error | boolean,
     result: string[][] | null,
     files: Array<AppsScriptFile | undefined> | null,
-  ) : void;
+  ): void;
 }
 
 /**
