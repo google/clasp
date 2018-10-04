@@ -4,27 +4,27 @@
 import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
-import { discovery, drive, loadAPICredentials, checkOauthScopes, logger, script } from './auth';
+import { checkOauthScopes, discovery, drive, loadAPICredentials, logger, script } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
-  checkIfOnline,
   DOT,
   DOTFILE,
   ERROR,
+  LOG,
+  PROJECT_MANIFEST_BASENAME,
+  ProjectSettings,
+  URL,
+  checkIfOnline,
   getDefaultProjectName,
   getProjectId,
   getProjectSettings,
   getWebApplicationURL,
   hasOauthClientSettings,
   isLocalCreds,
-  LOG,
   logError,
   manifestExists,
-  PROJECT_MANIFEST_BASENAME,
-  ProjectSettings,
   saveProject,
   spinner,
-  URL,
 } from './utils';
 const open = require('opn');
 const commander = require('commander');
@@ -102,48 +102,52 @@ export const create = async (title: string, parentId: string, cmd: {
   rootDir: string,
 }) => {
   await checkIfOnline();
-  if (hasProject()) {
-    logError(null, ERROR.FOLDER_EXISTS);
-  } else {
-    await loadAPICredentials();
-    if (!title) {
-      await prompt([{
-        type : 'input',
-        name : 'title',
-        message : 'Give a script title:',
-        default: getDefaultProjectName(),
-      }]).then((answers: any) => {
-        title = answers.title;
-      }).catch((err: any) => {
-        console.log(err);
-      });
-    }
-    spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
-    try {
-      const { scriptId } = await getProjectSettings(true);
-      if (scriptId) {
-        logError(null, ERROR.NO_NESTED_PROJECTS);
-        process.exit(1);
-      }
-    } catch (err) { // no scriptId (because project doesn't exist)
-      //console.log(err);
-    }
-    script.projects.create({ title, parentId }, {}).then(res => {
-      spinner.stop(true);
-      const createdScriptId = res.data.scriptId;
-      console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
-      const rootDir = cmd.rootDir;
-      saveProject(createdScriptId, rootDir);
-      if (!manifestExists()) {
-        fetchProject(createdScriptId, rootDir); // fetches appsscript.json, o.w. `push` breaks
-      }
-    }).catch((error: any) => {
-      spinner.stop(true);
-      if (parentId) {
-        console.log(error.errors[0].message, ERROR.CREATE_WITH_PARENT);
-      }
-      logError(error, ERROR.CREATE);
+  if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
+  await loadAPICredentials();
+  if (!title) {
+    await prompt([{
+      type : 'input',
+      name : 'title',
+      message : 'Give a script title:',
+      default: getDefaultProjectName(),
+    }]).then((answers: any) => {
+      title = answers.title;
+    }).catch((err: any) => {
+      console.log(err);
     });
+  }
+  spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
+  try {
+    const { scriptId } = await getProjectSettings(true);
+    if (scriptId) {
+      logError(null, ERROR.NO_NESTED_PROJECTS);
+      process.exit(1);
+    }
+  } catch (err) { // no scriptId (because project doesn't exist)
+    // console.log(err);
+  }
+  const res = await script.projects.create({
+    requestBody: {
+      title,
+      parentId,
+    },
+  });
+  if (res.status !== 200) {
+    spinner.stop(true);
+    if (parentId) {
+      console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
+    }
+    logError(res);
+    logError(res.statusText, ERROR.CREATE);
+  } else {
+    spinner.stop(true);
+    const createdScriptId = res.data.scriptId || '';
+    console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
+    const rootDir = cmd.rootDir;
+    saveProject(createdScriptId, rootDir);
+    if (!manifestExists()) {
+      fetchProject(createdScriptId, rootDir); // fetches appsscript.json, o.w. `push` breaks
+    }
   }
 };
 
@@ -161,15 +165,15 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
     if (!scriptId) {
       await loadAPICredentials();
       const list = await drive.files.list({
-        pageSize: 10,
-        fields: 'files(id, name)',
+        // pageSize: 10,
+        // fields: 'files(id, name)',
         orderBy: 'modifiedByMeTime desc',
         q: 'mimeType="application/vnd.google-apps.script"',
       });
       const data = list.data;
       if (!data) return logError(list.statusText, 'Unable to use the Drive API.');
       const files = data.files;
-      if (files.length) {
+      if (files && files.length) {
         const fileIds = files.map((file: any) => {
           return {
             name: `${padEnd(file.name, 20)} - (${file.id})`,
@@ -311,10 +315,12 @@ export const logs = async (cmd: {
     `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
   ).start();
   logger.entries.list({
-    resourceNames: [
-      `projects/${projectId}`,
-    ],
-    orderBy: 'timestamp desc',
+    requestBody:{
+      resourceNames: [
+        `projects/${projectId}`,
+      ],
+      orderBy: 'timestamp desc',
+    },
   }, {}, (err: any, response: any) => {
     spinner.stop(true);
     if (err) { // TODO move these to logError when stable?
@@ -362,8 +368,10 @@ export const run = async (functionName:string, cmd: { dev: boolean }) => {
   ).start();
   script.scripts.run({
     scriptId,
-    function: functionName,
-    devMode: cmd.dev,
+    requestBody: {
+      function: functionName,
+      devMode: cmd.dev,
+    },
   }, {}, (err: any, response: any) => {
     spinner.stop(true);
     if (err) { // TODO move these to logError when stable?
@@ -412,10 +420,10 @@ export const deploy = async (version: string, description: string) => {
     spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
     script.projects.deployments.create({
       scriptId,
-      resource: {
-        versionNumber,
-        manifestFileName: PROJECT_MANIFEST_BASENAME,
+      requestBody: {
         description,
+        manifestFileName: PROJECT_MANIFEST_BASENAME,
+        versionNumber: +versionNumber, // TODO make string
       },
     }, {}, (err: any, response: any) => {
       spinner.stop(true);
@@ -436,7 +444,7 @@ export const deploy = async (version: string, description: string) => {
   } else { // if no version, create a new version and deploy that
     script.projects.versions.create({
       scriptId,
-      resource: versionRequestBody,
+      requestBody: versionRequestBody,
     }, {}, (err: any, versionResponse: any) => {
       spinner.stop(true);
       if (err) {
@@ -483,11 +491,13 @@ export const list = async () => {
   spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
   const res = await drive.files.list({
     pageSize: 50,
-    fields: 'nextPageToken, files(id, name)',
+    // fields isn't currently supported
+    // https://github.com/googleapis/google-api-nodejs-client/issues/1374
+    // fields: 'nextPageToken, files(id, name)',
     q: 'mimeType="application/vnd.google-apps.script"',
   });
   spinner.stop(true);
-  const files = res.data.files;
+  const files = res.data.files || [];
   if (files.length) {
     files.map((file: any) => {
       console.log(`${padEnd(file.name, 20)} – ${URL.SCRIPT(file.id)}`);
@@ -510,9 +520,9 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
     script.projects.deployments.update({
       scriptId,
       deploymentId,
-      resource: {
+      requestBody: {
         deploymentConfig: {
-          versionNumber: version,
+          versionNumber: +version,
           manifestFileName: PROJECT_MANIFEST_BASENAME,
           description,
         },
@@ -599,7 +609,9 @@ export const version = async (description: string) => {
   const { scriptId } = await getProjectSettings();
   script.projects.versions.create({
     scriptId,
-    description,
+    requestBody: {
+      description,
+    },
   }, {}, (error: any, versionResponse: any) => {
     spinner.stop(true);
     if (error) {
@@ -686,6 +698,7 @@ export const apis = async () => {
     const {data} = await discovery.apis.list({
       preferred: true,
     });
+    data.items = data.items || [];
     for (const api of data.items) {
       console.log(`${padEnd(api.name, 25)} - ${padEnd(api.id, 30)}`);
     }

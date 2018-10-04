@@ -7,22 +7,20 @@ import { AddressInfo } from 'net';
 import * as url from 'url';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import { Discovery } from 'googleapis/build/src/apis/discovery/v1';
-import { Drive } from 'googleapis/build/src/apis/drive/v3';
-import { Logging } from 'googleapis/build/src/apis/logging/v2';
-import { Script } from 'googleapis/build/src/apis/script/v1';
+import { discovery_v1, drive_v3, logging_v2, script_v1 } from 'googleapis';
 import {
-  checkIfOnline,
   ClaspSettings,
   DOTFILE,
   ERROR,
+  LOG,
+  checkIfOnline,
   getOAuthSettings,
   hasOauthClientSettings,
   isLocalCreds,
   loadManifest,
-  LOG,
   logError,
 } from './utils';
+
 import open = require('opn');
 import readline = require('readline');
 const { prompt } = require('inquirer');
@@ -50,10 +48,10 @@ const oauth2ClientSettings = {
 const globalOauth2Client = new OAuth2Client(oauth2ClientSettings);
 
 // *Global* Google API clients
-export const script = google.script({version: 'v1', auth: globalOauth2Client}) as Script;
-export const logger = google.logging({version: 'v2', auth: globalOauth2Client}) as Logging;
-export const drive = google.drive({version: 'v3', auth: globalOauth2Client}) as Drive;
-export const discovery = google.discovery({version: 'v1'}) as Discovery;
+export const script = google.script({version: 'v1', auth: globalOauth2Client}) as script_v1.Script;
+export const logger = google.logging({version: 'v2', auth: globalOauth2Client}) as logging_v2.Logging;
+export const drive = google.drive({version: 'v3', auth: globalOauth2Client}) as drive_v3.Drive;
+export const discovery = google.discovery({version: 'v1'}) as discovery_v1.Discovery;
 
 /**
  * Requests authorization to manage Apps Script projects.
