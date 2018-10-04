@@ -74,4 +74,5 @@ Run `npm run docs` to build the "How To" section. Copy/paste that section into t
 
 1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.
 1. Bump version: `npm version [major|minor|patch] -m "Bump version to %s"`
+1. Push to GitHub: `git push --tags`
 1. Publish with: `npm run publish`
