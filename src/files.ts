@@ -236,15 +236,19 @@ export async function fetchProject(scriptId: string, rootDir = '', versionNumber
 export async function pushFiles() {
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
-  getProjectFiles(rootDir, (err, projectFiles, files) => {
+  getProjectFiles(rootDir, (err, projectFiles, files = []) => {
     if (err) {
       logError(err, LOG.PUSH_FAILURE);
       spinner.stop(true);
     } else if (projectFiles) {
       const [nonIgnoredFilePaths] = projectFiles;
+      const filesForAPI: any = files;
       script.projects.updateContent({
         scriptId,
-        resource: { files },
+        requestBody: {
+          scriptId,
+          files: filesForAPI,
+        },
       }, {}, (error: any) => {
         spinner.stop(true);
         // In the following code, we favor console.error()
