@@ -77,6 +77,7 @@ export interface ProjectSettings {
   rootDir?: string;
   projectId?: string;
   fileExtension?: string;
+  filePushOrder?: string[];
 }
 
 export const DOTFILE = {
