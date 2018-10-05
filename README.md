@@ -81,7 +81,7 @@ clasp
 - [`clasp version [description]`](#version)
 - [`clasp versions`](#versions)
 - [`clasp list`](#list)
-- [`clasp logs [--json] [--open]`](#logs)
+- [`clasp logs [--json] [--open] [--watch]`](#logs)
 
 ## How To...
 
@@ -151,7 +151,8 @@ Force writes all local files to the script management server.
 
 #### Examples
 
-- `clasp push`
+- `clasp push`: Pushes local files to script.google.com
+- `clasp push --watch`: Watches local file changes. Pushes files when there's a change.
 
 Ignores files:
 - That start with a .
@@ -286,6 +287,7 @@ INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
 
 - `clasp logs --json`: See the logs in JSON format.
 - `clasp logs --open`: Open the StackDriver logs in your browser.
+- `clasp logs --watch`: Retrieves the newest logs every 5 seconds.
 
 ### Run
 
