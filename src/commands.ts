@@ -218,17 +218,32 @@ export const logout = () => {
  * @param cmd.json {boolean} If true, the command will output logs as json.
  * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
  * @param cmd.setup {boolean} If true, the command will help you setup logs.
+ * @param cmd.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
  */
 export const logs = async (cmd: {
   json: boolean,
   open: boolean
   setup: boolean,
+  watch: boolean,
 }) => {
   await checkIfOnline();
+  /**
+   * This object holds all log IDs that have been printed to the user.
+   * This prevents log entries from being printed multiple times.
+   * StackDriver isn't super reliable, so it's easier to get generous chunk of logs and filter them
+   * rather than filter server-side.
+   * @see logs.data.entries[0].insertId
+   */
+  const logEntryCache: { [key:string]:boolean }  = {};
+
+  /**
+   * Prints log entries
+   * @param entries {any[]} StackDriver log entries.
+   */
   function printLogs(entries: any[] = []) {
     entries = entries.reverse(); // print in syslog ascending order
     for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
-      const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload } = entries[i];
+      const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload, insertId } = entries[i];
       let functionName = resource.labels.function_name;
       functionName = functionName ? padEnd(functionName, 15) : ERROR.NO_FUNCTION_NAME;
       let payloadData: any = '';
@@ -260,7 +275,11 @@ export const logs = async (cmd: {
       };
       let coloredSeverity: string = coloredStringMap[severity] || severity;
       coloredSeverity = padEnd(String(coloredSeverity), 20);
-      console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
+      // If we haven't logged this entry before, log it and mark the cache.
+      if (!logEntryCache[insertId]) {
+        console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
+        logEntryCache[insertId] = true;
+      }
     }
   }
   async function setupLogs(projectId?: string): Promise<string> {
@@ -298,6 +317,7 @@ export const logs = async (cmd: {
     });
     return promise;
   }
+  // Get project settings.
   let { projectId } = await getProjectSettings();
   projectId = cmd.setup ? await setupLogs() : projectId;
   if (!projectId) {
@@ -305,26 +325,42 @@ export const logs = async (cmd: {
     projectId = await setupLogs();
     console.log(LOG.LOGS_SETUP);
   }
+  // If we're opening the logs, get the URL, open, then quit.
   if (cmd.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
-    open(url, { wait: false });
+    return open(url, { wait: false });
   }
-  const oauthSettings = await loadAPICredentials();
-  spinner.setSpinnerTitle(
-    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
-  ).start();
-  logger.entries.list({
-    requestBody: {
-      resourceNames: [
-        `projects/${projectId}`,
-      ],
-      orderBy: 'timestamp desc',
-    },
-  }, {}, (err: any, response: any) => {
+
+  /**
+   * Fetches the logs and prints the to the user.
+   * @param startDate {Date?} Get logs from this date to now.
+   */
+  async function fetchAndPrintLogs(startDate?:Date) {
+    spinner.setSpinnerTitle(
+      `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
+    ).start();
+    // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
+    // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
+    let filter = '';
+    if (startDate) {
+      filter = `timestamp >= "${startDate.toISOString()}"`;
+    }
+    const logs = await logger.entries.list({
+      requestBody: {
+        resourceNames: [
+          `projects/${projectId}`,
+        ],
+        filter,
+        orderBy: 'timestamp desc',
+      },
+    });
+
+    // We have an API response. Now, check the API response status.
     spinner.stop(true);
-    if (err) { // TODO move these to logError when stable?
-      switch (err.code) {
+    console.log(filter);
+    if (logs.status !== 200) {
+      switch (logs.status) {
         case 401:
           logError(null, isLocalCreds(oauthSettings) ?
             ERROR.UNAUTHENTICATED_LOCAL :
@@ -334,14 +370,25 @@ export const logs = async (cmd: {
             ERROR.PERMISSION_DENIED_LOCAL :
             ERROR.PERMISSION_DENIED);
         default:
-          logError(null, `(${err.code}) Error: ${err.message}`);
+          logError(null, `(${logs.status}) Error: ${logs.statusText}`);
       }
-    } else if (response) {
-      printLogs(response.data.entries);
     } else {
-      logError(null, ERROR.LOGS_NODATA);
+      printLogs(logs.data.entries);
     }
-  });
+  }
+
+  // Otherwise, if not opening StackDriver, load StackDriver logs.
+  const oauthSettings = await loadAPICredentials();
+  if (cmd.watch) {
+    const POLL_INTERVAL = 6000; // 6s
+    setInterval(() => {
+      const startDate = new Date();
+      startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL / 1000));
+      fetchAndPrintLogs(startDate);
+    }, POLL_INTERVAL);
+  } else {
+    fetchAndPrintLogs();
+  }
 };
 
 /**

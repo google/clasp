@@ -264,6 +264,7 @@ commander
   .option('--json', 'Show logs in JSON form')
   .option('--open', 'Open the StackDriver logs in browser')
   .option('--setup', 'Setup StackDriver logs')
+  .option('--watch', 'Watch and print new logs')
   .action(logs);
 
 /**
