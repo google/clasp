@@ -378,6 +378,11 @@ export function getAPIFileType(path: string): string {
  * Checks if the network is available. Gracefully exits if not.
  */
 export async function checkIfOnline() {
+  // If using a proxy, return true since `isOnline` doesn't work.
+  // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
+  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+    return true;
+  }
   if (!(await isOnline())) {
     logError(null, ERROR.OFFLINE);
     process.exit(1);
