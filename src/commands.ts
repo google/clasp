@@ -724,34 +724,68 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
  * Otherwise returns an error of command not supported
  */
 export const apis = async () => {
+  await loadAPICredentials();
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
-  /**
-   * Enables and disables Google Cloud APIs.
-   * @param enable {boolean} if true, Enables the API. If false, disables the API.
-   * @param serviceName {string} The service to modify.
-   */
-  const enableOrDisableAPI = async (enable: boolean, serviceName: string) => {
+  const serviceName = process.argv[4];
+  const getProjectIdAndServiceURL = async () => {
     if (!serviceName) {
-      return console.error('An API name is required. Try sheets');
+      throw console.error('An API name is required. Try sheets');
     }
-    await loadAPICredentials();
     const serviceURL = `${serviceName}.googleapis.com`; // i.e. sheets.googleapis.com
     const projectId = await getProjectId(); // will prompt user to set up if required
-    if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
-    console.log(`projects/${projectId}/services/${serviceURL}`);
-    let serviceUsageEnableOrDisable;
-    if (enable) {
-      serviceUsageEnableOrDisable = serviceUsage.services.enable;
-    } else {
-      serviceUsageEnableOrDisable = serviceUsage.services.disable;
-    }
-    await serviceUsageEnableOrDisable({
-      name: `projects/${projectId}/services/${serviceURL}`,
-    });
+    if (!projectId) throw logError(null, ERROR.NO_GCLOUD_PROJECT);
+    return [projectId, serviceURL];
   };
+
+  // The apis subcommands.
   const command: { [key: string]: Function } = {
+    enable: async () => {
+      const [projectId, serviceURL] = await getProjectIdAndServiceURL();
+      await serviceUsage.services.enable({
+        name: `projects/${projectId}/services/${serviceURL}`,
+      });
+      console.log(`Enabled ${serviceName}`);
+    },
+    disable: async () => {
+      const [projectId, serviceURL] = await getProjectIdAndServiceURL();
+      await serviceUsage.services.disable({
+        name: `projects/${projectId}/services/${serviceURL}`,
+      });
+      console.log(`Disabled ${serviceName}`);
+    },
     list: async () => {
       await checkIfOnline();
+      /**
+       * List currently enabled APIs.
+       */
+      console.log('\n# Currently enabled APIs:');
+      const projectId = await getProjectId(); // will prompt user to set up if required
+      const MAX_PAGE_SIZE = 200; // This is the max page size according to the docs.
+      const list = await serviceUsage.services.list({
+        parent: `projects/${projectId}`,
+        filter: 'state:ENABLED',
+        pageSize: MAX_PAGE_SIZE,
+      });
+      const serviceList = list.data.services || [];
+      if (serviceList.length >= MAX_PAGE_SIZE) {
+        console.log('Uh oh. It looks like Grant did not add pagination. Please create a bug.');
+      }
+
+      // Filter out the disabled ones. Print the enabled ones.
+      const enabledAPIs = serviceList.filter((service) => {
+        return service.state === 'ENABLED';
+      });
+      for (const enabledAPI of enabledAPIs) {
+        if (enabledAPI.config && enabledAPI.config.documentation) {
+          const name = enabledAPI.config.name || 'Unknown name.';
+          console.log(`${name.substr(0, name.indexOf('.'))} - ${enabledAPI.config.documentation.summary}`);
+        }
+      }
+
+      /**
+       * List available APIs.
+       */
+      console.log('\n# List of available APIs:');
       const { data } = await discovery.apis.list({
         preferred: true,
       });
@@ -763,7 +797,7 @@ export const apis = async () => {
       // Merge discovery data with public services data.
       const publicServices = [];
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
-        const service = services.find(s => s.name === publicServiceId);
+        const service:any = services.find(s => s.name === publicServiceId);
         // for some reason 'youtubePartner' is not in the api list.
         if (service && service.id && service.description) {
           publicServices.push(service);
@@ -771,7 +805,7 @@ export const apis = async () => {
       }
 
       // Sort the services based on id
-      publicServices.sort((a, b) => {
+      publicServices.sort((a:any, b:any) => {
         if (a.id < b.id) return -1;
         if (a.id > b.id) return 1;
         return 0;
@@ -782,20 +816,13 @@ export const apis = async () => {
         console.log(`${padEnd(api.name, 25)} - ${padEnd(api.description, 60)}`);
       }
     },
-    enable: async () => {
-      enableOrDisableAPI(true, process.argv[4]);
-    },
-    disable: async () => {
-      enableOrDisableAPI(false, process.argv[4]);
-    },
     undefined: () => {
-      console.log(`Try:
-      - clasp apis list
-      - clasp apis enable slides
-      - clasp apis disable slides
-
-      Printing API options:`);
       command.list();
+
+      console.log(`# Try these commands:
+- clasp apis list
+- clasp apis enable slides
+- clasp apis disable slides`);
     },
   };
   if (command[subcommand]) {

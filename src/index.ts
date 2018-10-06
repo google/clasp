@@ -290,11 +290,14 @@ commander
  * Currently, only list is supported.
  * @name apis
  * @example apis list
- * @example apis enable "drive.googleapis.com"
+ * @example apis enable drive
  */
 commander
   .command('apis')
-  .description('List, enable, or disable apis')
+  .description(`List, enable, or disable APIs:
+  list
+  enable <api>
+  disable <api>`)
   .action(apis);
 
 /**

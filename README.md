@@ -307,6 +307,17 @@ only run functions that do not require other authorization.
 
 - `clasp run 'sendEmail'`
 
+### Enable/Disable APIs (Under Construction)
+
+List available APIs. Enables and disables APIs.
+
+> **NOTE**: It requires Project ID setup (see below).
+
+- `clasp apis`
+- `clasp apis list`
+- `clasp apis enable drive`
+- `clasp apis disable drive`
+
 ### Help
 
 Displays the help function.
