@@ -4,9 +4,11 @@
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
+import { serviceuser_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
-import { checkOauthScopes, discovery, drive, loadAPICredentials, logger, script } from './auth';
+import { PUBLIC_ADVANCED_SERVICES } from './apis';
+import { checkOauthScopes, discovery, drive, loadAPICredentials, logger, script, serviceUsage } from './auth';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
   DOT,
@@ -234,7 +236,7 @@ export const logs = async (cmd: {
    * rather than filter server-side.
    * @see logs.data.entries[0].insertId
    */
-  const logEntryCache: { [key:string]:boolean }  = {};
+  const logEntryCache: { [key: string]: boolean } = {};
 
   /**
    * Prints log entries
@@ -336,7 +338,7 @@ export const logs = async (cmd: {
    * Fetches the logs and prints the to the user.
    * @param startDate {Date?} Get logs from this date to now.
    */
-  async function fetchAndPrintLogs(startDate?:Date) {
+  async function fetchAndPrintLogs(startDate?: Date) {
     spinner.setSpinnerTitle(
       `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
     ).start();
@@ -723,22 +725,77 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
  */
 export const apis = async () => {
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
+  /**
+   * Enables and disables Google Cloud APIs.
+   * @param enable {boolean} if true, Enables the API. If false, disables the API.
+   * @param serviceName {string} The service to modify.
+   */
+  const enableOrDisableAPI = async (enable: boolean, serviceName: string) => {
+    if (!serviceName) {
+      return console.error('An API name is required. Try sheets');
+    }
+    await loadAPICredentials();
+    const serviceURL = `${serviceName}.googleapis.com`; // i.e. sheets.googleapis.com
+    const projectId = await getProjectId(); // will prompt user to set up if required
+    if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
+    console.log(`projects/${projectId}/services/${serviceURL}`);
+    let serviceUsageEnableOrDisable;
+    if (enable) {
+      serviceUsageEnableOrDisable = serviceUsage.services.enable;
+    } else {
+      serviceUsageEnableOrDisable = serviceUsage.services.disable;
+    }
+    await serviceUsageEnableOrDisable({
+      name: `projects/${projectId}/services/${serviceURL}`,
+    });
+  };
   const command: { [key: string]: Function } = {
     list: async () => {
       await checkIfOnline();
       const { data } = await discovery.apis.list({
         preferred: true,
       });
-      data.items = data.items || [];
-      for (const api of data.items) {
-        console.log(`${padEnd(api.name, 25)} - ${padEnd(api.id, 30)}`);
+      const services = data.items || [];
+      // Only get the public service IDs
+      const PUBLIC_ADVANCED_SERVICE_IDS = PUBLIC_ADVANCED_SERVICES.map(
+        (advancedService) => advancedService.serviceId);
+
+      // Merge discovery data with public services data.
+      const publicServices = [];
+      for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
+        const service = services.find(s => s.name === publicServiceId);
+        // for some reason 'youtubePartner' is not in the api list.
+        if (service && service.id && service.description) {
+          publicServices.push(service);
+        }
+      }
+
+      // Sort the services based on id
+      publicServices.sort((a, b) => {
+        if (a.id < b.id) return -1;
+        if (a.id > b.id) return 1;
+        return 0;
+      });
+
+      // Format the list
+      for (const api of publicServices) {
+        console.log(`${padEnd(api.name, 25)} - ${padEnd(api.description, 60)}`);
       }
     },
-    enable: () => { console.log('In development...'); },
-    disable: () => { console.log('In development...'); },
+    enable: async () => {
+      enableOrDisableAPI(true, process.argv[4]);
+    },
+    disable: async () => {
+      enableOrDisableAPI(false, process.argv[4]);
+    },
     undefined: () => {
       console.log(`Try:
-    clasp apis list`);
+      - clasp apis list
+      - clasp apis enable slides
+      - clasp apis disable slides
+
+      Printing API options:`);
+      command.list();
     },
   };
   if (command[subcommand]) {
