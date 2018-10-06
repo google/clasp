@@ -6,8 +6,7 @@ import * as http from 'http';
 import { AddressInfo } from 'net';
 import * as url from 'url';
 import { OAuth2Client } from 'google-auth-library';
-import { google } from 'googleapis';
-import { discovery_v1, drive_v3, logging_v2, script_v1 } from 'googleapis';
+import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 } from 'googleapis';
 import {
   ClaspSettings,
   DOTFILE,
@@ -31,12 +30,15 @@ const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
 const oauth2ClientAuthUrlOpts = {
   access_type: 'offline',
   scope: [
-    'https://www.googleapis.com/auth/script.deployments',
-    'https://www.googleapis.com/auth/script.projects',
-    'https://www.googleapis.com/auth/drive.metadata.readonly',
-    'https://www.googleapis.com/auth/script.webapp.deploy',
-    'https://www.googleapis.com/auth/cloud-platform.read-only',
-    'https://www.googleapis.com/auth/logging.read',
+    'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+    'https://www.googleapis.com/auth/script.projects', // Apps Script management
+    'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+    'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+    'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+    'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+
+    // Extra scopes since things aren't working
+    'https://www.googleapis.com/auth/cloud-platform',
   ],
 };
 const oauth2ClientSettings = {
@@ -52,6 +54,8 @@ export const script = google.script({ version: 'v1', auth: globalOauth2Client })
 export const logger = google.logging({ version: 'v2', auth: globalOauth2Client }) as logging_v2.Logging;
 export const drive = google.drive({ version: 'v3', auth: globalOauth2Client }) as drive_v3.Drive;
 export const discovery = google.discovery({ version: 'v1' }) as discovery_v1.Discovery;
+export const serviceUsage = google.serviceusage({ version: 'v1', auth: globalOauth2Client,
+}) as serviceusage_v1.Serviceusage;
 
 /**
  * Requests authorization to manage Apps Script projects.
