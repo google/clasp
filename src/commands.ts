@@ -4,7 +4,6 @@
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
-import { serviceuser_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
@@ -30,6 +29,7 @@ import {
   saveProject,
   spinner,
 } from './utils';
+const ellipsize = require('ellipsize');
 const open = require('opn');
 const { prompt } = require('inquirer');
 const padEnd = require('string.prototype.padend');
@@ -544,8 +544,9 @@ export const list = async () => {
   }
   const files = filesList.data.files || [];
   if (files.length) {
+    const NAME_PAD_SIZE = 20;
     files.map((file: any) => {
-      console.log(`${padEnd(file.name, 20)} – ${URL.SCRIPT(file.id)}`);
+      console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
     });
   } else {
     console.log(LOG.FINDING_SCRIPTS_DNE);

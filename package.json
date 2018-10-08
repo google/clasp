@@ -46,6 +46,7 @@
     "connect": "^3.6.6",
     "del": "^3.0.0",
     "dotf": "^1.0.3",
+    "ellipsize": "^0.1.0",
     "find-parent-dir": "^0.3.0",
     "fs": "^0.0.1-security",
     "google-auth-library": "^2.0.0",
