@@ -417,6 +417,7 @@ export const run = async (functionName: string, cmd: { dev: boolean }) => {
   spinner.setSpinnerTitle(
     `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.SCRIPT_RUN(functionName)}`,
   ).start();
+  // TODO script must be a local OAuth client.
   script.scripts.run({
     scriptId,
     requestBody: {

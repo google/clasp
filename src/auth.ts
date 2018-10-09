@@ -1,7 +1,7 @@
-import * as fs from 'fs';
 /**
  * Authentication with Google's APIs.
  */
+import * as fs from 'fs';
 import * as http from 'http';
 import { AddressInfo } from 'net';
 import * as url from 'url';
@@ -37,7 +37,7 @@ const oauth2ClientAuthUrlOpts = {
     'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
     'https://www.googleapis.com/auth/logging.read', // StackDriver logs
 
-    // Extra scopes since things aren't working
+    // Extra scope since service.management doesn't work alone
     'https://www.googleapis.com/auth/cloud-platform',
   ],
 };
