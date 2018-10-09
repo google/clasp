@@ -109,16 +109,13 @@ export const create = async (title: string, parentId: string, cmd: {
   if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
   await loadAPICredentials();
   if (!title) {
-    await prompt([{
+    const answers = await prompt([{
       type: 'input',
       name: 'title',
       message: 'Give a script title:',
       default: getDefaultProjectName(),
-    }]).then((answers: any) => {
-      title = answers.title;
-    }).catch((err: any) => {
-      console.log(err);
-    });
+    }]);
+    title = answers.title;
   }
   spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
   try {
@@ -136,15 +133,13 @@ export const create = async (title: string, parentId: string, cmd: {
       parentId,
     },
   });
+  spinner.stop(true);
   if (res.status !== 200) {
-    spinner.stop(true);
     if (parentId) {
       console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
     }
-    logError(res);
     logError(res.statusText, ERROR.CREATE);
   } else {
-    spinner.stop(true);
     const createdScriptId = res.data.scriptId || '';
     console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
     const rootDir = cmd.rootDir;
@@ -418,26 +413,16 @@ export const run = async (functionName: string, cmd: { dev: boolean }) => {
     `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.SCRIPT_RUN(functionName)}`,
   ).start();
   // TODO script must be a local OAuth client.
-  script.scripts.run({
-    scriptId,
-    requestBody: {
-      function: functionName,
-      devMode: cmd.dev,
-    },
-  }, {}, (err: any, response: any) => {
+  try {
+    const res = await script.scripts.run({
+      scriptId,
+      requestBody: {
+        function: functionName,
+        devMode: cmd.dev,
+      },
+    });
     spinner.stop(true);
-    if (err) { // TODO move these to logError when stable?
-      switch (err.code) {
-        case 401:
-          logError(null, ERROR.UNAUTHENTICATED_LOCAL);
-        case 403:
-          logError(null, ERROR.PERMISSION_DENIED_LOCAL);
-        case 404:
-          logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
-        default:
-          logError(null, `(${err.code}) Error: ${err.message}`);
-      }
-    } else if (response && response.data.done) {
+    if (res && res.data.done) {
       const data = response.data;
       // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
       if (data.response) {
@@ -451,9 +436,23 @@ export const run = async (functionName: string, cmd: { dev: boolean }) => {
       }
     } else {
       logError(null, ERROR.RUN_NODATA);
+      process.exit(0); // exit gracefully in case localhost server spun up for authorize
     }
-    process.exit(0); // exit gracefully in case localhost server spun up for authorize
-  });
+  } catch(err) {
+    spinner.stop(true);
+    if (err) { // TODO move these to logError when stable?
+      switch (err.code) {
+        case 401:
+          logError(null, ERROR.UNAUTHENTICATED_LOCAL);
+        case 403:
+          logError(null, ERROR.PERMISSION_DENIED_LOCAL);
+        case 404:
+          logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
+        default:
+          logError(null, `(${err.code}) Error: ${err.message}`);
+      }
+    }
+  }
 };
 
 /**
