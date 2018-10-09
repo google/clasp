@@ -28,6 +28,7 @@ import {
   manifestExists,
   saveProject,
   spinner,
+  validateManifest,
 } from './utils';
 const ellipsize = require('ellipsize');
 const open = require('opn');
@@ -61,6 +62,7 @@ export const push = async (cmd: {
 }) => {
   await checkIfOnline();
   await loadAPICredentials();
+  await validateManifest();
   if (cmd.watch) {
     console.log(LOG.PUSH_WATCH);
     // @see https://www.npmjs.com/package/watch
@@ -665,6 +667,7 @@ export const version = async (description: string) => {
  */
 export const status = async (cmd: { json: boolean }) => {
   await checkIfOnline();
+  await validateManifest();
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
   getProjectFiles(rootDir, (err, projectFiles) => {
