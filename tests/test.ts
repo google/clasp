@@ -343,12 +343,11 @@ describe('Test clasp open function', () => {
     }
     setup();
   });
-  it('should open a project correctly', () => {
+  it('should prompt for which deployment to open correctly', () => {
     const result = spawnSync(
       CLASP, ['open'], { encoding: 'utf8' },
     );
-    //should open a browser with the project
-    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain('Clone which deployment?');
   });
   after(cleanup);
 });

@@ -691,6 +691,7 @@ export const status = async (cmd: { json: boolean }) => {
 /**
  * Opens an Apps Script project's script.google.com editor.
  * @param scriptId {string} The Apps Script project to open.
+ * @param cmd.open {boolean} If true, the command will open the webapps URL.
  */
 export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
   await checkIfOnline();
@@ -715,10 +716,27 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
     if (!deployments.length) {
       logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     } else {
-      deployments.sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime));
-      const deployment = deployments[deployments.length - 1];
-      console.log(LOG.OPEN_WEBAPP(deployment.deploymentId));
-      open(getWebApplicationURL(deployment), { wait: false });
+      const choices = deployments
+        .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
+        .map((deployment:any) => {
+          const DESC_PAD_SIZE = 30;
+          const id = deployment.deploymentId;
+          const description = deployment.deploymentConfig.description;
+          const versionNumber = deployment.deploymentConfig.versionNumber;
+          return {
+            name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
+                    + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+            value: deployment,
+          };
+        });
+      const answers = await prompt([{
+        type: 'list',
+        name: 'deployment',
+        message: 'Open which deployment?',
+        choices,
+      }]);
+      console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
+      open(getWebApplicationURL(answers.deployment), { wait: false });
     }
   }
 };
