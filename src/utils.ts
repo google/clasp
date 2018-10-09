@@ -15,6 +15,7 @@ const chalk = require('chalk');
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
 export const PROJECT_MANIFEST_BASENAME = 'appsscript';
+export const PROJECT_MANIFEST_FILENAME = PROJECT_MANIFEST_BASENAME + '.json';
 
 // Dotfile names
 export const DOT = {
@@ -158,6 +159,7 @@ export const ERROR = {
   BAD_CREDENTIALS_FILE: 'Incorrect credentials file format.',
   BAD_REQUEST: (message: string) => `Error: ${message}
 Your credentials may be invalid. Try logging in again.`,
+  BAD_MANIFEST: `Error: Your ${PROJECT_MANIFEST_FILENAME} contains invalid JSON.`,
   COMMAND_DNE: (command: string) => `🤔  Unknown command "${PROJECT_NAME} ${command}"\n
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CONFLICTING_FILE_EXTENSION: (name: string) => `File names: ${name}.js/${name}.gs conflict. Only keep one.`,
@@ -405,7 +407,7 @@ export async function saveProject(scriptId: string, rootDir?: string): Promise<P
  * @return {boolean} True if valid project, false otherwise
  */
 export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
-  fs.existsSync(path.join(rootDir, `${PROJECT_MANIFEST_BASENAME}.json`));
+  fs.existsSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME));
 
 /**
  * Load appsscript.json manifest file.
@@ -415,7 +417,7 @@ export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
 export async function loadManifest(): Promise<any> {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifest = path.join(rootDir, `${PROJECT_MANIFEST_BASENAME}.json`);
+  const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
     return JSON.parse(fs.readFileSync(manifest, 'utf8'));
   } catch (err) {
@@ -448,4 +450,21 @@ export async function getProjectId(promptUser = true): Promise<string | undefine
   } catch (err) {
     logError(null, err.message);
   }
+}
+
+/**
+ * Runs a simple JSON parse over the manifest to ensure it is correct.
+ */
+export async function validateManifest(): Promise<boolean> {
+  let { rootDir } = await getProjectSettings();
+  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
+  const manifest = fs.readFileSync(
+    path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
+  try {
+    JSON.parse(manifest);
+  } catch(err) {
+    logError(err, ERROR.BAD_MANIFEST);
+    return false;
+  }
+  return true;
 }
