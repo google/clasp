@@ -58,6 +58,21 @@ export const serviceUsage = google.serviceusage({ version: 'v1', auth: globalOau
 }) as serviceusage_v1.Serviceusage;
 
 /**
+ * Gets the local OAuth client.
+ */
+export async function getLocalScript(): Promise<script_v1.Script> {
+  const localOauth2ClientSettings = {
+    clientId: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
+    clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
+    redirectUri: 'http://localhost',
+  };
+  
+  const localOauth2Client = new OAuth2Client(localOauth2ClientSettings);
+  const script = google.script({ version: 'v1', auth: localOauth2Client }) as script_v1.Script;
+  return script;
+}
+
+/**
  * Requests authorization to manage Apps Script projects.
  * @param {boolean} useLocalhost True if a local HTTP server should be run
  *     to handle the auth response. False if manual entry used.
