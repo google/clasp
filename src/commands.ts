@@ -896,4 +896,4 @@ export const setting = async (settingKey: keyof ProjectSettings, settingValue?: 
       logError(null, 'Unable to update .clasp.json');
     }
   }
-}
+};
