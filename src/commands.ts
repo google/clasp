@@ -854,3 +854,46 @@ export const apis = async () => {
     logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
   }
 };
+
+/**
+ * Gets or sets a setting in .clasp.json
+ * @param {keyof ProjectSettings} settingKey The key to set
+ * @param {string?} settingValue Optional value to set the key to
+ */
+export const setting = async (settingKey: keyof ProjectSettings, settingValue?: string) => {
+  // Make a new spinner piped to stdErr so we don't interfere with output
+  if (settingValue === undefined) {
+    // Display current values
+    const currentSettings = await getProjectSettings();
+
+    if (settingKey in currentSettings) {
+      let keyValue = currentSettings[settingKey];
+      if (Array.isArray(keyValue)) {
+        keyValue = keyValue.toString();
+      } else if (typeof keyValue !== 'string') {
+        keyValue = '';
+      }
+      // We don't use console.log as it automatically adds a new line
+      // Which interfers with storing the value
+      process.stdout.write(keyValue);
+    } else {
+      logError(null, `Unknown key "${settingKey}"`);
+    }
+  } else {
+    // Set specified key to the specified value
+    if (settingKey !== 'scriptId' && settingKey !== 'rootDir') {
+      logError(null, `Setting "${settingKey}" is unsupported`);
+    }
+
+    try {
+      const currentSettings = await getProjectSettings();
+      const currentValue = (settingKey in currentSettings) ? currentSettings[settingKey] : '';
+      const scriptId = (settingKey === 'scriptId') ? settingValue : currentSettings.scriptId;
+      const rootDir = (settingKey === 'rootDir') ? settingValue : currentSettings.rootDir;
+      await saveProject(scriptId, rootDir);
+      console.log(`\nUpdated "${settingKey}": "${currentValue}" -> "${settingValue}"`);
+    } catch (e) {
+      logError(null, 'Unable to update .clasp.json');
+    }
+  }
+}
