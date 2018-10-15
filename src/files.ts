@@ -95,6 +95,9 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
 
         // Loop through every file.
         const files = filePaths.map((name, i) => {
+          // Replace OS specific path separator to common '/' char for console output
+          name = name.replace(/\\/g, '/');
+          
           let type = getAPIFileType(name);
 
           // File source
@@ -198,9 +201,12 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
  */
 export function getAppsScriptFileName(rootDir: string, filePath: string) {
   let nameWithoutExt = filePath.slice(0, -path.extname(filePath).length);
+  let fullFilePathNoExt = rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt;
+  
   // Replace OS specific path separator to common '/' char
-  nameWithoutExt = nameWithoutExt.replace(/\\/g, '/');
-  return rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt;
+  fullFilePathNoExt = fullFilePathNoExt.replace(/\\/g, '/');
+  
+  return fullFilePathNoExt;
 }
 
 /**
