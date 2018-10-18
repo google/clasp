@@ -25,6 +25,15 @@ This quickstart guide describes how to create a TypeScript project from scratch.
     - `clasp -v`
 1. Install TypeScript definitions for Apps Script in your project's folder.
     - `npm i -S @types/google-apps-script`
+1. Create a file called `jsconfig.json` to prevent non AS features:
+```json
+{
+  "compilerOptions": {
+    "noLib": true
+  }
+}
+```
+(See [1](https://github.com/Microsoft/monaco-editor/issues/61#issuecomment-342359348) [2](https://code.visualstudio.com/docs/languages/jsconfig#_jsconfig-options))
 
 ### Create the TypeScript Project
 
