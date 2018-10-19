@@ -326,6 +326,21 @@ Displays the help function.
 
 - `clasp help`
 
+### Setting
+
+Update .clasp.json settings file.
+If `newValue` is omitted it returns the current setting value
+
+#### Options
+
+- `settingKey`: settingKey They key in .clasp.json you want to change
+- `newValue`: newValue The new value for the setting
+
+#### Examples
+
+- `clasp setting scriptId`
+- `clasp setting scriptId new-id`
+
 ## Guides
 
 ### [Get Project ID](#get-project-id)
