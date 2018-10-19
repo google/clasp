@@ -195,6 +195,17 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
         console.log(LOG.FINDING_SCRIPTS_DNE);
       }
     } else {
+      // We have a scriptId or URL
+      // If we passed a URL, extract the scriptId from that.
+      // e.g. https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
+      if (scriptId.length !== 57) { // 57 is the magic number
+        const ids = scriptId.split('/').filter((s) => {
+          return s.length === 57;
+        });
+        if (ids.length) {
+          scriptId = ids[0];
+        }
+      }
       spinner.setSpinnerTitle(LOG.CLONING);
       saveProject(scriptId);
       fetchProject(scriptId, '', versionNumber);
