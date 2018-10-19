@@ -39,11 +39,11 @@ import {
   push,
   redeploy,
   run,
+  setting,
   status,
   undeploy,
   version,
   versions,
-  setting,
 } from './commands';
 import { PROJECT_NAME } from './utils';
 
@@ -220,16 +220,6 @@ commander
   .action(redeploy);
 
 /**
- * List versions of a script.
- * @name versions
- * @example versions
- */
-commander
-  .command('versions')
-  .description('List versions of a script')
-  .action(versions);
-
-/**
  * Creates an immutable version of the script.
  * @name version
  * @param {string?} description The description of the script version.
@@ -240,6 +230,16 @@ commander
   .command('version [description]')
   .description('Creates an immutable version of the script')
   .action(version);
+  
+/**
+ * List versions of a script.
+ * @name versions
+ * @example versions
+ */
+commander
+  .command('versions')
+  .description('List versions of a script')
+  .action(versions);
 
 /**
  * Lists your most recent 10 Apps Script projects.

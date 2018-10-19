@@ -74,16 +74,28 @@ clasp
 - [`clasp clone <scriptId | scriptURL>`](#clone)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch]`](#push)
+- [`clasp status`](#status)
 - [`clasp open [scriptId] [--webapp]`](#open)
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [version] [description]`](#deploy)
+- [`clasp undeploy <deploymentId>`](#undeploy)
 - [`clasp redeploy <deploymentId> <version> <description>`](#redeploy)
 - [`clasp version [description]`](#version)
 - [`clasp versions`](#versions)
 - [`clasp list`](#list)
-- [`clasp logs [--json] [--open] [--watch]`](#logs)
 
-## How To...
+### Advanced Commands
+
+> **NOTE**: These commands require Project ID/credentials setup (see below).
+
+- [`clasp logs [--json] [--open] [--watch]`](#logs)
+- [`clasp run [--nondev]`](#run)
+- [`clasp apis list`](#apis)
+- [`clasp apis enable <api>`](#apis)
+- [`clasp apis disable <api>`](#apis)
+- [`clasp setting <key> [value]`](#setting)
+
+## Commands
 
 ### Login
 
@@ -92,7 +104,7 @@ Logs the user in. Saves the client credentials to an rc file.
 #### Options
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
-- `--creds`: Save .clasprc.json file to current working directory.
+- `--creds <file>`: Use custom credentials. Saves a .clasprc.json file to current working directory. This file should be private!
 
 ### Logout
 
@@ -125,7 +137,7 @@ Clones the script from script.google.com.
 
 #### Options
 
-- `scriptId | scriptURL`: The script ID or script URL to clone.
+- `scriptId | scriptURL`: The script ID _or_ script URL to clone.
 
 #### Examples
 
@@ -134,12 +146,12 @@ Clones the script from script.google.com.
 
 ### Pull
 
-Fetches a project from either a provided or saved script id.
+Fetches a project from either a provided or saved script ID.
 Updates local files with Apps Script project.
 
 #### Options
 
-- `versionNumber`: The version number of the project to retrieve.
+- `--versionNumber`: The version number of the project to retrieve.
 
 #### Examples
 
@@ -148,30 +160,34 @@ Updates local files with Apps Script project.
 
 ### Push
 
-Force writes all local files to the script management server.
-
-#### Examples
-
-- `clasp push`: Pushes local files to script.google.com
-- `clasp push --watch`: Watches local file changes. Pushes files when there's a change.
+Force writes all local files to script.google.com.
 
 Ignores files:
 - That start with a .
 - That don't have an accepted file extension
-- That are ignored (filename matches a glob pattern in the ignore file)
+- That are ignored (filename matches a glob pattern in the .claspignore file)
+
+#### Options
+
+- `--watch`: Watches local file changes. Pushes files every few seconds.
+
+#### Examples
+
+- `clasp push`
+- `clasp push --watch`
 
 ### Status
 
 Lists files that will be written to the server on `push`.
 
-#### Examples
-
-- `clasp status`
-
 Ignores files:
 - That start with a .
 - That don't have an accepted file extension
 - That are ignored (filename matches a glob pattern in the ignore file)
+
+#### Examples
+
+- `clasp status`
 
 ### Open
 
@@ -190,7 +206,7 @@ Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a d
 
 ### Deployments
 
-List deployments of a script
+List deployments of a script.
 
 #### Examples
 
@@ -238,14 +254,6 @@ Updates deployments of a script.
 
 - `clasp redeploy 123 3 "Why I updated the deployment"`
 
-### Versions
-
-List versions of a script.
-
-#### Examples
-
-- `clasp versions`
-
 ### Version
 
 Creates an immutable version of the script.
@@ -259,63 +267,80 @@ Creates an immutable version of the script.
 - `clasp version`
 - `clasp version "Bump the version."`
 
+### Versions
+
+List versions of a script.
+
+#### Examples
+
+- `clasp versions`
+
 ### List
 
-Lists your most recent 10 Apps Script projects.
+Lists your most recent Apps Script projects.
 
 #### Examples
 
 - `clasp list # helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...`
 
+## Advanced Commands
+
+> **NOTE**: These commands require Project ID/credentials setup (see below).
+
 ### Logs
 
-Prints out 5 most recent the StackDriver logs.
-
-> **NOTE**: It requires Project ID setup (see below).
+Prints out most recent the StackDriver logs.
 
 #### Options
 
-- `json`: json Output logs in json format.
-- `open`: open Open StackDriver logs in a browser.
+- `--json`: Output logs in json format.
+- `--open`: Open StackDriver logs in a browser.
+- `--watch`: Retrieves the newest logs every 5 seconds.
 
 #### Examples
 
 ```
 clasp logs
-ERROR Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      my log error
-INFO  Sat Apr 07 2018 10:58:31 GMT-0700 (PDT) myFunction      info message
+ERROR Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      my log error
+INFO  Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      info message
 ```
 
-- `clasp logs --json`: See the logs in JSON format.
-- `clasp logs --open`: Open the StackDriver logs in your browser.
-- `clasp logs --watch`: Retrieves the newest logs every 5 seconds.
+- `clasp logs --json`
+- `clasp logs --open`
+- `clasp logs --watch`
 
 ### Run
 
 Remotely executes an Apps Script function.
-This function runs your script in the cloud. You must supply
-the functionName params. For now, it can
+This function runs your script in the cloud. You must supply the functionName params. For now, it can
 only run functions that do not require other authorization.
-
-> **NOTE**: It requires Project ID setup (see below).
 
 #### Options
 
-- `functionName`: functionName The function in the script that you want to run.
-- `dev`: dev Run script function in devMode.
+- `functionName`: The name of the function in the script that you want to run.
+- `nondev`: If true, runs the function in non-devMode.
 
 #### Examples
 
 - `clasp run 'sendEmail'`
 
-### Enable/Disable APIs (Under Construction)
+### List/Enable/Disable Google APIs
 
-List available APIs. Enables and disables APIs.
+List available APIs. Enables and disables Google APIs.
 
-> **NOTE**: It requires Project ID setup (see below).
+#### List APIs
+
+Lists Google APIs that can be enabled as [Advanced Services](https://developers.google.com/apps-script/guides/services/advanced).
 
 - `clasp apis`
 - `clasp apis list`
+
+#### Enable/Disable APIs
+
+Enables or disables APIs with the Google Cloud project. These APIs are used via services like GmailApp and Advanced Services like BigQuery.
+
+The API name can be found using `clasp apis list`.
+
 - `clasp apis enable drive`
 - `clasp apis disable drive`
 
