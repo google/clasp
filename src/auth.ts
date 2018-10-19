@@ -139,7 +139,7 @@ export async function authorize(options: {
     const token = await (options.useLocalhost ?
       authorizeWithLocalhost(oAuth2ClientOptions) :
       authorizeWithoutLocalhost(oAuth2ClientOptions));
-    console.log(LOG.AUTH_SUCCESSFUL);
+    console.log(LOG.AUTH_SUCCESSFUL + '\n');
 
     // Save the token and own creds together.
     let claspToken: ClaspToken;
