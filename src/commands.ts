@@ -173,7 +173,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       if (files && files.length) {
         const fileIds = files.map((file: any) => {
           return {
-            name: `${padEnd(file.name, 20)} - (${file.id})`,
+            name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id)}`,
             value: file.id,
           };
         });
@@ -182,6 +182,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
           name: 'scriptId',
           message: 'Clone which script? ',
           choices: fileIds,
+          pageSize: 30,
         }]).then((answers: any) => {
           checkIfOnline();
           spinner.setSpinnerTitle(LOG.CLONING);
@@ -202,10 +203,10 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
 };
 
 /**
- * Logs the user in. Saves the client credentials to an rc file.
- * @param {object} options the localhost and creds options from commander.
- * @param {boolean?} options.localhost If true, authorizes without a http server.
- * @param {string?} options.creds location of credentials file.
+ * Logs the user in. Saves the client credentials to an either local or global rc file.
+ * @param {object} options The login options.
+ * @param {boolean?} options.localhost If true, authorizes without a HTTP server.
+ * @param {string?} options.creds The location of credentials file.
  */
 export const login = async (options: {
   localhost?: boolean,
@@ -322,7 +323,7 @@ export const logs = async (cmd: {
   async function setupLogs(projectId?: string): Promise<string> {
     const promise = new Promise<string>((resolve, reject) => {
       getProjectSettings().then((projectSettings) => {
-        console.log('Open this link: ', LOG.SCRIPT_LINK(projectSettings.scriptId));
+        console.log(`Open this link: ${LOG.SCRIPT_LINK(projectSettings.scriptId)}\n`);
         console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
         prompt([{
