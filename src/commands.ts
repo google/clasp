@@ -1,21 +1,20 @@
 /**
  * Clasp command method bodies.
  */
+import { readFileSync } from 'fs';
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
-import { checkOauthScopes, discovery, drive, loadAPICredentials, logger, script, serviceUsage } from './auth';
+import { authorize, discovery, drive, getLocalScript, loadAPICredentials, logger, script, serviceUsage } from './auth';
+import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
-  DOT,
-  DOTFILE,
   ERROR,
   LOG,
   PROJECT_MANIFEST_BASENAME,
-  ProjectSettings,
   URL,
   checkIfOnline,
   getDefaultProjectName,
@@ -23,7 +22,6 @@ import {
   getProjectSettings,
   getWebApplicationURL,
   hasOauthClientSettings,
-  isLocalCreds,
   logError,
   manifestExists,
   saveProject,
@@ -204,6 +202,46 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
 };
 
 /**
+ * Logs the user in. Saves the client credentials to an rc file.
+ * @param {object} options the localhost and creds options from commander.
+ * @param {boolean?} options.localhost If true, authorizes without a http server.
+ * @param {string?} options.creds location of credentials file.
+ */
+export const login = async (options: {
+  localhost?: boolean,
+  creds?: string,
+}) => {
+  // Local vs global checks
+  const isLocalLogin = !!options.creds;
+  const loggedInLocal = hasOauthClientSettings(true);
+  const loggedInGlobal = hasOauthClientSettings(false);
+  if (isLocalLogin && loggedInLocal) console.warn(ERROR.LOGGED_IN_LOCAL);
+  if (!isLocalLogin && loggedInGlobal) console.warn(ERROR.LOGGED_IN_GLOBAL);
+  console.log(LOG.LOGIN(isLocalLogin));
+  await checkIfOnline();
+
+  // Localhost check
+  const useLocalhost = !!options.localhost;
+
+  // Using own credentials.
+  if (options.creds) {
+    const credsFile = readFileSync(options.creds, 'utf8');
+    const credentials = JSON.parse(credsFile);
+    await authorize({
+      useLocalhost,
+      creds: credentials,
+      // TODO: Custom scopes from manifest.
+    });
+  } else {
+    // Not using own credentials
+    await authorize({
+      useLocalhost,
+    });
+  }
+  process.exit(0); // gracefully exit after successful login
+}
+
+/**
  * Logs out the user by deleting credentials.
  */
 export const logout = () => {
@@ -337,7 +375,7 @@ export const logs = async (cmd: {
    */
   async function fetchAndPrintLogs(startDate?: Date) {
     spinner.setSpinnerTitle(
-      `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
+      `${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
     ).start();
     // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
     // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
@@ -361,11 +399,11 @@ export const logs = async (cmd: {
     if (logs.status !== 200) {
       switch (logs.status) {
         case 401:
-          logError(null, isLocalCreds(oauthSettings) ?
+          logError(null, oauthSettings.isLocalCreds ?
             ERROR.UNAUTHENTICATED_LOCAL :
             ERROR.UNAUTHENTICATED);
         case 403:
-          logError(null, isLocalCreds(oauthSettings) ?
+          logError(null, oauthSettings.isLocalCreds ?
             ERROR.PERMISSION_DENIED_LOCAL :
             ERROR.PERMISSION_DENIED);
         default:
@@ -391,43 +429,39 @@ export const logs = async (cmd: {
 };
 
 /**
- * Executes an Apps Script function. Requires additional setup.
+ * Executes an Apps Script function. Requires clasp login --creds.
  * @param functionName {string} The function name within the Apps Script project.
+ * @param cmd.nondev {boolean} If we want to run the last deployed version vs the latest code.
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  * @requires `clasp login --creds` to be run beforehand.
  */
-export const run = async (functionName: string, cmd: { dev: boolean }) => {
+export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   await checkIfOnline();
-  const oauthSettings = await loadAPICredentials();
-  if (!isLocalCreds(oauthSettings)) {
-    // script and the calling application share a common GCP project
-    console.log(`\n${chalk.yellow('BASIC SCRIPT EXECUTION API SETUP')}\n`);
-    const projectId = await getProjectId(); // will prompt user to set up if required
-    if (!projectId) return logError(null, ERROR.NO_GCLOUD_PROJECT);
-    console.log(LOG.SETUP_LOCAL_OAUTH(projectId));
-    process.exit(0);
-  }
-  await checkOauthScopes(oauthSettings);
-  const { scriptId } = await getProjectSettings();
-  spinner.setSpinnerTitle(
-    `${isLocalCreds(oauthSettings) ? LOG.LOCAL_CREDS : ''}${LOG.SCRIPT_RUN(functionName)}`,
-  ).start();
-  // TODO script must be a local OAuth client.
+  await loadAPICredentials();
+  const localScript = await getLocalScript();
+  const { scriptId } = await getProjectSettings(true);
+  
+  const devMode = !cmd.nondev; // default true
   try {
-    const res = await script.scripts.run({
+    spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
+    const res = await localScript.scripts.run({
       scriptId,
       requestBody: {
         function: functionName,
-        devMode: cmd.dev,
+        devMode,
       },
     });
     spinner.stop(true);
     if (res && res.data.done) {
-      const data = response.data;
+      const data = res.data;
       // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
       if (data.response) {
-        console.log(`${chalk.green('Result:')}`, data.response.result);
-      } else if (data.error) {
+        if (data.response.result) {
+          console.log(data.response.result);
+        } else {
+          console.log(chalk.red('No response.'));
+        }
+      } else if (data.error && data.error.details) {
         // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
         console.error(`${chalk.red('Exception:')}`,
           data.error.details[0].errorType,
@@ -440,6 +474,7 @@ export const run = async (functionName: string, cmd: { dev: boolean }) => {
     }
   } catch(err) {
     spinner.stop(true);
+    console.log(err);
     if (err) { // TODO move these to logError when stable?
       switch (err.code) {
         case 401:
@@ -717,14 +752,14 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
     } else {
       const choices = deployments
         .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
-        .map((deployment:any) => {
+        .map((deployment: any) => {
           const DESC_PAD_SIZE = 30;
           const id = deployment.deploymentId;
           const description = deployment.deploymentConfig.description;
           const versionNumber = deployment.deploymentConfig.versionNumber;
           return {
             name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
-                    + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+              + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
             value: deployment,
           };
         });
@@ -819,7 +854,7 @@ export const apis = async () => {
       // Merge discovery data with public services data.
       const publicServices = [];
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
-        const service:any = services.find(s => s.name === publicServiceId);
+        const service: any = services.find(s => s.name === publicServiceId);
         // for some reason 'youtubePartner' is not in the api list.
         if (service && service.id && service.description) {
           publicServices.push(service);
@@ -827,7 +862,7 @@ export const apis = async () => {
       }
 
       // Sort the services based on id
-      publicServices.sort((a:any, b:any) => {
+      publicServices.sort((a: any, b: any) => {
         if (a.id < b.id) return -1;
         if (a.id > b.id) return 1;
         return 0;

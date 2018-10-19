@@ -1,12 +1,10 @@
 import * as fs from 'fs';
-import * as os from 'os';
 import { Spinner } from 'cli-spinner';
 import * as pluralize from 'pluralize';
+import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 const ucfirst = require('ucfirst');
 const path = require('path');
 const findParentDir = require('find-parent-dir');
-const splitLines = require('split-lines');
-const dotf = require('dotf');
 const read = require('read-file');
 const isOnline = require('is-online');
 const { prompt } = require('inquirer');
@@ -17,100 +15,24 @@ export const PROJECT_NAME = 'clasp';
 export const PROJECT_MANIFEST_BASENAME = 'appsscript';
 export const PROJECT_MANIFEST_FILENAME = PROJECT_MANIFEST_BASENAME + '.json';
 
-// Dotfile names
-export const DOT = {
-  IGNORE: { // Ignores files on `push`
-    DIR: '~',
-    NAME: `${PROJECT_NAME}ignore`,
-    PATH: `.${PROJECT_NAME}ignore`,
-  },
-  PROJECT: { // Saves project information, local to project directory
-    DIR: path.join('.', '/'), // Relative to where the command is run. See DOTFILE.PROJECT()
-    NAME: `${PROJECT_NAME}.json`,
-    PATH: `.${PROJECT_NAME}.json`,
-  },
-  RC: { // Saves global information, in the $HOME directory
-    DIR: '~',
-    LOCAL_DIR: './',
-    NAME: `${PROJECT_NAME}rc.json`,
-    PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
-    ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`),
-    ABSOLUTE_LOCAL_PATH: path.join('.', `.${PROJECT_NAME}rc.json`),
-  },
-};
-
-// Default OAuth client settings file (Saved in ~/.clasprc.json)
-// @see google-auth-library {Credentials}
-interface ClaspSettingsDefault {
-  access_token?: string | null;
-  refresh_token?: string | null;
-  token_type?: string | null;
-}
-
-// Local OAuth client settings file (Saved in ./.clasprc.json)
-interface ClaspSettingsLocal {
-  // @see {ClaspSettingsDefault}
-  token: {
-    access_token?: string | null;
-    refresh_token?: string | null;
-    token_type?: string | null;
-  };
-  oauth2ClientSettings: {
-    clientId: string;
-    clientSecret: string;
-  };
-}
-
-// TODO should be single iface { token: {}, oauth2ClientSettings: {} }
-export type ClaspSettings = ClaspSettingsDefault | ClaspSettingsLocal;
-
 /**
- * Type guard for {ClaspSettings} union
- * @param {ClaspSettings} settings
- * @return {boolean}
+ * The installed credentials. This is a file downloaded from console.developers.google.com
+ * Credentials > OAuth 2.0 client IDs > Type:Other > Download
+ * Usually called: creds.json
+ * @see https://console.developers.google.com/apis/credentials
  */
-export const isLocalCreds = (settings: ClaspSettings): settings is ClaspSettingsLocal =>
-  (settings as ClaspSettingsLocal).oauth2ClientSettings !== undefined;
-
-// Project settings file (Saved in .clasp.json)
-export interface ProjectSettings {
-  scriptId: string;
-  rootDir?: string;
-  projectId?: string;
-  fileExtension?: string;
-  filePushOrder?: string[];
+interface ClaspCredentialsInstalled {
+  client_id: string;
+  project_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_secret: string;
+  redirect_uris: string[];
 }
-
-export const DOTFILE = {
-  /**
-   * Reads DOT.IGNORE.PATH to get a glob pattern of ignored paths.
-   * @return {Promise<string[]>} A list of file glob patterns
-   */
-  IGNORE: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return new Promise<string[]>((res, rej) => {
-      if (fs.existsSync(path.join(projectDirectory, DOT.IGNORE.PATH))) {
-        const buffer = read.sync(DOT.IGNORE.PATH, 'utf8');
-        res(splitLines(buffer).filter((name: string) => name));
-      } else {
-        res([]);
-      }
-    });
-  },
-  /**
-   * Gets the closest DOT.PROJECT.NAME in the parent directory of the directory
-   * that the command was run in.
-   * @return {dotf} A dotf with that dotfile. Null if there is no file
-   */
-  PROJECT: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return dotf(projectDirectory, DOT.PROJECT.NAME);
-  },
-  // Stores {ClaspSettingsDefault}
-  RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
-  // Stores {ClaspSettingsLocal}
-  RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME),
-};
+export interface ClaspCredentials {
+  installed: ClaspCredentialsInstalled;
+}
 
 /**
  * Checks if OAuth client settings rc file exists.
@@ -124,14 +46,14 @@ export const hasOauthClientSettings = (local = false): boolean =>
  * Gets the OAuth client settings from rc file.
  * Should be used instead of `DOTFILE.RC?().read()`
  * TODO sanity checks & single ClaspSettings iface with backwards compatibility
- * @returns {Promise<ClaspSettings>} A promise to get the rc file as object.
+ * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
-export function getOAuthSettings(): Promise<ClaspSettings> {
+export function getOAuthSettings(): Promise<ClaspToken> {
   return DOTFILE.RC_LOCAL.read()
-    .then((rc: ClaspSettingsLocal) => rc)
+    .then((rc: ClaspToken) => rc)
     .catch((err: any) => {
       return DOTFILE.RC.read()
-        .then((rc: ClaspSettingsDefault) => rc)
+        .then((rc: ClaspToken) => rc)
         .catch((err: any) => {
           logError(err, ERROR.NO_CREDENTIALS);
         });
@@ -142,12 +64,8 @@ export function getOAuthSettings(): Promise<ClaspSettings> {
 export const URL = {
   CREDS: (projectId: string) =>
     `https://console.developers.google.com/apis/credentials?project=${projectId}`,
-  LOGGING_API_PROJECT: (projectId: string) =>
-    `https://console.cloud.google.com/apis/library/logging.googleapis.com?project=${projectId}`,
   LOGS: (projectId: string) =>
     `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`,
-  SCRIPT_API_PROJECT: (projectId: string) =>
-    `https://console.cloud.google.com/apis/library/script.googleapis.com/?project=${projectId}`,
   SCRIPT_API_USER: 'https://script.google.com/home/usersettings',
   // It is too expensive to get the script URL from the Drive API. (Async/not offline)
   SCRIPT: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
@@ -169,10 +87,12 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
   DRIVE: `Something went wrong with the Google Drive API`,
   EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
+  // FOLDER_EXISTS: `Project file already exists.`, // TEMP!
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
-  LOGGED_IN: `You seem to already be logged in. Did you mean to 'logout'?`,
+  LOGGED_IN_LOCAL: `Warning: You seem to already be logged in *locally*. You have a ./.clasprc.json`,
+  LOGGED_IN_GLOBAL: `Warning: You seem to already be logged in *globally*. You have a ~/.clasprc.json`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
   LOGS_NODATA: 'StackDriver logs query returned no data.',
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
@@ -204,9 +124,10 @@ Did you provide the correct scriptId?`,
 // Log messages (some logs take required params)
 export const LOG = {
   AUTH_CODE: 'Enter the code from that page here: ',
-  AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page.`, // HTML Redirect Page
+  // TODO: Make AUTH_PAGE_SUCCESSFUL show an HTML page with something useful!
+  AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page. `, // HTML Redirect Page
   AUTH_SUCCESSFUL: `Authorization successful.`,
-  AUTHORIZE: (authUrl: string) => `🔑  Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
+  AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
   CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${URL.SCRIPT(scriptId)}`,
@@ -222,6 +143,7 @@ export const LOG = {
   FINDING_SCRIPTS: 'Finding your scripts...',
   GRAB_LOGS: 'Grabbing logs...',
   LOCAL_CREDS: `Using local credentials: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME} 🔐 `,
+  LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}...`,
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${URL.SCRIPT(scriptId)}`,
@@ -234,28 +156,25 @@ export const LOG = {
   PUSHING: 'Pushing files...',
   REDEPLOY_END: 'Updated deployment.',
   REDEPLOY_START: 'Updating deployment...',
-  SAVED_CREDS: `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
-  SAVED_LOCAL_CREDS: `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.`,
+  SAVED_CREDS: (isLocalCreds: boolean) => (isLocalCreds) ?
+    `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
+    `*Be sure to never commit this file!* It's basically a password.`:
+    `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit \n`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
   STATUS_IGNORE: 'Ignored files:',
   STATUS_PUSH: 'Not ignored files:',
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
-  UNDEPLOYMENT_START: (deploymentId: string) => `Undeploy ${deploymentId}...`,
+  UNDEPLOYMENT_START: (deploymentId: string) => `Undeploying ${deploymentId}...`,
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
   VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
     (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
 
-  SETUP_LOCAL_OAUTH: (projectId: string) => `1. Enable the Script & Logging APIs for the project:
-  a. Open this link: ${chalk.blue(URL.SCRIPT_API_PROJECT(projectId))}
-      Click ${chalk.cyan('ENABLE')}.
-  b. Open this link: ${chalk.blue(URL.LOGGING_API_PROJECT(projectId))}
-      Click ${chalk.cyan('ENABLE')}.
-
-2. Create a client ID and secret:
+  SETUP_LOCAL_OAUTH_STEP_1: `\n${chalk.yellow('BASIC SCRIPT EXECUTION API SETUP')}\n`,
+  SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
     Open this link: ${chalk.blue(URL.CREDS(projectId))}
     Click ${chalk.cyan('Create credentials')}, then select ${chalk.yellow('OAuth client ID')}.
     Select ${chalk.yellow('Other')}.
@@ -263,9 +182,8 @@ export const LOG = {
     Click ${chalk.cyan('Create')}.
     Click ${chalk.cyan('Download JSON')} for the new client ID: ${chalk.yellow('name')} (right-hand side).
 
-3. Authenticate clasp with your credentials json file:
+2. Authenticate clasp with your credentials json file:
     clasp login --creds <client_credentials.json>`,
-
 };
 
 export const spinner = new Spinner();
@@ -426,15 +344,14 @@ export async function loadManifest(): Promise<any> {
 }
 
 /**
- * Get App Script project ID from project settings file
- * or prompt user & save
- * @returns {Promise} A promise to get the projectId string.
+ * Get App Script project ID from project settings file or prompt for one.
+ * @returns {Promise<string>} A promise to get the projectId string.
  */
-export async function getProjectId(promptUser = true): Promise<string | undefined> {
+export async function getProjectId(promptUser = true): Promise<string> {
   try {
     const projectSettings: ProjectSettings = await getProjectSettings();
     if (projectSettings.projectId) return projectSettings.projectId;
-    if (!promptUser) return;
+    if (!promptUser) throw new Error('Project ID not found.');
     console.log('Open this link: ', URL.SCRIPT(projectSettings.scriptId));
     console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
@@ -446,10 +363,11 @@ export async function getProjectId(promptUser = true): Promise<string | undefine
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
     });
-    return projectSettings.projectId;
+    return projectSettings.projectId || '';
   } catch (err) {
     logError(null, err.message);
   }
+  throw Error('Project ID not found');
 }
 
 /**
@@ -462,7 +380,7 @@ export async function validateManifest(): Promise<boolean> {
     path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
   try {
     JSON.parse(manifest);
-  } catch(err) {
+  } catch (err) {
     logError(err, ERROR.BAD_MANIFEST);
     return false;
   }
