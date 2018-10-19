@@ -630,7 +630,7 @@ describe('Test clasp login function', () => {
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
     );
     fs.removeSync(claspRcGlobalPath);
-    expect(result.stderr).to.contain(ERROR.LOGGED_IN);
+    expect(result.stderr).to.contain(ERROR.LOGGED_IN_GLOBAL);
     expect(result.status).to.equal(1);
   });
   it('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
@@ -639,7 +639,7 @@ describe('Test clasp login function', () => {
       CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
     );
     fs.removeSync(claspRcLocalPath);
-    expect(result.stderr).to.contain(ERROR.LOGGED_IN);
+    expect(result.stderr).to.contain(ERROR.LOGGED_IN_LOCAL);
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {

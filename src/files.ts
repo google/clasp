@@ -3,9 +3,8 @@ import * as anymatch from 'anymatch';
 import * as mkdirp from 'mkdirp';
 import * as recursive from 'recursive-readdir';
 import { loadAPICredentials, script } from './auth';
+import { DOT, DOTFILE } from './dotfile'
 import {
-  DOT,
-  DOTFILE,
   ERROR,
   LOG,
   checkIfOnline,
@@ -168,7 +167,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             console.log(`└─ ${file}`);
           });
           console.log('');
-          nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1:string, path2:string) => {
+          nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1: string, path2: string) => {
             // Get the file order index
             let path1Index = filePushOrder.indexOf(path1);
             let path2Index = filePushOrder.indexOf(path2);
