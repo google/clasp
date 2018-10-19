@@ -65,6 +65,10 @@ sudo npm i -g grpc @google/clasp --unsafe-perm
 
 ## Commands
 
+The following command provide basic Apps Script project management.
+
+> Note: Most of them require you to `clasp login` and `clasp create/clone` before using the rest of the commands.
+
 ```sh
 clasp
 ```
@@ -95,7 +99,7 @@ clasp
 - [`clasp apis disable <api>`](#apis)
 - [`clasp setting <key> [value]`](#setting)
 
-## Commands
+## Reference
 
 ### Login
 
@@ -289,7 +293,7 @@ Lists your most recent Apps Script projects.
 
 ### Logs
 
-Prints out most recent the StackDriver logs.
+Prints out most recent the _StackDriver logs_. These are logs from `console.log`, not `Logger.log`.
 
 #### Options
 
