@@ -43,6 +43,7 @@ import {
   undeploy,
   version,
   versions,
+  setting,
 } from './commands';
 import { PROJECT_NAME } from './utils';
 
@@ -309,6 +310,20 @@ commander
   .command('help')
   .description('Display help')
   .action(help);
+
+/**
+ * Update .clasp.json settings file.
+ * If `newValue` is omitted it returns the current setting value
+ * @name setting
+ * @param {string} settingKey They key in .clasp.json you want to change
+ * @param {string?} newValue The new value for the setting
+ * @example setting scriptId
+ * @example setting scriptId new-id
+ */
+commander
+  .command('setting <settingKey> [newValue]')
+  .description('Update <settingKey> in .clasp.json')
+  .action(setting);
 
 /**
  * All other commands are given a help message.
