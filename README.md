@@ -71,7 +71,7 @@ clasp
 - [`clasp login [--no-localhost] [--creds <file>]`](#login)
 - [`clasp logout`](#logout)
 - [`clasp create [scriptTitle] [scriptParentId] [--rootDir]`](#create)
-- [`clasp clone <scriptId>`](#clone)
+- [`clasp clone <scriptId | scriptURL>`](#clone)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch]`](#push)
 - [`clasp open [scriptId] [--webapp]`](#open)
@@ -121,15 +121,16 @@ Creates a new script project.
 
 ### Clone
 
-Clones the script from script.google.com
+Clones the script from script.google.com.
 
 #### Options
 
-- `scriptId`: The script project to clone.
+- `scriptId | scriptURL`: The script ID or script URL to clone.
 
 #### Examples
 
-- `clasp clone scriptId`
+- `clasp clone 15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC`
+- `clasp clone https://script.google.com/d/15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC/edit`
 
 ### Pull
 
