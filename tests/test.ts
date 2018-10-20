@@ -124,7 +124,7 @@ describe('Test --help for each function', () => {
   it('should versions --help', () => expectHelp('versions', 'List versions of a script'));
   it('should version --help', () => expectHelp('version', 'Creates an immutable version of the script'));
   it('should list --help', () => expectHelp('list', 'List App Scripts projects'));
-  it('should apis --help', () => expectHelp('apis', 'List, enable, or disable apis'));
+  it('should apis --help', () => expectHelp('apis', 'List, enable, or disable APIs'));
   it('should help --help', () => expectHelp('help', 'Display help'));
 });
 
