@@ -28,7 +28,7 @@ import open = require('opn');
 import readline = require('readline');
 
 // Auth is complicated. Consider yourself warned.
-
+// tslint:disable:max-line-length
 // GLOBAL: clasp login will store this (~/.clasprc.json):
 // {
 //   "access_token": "ya29.GlsxBm9yMD8IxaVeb_PGFMa61JvQGaPAweBsB1klcQwwrztDkw7E99s_Y3LS5yfgHMLyE_XIm_f0oubwQE7JVh6cQni_2TqL-UqO7xmifp3CqhFBW81UIxPzAmfA",
@@ -37,7 +37,6 @@ import readline = require('readline');
 //   "token_type": "Bearer",
 //   "expiry_date": 1539130731398
 // }
-
 // LOCAL: clasp login will store this (./.clasprc.json):
 // {
 //   "token": {
@@ -55,7 +54,7 @@ import readline = require('readline');
 //   },
 //   "isLocalCreds": true
 // }
- 
+// tslint:enable:max-line-length
 // API settings
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
@@ -86,7 +85,10 @@ export const script = google.script({ version: 'v1', auth: globalOAuth2Client })
 export const logger = google.logging({ version: 'v2', auth: globalOAuth2Client }) as logging_v2.Logging;
 export const drive = google.drive({ version: 'v3', auth: globalOAuth2Client }) as drive_v3.Drive;
 export const discovery = google.discovery({ version: 'v1' }) as discovery_v1.Discovery;
-export const serviceUsage = google.serviceusage({ version: 'v1', auth: globalOAuth2Client }) as serviceusage_v1.Serviceusage;
+export const serviceUsage = google.serviceusage({
+  version: 'v1',
+  auth: globalOAuth2Client,
+}) as serviceusage_v1.Serviceusage;
 
 /**
  * Gets the local OAuth client for the Google Apps Script API.
@@ -122,7 +124,7 @@ export async function authorize(options: {
       const localOAuth2ClientOptions: OAuth2ClientOptions = {
         clientId: options.creds.installed.client_id,
         clientSecret: options.creds.installed.client_secret,
-        redirectUri: options.creds.installed.redirect_uris[0]
+        redirectUri: options.creds.installed.redirect_uris[0],
       };
       oAuth2ClientOptions = localOAuth2ClientOptions;
     } else {
@@ -134,7 +136,7 @@ export async function authorize(options: {
       };
       oAuth2ClientOptions = globalOauth2ClientOptions;
     }
-    
+
     // Grab a token from the credentials.
     const token = await (options.useLocalhost ?
       authorizeWithLocalhost(oAuth2ClientOptions) :
@@ -225,7 +227,7 @@ async function authorizeWithLocalhost(oAuth2ClientOptions: OAuth2ClientOptions):
 async function authorizeWithoutLocalhost(oAuth2ClientOptions: OAuth2ClientOptions): Promise<Credentials> {
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
-    redirectUri: REDIRECT_URI_OOB
+    redirectUri: REDIRECT_URI_OOB,
   });
   const authUrl = client.generateAuthUrl(oauth2ClientAuthUrlOpts);
   console.log(LOG.AUTHORIZE(authUrl));

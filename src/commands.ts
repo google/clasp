@@ -8,7 +8,16 @@ import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
-import { authorize, discovery, drive, getLocalScript, loadAPICredentials, logger, script, serviceUsage } from './auth';
+import {
+  authorize,
+  discovery,
+  drive,
+  getLocalScript,
+  loadAPICredentials,
+  logger,
+  script,
+  serviceUsage,
+} from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
@@ -196,8 +205,8 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       }
     } else {
       // We have a scriptId or URL
-      // If we passed a URL, extract the scriptId from that.
-      // e.g. https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
+      // If we passed a URL, extract the scriptId from that. For example:
+      // https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
       if (scriptId.length !== 57) { // 57 is the magic number
         const ids = scriptId.split('/').filter((s) => {
           return s.length === 57;
@@ -251,7 +260,7 @@ export const login = async (options: {
     });
   }
   process.exit(0); // gracefully exit after successful login
-}
+};
 
 /**
  * Logs out the user by deleting credentials.
@@ -452,7 +461,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   await loadAPICredentials();
   const localScript = await getLocalScript();
   const { scriptId } = await getProjectSettings(true);
-  
+
   const devMode = !cmd.nondev; // default true
   try {
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
