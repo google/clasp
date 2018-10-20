@@ -160,7 +160,7 @@ export async function authorize(options: {
       claspToken = {
         token,
         oauth2ClientSettings: globalOauth2ClientSettings,
-        isLocalCreds: true,
+        isLocalCreds: false,
       };
       await DOTFILE.RC.write(claspToken);
     }
