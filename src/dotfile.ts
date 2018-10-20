@@ -1,20 +1,20 @@
 /**
  * Manages dotfiles. There are 2 types of dotfiles:
- * 
+ *
  * Global clasp auth settings:
  * - File: ~/.clasp.json
  * - Default credentials for clasp projects.
- * 
+ *
  * Local clasp auth settings:
  * - File: .clasp.json
  * - Requires `clasp login --creds creds.json`
- * 
+ *
  * This should be the only file that uses DOTFILE.
  */
 import * as fs from 'fs';
 import * as os from 'os';
 import { Credentials } from 'google-auth-library';
-import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client'
+import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 
 const dotf = require('dotf');
 const read = require('read-file');
@@ -59,7 +59,7 @@ export const DOT = {
    * - Personal: In the local directory.
    * @see {ClaspToken}
    */
-  RC: { 
+  RC: {
     DIR: '~',
     LOCAL_DIR: './',
     NAME: `${PROJECT_NAME}rc.json`,
