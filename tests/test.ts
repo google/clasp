@@ -24,6 +24,7 @@ const CLASP = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp';
 const isPR = process.env.TRAVIS_PULL_REQUEST;
 const CLASP_SETTINGS: string = JSON.stringify({
   scriptId: process.env.SCRIPT_ID,
+  projectId: process.env.PROJECT_ID,
 });
 const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
@@ -580,35 +581,64 @@ describe('Test saveProject function from utils', () => {
 });
 
 describe('Test clasp apis functions', () => {
+  before(function() {
+    if (isPR !== 'false') {
+      this.skip();
+    }
+    setup();
+  });
   it('should list apis correctly', () => {
     const result = spawnSync(
       CLASP, ['apis', 'list'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('abusiveexperiencereport   - abusiveexperiencereport:v1');
-    expect(result.stdout).to.contain('youtubereporting          - youtubereporting:v1');
+    expect(result.stdout).to.contain('# Currently enabled APIs:');
+    expect(result.stdout).to.contain('# List of available APIs:');
   });
-  it('should enable apis correctly', () => {
+  it('should ask for an API when trying to enable', () => {
     const result = spawnSync(
       CLASP, ['apis', 'enable'], { encoding: 'utf8' },
     );
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('In development...');
+    expect(result.status).to.equal(1);
+    expect(result.stderr).to.contain('An API name is required.');
   });
-  it('should disable apis correctly', () => {
+  it('should enable sheets', () => {
+    const result = spawnSync(
+      CLASP, ['apis', 'enable', 'sheets'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain('Enabled sheets');
+  });
+  it('should give error message for non-existent API', () => {
+    const result = spawnSync(
+      CLASP, ['apis', 'enable', 'fakeApi'], { encoding: 'utf8' },
+    );
+    expect(result.status).to.equal(1);
+    expect(result.stdout).to.contain('API doesn\'t exist. Try \'clasp apis enable sheets\'');
+  });
+  it('should ask for an API when trying to disable', () => {
     const result = spawnSync(
       CLASP, ['apis', 'disable'], { encoding: 'utf8' },
     );
+    expect(result.status).to.equal(1);
+    expect(result.stdout).to.contain('An API name is required.');
+  });
+  it('should disable apis correctly', () => {
+    const result = spawnSync(
+      CLASP, ['apis', 'disable', 'sheets'], { encoding: 'utf8' },
+    );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('In development...');
+    expect(result.stdout).to.contain('Disabled sheets');
   });
   it('should show suggestions for using clasp apis', () => {
     const result = spawnSync(
       CLASP, ['apis'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain(`Try:
-    clasp apis list`);
+    expect(result.stdout).to.contain(`# Try these commands:
+- clasp apis list
+- clasp apis enable slides
+- clasp apis disable slides`);
   });
   it('should error with unknown subcommand', () => {
     const result = spawnSync(
@@ -617,6 +647,7 @@ describe('Test clasp apis functions', () => {
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain(`Unknown command`);
   });
+  after(cleanup);
 });
 
 describe.skip('Test clasp logs function', () => {
