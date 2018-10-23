@@ -298,7 +298,7 @@ export const logs = async (cmd: {
           if (dotfile) {
             dotfile.read().then((settings: ProjectSettings) => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write({ scriptId: settings.scriptId, projectId });
+              dotfile.write(Object.assign(settings, { projectId }));
               resolve(projectId);
             }).catch((err: object) => {
               reject(logError(err));
