@@ -103,12 +103,12 @@ clasp
 
 ### Login
 
-Logs the user in. Saves the client credentials to an rc file.
+Logs the user in. Saves the client credentials to a `.clasprc.json` file.
 
 #### Options
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
-- `--creds <file>`: Use custom credentials. Saves a .clasprc.json file to current working directory. This file should be private!
+- `--creds <file>`: Use custom credentials. Saves a `.clasprc.json` file to current working directory. This file should be private!
 
 ### Logout
 
@@ -167,9 +167,9 @@ Updates local files with Apps Script project.
 Force writes all local files to script.google.com.
 
 Ignores files:
-- That start with a .
+- That start with a `.`
 - That don't have an accepted file extension
-- That are ignored (filename matches a glob pattern in the .claspignore file)
+- That are ignored (filename matches a glob pattern in the `.claspignore` file)
 
 #### Options
 
@@ -185,7 +185,7 @@ Ignores files:
 Lists files that will be written to the server on `push`.
 
 Ignores files:
-- That start with a .
+- That start with a `.`
 - That don't have an accepted file extension
 - That are ignored (filename matches a glob pattern in the ignore file)
 
@@ -316,7 +316,7 @@ INFO  Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      info message
 ### Run
 
 Remotely executes an Apps Script function.
-This function runs your script in the cloud. You must supply the functionName params. For now, it can
+This function runs your script in the cloud. You must supply the `functionName` params. For now, it can
 only run functions that do not require other authorization.
 
 #### Options
@@ -358,12 +358,12 @@ Displays the help function.
 
 ### Setting
 
-Update .clasp.json settings file.
+Update `.clasp.json` settings file.
 If `newValue` is omitted it returns the current setting value
 
 #### Options
 
-- `settingKey`: settingKey They key in .clasp.json you want to change
+- `settingKey`: settingKey They key in `.clasp.json` you want to change
 - `newValue`: newValue The new value for the setting
 
 #### Examples
