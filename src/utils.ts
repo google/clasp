@@ -96,6 +96,8 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
   LOGS_NODATA: 'StackDriver logs query returned no data.',
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
+  NO_API: (enable: boolean, api: string) =>
+    `API ${api} doesn\'t exist. Try \'clasp apis ${enable ? 'enable' : 'disable'} sheets\'.`,
   NO_CREDENTIALS: 'Could not read API credentials. Are you logged in?',
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
