@@ -807,7 +807,7 @@ export const apis = async () => {
   const serviceName = process.argv[4];
   const getProjectIdAndServiceURL = async () => {
     if (!serviceName) {
-      throw console.error('An API name is required. Try sheets');
+      logError(null, 'An API name is required. Try sheets');
     }
     const serviceURL = `${serviceName}.googleapis.com`; // i.e. sheets.googleapis.com
     const projectId = await getProjectId(); // will prompt user to set up if required
@@ -815,21 +815,30 @@ export const apis = async () => {
     return [projectId, serviceURL];
   };
 
+  const enableOrDisableAPI = async (enable: boolean) => {
+    const [projectId, serviceURL] = await getProjectIdAndServiceURL();
+    const name = `projects/${projectId}/services/${serviceURL}`;
+    try {
+      if (enable) {
+        await serviceUsage.services.enable({name});
+      } else {
+        await serviceUsage.services.disable({name});
+      }
+      console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName}.`);
+    } catch (e) {
+        // If given non-existent API (like fakeAPI, it throws 403 permission denied)
+        // We will log this for the user instead:
+        logError(null, ERROR.NO_API(enable, serviceName));
+    }
+  };
+
   // The apis subcommands.
   const command: { [key: string]: Function } = {
     enable: async () => {
-      const [projectId, serviceURL] = await getProjectIdAndServiceURL();
-      await serviceUsage.services.enable({
-        name: `projects/${projectId}/services/${serviceURL}`,
-      });
-      console.log(`Enabled ${serviceName}`);
+      enableOrDisableAPI(true);
     },
     disable: async () => {
-      const [projectId, serviceURL] = await getProjectIdAndServiceURL();
-      await serviceUsage.services.disable({
-        name: `projects/${projectId}/services/${serviceURL}`,
-      });
-      console.log(`Disabled ${serviceName}`);
+      enableOrDisableAPI(false);
     },
     list: async () => {
       await checkIfOnline();
