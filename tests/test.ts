@@ -607,28 +607,28 @@ describe('Test clasp apis functions', () => {
       CLASP, ['apis', 'enable', 'sheets'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('Enabled sheets');
+    expect(result.stdout).to.contain('Enabled sheets.');
   });
   it('should give error message for non-existent API', () => {
     const result = spawnSync(
       CLASP, ['apis', 'enable', 'fakeApi'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(1);
-    expect(result.stdout).to.contain('API doesn\'t exist. Try \'clasp apis enable sheets\'');
+    expect(result.stderr).to.contain('API fakeApi doesn\'t exist. Try \'clasp apis enable sheets\'.');
   });
   it('should ask for an API when trying to disable', () => {
     const result = spawnSync(
       CLASP, ['apis', 'disable'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(1);
-    expect(result.stdout).to.contain('An API name is required.');
+    expect(result.stderr).to.contain('An API name is required.');
   });
   it('should disable apis correctly', () => {
     const result = spawnSync(
       CLASP, ['apis', 'disable', 'sheets'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('Disabled sheets');
+    expect(result.stdout).to.contain('Disabled sheets.');
   });
   it('should show suggestions for using clasp apis', () => {
     const result = spawnSync(
