@@ -257,7 +257,12 @@ async function setOauthCredentials(rc: ClaspToken) {
    * Refreshes the credentials and saves them.
    */
   async function refreshCredentials(oAuthClient: OAuth2Client) {
+    console.log("*************************");
+    console.log(oAuthClient.credentials);
     const oldExpiry = oAuthClient.credentials.expiry_date as number || 0;
+    console.log("*************************")
+    console.log(oldExpiry);
+    console.log("*************************")
     await oAuthClient.getAccessToken(); // refreshes expiry date if required
     if (oAuthClient.credentials.expiry_date === oldExpiry) return;
     rc.token = oAuthClient.credentials;

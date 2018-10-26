@@ -591,6 +591,9 @@ describe('Test clasp apis functions', () => {
     const result = spawnSync(
       CLASP, ['apis', 'list'], { encoding: 'utf8' },
     );
+
+    expect(result.stdout).to.equal("FAKE TO SEE OUTPUT");
+
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('# Currently enabled APIs:');
     expect(result.stdout).to.contain('# List of available APIs:');
