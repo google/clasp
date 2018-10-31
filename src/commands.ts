@@ -778,6 +778,15 @@ export const version = async (description: string) => {
   await loadAPICredentials();
   spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
   const { scriptId } = await getProjectSettings();
+  if(!description){
+    const answers = await prompt([{
+      type: 'input',
+      name: 'description',
+      message: 'Give a description:',
+      default: '',
+    }]);
+    description = answers.description;
+  }
   const versions = await script.projects.versions.create({
     scriptId,
     requestBody: {
