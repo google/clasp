@@ -686,6 +686,15 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
     }]);
     version = answers.version.versionNumber;
   }
+  if(!description){
+    const answers = await prompt([{
+      type: 'input',
+      name: 'description',
+      message: 'Give a description:',
+      default: '',
+    }]);
+    description = answers.description;
+  }
   const deployments = await script.projects.deployments.update({
     scriptId,
     deploymentId,
