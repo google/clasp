@@ -635,7 +635,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
       return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
     const choices = deployments
-      .filter((deployment: any) => deployment.deploymentConfig.versionNumber!==undefined)
+      .filter((deployment: any) => deployment.deploymentConfig.versionNumber !== undefined)
       .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
       .map((deployment: any) => {
         const DESC_PAD_SIZE = 30;
