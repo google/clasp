@@ -621,7 +621,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
-  if(deploymentId){
+  if(!deploymentId){
     spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
     const deploymentsList = await script.projects.deployments.list({
       scriptId,
@@ -635,6 +635,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
       return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
     const choices = deployments
+      .filter((deployment: any) => deployment.deploymentConfig.versionNumber!==undefined)
       .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
       .map((deployment: any) => {
         const DESC_PAD_SIZE = 30;
@@ -642,8 +643,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
         const description = deployment.deploymentConfig.description;
         const versionNumber = deployment.deploymentConfig.versionNumber;
         return {
-          name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
-            + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+          name: `@${padEnd(versionNumber || 'HEAD', 4)} - ${id} - ${description || ''}`,
           value: deployment,
         };
       });
@@ -776,7 +776,6 @@ export const versions = async () => {
 export const version = async (description: string) => {
   await checkIfOnline();
   await loadAPICredentials();
-  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
   const { scriptId } = await getProjectSettings();
   if(!description){
     const answers = await prompt([{
@@ -787,6 +786,7 @@ export const version = async (description: string) => {
     }]);
     description = answers.description;
   }
+  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
   const versions = await script.projects.versions.create({
     scriptId,
     requestBody: {
