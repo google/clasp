@@ -675,8 +675,8 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
     const choices =  data.versions.reverse().map((version: any) => {
       return {
         name: LOG.VERSION_DESCRIPTION(version),
-        value: version
-      }
+        value: version,
+      };
     });
     const answers = await prompt([{
       type: 'list',
