@@ -621,6 +621,40 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
+  if(deploymentId){
+    spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
+    const deploymentsList = await script.projects.deployments.list({
+      scriptId,
+    });
+    spinner.stop(true);
+    if (deploymentsList.status !== 200) {
+      return logError(deploymentsList.statusText);
+    }
+    const deployments = deploymentsList.data.deployments || [];
+    if (!deployments.length) {
+      return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    }
+    const choices = deployments
+      .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
+      .map((deployment: any) => {
+        const DESC_PAD_SIZE = 30;
+        const id = deployment.deploymentId;
+        const description = deployment.deploymentConfig.description;
+        const versionNumber = deployment.deploymentConfig.versionNumber;
+        return {
+          name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
+            + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+          value: deployment,
+        };
+      });
+    const answers = await prompt([{
+      type: 'list',
+      name: 'deployment',
+      message: 'Redeploy which deployment? ',
+      choices,
+    }]);
+    deploymentId = answers.deployment.deploymentId;
+  }
   const deployments = await script.projects.deployments.update({
     scriptId,
     deploymentId,
