@@ -655,6 +655,37 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
     }]);
     deploymentId = answers.deployment.deploymentId;
   }
+  if(!version){
+    spinner.setSpinnerTitle('Grabbing versions...').start();
+    const { scriptId } = await getProjectSettings();
+    const versions = await script.projects.versions.list({
+      scriptId,
+      pageSize: 500,
+    });
+    spinner.stop(true);
+    if (versions.status !== 200) {
+      return logError(versions.statusText);
+    }
+    const data = versions.data;
+    if ( !(data && data.versions && data.versions.length) ) {
+      return logError(null, LOG.DEPLOYMENT_DNE);
+    }
+    const numVersions = data.versions.length;
+    console.log(LOG.VERSION_NUM(numVersions));
+    const choices =  data.versions.reverse().map((version: any) => {
+      return {
+        name: LOG.VERSION_DESCRIPTION(version),
+        value: version
+      }
+    });
+    const answers = await prompt([{
+      type: 'list',
+      name: 'version',
+      message: 'Redeploy which version? ',
+      choices,
+    }]);
+    version = answers.version.versionNumber;
+  }
   const deployments = await script.projects.deployments.update({
     scriptId,
     deploymentId,
