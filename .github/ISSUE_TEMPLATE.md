@@ -1,4 +1,6 @@
-(Please search [existing issues](https://github.com/google/clasp/issues) before creating a new one.)
+> Please search [existing issues](https://github.com/google/clasp/issues) before creating a new one.
+>
+> Ideally, after filing the issue, try to fix the issue with a PR!
 
 ## Expected Behavior
 
