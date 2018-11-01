@@ -83,7 +83,7 @@ clasp
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [version] [description]`](#deploy)
 - [`clasp undeploy <deploymentId>`](#undeploy)
-- [`clasp redeploy <deploymentId> <version> <description>`](#redeploy)
+- [`clasp redeploy [deploymentId] [version] [description]`](#redeploy)
 - [`clasp version [description]`](#version)
 - [`clasp versions`](#versions)
 - [`clasp list`](#list)
@@ -256,6 +256,9 @@ Updates deployments of a script.
 
 #### Examples
 
+- `clasp redeploy`
+- `clasp redeploy 123`
+- `clasp redeploy 123 3`
 - `clasp redeploy 123 3 "Why I updated the deployment"`
 
 ### Version
