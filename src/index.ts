@@ -209,13 +209,13 @@ commander
 /**
  * Updates deployments of a script.
  * @name redeploy
- * @param {number} deploymentId The deployment ID.
- * @param {number} version The target deployment version.
- * @param {string} description The reason why the script was redeployed.
+ * @param {number?} deploymentId The deployment ID.
+ * @param {number?} version The target deployment version.
+ * @param {string?} description The reason why the script was redeployed.
  * @example redeploy 123 3 "Why I updated the deployment"
  */
 commander
-  .command('redeploy <deploymentId> <version> <description>')
+  .command('redeploy [deploymentId] [version] [description]')
   .description(`Update a deployment`)
   .action(redeploy);
 
