@@ -521,23 +521,6 @@ export const deploy = async (version: number, description: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
-  async function createDeployment(versionNumber: number) {
-    spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
-    const deployments = await script.projects.deployments.create({
-      scriptId,
-      requestBody: {
-        description,
-        manifestFileName: PROJECT_MANIFEST_BASENAME,
-        versionNumber,
-      },
-    });
-    spinner.stop(true);
-    if (deployments.status !== 200) {
-      logError(null, ERROR.DEPLOYMENT_COUNT);
-    } else {
-      console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
-    }
-  }
 
   if(!version){
     const answers = await prompt([{
@@ -608,8 +591,21 @@ export const deploy = async (version: number, description: string) => {
     description = answers.description;
   }
 
-  spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
-  createDeployment(version);
+  spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+  const deployments = await script.projects.deployments.create({
+    scriptId,
+    requestBody: {
+      description,
+      manifestFileName: PROJECT_MANIFEST_BASENAME,
+      versionNumber: version,
+    },
+  });
+  spinner.stop(true);
+  if (deployments.status !== 200) {
+    logError(null, ERROR.DEPLOYMENT_COUNT);
+  } else {
+    console.log(`- ${deployments.data.deploymentId} @${version}.`);
+  }
 };
 
 /**
