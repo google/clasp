@@ -531,6 +531,7 @@ export const deploy = async (version: number, description: string) => {
         {name:'yes',value:true},
         {name:'no',value:false},
       ],
+      default: 'yes',
     }]);
     if( answers.newVersion ){
       const answers = await prompt([{
