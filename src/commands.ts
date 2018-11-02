@@ -516,12 +516,11 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
  * @param version {string} The project version to deploy at.
  * @param description {string} The deployment's description.
  */
-export const deploy = async (version: number, description = '') => {
+export const deploy = async (version: number, description: string) => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
-  spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
   async function createDeployment(versionNumber: number) {
     spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
     const deployments = await script.projects.deployments.create({
@@ -540,24 +539,77 @@ export const deploy = async (version: number, description = '') => {
     }
   }
 
-  // If the version is specified, update that deployment
-  if (version) {
-    createDeployment(version);
-  } else { // if no version, create a new version and deploy that
-    const version = await script.projects.versions.create({
-      scriptId,
-      requestBody: {
-        description,
-      },
-    });
-    spinner.stop(true);
-    if (version.status !== 200) {
-      return logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
+  if(!version){
+    const answers = await prompt([{
+      type: 'list',
+      name: 'newVersion',
+      message: 'Create new version : ',
+      choices: [
+        {name:'yes',value:true},
+        {name:'no',value:false},
+      ],
+    }]);
+    if( answers.newVersion ){
+      const answers = await prompt([{
+        type: 'input',
+        name: 'description',
+        message: 'Give a version description:',
+        default: '',
+      }]);
+      const versionDescription = answers.description;
+      const newVersion = await script.projects.versions.create({
+        scriptId,
+        requestBody: {
+          description:versionDescription,
+        },
+      });
+      spinner.stop(true);
+      if (newVersion.status !== 200) {
+        return logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
+      }
+      version = newVersion.data.versionNumber || 0;
+      console.log(LOG.VERSION_CREATED(version));
+    }else{
+      spinner.setSpinnerTitle('Grabbing versions...').start();
+      const versions = await script.projects.versions.list({
+        scriptId,
+        pageSize: 500,
+      });
+      spinner.stop(true);
+      if (versions.status !== 200) {
+        return logError(versions.statusText);
+      }
+      const data = versions.data;
+      if ( !(data && data.versions && data.versions.length) ) {
+        return logError(null, LOG.DEPLOYMENT_DNE);
+      }
+      const choices =  data.versions.reverse().map((version: any) => {
+        return {
+          name: LOG.VERSION_DESCRIPTION(version),
+          value: version,
+        };
+      });
+      const answers = await prompt([{
+        type: 'list',
+        name: 'version',
+        message: 'Deploy which version? ',
+        choices,
+      }]);
+      version = answers.version.versionNumber;
     }
-    const versionNumber = version.data.versionNumber || 0;
-    console.log(LOG.VERSION_CREATED(versionNumber));
-    createDeployment(versionNumber);
   }
+  if(!description){
+    const answers = await prompt([{
+      type: 'input',
+      name: 'description',
+      message: 'Give a deployment description:',
+      default: '',
+    }]);
+    description = answers.description;
+  }
+
+  spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
+  createDeployment(version);
 };
 
 /**
