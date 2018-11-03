@@ -81,7 +81,7 @@ clasp
 - [`clasp status`](#status)
 - [`clasp open [scriptId] [--webapp]`](#open)
 - [`clasp deployments`](#deployments)
-- [`clasp deploy [version] [description]`](#deploy)
+- [`clasp deploy [--versionNumber <version>] [--desc <description>] [--deploymentId <id>]`](#deploy)
 - [`clasp undeploy <deploymentId>`](#undeploy)
 - [`clasp redeploy [deploymentId] [version] [description]`](#redeploy)
 - [`clasp version [description]`](#version)
@@ -223,14 +223,15 @@ The response gives the version of the deployment.
 
 #### Options
 
-- `version`: The version number.
-- `description`: The deployment description.
+- `--versionNumber <version>`: The project version to deploy at.
+- `--desc <description>`: The deployment description.
+- `--deploymentId <id>`: The deployment ID to redeploy.
 
 #### Examples
 
-- `clasp deploy`
-- `clasp deploy 4`
-- `clasp deploy 7 "Updates sidebar logo."`
+- `clasp deploy --versionNumber 4`
+- `clasp deploy --versionNumber 7 --desc "Updates sidebar logo."`
+- `clasp deploy --desc "Updates sidebar logo." --deploymentId 123`
 
 ### Undeploy
 

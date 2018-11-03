@@ -194,7 +194,7 @@ commander
   .description('Deploy a project')
   .option('--versionNumber <version>', 'The project version to deploy at.')
   .option('--desc <description>', 'The deployment description.')
-  .option('--deploymentId <deploymentId>', 'The deployment ID to redeploy')
+  .option('--deploymentId <id>', 'The deployment ID to redeploy')
   .action(deploy);
 
 /**
