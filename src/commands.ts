@@ -513,37 +513,25 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
 
 /**
  * Deploys an Apps Script project.
- * @param version {string} The project version to deploy at.
- * @param description {string} The deployment's description.
+ * @param cmd.versionNumber {string} The project version to deploy at.
+ * @param cmd.desc {string} The deployment description.
+ * @param cmd.deploymentId  {string} The deployment ID to redeploy.
  */
-export const deploy = async (version: number, description = '') => {
+export const deploy = async (cmd: {
+  versionNumber: number,
+  description: string,
+  deploymentId: string,
+}) => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
-  async function createDeployment(versionNumber: number) {
-    spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
-    const deployments = await script.projects.deployments.create({
-      scriptId,
-      requestBody: {
-        description,
-        manifestFileName: PROJECT_MANIFEST_BASENAME,
-        versionNumber,
-      },
-    });
-    spinner.stop(true);
-    if (deployments.status !== 200) {
-      logError(null, ERROR.DEPLOYMENT_COUNT);
-    } else {
-      console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
-    }
-  }
+  let { versionNumber } = cmd;
+  const { description='', deploymentId } = cmd;
 
-  // If the version is specified, update that deployment
-  if (version) {
-    createDeployment(version);
-  } else { // if no version, create a new version and deploy that
+  // if no version, create a new version
+  if (!versionNumber){
     const version = await script.projects.versions.create({
       scriptId,
       requestBody: {
@@ -554,9 +542,39 @@ export const deploy = async (version: number, description = '') => {
     if (version.status !== 200) {
       return logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
     }
-    const versionNumber = version.data.versionNumber || 0;
+    versionNumber = version.data.versionNumber || 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
-    createDeployment(versionNumber);
+  }
+
+  spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+  let deployments;
+  if (!deploymentId) { // if no deploymentId, create a new deployment
+    deployments = await script.projects.deployments.create({
+      scriptId,
+      requestBody: {
+        versionNumber,
+        manifestFileName: PROJECT_MANIFEST_BASENAME,
+        description,
+      },
+    });
+  } else { // elseif, update deployment
+    deployments = await script.projects.deployments.update({
+      scriptId,
+      deploymentId,
+      requestBody: {
+        deploymentConfig: {
+          versionNumber,
+          manifestFileName: PROJECT_MANIFEST_BASENAME,
+          description,
+        },
+      },
+    });
+  }
+  spinner.stop(true);
+  if (deployments.status !== 200) {
+    logError(null, ERROR.DEPLOYMENT_COUNT);
+  } else {
+    console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
   }
 };
 

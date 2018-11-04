@@ -184,15 +184,18 @@ commander
  * Creates a version and deploys a script.
  * The response gives the version of the deployment.
  * @name deploy
- * @param {number} [version] The version number.
- * @param {string} [description] The deployment description.
- * @example deploy
- * @example deploy 4
- * @example deploy 7 "Updates sidebar logo."
+ * @example deploy (create new deployment and new version)
+ * @example deploy --versionNumber 4 (create new deployment)
+ * @example deploy --description "Updates sidebar logo." (deploy with description)
+ * @example deploy --deploymentId 123 (create new version)
+ * @example deploy -V 7 -d "Updates sidebar logo." -i 456
  */
 commander
-  .command('deploy [version] [description]')
+  .command('deploy')
   .description('Deploy a project')
+  .option('-V, --versionNumber <version>', 'The project version') //we can't use `version` in subcommand
+  .option('-d, --description <description>', 'The deployment description')
+  .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
   .action(deploy);
 
 /**
