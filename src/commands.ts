@@ -517,9 +517,9 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
  * @param cmd.desc {string} The deployment description.
  * @param cmd.deploymentId  {string} The deployment ID to redeploy.
  */
-export const deploy = async (cmd :{
+export const deploy = async (cmd: {
   versionNumber: number,
-  desc: string,
+  description: string,
   deploymentId: string,
 }) => {
   await checkIfOnline();
@@ -527,13 +527,11 @@ export const deploy = async (cmd :{
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
-
-  let versionNumber = cmd.versionNumber;
-  const description = cmd.desc || '';
-  const deploymentId = cmd.deploymentId;
+  let { versionNumber } = cmd;
+  const { description='', deploymentId } = cmd;
 
   // if no version, create a new version
-  if (!versionNumber ){
+  if (!versionNumber){
     const version = await script.projects.versions.create({
       scriptId,
       requestBody: {
@@ -546,10 +544,9 @@ export const deploy = async (cmd :{
     }
     versionNumber = version.data.versionNumber || 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
-    spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
   }
 
-  //spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+  spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
   let deployments;
   if (!deploymentId) { // if no deploymentId, create a new deployment
     deployments = await script.projects.deployments.create({
