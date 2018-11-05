@@ -587,6 +587,22 @@ export const undeploy = async (deploymentId: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
+  if(!deploymentId){
+    const deploymentsList = await script.projects.deployments.list({
+      scriptId,
+    });
+    if (deploymentsList.status !== 200) {
+      return logError(deploymentsList.statusText);
+    }
+    const deployments = deploymentsList.data.deployments || [];
+    if (!deployments.length) {
+      logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    }
+    if(deployments.length<=1) { // @HEAD (Read-only deployments) may not be deleted.
+      logError(null, ERROR.NO_VERSIONED_DEPLOYMENTS)
+    }
+    deploymentId = deployments[deployments.length-1].deploymentId || '';
+  }
   spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
   const deployment = await script.projects.deployments.delete({
     scriptId,
