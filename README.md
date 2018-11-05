@@ -81,7 +81,7 @@ clasp
 - [`clasp status`](#status)
 - [`clasp open [scriptId] [--webapp]`](#open)
 - [`clasp deployments`](#deployments)
-- [`clasp deploy [--versionNumber <version>] [--desc <description>] [--deploymentId <id>]`](#deploy)
+- [`clasp deploy [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
 - [`clasp undeploy [deploymentId]`](#undeploy)
 - [`clasp redeploy [deploymentId] [version] [description]`](#redeploy)
 - [`clasp version [description]`](#version)
