@@ -598,10 +598,10 @@ export const undeploy = async (deploymentId: string) => {
     if (!deployments.length) {
       logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
-    if(deployments.length<=1) { // @HEAD (Read-only deployments) may not be deleted.
-      logError(null, ERROR.NO_VERSIONED_DEPLOYMENTS)
+    if(deployments.length <= 1) { // @HEAD (Read-only deployments) may not be deleted.
+      logError(null, ERROR.NO_VERSIONED_DEPLOYMENTS);
     }
-    deploymentId = deployments[deployments.length-1].deploymentId || '';
+    deploymentId = deployments[deployments.length - 1].deploymentId || '';
   }
   spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
   const deployment = await script.projects.deployments.delete({
