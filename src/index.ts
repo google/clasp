@@ -201,11 +201,12 @@ commander
 /**
  * Undeploys a deployment of a script.
  * @name undeploy
- * @param {string} deploymentId The deployment ID.
+ * @param {string?} [deploymentId] The deployment ID.
+ * @example "undeploy" (undeploy the last deployment.)
  * @example "undeploy 123"
  */
 commander
-  .command('undeploy <deploymentId>')
+  .command('undeploy [deploymentId]')
   .description('Undeploy a deployment of a project')
   .action(undeploy);
 
