@@ -92,7 +92,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
           }
         });
         if (abortPush) return callback(new Error(), null, null);
-        
+
         // check ignore files
         const ignoreMatches = multimatch(filePaths, ignorePatterns);
 
