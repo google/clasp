@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as anymatch from 'anymatch';
 import * as mkdirp from 'mkdirp';
 import * as recursive from 'recursive-readdir';
+import * as multimatch from 'multimatch';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import {
@@ -91,6 +92,9 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
           }
         });
         if (abortPush) return callback(new Error(), null, null);
+        
+        // check ignore files
+        const ignoreMatches = multimatch(filePaths, ignorePatterns);
 
         // Loop through every file.
         const files = filePaths.map((name, i) => {
@@ -139,7 +143,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
               return false;
             }
             const validType = type && isValidJSONIfJSON;
-            const notIgnored = !anymatch(ignorePatterns, name);
+            const notIgnored = !ignoreMatches.includes(name);
             valid = !!(valid && validType && notIgnored);
             return valid;
           };
