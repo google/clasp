@@ -620,13 +620,12 @@ export const list = async () => {
   }
   const files = filesList.data.files || [];
   if (files.length) {
-    const NAME_PAD_SIZE = 20;
-    files.map((file: any) => {
-      console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
-    });
-  } else {
-    console.log(LOG.FINDING_SCRIPTS_DNE);
+    return console.log(LOG.FINDING_SCRIPTS_DNE);
   }
+  const NAME_PAD_SIZE = 20;
+  files.map((file: any) => {
+    console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
+  });
 };
 
 /**
@@ -777,15 +776,14 @@ export const versions = async () => {
     return logError(versions.statusText);
   }
   const data = versions.data;
-  if (data && data.versions && data.versions.length) {
-    const numVersions = data.versions.length;
-    console.log(LOG.VERSION_NUM(numVersions));
-    data.versions.reverse().map((version: any) => {
-      console.log(LOG.VERSION_DESCRIPTION(version));
-    });
-  } else {
-    logError(null, LOG.DEPLOYMENT_DNE);
+  if (!data || !data.versions || !data.versions.length) {
+    return logError(null, LOG.DEPLOYMENT_DNE);
   }
+  const numVersions = data.versions.length;
+  console.log(LOG.VERSION_NUM(numVersions));
+  data.versions.reverse().map((version: any) => {
+    console.log(LOG.VERSION_DESCRIPTION(version));
+  });
 };
 
 /**
@@ -853,48 +851,46 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
   await checkIfOnline();
   if (!scriptId) scriptId = (await getProjectSettings()).scriptId;
   if (scriptId.length < 30) {
-    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  } else {
-    // If we're not a web app, open the script URL.
-    if (!cmd.webapp) {
-      console.log(LOG.OPEN_PROJECT(scriptId));
-      return open(URL.SCRIPT(scriptId), { wait: false });
-    }
-    // Otherwise, open the latest deployment.
-    await loadAPICredentials();
-    const deploymentsList = await script.projects.deployments.list({
-      scriptId,
-    });
-    if (deploymentsList.status !== 200) {
-      return logError(deploymentsList.statusText);
-    }
-    const deployments = deploymentsList.data.deployments || [];
-    if (!deployments.length) {
-      logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-    } else {
-      const choices = deployments
-        .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
-        .map((deployment: any) => {
-          const DESC_PAD_SIZE = 30;
-          const id = deployment.deploymentId;
-          const description = deployment.deploymentConfig.description;
-          const versionNumber = deployment.deploymentConfig.versionNumber;
-          return {
-            name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
-              + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
-            value: deployment,
-          };
-        });
-      const answers = await prompt([{
-        type: 'list',
-        name: 'deployment',
-        message: 'Open which deployment?',
-        choices,
-      }]);
-      console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
-      open(getWebApplicationURL(answers.deployment), { wait: false });
-    }
+    return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
+  // If we're not a web app, open the script URL.
+  if (!cmd.webapp) {
+    console.log(LOG.OPEN_PROJECT(scriptId));
+    return open(URL.SCRIPT(scriptId), { wait: false });
+  }
+  // Otherwise, open the latest deployment.
+  await loadAPICredentials();
+  const deploymentsList = await script.projects.deployments.list({
+    scriptId,
+  });
+  if (deploymentsList.status !== 200) {
+    return logError(deploymentsList.statusText);
+  }
+  const deployments = deploymentsList.data.deployments || [];
+  if (!deployments.length) {
+    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  }
+  const choices = deployments
+    .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
+    .map((deployment: any) => {
+      const DESC_PAD_SIZE = 30;
+      const id = deployment.deploymentId;
+      const description = deployment.deploymentConfig.description;
+      const versionNumber = deployment.deploymentConfig.versionNumber;
+      return {
+        name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
+          + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+        value: deployment,
+      };
+    });
+  const answers = await prompt([{
+    type: 'list',
+    name: 'deployment',
+    message: 'Open which deployment?',
+    choices,
+  }]);
+  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
+  open(getWebApplicationURL(answers.deployment), { wait: false });
 };
 
 /**
