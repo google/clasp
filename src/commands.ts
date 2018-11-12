@@ -165,61 +165,49 @@ export const create = async (title: string, parentId: string, cmd: {
  */
 export const clone = async (scriptId: string, versionNumber?: number) => {
   await checkIfOnline();
-  if (hasProject()) {
-    logError(null, ERROR.FOLDER_EXISTS);
+  if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
+  if (!scriptId) {
+    await loadAPICredentials();
+    const list = await drive.files.list({
+      // pageSize: 10,
+      // fields: 'files(id, name)',
+      orderBy: 'modifiedByMeTime desc',
+      q: 'mimeType="application/vnd.google-apps.script"',
+    });
+    const data = list.data;
+    if (!data) return logError(list.statusText, 'Unable to use the Drive API.');
+    const files = data.files;
+    if (!files || !files.length) return console.log(LOG.FINDING_SCRIPTS_DNE);
+    const fileIds = files.map((file: any) => {
+      return {
+        name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id)}`,
+        value: file.id,
+      };
+    });
+    const answers = await prompt([{
+      type: 'list',
+      name: 'scriptId',
+      message: 'Clone which script? ',
+      choices: fileIds,
+      pageSize: 30,
+    }]);
+    scriptId = answers.scriptId;
   } else {
-    if (!scriptId) {
-      await loadAPICredentials();
-      const list = await drive.files.list({
-        // pageSize: 10,
-        // fields: 'files(id, name)',
-        orderBy: 'modifiedByMeTime desc',
-        q: 'mimeType="application/vnd.google-apps.script"',
+    // We have a scriptId or URL
+    // If we passed a URL, extract the scriptId from that. For example:
+    // https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
+    if (scriptId.length !== 57) { // 57 is the magic number
+      const ids = scriptId.split('/').filter((s) => {
+        return s.length === 57;
       });
-      const data = list.data;
-      if (!data) return logError(list.statusText, 'Unable to use the Drive API.');
-      const files = data.files;
-      if (files && files.length) {
-        const fileIds = files.map((file: any) => {
-          return {
-            name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id)}`,
-            value: file.id,
-          };
-        });
-        await prompt([{
-          type: 'list',
-          name: 'scriptId',
-          message: 'Clone which script? ',
-          choices: fileIds,
-          pageSize: 30,
-        }]).then((answers: any) => {
-          checkIfOnline();
-          spinner.setSpinnerTitle(LOG.CLONING);
-          saveProject(answers.scriptId);
-          fetchProject(answers.scriptId, '', versionNumber);
-        }).catch((err: any) => {
-          console.log(err);
-        });
-      } else {
-        console.log(LOG.FINDING_SCRIPTS_DNE);
+      if (ids.length) {
+        scriptId = ids[0];
       }
-    } else {
-      // We have a scriptId or URL
-      // If we passed a URL, extract the scriptId from that. For example:
-      // https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
-      if (scriptId.length !== 57) { // 57 is the magic number
-        const ids = scriptId.split('/').filter((s) => {
-          return s.length === 57;
-        });
-        if (ids.length) {
-          scriptId = ids[0];
-        }
-      }
-      spinner.setSpinnerTitle(LOG.CLONING);
-      saveProject(scriptId);
-      fetchProject(scriptId, '', versionNumber);
     }
   }
+  spinner.setSpinnerTitle(LOG.CLONING);
+  saveProject(scriptId);
+  fetchProject(scriptId, '', versionNumber);
 };
 
 /**
@@ -353,17 +341,14 @@ export const logs = async (cmd: {
         }]).then((answers: any) => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
-          if (dotfile) {
-            dotfile.read().then((settings: ProjectSettings) => {
-              if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write(Object.assign(settings, { projectId }));
-              resolve(projectId);
-            }).catch((err: object) => {
-              reject(logError(err));
-            });
-          } else {
-            reject(logError(null, ERROR.SETTINGS_DNE));
-          }
+          if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
+          dotfile.read().then((settings: ProjectSettings) => {
+            if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
+            dotfile.write(Object.assign(settings, { projectId }));
+            resolve(projectId);
+          }).catch((err: object) => {
+            reject(logError(err));
+          });
         }).catch((err: any) => {
           reject(console.log(err));
         });
@@ -473,25 +458,24 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       },
     });
     spinner.stop(true);
-    if (res && res.data.done) {
-      const data = res.data;
-      // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
-      if (data.response) {
-        if (data.response.result) {
-          console.log(data.response.result);
-        } else {
-          console.log(chalk.red('No response.'));
-        }
-      } else if (data.error && data.error.details) {
-        // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
-        console.error(`${chalk.red('Exception:')}`,
-          data.error.details[0].errorType,
-          data.error.details[0].errorMessage,
-          data.error.details[0].scriptStackTraceElements || []);
-      }
-    } else {
+    if (!res || !res.data.done) {
       logError(null, ERROR.RUN_NODATA);
       process.exit(0); // exit gracefully in case localhost server spun up for authorize
+    }
+    const data = res.data;
+    // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
+    if (data.response) {
+      if (data.response.result) {
+        console.log(data.response.result);
+      } else {
+        console.log(chalk.red('No response.'));
+      }
+    } else if (data.error && data.error.details) {
+      // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
+      console.error(`${chalk.red('Exception:')}`,
+        data.error.details[0].errorType,
+        data.error.details[0].errorMessage,
+        data.error.details[0].scriptStackTraceElements || []);
     }
   } catch(err) {
     spinner.stop(true);
@@ -636,13 +620,12 @@ export const list = async () => {
   }
   const files = filesList.data.files || [];
   if (files.length) {
-    const NAME_PAD_SIZE = 20;
-    files.map((file: any) => {
-      console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
-    });
-  } else {
-    console.log(LOG.FINDING_SCRIPTS_DNE);
+    return console.log(LOG.FINDING_SCRIPTS_DNE);
   }
+  const NAME_PAD_SIZE = 20;
+  files.map((file: any) => {
+    console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
+  });
 };
 
 /**
@@ -793,15 +776,14 @@ export const versions = async () => {
     return logError(versions.statusText);
   }
   const data = versions.data;
-  if (data && data.versions && data.versions.length) {
-    const numVersions = data.versions.length;
-    console.log(LOG.VERSION_NUM(numVersions));
-    data.versions.reverse().map((version: any) => {
-      console.log(LOG.VERSION_DESCRIPTION(version));
-    });
-  } else {
-    logError(null, LOG.DEPLOYMENT_DNE);
+  if (!data || !data.versions || !data.versions.length) {
+    return logError(null, LOG.DEPLOYMENT_DNE);
   }
+  const numVersions = data.versions.length;
+  console.log(LOG.VERSION_NUM(numVersions));
+  data.versions.reverse().map((version: any) => {
+    console.log(LOG.VERSION_DESCRIPTION(version));
+  });
 };
 
 /**
@@ -869,48 +851,46 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
   await checkIfOnline();
   if (!scriptId) scriptId = (await getProjectSettings()).scriptId;
   if (scriptId.length < 30) {
-    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  } else {
-    // If we're not a web app, open the script URL.
-    if (!cmd.webapp) {
-      console.log(LOG.OPEN_PROJECT(scriptId));
-      return open(URL.SCRIPT(scriptId), { wait: false });
-    }
-    // Otherwise, open the latest deployment.
-    await loadAPICredentials();
-    const deploymentsList = await script.projects.deployments.list({
-      scriptId,
-    });
-    if (deploymentsList.status !== 200) {
-      return logError(deploymentsList.statusText);
-    }
-    const deployments = deploymentsList.data.deployments || [];
-    if (!deployments.length) {
-      logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-    } else {
-      const choices = deployments
-        .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
-        .map((deployment: any) => {
-          const DESC_PAD_SIZE = 30;
-          const id = deployment.deploymentId;
-          const description = deployment.deploymentConfig.description;
-          const versionNumber = deployment.deploymentConfig.versionNumber;
-          return {
-            name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
-              + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
-            value: deployment,
-          };
-        });
-      const answers = await prompt([{
-        type: 'list',
-        name: 'deployment',
-        message: 'Open which deployment?',
-        choices,
-      }]);
-      console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
-      open(getWebApplicationURL(answers.deployment), { wait: false });
-    }
+    return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
+  // If we're not a web app, open the script URL.
+  if (!cmd.webapp) {
+    console.log(LOG.OPEN_PROJECT(scriptId));
+    return open(URL.SCRIPT(scriptId), { wait: false });
+  }
+  // Otherwise, open the latest deployment.
+  await loadAPICredentials();
+  const deploymentsList = await script.projects.deployments.list({
+    scriptId,
+  });
+  if (deploymentsList.status !== 200) {
+    return logError(deploymentsList.statusText);
+  }
+  const deployments = deploymentsList.data.deployments || [];
+  if (!deployments.length) {
+    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  }
+  const choices = deployments
+    .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
+    .map((deployment: any) => {
+      const DESC_PAD_SIZE = 30;
+      const id = deployment.deploymentId;
+      const description = deployment.deploymentConfig.description;
+      const versionNumber = deployment.deploymentConfig.versionNumber;
+      return {
+        name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
+          + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+        value: deployment,
+      };
+    });
+  const answers = await prompt([{
+    type: 'list',
+    name: 'deployment',
+    message: 'Open which deployment?',
+    choices,
+  }]);
+  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
+  open(getWebApplicationURL(answers.deployment), { wait: false });
 };
 
 /**
