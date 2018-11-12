@@ -49,7 +49,7 @@ export const hasOauthClientSettings = (local = false): boolean =>
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
 export function getOAuthSettings(): Promise<ClaspToken> {
-  return DOTFILE.RC_LOCAL.read()
+  return DOTFILE.RC_LOCAL().read()
     .then((rc: ClaspToken) => rc)
     .catch((err: any) => {
       return DOTFILE.RC.read()
