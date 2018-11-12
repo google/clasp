@@ -156,7 +156,7 @@ export async function authorize(options: {
         },
         isLocalCreds: true,
       };
-      await DOTFILE.RC_LOCAL.write(claspToken);
+      await DOTFILE.RC_LOCAL().write(claspToken);
     } else {
       // Save global ClaspCredentials.
       claspToken = {
@@ -280,7 +280,7 @@ async function setOauthCredentials(rc: ClaspToken) {
     await refreshCredentials(globalOAuth2Client);
 
     // Save the credentials.
-    await (rc.isLocalCreds ? DOTFILE.RC_LOCAL : DOTFILE.RC).write(rc);
+    await (rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC).write(rc);
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
   }
