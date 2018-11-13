@@ -87,11 +87,12 @@ commander
 /**
  * Creates a new script project.
  * @name create
- * @param {string?} [scriptTitle] An optional project title.
- * @param {string?} [scriptParentId] An optional project parent Id. The Drive ID of a parent file
+ * @param {string?} [--title] An optional project title.
+ * @param {string?} [--parentId] An optional project parent Id. The Drive ID of a parent file
  *   that the created script project is bound to. This is usually the ID of a
  *   Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a
  *   standalone script project is created.
+ *   https://drive.google.com/open?id=<ID>
  * @param {string?} [--rootDir] Local root directory that store your project files.
  * @example create
  * @example create "My Script"
@@ -99,8 +100,12 @@ commander
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/projects/create
  */
 commander
-  .command('create [scriptTitle] [scriptParentId]')
+  .command('create')
   .description('Create a script')
+  .option('--type <type>',
+    'Creates a new add-on attached to a new Document, Spreadsheet, Presentation, or Form.')
+  .option('--title <title>', 'The project title.')
+  .option('--parentId <id>', 'A project parent Id.')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
   .action(create);
 
@@ -295,7 +300,7 @@ commander
  */
 commander
   .command('apis')
-  .description(`List, enable, or disable APIs:
+  .description(`List, enable, or disable APIs
   list
   enable <api>
   disable <api>`)
@@ -356,3 +361,4 @@ commander.parse(process.argv);
 if (commander[versionOption] && !commander.args[0]) {
   console.log(require('../package.json').version);
 }
+ 
