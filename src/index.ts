@@ -189,38 +189,42 @@ commander
  * Creates a version and deploys a script.
  * The response gives the version of the deployment.
  * @name deploy
- * @param {number} [version] The version number.
- * @param {string} [description] The deployment description.
- * @example deploy
- * @example deploy 4
- * @example deploy 7 "Updates sidebar logo."
+ * @example deploy (create new deployment and new version)
+ * @example deploy --versionNumber 4 (create new deployment)
+ * @example deploy --description "Updates sidebar logo." (deploy with description)
+ * @example deploy --deploymentId 123 (create new version)
+ * @example deploy -V 7 -d "Updates sidebar logo." -i 456
  */
 commander
-  .command('deploy [version] [description]')
+  .command('deploy')
   .description('Deploy a project')
+  .option('-V, --versionNumber <version>', 'The project version') //we can't use `version` in subcommand
+  .option('-d, --description <description>', 'The deployment description')
+  .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
   .action(deploy);
 
 /**
  * Undeploys a deployment of a script.
  * @name undeploy
- * @param {string} deploymentId The deployment ID.
+ * @param {string?} [deploymentId] The deployment ID.
+ * @example "undeploy" (undeploy the last deployment.)
  * @example "undeploy 123"
  */
 commander
-  .command('undeploy <deploymentId>')
+  .command('undeploy [deploymentId]')
   .description('Undeploy a deployment of a project')
   .action(undeploy);
 
 /**
  * Updates deployments of a script.
  * @name redeploy
- * @param {number} deploymentId The deployment ID.
- * @param {number} version The target deployment version.
- * @param {string} description The reason why the script was redeployed.
+ * @param {number?} deploymentId The deployment ID.
+ * @param {number?} version The target deployment version.
+ * @param {string?} description The reason why the script was redeployed.
  * @example redeploy 123 3 "Why I updated the deployment"
  */
 commander
-  .command('redeploy <deploymentId> <version> <description>')
+  .command('redeploy [deploymentId] [version] [description]')
   .description(`Update a deployment`)
   .action(redeploy);
 

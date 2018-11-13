@@ -63,6 +63,7 @@ export const DOT = {
     DIR: '~',
     LOCAL_DIR: './',
     NAME: `${PROJECT_NAME}rc.json`,
+    LOCAL_PATH: `.${PROJECT_NAME}rc.json`,
     PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
     ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`),
     ABSOLUTE_LOCAL_PATH: path.join('.', `.${PROJECT_NAME}rc.json`),
@@ -98,7 +99,10 @@ export const DOTFILE = {
   // Stores {ClaspCredentials}
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
-  RC_LOCAL: dotf(DOT.RC.LOCAL_DIR, DOT.RC.NAME),
+  RC_LOCAL: () => {
+    const localDirectory: string = findParentDir.sync(process.cwd(), DOT.RC.LOCAL_PATH) || DOT.RC.LOCAL_DIR;
+    return dotf(localDirectory, DOT.RC.NAME);
+  },
 };
 
 /**
