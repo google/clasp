@@ -7,7 +7,7 @@
 ## Testing Tools
 
 - Testing framework: [Mocha.js](https://mochajs.org/)
-- Testing tool: [Travis CI](https://travis-ci.org/google/clasp)
+- Testing CI: [Travis CI](https://travis-ci.org/google/clasp)
   - Unit tests run for every Pull Request
 - Testing % coverage: [Coveralls](https://coveralls.io/github/google/clasp?branch=master)
 

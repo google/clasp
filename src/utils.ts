@@ -158,7 +158,7 @@ export const LOG = {
   REDEPLOY_START: 'Updating deployment...',
   SAVED_CREDS: (isLocalCreds: boolean) => (isLocalCreds) ?
     `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
-    `*Be sure to never commit this file!* It's basically a password.`:
+    `*Be sure to never commit this file!* It's basically a password.` :
     `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,

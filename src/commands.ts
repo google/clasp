@@ -8,7 +8,16 @@ import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
-import { authorize, discovery, drive, getLocalScript, loadAPICredentials, logger, script, serviceUsage } from './auth';
+import {
+  authorize,
+  discovery,
+  drive,
+  getLocalScript,
+  loadAPICredentials,
+  logger,
+  script,
+  serviceUsage,
+} from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import {
@@ -197,7 +206,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
     } else {
       // We have a scriptId or URL
       // If we passed a URL, extract the scriptId from that.
-      // e.g. https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
+      // e.g. https://script.google.com/a/DOMAIN/d/{ID}/edit
       if (scriptId.length !== 57) { // 57 is the magic number
         const ids = scriptId.split('/').filter((s) => {
           return s.length === 57;
@@ -251,7 +260,7 @@ export const login = async (options: {
     });
   }
   process.exit(0); // gracefully exit after successful login
-}
+};
 
 /**
  * Logs out the user by deleting credentials.
@@ -452,7 +461,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   await loadAPICredentials();
   const localScript = await getLocalScript();
   const { scriptId } = await getProjectSettings(true);
-  
+
   const devMode = !cmd.nondev; // default true
   try {
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
@@ -484,7 +493,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       logError(null, ERROR.RUN_NODATA);
       process.exit(0); // exit gracefully in case localhost server spun up for authorize
     }
-  } catch(err) {
+  } catch (err) {
     spinner.stop(true);
     console.log(err);
     if (err) { // TODO move these to logError when stable?
@@ -795,7 +804,7 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
 export const apis = async () => {
   await loadAPICredentials();
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
-  const serviceName = process.argv[4];
+  const serviceName = process.argv[4]; // clasp apis enable drive => "drive"
   const getProjectIdAndServiceURL = async () => {
     if (!serviceName) {
       throw console.error('An API name is required. Try sheets');
@@ -908,7 +917,7 @@ export const apis = async () => {
  */
 export const setting = async (settingKey: keyof ProjectSettings, settingValue?: string) => {
   // Make a new spinner piped to stdErr so we don't interfere with output
-  if (settingValue === undefined) {
+  if (!settingValue) {
     // Display current values
     const currentSettings = await getProjectSettings();
 

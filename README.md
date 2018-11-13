@@ -120,24 +120,36 @@ Logs out the user by deleting client credentials.
 
 ### Create
 
-Creates a new script project.
+Creates a new script project. Prompts the user for the script type if not specified.
 
 #### Options
 
-- `scriptTitle`: An optional project title.
-- `scriptParentId`: An optional project parent Id. The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
-- `rootDir`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
+- `--type [docs/sheets/slides/forms]`: If specified, creates a new add-on attached to a Document, Spreadsheet, Presentation, or Form. If `--parentId` is specified, this value is ignored.
+- `--title`: A project title.
+- `--rootDir`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
+- `--parentId`: A project parent Id.
+  - The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
 
 #### Examples
 
 - `clasp create`
-- `clasp create "My Script"`
-- `clasp create "My Script" "1D_Gxyv*****************************NXO7o"`
-- `clasp create "My Script" "1D_Gxyv*****************************NXO7o" --rootDir ./dist`
+- `clasp create --type docs`
+- `clasp create --type sheets`
+- `clasp create --type slides`
+- `clasp create --type forms`
+- `clasp create --type webapp`
+- `clasp create --type api`
+- `clasp create --title "My Script"`
+- `clasp create --rootDir ./dist`
+- `clasp create --parentid "1D_Gxyv*****************************NXO7o"`
+
+These options can be combined like so:
+
+- `clasp create --title "My Script" --parentid "1D_Gxyv*****************************NXO7o" --rootDir ./dist`
 
 ### Clone
 
-Clones the script from script.google.com.
+Clones the script project from script.google.com.
 
 #### Options
 
@@ -195,7 +207,7 @@ Ignores files:
 
 ### Open
 
-Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.
+Opens the current directory's `clasp` project on script.google.com. Provide a `scriptId` to open a different script. Can also open web apps.
 
 #### Options
 
@@ -316,8 +328,11 @@ INFO  Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      info message
 ### Run
 
 Remotely executes an Apps Script function.
-This function runs your script in the cloud. You must supply the functionName params. For now, it can
-only run functions that do not require other authorization.
+
+To use this command you must:
+1. Log in with your credentials (`clasp login --creds creds.json`)
+1. Deploy the Script as an API executable (Easist done via GUI at the moment).
+1. Enable any APIs that are used by the script.
 
 #### Options
 

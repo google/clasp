@@ -230,7 +230,7 @@ commander
   .command('version [description]')
   .description('Creates an immutable version of the script')
   .action(version);
-  
+
 /**
  * List versions of a script.
  * @name versions
