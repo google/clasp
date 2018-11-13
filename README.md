@@ -74,7 +74,7 @@ clasp
 ```
 - [`clasp login [--no-localhost] [--creds <file>]`](#login)
 - [`clasp logout`](#logout)
-- [`clasp create [scriptTitle] [scriptParentId] [--rootDir]`](#create)
+- [`clasp create [--title <title>] [--type <type>] [--rootDir <dir>] [--parentid <id>]`](#create)
 - [`clasp clone <scriptId | scriptURL>`](#clone)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch]`](#push)
@@ -133,6 +133,7 @@ Creates a new script project. Prompts the user for the script type if not specif
 #### Examples
 
 - `clasp create`
+- `clasp create --type standalone` (default)
 - `clasp create --type docs`
 - `clasp create --type sheets`
 - `clasp create --type slides`

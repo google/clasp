@@ -104,17 +104,23 @@ export const defaultCmd = (command: string) => {
 
 /**
  * Creates a new Apps Script project.
- * @param title {string} The title of the Apps Script project's file
- * @param parentId {string} The Drive ID of the G Suite doc this script is bound to.
+ * @param cmd.type {string} The type of the Apps Script project.
+ * @param cmd.title {string} The title of the Apps Script project's file
+ * @param cmd.parentId {string} The Drive ID of the G Suite doc this script is bound to.
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export const create = async (title: string, parentId: string, cmd: {
+export const create = async (cmd: {
+  type: string,
+  title: string,
+  parentId: string
   rootDir: string,
 }) => {
   await checkIfOnline();
   if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
   await loadAPICredentials();
+  let { title } = cmd;
+  const { parentId } = cmd;
   if (!title) {
     const answers = await prompt([{
       type: 'input',
