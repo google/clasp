@@ -4,7 +4,7 @@
   <br>
 </h1>
 
-<p align="center"><a href="https://travis-ci.org/google/clasp"><img src="https://travis-ci.org/google/clasp.svg?branch=master" alt="Build Status"></a> <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/v/@google/clasp.svg" alt="npm Version"></a> <a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/dw/@google/clasp.svg" alt="npm Downloads"></a> <a href="http://packagequality.com/#?package=%40google%2Fclasp"><img src="http://npm.packagequality.com/shield/%40google%2Fclasp.svg" alt="Package Quality"></a></p>
+<p align="center"><a href="https://travis-ci.org/google/clasp"><img src="https://travis-ci.org/google/clasp.svg?branch=master" alt="Build Status"></a> <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/v/@google/clasp.svg" alt="npm Version"></a> <a href="https://npmcharts.com/compare/@google/clasp?minimal=true"><img src="https://img.shields.io/npm/dw/@google/clasp.svg" alt="npm Downloads"></a> <a href="http://packagequality.com/#?package=%40google%2Fclasp"><img src="http://npm.packagequality.com/shield/%40google%2Fclasp.svg" alt="Package Quality"></a></p>
 
 > Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
@@ -81,9 +81,9 @@ clasp
 - [`clasp status`](#status)
 - [`clasp open [scriptId] [--webapp]`](#open)
 - [`clasp deployments`](#deployments)
-- [`clasp deploy [version] [description]`](#deploy)
-- [`clasp undeploy <deploymentId>`](#undeploy)
-- [`clasp redeploy <deploymentId> <version> <description>`](#redeploy)
+- [`clasp deploy [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
+- [`clasp undeploy [deploymentId]`](#undeploy)
+- [`clasp redeploy [deploymentId] [version] [description]`](#redeploy)
 - [`clasp version [description]`](#version)
 - [`clasp versions`](#versions)
 - [`clasp list`](#list)
@@ -103,12 +103,12 @@ clasp
 
 ### Login
 
-Logs the user in. Saves the client credentials to an rc file.
+Logs the user in. Saves the client credentials to a `.clasprc.json` file.
 
 #### Options
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
-- `--creds <file>`: Use custom credentials. Saves a .clasprc.json file to current working directory. This file should be private!
+- `--creds <file>`: Use custom credentials. Saves a `.clasprc.json` file to current working directory. This file should be private!
 
 ### Logout
 
@@ -180,9 +180,9 @@ Updates local files with Apps Script project.
 Force writes all local files to script.google.com.
 
 Ignores files:
-- That start with a .
+- That start with a `.`
 - That don't have an accepted file extension
-- That are ignored (filename matches a glob pattern in the .claspignore file)
+- That are ignored (filename matches a glob pattern in the `.claspignore` file)
 
 #### Options
 
@@ -198,7 +198,7 @@ Ignores files:
 Lists files that will be written to the server on `push`.
 
 Ignores files:
-- That start with a .
+- That start with a `.`
 - That don't have an accepted file extension
 - That are ignored (filename matches a glob pattern in the ignore file)
 
@@ -236,14 +236,17 @@ The response gives the version of the deployment.
 
 #### Options
 
-- `version`: The version number.
-- `description`: The deployment description.
+- `-V <version>` `--versionNumber <version>`: The project version to deploy at.
+- `-d <description>` `--description <description>`: The deployment description.
+- `-i <id>` `--deploymentId <id>`: The deployment ID to redeploy.
 
 #### Examples
 
-- `clasp deploy`
-- `clasp deploy 4`
-- `clasp deploy 7 "Updates sidebar logo."`
+- `clasp deploy` (create new deployment and new version)
+- `clasp deploy --versionNumber 4` (create new deployment)
+- `clasp deploy --desc "Updates sidebar logo."` (deploy with description)
+- `clasp deploy --deploymentId 123` (create new version)
+- `clasp deploy -V 7 -d "Updates sidebar logo." -i 456`
 
 ### Undeploy
 
@@ -251,10 +254,11 @@ Undeploys a deployment of a script.
 
 #### Options
 
-- `deploymentId`: deploymentId The deployment ID.
+- `deploymentId`: An optional deployment ID.
 
 #### Examples
 
+- `clasp undeploy` (undeploy the last deployment.)
 - `clasp undeploy "123"`
 
 ### Redeploy
@@ -269,6 +273,9 @@ Updates deployments of a script.
 
 #### Examples
 
+- `clasp redeploy`
+- `clasp redeploy 123`
+- `clasp redeploy 123 3`
 - `clasp redeploy 123 3 "Why I updated the deployment"`
 
 ### Version
@@ -374,12 +381,12 @@ Displays the help function.
 
 ### Setting
 
-Update .clasp.json settings file.
+Update `.clasp.json` settings file.
 If `newValue` is omitted it returns the current setting value
 
 #### Options
 
-- `settingKey`: settingKey They key in .clasp.json you want to change
+- `settingKey`: settingKey They key in `.clasp.json` you want to change
 - `newValue`: newValue The new value for the setting
 
 #### Examples

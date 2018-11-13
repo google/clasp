@@ -173,43 +173,43 @@ export const create = async (cmd: {
  */
 export const clone = async (scriptId: string, versionNumber?: number) => {
   await checkIfOnline();
-  if (hasProject()) {
-    logError(null, ERROR.FOLDER_EXISTS);
+  if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
+  if (!scriptId) {
+    await loadAPICredentials();
+    const list = await drive.files.list({
+      // pageSize: 10,
+      // fields: 'files(id, name)',
+      orderBy: 'modifiedByMeTime desc',
+      q: 'mimeType="application/vnd.google-apps.script"',
+    });
+    const data = list.data;
+    if (!data) return logError(list.statusText, 'Unable to use the Drive API.');
+    const files = data.files;
+    if (!files || !files.length) return console.log(LOG.FINDING_SCRIPTS_DNE);
+    const fileIds = files.map((file: any) => {
+      return {
+        name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id)}`,
+        value: file.id,
+      };
+    });
+    const answers = await prompt([{
+      type: 'list',
+      name: 'scriptId',
+      message: 'Clone which script? ',
+      choices: fileIds,
+      pageSize: 30,
+    }]);
+    scriptId = answers.scriptId;
   } else {
-    if (!scriptId) {
-      await loadAPICredentials();
-      const list = await drive.files.list({
-        // pageSize: 10,
-        // fields: 'files(id, name)',
-        orderBy: 'modifiedByMeTime desc',
-        q: 'mimeType="application/vnd.google-apps.script"',
+    // We have a scriptId or URL
+    // If we passed a URL, extract the scriptId from that. For example:
+    // https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
+    if (scriptId.length !== 57) { // 57 is the magic number
+      const ids = scriptId.split('/').filter((s) => {
+        return s.length === 57;
       });
-      const data = list.data;
-      if (!data) return logError(list.statusText, 'Unable to use the Drive API.');
-      const files = data.files;
-      if (files && files.length) {
-        const fileIds = files.map((file: any) => {
-          return {
-            name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id)}`,
-            value: file.id,
-          };
-        });
-        await prompt([{
-          type: 'list',
-          name: 'scriptId',
-          message: 'Clone which script? ',
-          choices: fileIds,
-          pageSize: 30,
-        }]).then((answers: any) => {
-          checkIfOnline();
-          spinner.setSpinnerTitle(LOG.CLONING);
-          saveProject(answers.scriptId);
-          fetchProject(answers.scriptId, '', versionNumber);
-        }).catch((err: any) => {
-          console.log(err);
-        });
-      } else {
-        console.log(LOG.FINDING_SCRIPTS_DNE);
+      if (ids.length) {
+        scriptId = ids[0];
       }
     } else {
       // We have a scriptId or URL
@@ -228,6 +228,9 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       fetchProject(scriptId, '', versionNumber);
     }
   }
+  spinner.setSpinnerTitle(LOG.CLONING);
+  saveProject(scriptId);
+  fetchProject(scriptId, '', versionNumber);
 };
 
 /**
@@ -366,17 +369,14 @@ export const logs = async (cmd: {
         }]).then((answers: any) => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
-          if (dotfile) {
-            dotfile.read().then((settings: ProjectSettings) => {
-              if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write({ scriptId: settings.scriptId, projectId });
-              resolve(projectId);
-            }).catch((err: object) => {
-              reject(logError(err));
-            });
-          } else {
-            reject(logError(null, ERROR.SETTINGS_DNE));
-          }
+          if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
+          dotfile.read().then((settings: ProjectSettings) => {
+            if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
+            dotfile.write(Object.assign(settings, { projectId }));
+            resolve(projectId);
+          }).catch((err: object) => {
+            reject(logError(err));
+          });
         }).catch((err: any) => {
           reject(console.log(err));
         });
@@ -486,27 +486,26 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       },
     });
     spinner.stop(true);
-    if (res && res.data.done) {
-      const data = res.data;
-      // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
-      if (data.response) {
-        if (data.response.result) {
-          console.log(data.response.result);
-        } else {
-          console.log(chalk.red('No response.'));
-        }
-      } else if (data.error && data.error.details) {
-        // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
-        console.error(`${chalk.red('Exception:')}`,
-          data.error.details[0].errorType,
-          data.error.details[0].errorMessage,
-          data.error.details[0].scriptStackTraceElements || []);
-      }
-    } else {
+    if (!res || !res.data.done) {
       logError(null, ERROR.RUN_NODATA);
       process.exit(0); // exit gracefully in case localhost server spun up for authorize
     }
-  } catch (err) {
+    const data = res.data;
+    // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
+    if (data.response) {
+      if (data.response.result) {
+        console.log(data.response.result);
+      } else {
+        console.log(chalk.red('No response.'));
+      }
+    } else if (data.error && data.error.details) {
+      // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
+      console.error(`${chalk.red('Exception:')}`,
+        data.error.details[0].errorType,
+        data.error.details[0].errorMessage,
+        data.error.details[0].scriptStackTraceElements || []);
+    }
+  } catch(err) {
     spinner.stop(true);
     console.log(err);
     if (err) { // TODO move these to logError when stable?
@@ -526,37 +525,25 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
 
 /**
  * Deploys an Apps Script project.
- * @param version {string} The project version to deploy at.
- * @param description {string} The deployment's description.
+ * @param cmd.versionNumber {string} The project version to deploy at.
+ * @param cmd.desc {string} The deployment description.
+ * @param cmd.deploymentId  {string} The deployment ID to redeploy.
  */
-export const deploy = async (version: number, description = '') => {
+export const deploy = async (cmd: {
+  versionNumber: number,
+  description: string,
+  deploymentId: string,
+}) => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
-  async function createDeployment(versionNumber: number) {
-    spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
-    const deployments = await script.projects.deployments.create({
-      scriptId,
-      requestBody: {
-        description,
-        manifestFileName: PROJECT_MANIFEST_BASENAME,
-        versionNumber,
-      },
-    });
-    spinner.stop(true);
-    if (deployments.status !== 200) {
-      logError(null, ERROR.DEPLOYMENT_COUNT);
-    } else {
-      console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
-    }
-  }
+  let { versionNumber } = cmd;
+  const { description='', deploymentId } = cmd;
 
-  // If the version is specified, update that deployment
-  if (version) {
-    createDeployment(version);
-  } else { // if no version, create a new version and deploy that
+  // if no version, create a new version
+  if (!versionNumber){
     const version = await script.projects.versions.create({
       scriptId,
       requestBody: {
@@ -567,9 +554,39 @@ export const deploy = async (version: number, description = '') => {
     if (version.status !== 200) {
       return logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
     }
-    const versionNumber = version.data.versionNumber || 0;
+    versionNumber = version.data.versionNumber || 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
-    createDeployment(versionNumber);
+  }
+
+  spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+  let deployments;
+  if (!deploymentId) { // if no deploymentId, create a new deployment
+    deployments = await script.projects.deployments.create({
+      scriptId,
+      requestBody: {
+        versionNumber,
+        manifestFileName: PROJECT_MANIFEST_BASENAME,
+        description,
+      },
+    });
+  } else { // elseif, update deployment
+    deployments = await script.projects.deployments.update({
+      scriptId,
+      deploymentId,
+      requestBody: {
+        deploymentConfig: {
+          versionNumber,
+          manifestFileName: PROJECT_MANIFEST_BASENAME,
+          description,
+        },
+      },
+    });
+  }
+  spinner.stop(true);
+  if (deployments.status !== 200) {
+    logError(null, ERROR.DEPLOYMENT_COUNT);
+  } else {
+    console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
   }
 };
 
@@ -582,6 +599,22 @@ export const undeploy = async (deploymentId: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
+  if(!deploymentId){
+    const deploymentsList = await script.projects.deployments.list({
+      scriptId,
+    });
+    if (deploymentsList.status !== 200) {
+      return logError(deploymentsList.statusText);
+    }
+    const deployments = deploymentsList.data.deployments || [];
+    if (!deployments.length) {
+      logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    }
+    if(deployments.length <= 1) { // @HEAD (Read-only deployments) may not be deleted.
+      logError(null, ERROR.NO_VERSIONED_DEPLOYMENTS);
+    }
+    deploymentId = deployments[deployments.length - 1].deploymentId || '';
+  }
   spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
   const deployment = await script.projects.deployments.delete({
     scriptId,
@@ -615,13 +648,12 @@ export const list = async () => {
   }
   const files = filesList.data.files || [];
   if (files.length) {
-    const NAME_PAD_SIZE = 20;
-    files.map((file: any) => {
-      console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
-    });
-  } else {
-    console.log(LOG.FINDING_SCRIPTS_DNE);
+    return console.log(LOG.FINDING_SCRIPTS_DNE);
   }
+  const NAME_PAD_SIZE = 20;
+  files.map((file: any) => {
+    console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
+  });
 };
 
 /**
@@ -634,6 +666,80 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
+  if(!deploymentId){
+    spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
+    const deploymentsList = await script.projects.deployments.list({
+      scriptId,
+    });
+    spinner.stop(true);
+    if (deploymentsList.status !== 200) {
+      return logError(deploymentsList.statusText);
+    }
+    const deployments = deploymentsList.data.deployments || [];
+    if (!deployments.length) {
+      return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    }
+    const choices = deployments
+      .filter((deployment: any) => deployment.deploymentConfig.versionNumber !== undefined)
+      .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
+      .map((deployment: any) => {
+        const DESC_PAD_SIZE = 30;
+        const id = deployment.deploymentId;
+        const description = deployment.deploymentConfig.description;
+        const versionNumber = deployment.deploymentConfig.versionNumber;
+        return {
+          name: `@${padEnd(versionNumber || 'HEAD', 4)} - ${id} - ${description || ''}`,
+          value: deployment,
+        };
+      });
+    const answers = await prompt([{
+      type: 'list',
+      name: 'deployment',
+      message: 'Redeploy which deployment? ',
+      choices,
+    }]);
+    deploymentId = answers.deployment.deploymentId;
+  }
+  if(!version){
+    spinner.setSpinnerTitle('Grabbing versions...').start();
+    const { scriptId } = await getProjectSettings();
+    const versions = await script.projects.versions.list({
+      scriptId,
+      pageSize: 500,
+    });
+    spinner.stop(true);
+    if (versions.status !== 200) {
+      return logError(versions.statusText);
+    }
+    const data = versions.data;
+    if ( !(data && data.versions && data.versions.length) ) {
+      return logError(null, LOG.DEPLOYMENT_DNE);
+    }
+    const numVersions = data.versions.length;
+    console.log(LOG.VERSION_NUM(numVersions));
+    const choices =  data.versions.reverse().map((version: any) => {
+      return {
+        name: LOG.VERSION_DESCRIPTION(version),
+        value: version,
+      };
+    });
+    const answers = await prompt([{
+      type: 'list',
+      name: 'version',
+      message: 'Redeploy which version? ',
+      choices,
+    }]);
+    version = answers.version.versionNumber;
+  }
+  if(!description){
+    const answers = await prompt([{
+      type: 'input',
+      name: 'description',
+      message: 'Give a description:',
+      default: '',
+    }]);
+    description = answers.description;
+  }
   const deployments = await script.projects.deployments.update({
     scriptId,
     deploymentId,
@@ -698,15 +804,14 @@ export const versions = async () => {
     return logError(versions.statusText);
   }
   const data = versions.data;
-  if (data && data.versions && data.versions.length) {
-    const numVersions = data.versions.length;
-    console.log(LOG.VERSION_NUM(numVersions));
-    data.versions.reverse().map((version: any) => {
-      console.log(LOG.VERSION_DESCRIPTION(version));
-    });
-  } else {
-    logError(null, LOG.DEPLOYMENT_DNE);
+  if (!data || !data.versions || !data.versions.length) {
+    return logError(null, LOG.DEPLOYMENT_DNE);
   }
+  const numVersions = data.versions.length;
+  console.log(LOG.VERSION_NUM(numVersions));
+  data.versions.reverse().map((version: any) => {
+    console.log(LOG.VERSION_DESCRIPTION(version));
+  });
 };
 
 /**
@@ -715,8 +820,17 @@ export const versions = async () => {
 export const version = async (description: string) => {
   await checkIfOnline();
   await loadAPICredentials();
-  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
   const { scriptId } = await getProjectSettings();
+  if(!description){
+    const answers = await prompt([{
+      type: 'input',
+      name: 'description',
+      message: 'Give a description:',
+      default: '',
+    }]);
+    description = answers.description;
+  }
+  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
   const versions = await script.projects.versions.create({
     scriptId,
     requestBody: {
@@ -765,48 +879,46 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
   await checkIfOnline();
   if (!scriptId) scriptId = (await getProjectSettings()).scriptId;
   if (scriptId.length < 30) {
-    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  } else {
-    // If we're not a web app, open the script URL.
-    if (!cmd.webapp) {
-      console.log(LOG.OPEN_PROJECT(scriptId));
-      return open(URL.SCRIPT(scriptId), { wait: false });
-    }
-    // Otherwise, open the latest deployment.
-    await loadAPICredentials();
-    const deploymentsList = await script.projects.deployments.list({
-      scriptId,
-    });
-    if (deploymentsList.status !== 200) {
-      return logError(deploymentsList.statusText);
-    }
-    const deployments = deploymentsList.data.deployments || [];
-    if (!deployments.length) {
-      logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-    } else {
-      const choices = deployments
-        .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
-        .map((deployment: any) => {
-          const DESC_PAD_SIZE = 30;
-          const id = deployment.deploymentId;
-          const description = deployment.deploymentConfig.description;
-          const versionNumber = deployment.deploymentConfig.versionNumber;
-          return {
-            name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
-              + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
-            value: deployment,
-          };
-        });
-      const answers = await prompt([{
-        type: 'list',
-        name: 'deployment',
-        message: 'Open which deployment?',
-        choices,
-      }]);
-      console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
-      open(getWebApplicationURL(answers.deployment), { wait: false });
-    }
+    return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
+  // If we're not a web app, open the script URL.
+  if (!cmd.webapp) {
+    console.log(LOG.OPEN_PROJECT(scriptId));
+    return open(URL.SCRIPT(scriptId), { wait: false });
+  }
+  // Otherwise, open the latest deployment.
+  await loadAPICredentials();
+  const deploymentsList = await script.projects.deployments.list({
+    scriptId,
+  });
+  if (deploymentsList.status !== 200) {
+    return logError(deploymentsList.statusText);
+  }
+  const deployments = deploymentsList.data.deployments || [];
+  if (!deployments.length) {
+    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  }
+  const choices = deployments
+    .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
+    .map((deployment: any) => {
+      const DESC_PAD_SIZE = 30;
+      const id = deployment.deploymentId;
+      const description = deployment.deploymentConfig.description;
+      const versionNumber = deployment.deploymentConfig.versionNumber;
+      return {
+        name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
+          + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+        value: deployment,
+      };
+    });
+  const answers = await prompt([{
+    type: 'list',
+    name: 'deployment',
+    message: 'Open which deployment?',
+    choices,
+  }]);
+  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
+  open(getWebApplicationURL(answers.deployment), { wait: false });
 };
 
 /**
@@ -820,7 +932,7 @@ export const apis = async () => {
   const serviceName = process.argv[4]; // clasp apis enable drive => "drive"
   const getProjectIdAndServiceURL = async () => {
     if (!serviceName) {
-      throw console.error('An API name is required. Try sheets');
+      logError(null, 'An API name is required. Try sheets');
     }
     const serviceURL = `${serviceName}.googleapis.com`; // i.e. sheets.googleapis.com
     const projectId = await getProjectId(); // will prompt user to set up if required
@@ -828,21 +940,30 @@ export const apis = async () => {
     return [projectId, serviceURL];
   };
 
+  const enableOrDisableAPI = async (enable: boolean) => {
+    const [projectId, serviceURL] = await getProjectIdAndServiceURL();
+    const name = `projects/${projectId}/services/${serviceURL}`;
+    try {
+      if (enable) {
+        await serviceUsage.services.enable({name});
+      } else {
+        await serviceUsage.services.disable({name});
+      }
+      console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName}.`);
+    } catch (e) {
+        // If given non-existent API (like fakeAPI, it throws 403 permission denied)
+        // We will log this for the user instead:
+        logError(null, ERROR.NO_API(enable, serviceName));
+    }
+  };
+
   // The apis subcommands.
   const command: { [key: string]: Function } = {
     enable: async () => {
-      const [projectId, serviceURL] = await getProjectIdAndServiceURL();
-      await serviceUsage.services.enable({
-        name: `projects/${projectId}/services/${serviceURL}`,
-      });
-      console.log(`Enabled ${serviceName}`);
+      enableOrDisableAPI(true);
     },
     disable: async () => {
-      const [projectId, serviceURL] = await getProjectIdAndServiceURL();
-      await serviceUsage.services.disable({
-        name: `projects/${projectId}/services/${serviceURL}`,
-      });
-      console.log(`Disabled ${serviceName}`);
+      enableOrDisableAPI(false);
     },
     list: async () => {
       await checkIfOnline();

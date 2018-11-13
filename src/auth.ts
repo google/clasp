@@ -28,7 +28,7 @@ import open = require('opn');
 import readline = require('readline');
 
 // Auth is complicated. Consider yourself warned.
-
+// tslint:disable:max-line-length
 // GLOBAL: clasp login will store this (~/.clasprc.json):
 // {
 //   "access_token": "XXX",
@@ -37,7 +37,6 @@ import readline = require('readline');
 //   "token_type": "Bearer",
 //   "expiry_date": 1539130731398
 // }
-
 // LOCAL: clasp login will store this (./.clasprc.json):
 // {
 //   "token": {
@@ -55,7 +54,6 @@ import readline = require('readline');
 //   },
 //   "isLocalCreds": true
 // }
-
 // API settings
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
@@ -88,7 +86,9 @@ export const script = google.script({ version: 'v1', auth: globalOAuth2Client })
 export const logger = google.logging({ version: 'v2', auth: globalOAuth2Client }) as logging_v2.Logging;
 export const drive = google.drive({ version: 'v3', auth: globalOAuth2Client }) as drive_v3.Drive;
 export const discovery = google.discovery({ version: 'v1' }) as discovery_v1.Discovery;
-export const serviceUsage = google.serviceusage({ version: 'v1', auth: globalOAuth2Client,
+export const serviceUsage = google.serviceusage({
+  version: 'v1',
+  auth: globalOAuth2Client,
 }) as serviceusage_v1.Serviceusage;
 
 /**
@@ -157,13 +157,13 @@ export async function authorize(options: {
         },
         isLocalCreds: true,
       };
-      await DOTFILE.RC_LOCAL.write(claspToken);
+      await DOTFILE.RC_LOCAL().write(claspToken);
     } else {
       // Save global ClaspCredentials.
       claspToken = {
         token,
         oauth2ClientSettings: globalOauth2ClientSettings,
-        isLocalCreds: true,
+        isLocalCreds: false,
       };
       await DOTFILE.RC.write(claspToken);
     }
@@ -281,7 +281,7 @@ async function setOauthCredentials(rc: ClaspToken) {
     await refreshCredentials(globalOAuth2Client);
 
     // Save the credentials.
-    await (rc.isLocalCreds ? DOTFILE.RC_LOCAL : DOTFILE.RC).write(rc);
+    await (rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC).write(rc);
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
   }
