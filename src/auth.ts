@@ -104,17 +104,17 @@ export async function getLocalScript(): Promise<script_v1.Script> {
  * Requests authorization to manage Apps Script projects.
  * @param {boolean} useLocalhost Uses a local HTTP server if true. Manual entry o.w.
  * @param {ClaspCredentials?} creds An optional credentials object.
- * @param {string[]} [scopes=[]] authorize additional OAuth scopes.
+ * @param {string[]} [additionalScopes=[]] authorize additional OAuth scopes.
  */
 export async function authorize(options: {
   useLocalhost: boolean,
   creds?: ClaspCredentials,
-  scopes?: string[],
+  additionalScopes?: string[],
 }) {
   const creds = options.creds;
   try {
     // Add custom scopes when authing.
-    oauth2ClientAuthUrlOpts.scope = [...oauth2ClientAuthUrlOpts.scope, ...options.scopes || []];
+    oauth2ClientAuthUrlOpts.scope = [...oauth2ClientAuthUrlOpts.scope, ...options.additionalScopes || []];
 
     let oAuth2ClientOptions: OAuth2ClientOptions;
     if (options.creds) { // if we passed our own creds
@@ -319,7 +319,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
         if (!rc.isLocalCreds) return logError(null, ERROR.NO_LOCAL_CREDENTIALS);
         await authorize({
           useLocalhost: answers.localhost,
-          scopes: newScopes,
+          additionalScopes: newScopes,
         });
       }
     });

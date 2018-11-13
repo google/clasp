@@ -361,4 +361,3 @@ commander.parse(process.argv);
 if (commander[versionOption] && !commander.args[0]) {
   console.log(require('../package.json').version);
 }
- 

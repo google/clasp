@@ -31,6 +31,7 @@ import {
   getProjectSettings,
   getWebApplicationURL,
   hasOauthClientSettings,
+  loadManifest,
   logError,
   manifestExists,
   saveProject,
@@ -140,6 +141,7 @@ export const create = async (cmd: {
   } catch (err) { // no scriptId (because project doesn't exist)
     // console.log(err);
   }
+  // https://developers.google.com/drive/api/v3/mime-types
   const res = await script.projects.create({
     requestBody: {
       title,
@@ -252,12 +254,17 @@ export const login = async (options: {
 
   // Using own credentials.
   if (options.creds) {
+    // First read the manifest to detect any additional scopes in "oauthScopes" fields.
+    // In the script.google.com UI, these are found under File > Project Properties > Scopes
+    const { oauthScopes } = await loadManifest();
+
+    // Read credentials file.
     const credsFile = readFileSync(options.creds, 'utf8');
     const credentials = JSON.parse(credsFile);
     await authorize({
       useLocalhost,
       creds: credentials,
-      // TODO: Custom scopes from manifest.
+      additionalScopes: oauthScopes,
     });
   } else {
     // Not using own credentials
