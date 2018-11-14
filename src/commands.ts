@@ -39,7 +39,6 @@ import {
   validateManifest,
 } from './utils';
 import { script_v1 } from 'googleapis';
-import { Schema } from 'inspector';
 const ellipsize = require('ellipsize');
 const open = require('opn');
 const inquirer = require('inquirer');
