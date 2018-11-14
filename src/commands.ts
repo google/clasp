@@ -44,7 +44,8 @@ const open = require('opn');
 const inquirer = require('inquirer');
 const padEnd = require('string.prototype.padend');
 
-// setup autocomplete
+// setup inquirer
+const prompt = inquirer.prompt;
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
@@ -127,7 +128,7 @@ export const create = async (cmd: {
   let { title } = cmd;
   const { parentId } = cmd;
   if (!title) {
-    const answers = await inquirer.prompt([{
+    const answers = await prompt([{
       type: 'input',
       name: 'title',
       message: 'Give a script title:',
@@ -196,7 +197,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
         value: file.id,
       };
     });
-    const answers = await inquirer.prompt([{
+    const answers = await prompt([{
       type: 'list',
       name: 'scriptId',
       message: 'Clone which script? ',
@@ -366,7 +367,7 @@ export const logs = async (cmd: {
         console.log(`Open this link: ${LOG.SCRIPT_LINK(projectSettings.scriptId)}\n`);
         console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
-        inquirer.prompt([{
+        prompt([{
           type: 'input',
           name: 'projectId',
           message: 'What is your GCP projectId?',
@@ -494,20 +495,17 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
     type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
     const functionNames:string[] = files
       .reduce((functions:TypeFunction[], file) => {
-        if(!file.functionSet) return functions;
-        if(!file.functionSet.values) return functions;
+        if(!file.functionSet || !file.functionSet.values) return functions;
         return functions.concat( file.functionSet.values );
       },[])
       .map( (func:TypeFunction) => func.name ) as string[];
-    const answers = await inquirer.prompt([{
+    const answers = await prompt([{
       type: 'autocomplete',
       name: 'functionName',
       message: 'Select a functionName',
-      source: async (input:string) => {
-        const inputLower = input.toLowerCase();
+      source: (input:string) => {
         const filterd = functionNames.filter((name) => {
-          const nameLower = name.toLowerCase();
-          return nameLower.indexOf(inputLower) !== -1;
+          return input.toLowerCase().indexOf(name.toLowerCase()) !== -1;
         });
         Promise.resolve(filterd);
       },
@@ -731,7 +729,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
           value: deployment,
         };
       });
-    const answers = await inquirer.prompt([{
+    const answers = await prompt([{
       type: 'list',
       name: 'deployment',
       message: 'Redeploy which deployment? ',
@@ -762,7 +760,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
         value: version,
       };
     });
-    const answers = await inquirer.prompt([{
+    const answers = await prompt([{
       type: 'list',
       name: 'version',
       message: 'Redeploy which version? ',
@@ -771,7 +769,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
     version = answers.version.versionNumber;
   }
   if(!description){
-    const answers = await inquirer.prompt([{
+    const answers = await prompt([{
       type: 'input',
       name: 'description',
       message: 'Give a description:',
@@ -861,7 +859,7 @@ export const version = async (description: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if(!description){
-    const answers = await inquirer.prompt([{
+    const answers = await prompt([{
       type: 'input',
       name: 'description',
       message: 'Give a description:',
@@ -950,7 +948,7 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
         value: deployment,
       };
     });
-  const answers = await inquirer.prompt([{
+  const answers = await prompt([{
     type: 'list',
     name: 'deployment',
     message: 'Open which deployment?',
