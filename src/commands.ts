@@ -38,10 +38,15 @@ import {
   spinner,
   validateManifest,
 } from './utils';
+import { script_v1 } from 'googleapis';
+import { Schema } from 'inspector';
 const ellipsize = require('ellipsize');
 const open = require('opn');
-const { prompt } = require('inquirer');
+const inquirer = require('inquirer');
 const padEnd = require('string.prototype.padend');
+
+// setup autocomplete
+inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
@@ -123,7 +128,7 @@ export const create = async (cmd: {
   let { title } = cmd;
   const { parentId } = cmd;
   if (!title) {
-    const answers = await prompt([{
+    const answers = await inquirer.prompt([{
       type: 'input',
       name: 'title',
       message: 'Give a script title:',
@@ -192,7 +197,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
         value: file.id,
       };
     });
-    const answers = await prompt([{
+    const answers = await inquirer.prompt([{
       type: 'list',
       name: 'scriptId',
       message: 'Clone which script? ',
@@ -362,7 +367,7 @@ export const logs = async (cmd: {
         console.log(`Open this link: ${LOG.SCRIPT_LINK(projectSettings.scriptId)}\n`);
         console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
-        prompt([{
+        inquirer.prompt([{
           type: 'input',
           name: 'projectId',
           message: 'What is your GCP projectId?',
@@ -476,6 +481,41 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   const { scriptId } = await getProjectSettings(true);
 
   const devMode = !cmd.nondev; // default true
+
+  if(!functionName){
+    spinner.setSpinnerTitle(`Getting functions`).start();
+    const content = await script.projects.getContent({
+      scriptId,
+    });
+    spinner.stop(true);
+    if (content.status !== 200) {
+      return logError(content.statusText);
+    }
+    const files = content.data.files || [];
+    type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
+    const functionNames:string[] = files
+      .reduce((functions:TypeFunction[], file) => {
+        if(!file.functionSet) return functions;
+        if(!file.functionSet.values) return functions;
+        return functions.concat( file.functionSet.values );
+      },[])
+      .map( (func:TypeFunction) => func.name ) as string[];
+    const answers = await inquirer.prompt([{
+      type: 'autocomplete',
+      name: 'functionName',
+      message: 'Select a functionName',
+      source: async (input:string) => {
+        const inputLower = input.toLowerCase();
+        const filterd = functionNames.filter((name) => {
+          const nameLower = name.toLowerCase();
+          return nameLower.indexOf(inputLower) !== -1;
+        });
+        Promise.resolve(filterd);
+      },
+    }]);
+    functionName = answers.functionName;
+  }
+
   try {
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
     const res = await localScript.scripts.run({
@@ -692,7 +732,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
           value: deployment,
         };
       });
-    const answers = await prompt([{
+    const answers = await inquirer.prompt([{
       type: 'list',
       name: 'deployment',
       message: 'Redeploy which deployment? ',
@@ -723,7 +763,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
         value: version,
       };
     });
-    const answers = await prompt([{
+    const answers = await inquirer.prompt([{
       type: 'list',
       name: 'version',
       message: 'Redeploy which version? ',
@@ -732,7 +772,7 @@ export const redeploy = async (deploymentId: string, version: string, descriptio
     version = answers.version.versionNumber;
   }
   if(!description){
-    const answers = await prompt([{
+    const answers = await inquirer.prompt([{
       type: 'input',
       name: 'description',
       message: 'Give a description:',
@@ -822,7 +862,7 @@ export const version = async (description: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if(!description){
-    const answers = await prompt([{
+    const answers = await inquirer.prompt([{
       type: 'input',
       name: 'description',
       message: 'Give a description:',
@@ -911,7 +951,7 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
         value: deployment,
       };
     });
-  const answers = await prompt([{
+  const answers = await inquirer.prompt([{
     type: 'list',
     name: 'deployment',
     message: 'Open which deployment?',

@@ -53,6 +53,7 @@
     "googleapis": "^34.0.0",
     "http-shutdown": "^1.2.0",
     "inquirer": "^5.2.0",
+    "inquirer-autocomplete-prompt": "1.0.1",
     "is-online": "^7.0.0",
     "mkdirp": "^0.5.1",
     "multimatch": "2.1.0",
