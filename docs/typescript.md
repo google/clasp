@@ -206,9 +206,9 @@ Currently, `clasp` supports [`typescript@2.9.2`](https://www.npmjs.com/package/t
 
 ### Apps Script Libraries and TypeScript
 
-If your project contains library dependencies in `appsscript.json` and you are developing locally with clasp, TypeScript will throw errors for the library names or types it cannot resolve, e.g. `[ts] Cannot find name 'OAuth2'. [2304]`. Libraries have their own types and are not likely to be part of `@types/google-apps-script`. These libraries are only resolved once the script is deployed upstream with `clasp push`.
+If your project contains libraries referenced in `appsscript.json`, TypeScript will throw errors for the library names or types it cannot resolve, e.g. `[ts] Cannot find name 'OAuth2'. [2304]`. Libraries have their own types and are not likely to be part of `@types/google-apps-script`. These libraries are only resolved once the script is deployed upstream with `clasp push`.
 
-One crude workaround for this error when working with clasp and TypeScript, is to ignore the line causing the typescript error by adding a line comment `// @ts-ignore` above the line displaying the TypeScript error. This can be done as so:
+One workaround for this error is to ignore the line causing the typescript error by adding a line comment `// @ts-ignore` above the line displaying the TypeScript error. This can be done as so:
 
 ```
 function getOAuthService() {
