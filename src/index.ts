@@ -290,7 +290,7 @@ commander
  * @requires `clasp login --creds` to be run beforehand.
  */
 commander
-  .command('run <functionName>')
+  .command('run [functionName]')
   .description('Run a function in your Apps Scripts project')
   .option('--nondev', 'Run script function in non-devMode')
   .action(run);

@@ -93,7 +93,7 @@ clasp
 > **NOTE**: These commands require Project ID/credentials setup (see below).
 
 - [`clasp logs [--json] [--open] [--watch]`](#logs)
-- [`clasp run [--nondev]`](#run)
+- [`clasp run [functionName] [--nondev]`](#run)
 - [`clasp apis list`](#apis)
 - [`clasp apis enable <api>`](#apis)
 - [`clasp apis disable <api>`](#apis)

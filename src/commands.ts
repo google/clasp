@@ -38,10 +38,15 @@ import {
   spinner,
   validateManifest,
 } from './utils';
+import { script_v1 } from 'googleapis';
 const ellipsize = require('ellipsize');
 const open = require('opn');
-const { prompt } = require('inquirer');
+const inquirer = require('inquirer');
 const padEnd = require('string.prototype.padend');
+
+// setup inquirer
+const prompt = inquirer.prompt;
+inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
@@ -476,6 +481,38 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   const { scriptId } = await getProjectSettings(true);
 
   const devMode = !cmd.nondev; // default true
+
+  if(!functionName){
+    spinner.setSpinnerTitle(`Getting functions`).start();
+    const content = await script.projects.getContent({
+      scriptId,
+    });
+    spinner.stop(true);
+    if (content.status !== 200) {
+      return logError(content.statusText);
+    }
+    const files = content.data.files || [];
+    type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
+    const functionNames:string[] = files
+      .reduce((functions:TypeFunction[], file) => {
+        if(!file.functionSet || !file.functionSet.values) return functions;
+        return functions.concat( file.functionSet.values );
+      },[])
+      .map( (func:TypeFunction) => func.name ) as string[];
+    const answers = await prompt([{
+      type: 'autocomplete',
+      name: 'functionName',
+      message: 'Select a functionName',
+      source: (input:string) => {
+        const filterd = functionNames.filter((name) => {
+          return input.toLowerCase().indexOf(name.toLowerCase()) !== -1;
+        });
+        Promise.resolve(filterd);
+      },
+    }]);
+    functionName = answers.functionName;
+  }
+
   try {
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
     const res = await localScript.scripts.run({
