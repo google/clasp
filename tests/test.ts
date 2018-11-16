@@ -121,7 +121,6 @@ describe('Test --help for each function', () => {
   it('should open --help', () => expectHelp('open', 'Open a script'));
   it('should deployments --help', () => expectHelp('deployments', 'List deployment ids of a script'));
   it('should undeploy --help', () => expectHelp('undeploy', 'Undeploy a deployment of a project'));
-  it('should redeploy --help', () => expectHelp('redeploy', 'Update a deployment'));
   it('should versions --help', () => expectHelp('versions', 'List versions of a script'));
   it('should version --help', () => expectHelp('version', 'Creates an immutable version of the script'));
   it('should list --help', () => expectHelp('list', 'List App Scripts projects'));
@@ -879,22 +878,6 @@ describe('Test all functions while logged out', () => {
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
     expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
-  });
-  // Skipping this, see: https://github.com/tj/commander.js/issues/840
-  it.skip('should fail to redeploy (missing argument version)', () => {
-    const result = spawnSync(
-      CLASP, ['redeploy', '1234'], { encoding: 'utf8' },
-    );
-    expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain('error: missing required argument \'version\'');
-  });
-  // Skipping this, see: https://github.com/tj/commander.js/issues/840
-  it.skip('should fail to redeploy (missing argument deploymentId)', () => {
-    const result = spawnSync(
-      CLASP, ['redeploy'], { encoding: 'utf8' },
-    );
-    expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain('error: missing required argument \'deploymentId\'');
   });
   it('should fail to show logs (no .clasp.json file)', () => {
     const result = spawnSync(

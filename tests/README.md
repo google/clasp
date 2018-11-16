@@ -84,7 +84,6 @@ This section tracks which `clasp` commands are tested. Unchecked checkboxes are 
 * [x] clasp open
 * [ ] clasp deployments
 * [ ] clasp deploy [version] [description]
-* [ ] clasp redeploy <deploymentId> <version> <description>
 * [ ] clasp version [description]
 * [x] clasp versions
 * [x] saveProject
