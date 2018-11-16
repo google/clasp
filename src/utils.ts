@@ -387,3 +387,11 @@ export async function validateManifest(): Promise<boolean> {
   }
   return true;
 }
+
+/**
+ * Error handling when accessing script api.
+ */
+export function scriptApiErrorHandler(err:Error): void {
+  spinner.stop();
+  return logError(null, err.message);
+}

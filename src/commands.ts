@@ -37,6 +37,7 @@ import {
   saveProject,
   spinner,
   validateManifest,
+  scriptApiErrorHandler,
 } from './utils';
 import { script_v1 } from 'googleapis';
 const ellipsize = require('ellipsize');
@@ -146,27 +147,31 @@ export const create = async (cmd: {
   } catch (err) { // no scriptId (because project doesn't exist)
     // console.log(err);
   }
-  // https://developers.google.com/drive/api/v3/mime-types
-  const res = await script.projects.create({
-    requestBody: {
-      title,
-      parentId,
-    },
-  });
+  let res;
+  try {
+    // https://developers.google.com/drive/api/v3/mime-types
+    res = await script.projects.create({
+      requestBody: {
+        title,
+        parentId,
+      },
+    });
+  } catch(e) {
+    return scriptApiErrorHandler(e);
+  }
   spinner.stop(true);
   if (res.status !== 200) {
     if (parentId) {
       console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
     }
-    logError(res.statusText, ERROR.CREATE);
-  } else {
-    const createdScriptId = res.data.scriptId || '';
-    console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
-    const rootDir = cmd.rootDir;
-    saveProject(createdScriptId, rootDir);
-    if (!manifestExists()) {
-      fetchProject(createdScriptId, rootDir); // fetches appsscript.json, o.w. `push` breaks
-    }
+    return logError(res.statusText, ERROR.CREATE);
+  }
+  const createdScriptId = res.data.scriptId || '';
+  console.log(LOG.CREATE_PROJECT_FINISH(createdScriptId));
+  const rootDir = cmd.rootDir;
+  saveProject(createdScriptId, rootDir);
+  if (!manifestExists()) {
+    fetchProject(createdScriptId, rootDir); // fetches appsscript.json, o.w. `push` breaks
   }
 };
 
@@ -484,9 +489,14 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
 
   if(!functionName){
     spinner.setSpinnerTitle(`Getting functions`).start();
-    const content = await script.projects.getContent({
-      scriptId,
-    });
+    let content;
+    try{
+      content = await script.projects.getContent({
+        scriptId,
+      });
+    }catch(e){
+      return scriptApiErrorHandler(e);
+    }
     spinner.stop(true);
     if (content.status !== 200) {
       return logError(content.statusText);
@@ -581,12 +591,17 @@ export const deploy = async (cmd: {
 
   // if no version, create a new version
   if (!versionNumber){
-    const version = await script.projects.versions.create({
-      scriptId,
-      requestBody: {
-        description,
-      },
-    });
+    let version;
+    try{
+      version = await script.projects.versions.create({
+        scriptId,
+        requestBody: {
+          description,
+        },
+      });
+    }catch(e){
+      return scriptApiErrorHandler(e);
+    }
     spinner.stop(true);
     if (version.status !== 200) {
       return logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
@@ -598,26 +613,34 @@ export const deploy = async (cmd: {
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
   let deployments;
   if (!deploymentId) { // if no deploymentId, create a new deployment
-    deployments = await script.projects.deployments.create({
-      scriptId,
-      requestBody: {
-        versionNumber,
-        manifestFileName: PROJECT_MANIFEST_BASENAME,
-        description,
-      },
-    });
-  } else { // elseif, update deployment
-    deployments = await script.projects.deployments.update({
-      scriptId,
-      deploymentId,
-      requestBody: {
-        deploymentConfig: {
+    try{
+      deployments = await script.projects.deployments.create({
+        scriptId,
+        requestBody: {
           versionNumber,
           manifestFileName: PROJECT_MANIFEST_BASENAME,
           description,
         },
-      },
-    });
+      });
+    }catch(e){
+      return scriptApiErrorHandler(e);
+    }
+  } else { // elseif, update deployment
+    try{
+      deployments = await script.projects.deployments.update({
+        scriptId,
+        deploymentId,
+        requestBody: {
+          deploymentConfig: {
+            versionNumber,
+            manifestFileName: PROJECT_MANIFEST_BASENAME,
+            description,
+          },
+        },
+      });
+    }catch(e){
+      return scriptApiErrorHandler(e);
+    }
   }
   spinner.stop(true);
   if (deployments.status !== 200) {
@@ -637,9 +660,14 @@ export const undeploy = async (deploymentId: string) => {
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
   if(!deploymentId){
-    const deploymentsList = await script.projects.deployments.list({
-      scriptId,
-    });
+    let deploymentsList;
+    try{
+      deploymentsList = await script.projects.deployments.list({
+        scriptId,
+      });
+    }catch(e){
+      return scriptApiErrorHandler(e);
+    }
     if (deploymentsList.status !== 200) {
       return logError(deploymentsList.statusText);
     }
@@ -653,10 +681,15 @@ export const undeploy = async (deploymentId: string) => {
     deploymentId = deployments[deployments.length - 1].deploymentId || '';
   }
   spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
-  const deployment = await script.projects.deployments.delete({
-    scriptId,
-    deploymentId,
-  });
+  let deployment;
+  try {
+    deployment = await script.projects.deployments.delete({
+      scriptId,
+      deploymentId,
+    });
+  } catch (e) {
+    return scriptApiErrorHandler(e);
+  }
   spinner.stop(true);
   if (deployment.status !== 200) {
     return logError(null, ERROR.READ_ONLY_DELETE);
@@ -702,9 +735,14 @@ export const deployments = async () => {
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
-  const deployments = await script.projects.deployments.list({
-    scriptId,
-  });
+  let deployments;
+  try{
+    deployments = await script.projects.deployments.list({
+      scriptId,
+    });
+  }catch(e){
+    return scriptApiErrorHandler(e);
+  }
   spinner.stop(true);
   if (deployments.status !== 200) {
     return logError(deployments.statusText);
@@ -730,10 +768,15 @@ export const versions = async () => {
   await loadAPICredentials();
   spinner.setSpinnerTitle('Grabbing versions...').start();
   const { scriptId } = await getProjectSettings();
-  const versions = await script.projects.versions.list({
-    scriptId,
-    pageSize: 500,
-  });
+  let versions;
+  try{
+    versions = await script.projects.versions.list({
+      scriptId,
+      pageSize: 500,
+    });
+  }catch(e){
+    return scriptApiErrorHandler(e);
+  }
   spinner.stop(true);
   if (versions.status !== 200) {
     return logError(versions.statusText);
@@ -766,12 +809,17 @@ export const version = async (description: string) => {
     description = answers.description;
   }
   spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
-  const versions = await script.projects.versions.create({
-    scriptId,
-    requestBody: {
-      description,
-    },
-  });
+  let versions;
+  try{
+    versions = await script.projects.versions.create({
+      scriptId,
+      requestBody: {
+        description,
+      },
+    });
+  }catch(e){
+    return scriptApiErrorHandler(e);
+  }
   spinner.stop(true);
   if (versions.status !== 200) {
     return logError(versions.statusText);
@@ -823,9 +871,14 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
   }
   // Otherwise, open the latest deployment.
   await loadAPICredentials();
-  const deploymentsList = await script.projects.deployments.list({
-    scriptId,
-  });
+  let deploymentsList;
+  try{
+    deploymentsList = await script.projects.deployments.list({
+      scriptId,
+    });
+  }catch(e){
+    return scriptApiErrorHandler(e);
+  }
   if (deploymentsList.status !== 200) {
     return logError(deploymentsList.statusText);
   }
