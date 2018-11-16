@@ -54,6 +54,7 @@ const commander = require('commander');
  * Set global CLI configurations
  */
 commander
+  .name('clasp')
   .usage(`<command> [options]`)
   .description(`${PROJECT_NAME} - The Apps Script CLI`);
 
