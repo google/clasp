@@ -83,7 +83,6 @@ clasp
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
 - [`clasp undeploy [deploymentId]`](#undeploy)
-- [`clasp redeploy [deploymentId] [version] [description]`](#redeploy)
 - [`clasp version [description]`](#version)
 - [`clasp versions`](#versions)
 - [`clasp list`](#list)
@@ -260,23 +259,6 @@ Undeploys a deployment of a script.
 
 - `clasp undeploy` (undeploy the last deployment.)
 - `clasp undeploy "123"`
-
-### Redeploy
-
-Updates deployments of a script.
-
-#### Options
-
-- `deploymentId`: deploymentId The deployment ID.
-- `version`: version The target deployment version.
-- `description`: description The reason why the script was redeployed.
-
-#### Examples
-
-- `clasp redeploy`
-- `clasp redeploy 123`
-- `clasp redeploy 123 3`
-- `clasp redeploy 123 3 "Why I updated the deployment"`
 
 ### Version
 
