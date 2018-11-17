@@ -156,9 +156,7 @@ export const create = async (cmd: {
         parentId,
       },
     });
-  } catch(e) {
-    return scriptApiErrorHandler(e);
-  }
+  } catch(e) { return scriptApiErrorHandler(e); }
   spinner.stop(true);
   if (res.status !== 200) {
     if (parentId) {
@@ -494,9 +492,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       content = await script.projects.getContent({
         scriptId,
       });
-    }catch(e){
-      return scriptApiErrorHandler(e);
-    }
+    } catch(e) { return scriptApiErrorHandler(e); }
     spinner.stop(true);
     if (content.status !== 200) {
       return logError(content.statusText);
@@ -599,9 +595,7 @@ export const deploy = async (cmd: {
           description,
         },
       });
-    }catch(e){
-      return scriptApiErrorHandler(e);
-    }
+    } catch(e) { return scriptApiErrorHandler(e); }
     spinner.stop(true);
     if (version.status !== 200) {
       return logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
@@ -622,9 +616,7 @@ export const deploy = async (cmd: {
           description,
         },
       });
-    }catch(e){
-      return scriptApiErrorHandler(e);
-    }
+    } catch(e) { return scriptApiErrorHandler(e); }
   } else { // elseif, update deployment
     try{
       deployments = await script.projects.deployments.update({
@@ -638,9 +630,7 @@ export const deploy = async (cmd: {
           },
         },
       });
-    }catch(e){
-      return scriptApiErrorHandler(e);
-    }
+    } catch(e) { return scriptApiErrorHandler(e); }
   }
   spinner.stop(true);
   if (deployments.status !== 200) {
@@ -665,9 +655,7 @@ export const undeploy = async (deploymentId: string) => {
       deploymentsList = await script.projects.deployments.list({
         scriptId,
       });
-    }catch(e){
-      return scriptApiErrorHandler(e);
-    }
+    } catch(e) { return scriptApiErrorHandler(e); }
     if (deploymentsList.status !== 200) {
       return logError(deploymentsList.statusText);
     }
@@ -687,9 +675,7 @@ export const undeploy = async (deploymentId: string) => {
       scriptId,
       deploymentId,
     });
-  } catch (e) {
-    return scriptApiErrorHandler(e);
-  }
+  } catch(e) { return scriptApiErrorHandler(e); }
   spinner.stop(true);
   if (deployment.status !== 200) {
     return logError(null, ERROR.READ_ONLY_DELETE);
@@ -740,9 +726,7 @@ export const deployments = async () => {
     deployments = await script.projects.deployments.list({
       scriptId,
     });
-  }catch(e){
-    return scriptApiErrorHandler(e);
-  }
+  } catch(e) { return scriptApiErrorHandler(e); }
   spinner.stop(true);
   if (deployments.status !== 200) {
     return logError(deployments.statusText);
@@ -774,9 +758,7 @@ export const versions = async () => {
       scriptId,
       pageSize: 500,
     });
-  }catch(e){
-    return scriptApiErrorHandler(e);
-  }
+  } catch(e) { return scriptApiErrorHandler(e); }
   spinner.stop(true);
   if (versions.status !== 200) {
     return logError(versions.statusText);
@@ -817,9 +799,7 @@ export const version = async (description: string) => {
         description,
       },
     });
-  }catch(e){
-    return scriptApiErrorHandler(e);
-  }
+  } catch(e) { return scriptApiErrorHandler(e); }
   spinner.stop(true);
   if (versions.status !== 200) {
     return logError(versions.statusText);
@@ -876,9 +856,7 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
     deploymentsList = await script.projects.deployments.list({
       scriptId,
     });
-  }catch(e){
-    return scriptApiErrorHandler(e);
-  }
+  } catch(e) { return scriptApiErrorHandler(e); }
   if (deploymentsList.status !== 200) {
     return logError(deploymentsList.statusText);
   }
