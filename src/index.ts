@@ -44,7 +44,7 @@ import {
   version,
   versions,
 } from './commands';
-import { PROJECT_NAME } from './utils';
+import { PROJECT_NAME, handleError } from './utils';
 
 const commander = require('commander');
 
@@ -71,7 +71,7 @@ commander
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
   .option('--creds <file>', 'Relative path to credentials (from GCP).')
-  .action(login);
+  .action(handleError(login));
 
 /**
  * Logs out the user by deleteing client credentials.
@@ -81,7 +81,7 @@ commander
 commander
   .command('logout')
   .description('Log out')
-  .action(logout);
+  .action(handleError(logout));
 
 /**
  * Creates a new script project.
@@ -106,7 +106,7 @@ commander
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
-  .action(create);
+  .action(handleError(create));
 
 /**
  * Fetches a project and saves the script id locally.
@@ -116,7 +116,7 @@ commander
 commander
   .command('clone [scriptId] [versionNumber]')
   .description('Clone a project')
-  .action(clone);
+  .action(handleError(clone));
 
 /**
  * Fetches a project from either a provided or saved script id.
@@ -128,7 +128,7 @@ commander
   .command('pull')
   .description('Fetch a remote project')
   .option('--versionNumber <version>', 'The version number of the project to retrieve.')
-  .action(pull);
+  .action(handleError(pull));
 
 /**
  * Force writes all local files to the script management server.
@@ -144,7 +144,7 @@ commander
   .command('push')
   .description('Update the remote project')
   .option('--watch', 'Watches for local file changes. Pushes when a non-ignored file changs.')
-  .action(push);
+  .action(handleError(push));
 
 /**
  * Lists files that will be written to the server on `push`.
@@ -159,7 +159,7 @@ commander
   .command('status')
   .description('Lists files that will be pushed by clasp')
   .option('--json', 'Show status in JSON form')
-  .action(status);
+  .action(handleError(status));
 
 /**
  * Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.
@@ -172,7 +172,7 @@ commander
   .command('open [scriptId]')
   .description('Open a script')
   .option('--webapp', 'Open web application in browser')
-  .action(openCmd);
+  .action(handleError(openCmd));
 
 /**
  * List deployments of a script
@@ -182,7 +182,7 @@ commander
 commander
   .command('deployments')
   .description('List deployment ids of a script')
-  .action(deployments);
+  .action(handleError(deployments));
 
 /**
  * Creates a version and deploys a script.
@@ -200,7 +200,7 @@ commander
   .option('-V, --versionNumber <version>', 'The project version') //we can't use `version` in subcommand
   .option('-d, --description <description>', 'The deployment description')
   .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
-  .action(deploy);
+  .action(handleError(deploy));
 
 /**
  * Undeploys a deployment of a script.
@@ -212,7 +212,7 @@ commander
 commander
   .command('undeploy [deploymentId]')
   .description('Undeploy a deployment of a project')
-  .action(undeploy);
+  .action(handleError(undeploy));
 
 /**
  * Creates an immutable version of the script.
@@ -224,7 +224,7 @@ commander
 commander
   .command('version [description]')
   .description('Creates an immutable version of the script')
-  .action(version);
+  .action(handleError(version));
 
 /**
  * List versions of a script.
@@ -234,7 +234,7 @@ commander
 commander
   .command('versions')
   .description('List versions of a script')
-  .action(versions);
+  .action(handleError(versions));
 
 /**
  * Lists your most recent 10 Apps Script projects.
@@ -245,7 +245,7 @@ commander
 commander
   .command('list')
   .description('List App Scripts projects')
-  .action(list);
+  .action(handleError(list));
 
 /**
  * Prints StackDriver logs.
@@ -261,7 +261,7 @@ commander
   .option('--open', 'Open the StackDriver logs in browser')
   .option('--setup', 'Setup StackDriver logs')
   .option('--watch', 'Watch and print new logs')
-  .action(logs);
+  .action(handleError(logs));
 
 /**
  * Remotely executes an Apps Script function.
@@ -279,7 +279,7 @@ commander
   .command('run [functionName]')
   .description('Run a function in your Apps Scripts project')
   .option('--nondev', 'Run script function in non-devMode')
-  .action(run);
+  .action(handleError(run));
 
 /**
  * List, enable, or disable APIs for your project.
@@ -294,7 +294,7 @@ commander
   list
   enable <api>
   disable <api>`)
-  .action(apis);
+  .action(handleError(apis));
 
 /**
  * Displays the help function.
@@ -304,7 +304,7 @@ commander
 commander
   .command('help')
   .description('Display help')
-  .action(help);
+  .action(handleError(help));
 
 /**
  * Update .clasp.json settings file.
@@ -318,7 +318,7 @@ commander
 commander
   .command('setting <settingKey> [newValue]')
   .description('Update <settingKey> in .clasp.json')
-  .action(setting);
+  .action(handleError(setting));
 
 /**
  * All other commands are given a help message.
@@ -327,7 +327,7 @@ commander
 commander
   .command('*', { isDefault: true })
   .description('Any other command is not supported')
-  .action(defaultCmd);
+  .action(handleError(defaultCmd));
 
 // defaults to help if commands are not provided
 if (!process.argv.slice(2).length) {
