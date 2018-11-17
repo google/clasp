@@ -387,3 +387,17 @@ export async function validateManifest(): Promise<boolean> {
   }
   return true;
 }
+
+/**
+ * Handles error of each command.
+ */
+export function handleError(command: (...args: any[]) => Promise<void>) {
+  return async (...args: any[]) => {
+    try {
+      await command(...args);
+    } catch (e) {
+      spinner.stop(true);
+      logError(null, e.message);
+    }
+  };
+}

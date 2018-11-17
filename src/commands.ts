@@ -95,7 +95,7 @@ export const push = async (cmd: {
 /**
  * Outputs the help command.
  */
-export const help = () => {
+export const help = async () => {
   commander.outputHelp();
   process.exit(0);
 };
@@ -104,7 +104,7 @@ export const help = () => {
  * Displays a default message when an unknown command is typed.
  * @param command {string} The command that was typed.
  */
-export const defaultCmd = (command: string) => {
+export const defaultCmd = async (command: string) => {
   logError(null, ERROR.COMMAND_DNE(command));
 };
 
@@ -286,7 +286,7 @@ export const login = async (options: {
 /**
  * Logs out the user by deleting credentials.
  */
-export const logout = () => {
+export const logout = async () => {
   if (hasOauthClientSettings(true)) del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
   // del doesn't work with a relative path (~)
   if (hasOauthClientSettings()) del(DOT.RC.ABSOLUTE_PATH, { force: true });
