@@ -49,3 +49,8 @@ You can also add `gs` color coding if you prefer not to use `js` or `ts` via thi
     "*.gs": "javascript"
 },
 ```
+
+## Missing Schema?
+
+File a Pull Request in this repo:
+https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/appsscript.json
