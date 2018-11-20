@@ -45,7 +45,7 @@
     "commander": "^2.15.1",
     "connect": "^3.6.6",
     "del": "^3.0.0",
-    "dotf": "^1.0.3",
+    "dotf": "^1.1.2",
     "ellipsize": "^0.1.0",
     "find-parent-dir": "^0.3.0",
     "fs": "^0.0.1-security",
@@ -53,6 +53,7 @@
     "googleapis": "^34.0.0",
     "http-shutdown": "^1.2.0",
     "inquirer": "^5.2.0",
+    "inquirer-autocomplete-prompt": "1.0.1",
     "is-online": "^7.0.0",
     "mkdirp": "^0.5.1",
     "multimatch": "^2.1.0",
@@ -98,7 +99,7 @@
     "nyc": "^11.8.0",
     "parse-comments": "^0.4.3",
     "tmp": "0.0.33",
-    "tslint": "^5.10.0",
-    "typescript": "^2.8.4"
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.0"
   }
 }

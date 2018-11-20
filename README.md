@@ -83,7 +83,6 @@ clasp
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
 - [`clasp undeploy [deploymentId]`](#undeploy)
-- [`clasp redeploy [deploymentId] [version] [description]`](#redeploy)
 - [`clasp version [description]`](#version)
 - [`clasp versions`](#versions)
 - [`clasp list`](#list)
@@ -93,7 +92,7 @@ clasp
 > **NOTE**: These commands require Project ID/credentials setup (see below).
 
 - [`clasp logs [--json] [--open] [--watch]`](#logs)
-- [`clasp run [--nondev]`](#run)
+- [`clasp run [functionName] [--nondev]`](#run)
 - [`clasp apis list`](#apis)
 - [`clasp apis enable <api>`](#apis)
 - [`clasp apis disable <api>`](#apis)
@@ -260,23 +259,6 @@ Undeploys a deployment of a script.
 
 - `clasp undeploy` (undeploy the last deployment.)
 - `clasp undeploy "123"`
-
-### Redeploy
-
-Updates deployments of a script.
-
-#### Options
-
-- `deploymentId`: deploymentId The deployment ID.
-- `version`: version The target deployment version.
-- `description`: description The reason why the script was redeployed.
-
-#### Examples
-
-- `clasp redeploy`
-- `clasp redeploy 123`
-- `clasp redeploy 123 3`
-- `clasp redeploy 123 3 "Why I updated the deployment"`
 
 ### Version
 

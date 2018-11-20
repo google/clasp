@@ -204,6 +204,20 @@ Advanced Service currently do not have TypeScript autocompletion.
 
 Currently, `clasp` supports [`typescript@2.9.2`](https://www.npmjs.com/package/typescript/v/2.9.2). If there is a feature in a newer  TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please file a bug.
 
+### Apps Script Libraries and TypeScript
+
+If your project contains libraries referenced in `appsscript.json`, TypeScript will throw errors for the library names or types it cannot resolve, e.g. `[ts] Cannot find name 'OAuth2'. [2304]`. Libraries have their own types and are not part of `@types/google-apps-script`. These libraries are only resolved once the script is deployed upstream with `clasp push`.
+
+One workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
+
+```
+function getOAuthService() {
+    // Ignore OAuth2 library resolution when working locally with clasp and TypeScript
+    // @ts-ignore
+    return OAuth2.createService('Auth0');
+}
+```
+
 ## Outdated Types
 
 TypeScript types for Apps Script are currently generated manually.

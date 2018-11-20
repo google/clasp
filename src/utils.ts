@@ -157,8 +157,6 @@ export const LOG = {
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files...\n',
   PUSHING: 'Pushing files...',
-  REDEPLOY_END: 'Updated deployment.',
-  REDEPLOY_START: 'Updating deployment...',
   SAVED_CREDS: (isLocalCreds: boolean) => (isLocalCreds) ?
     `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
     `*Be sure to never commit this file!* It's basically a password.` :
@@ -388,4 +386,18 @@ export async function validateManifest(): Promise<boolean> {
     return false;
   }
   return true;
+}
+
+/**
+ * Handles error of each command.
+ */
+export function handleError(command: (...args: any[]) => Promise<void>) {
+  return async (...args: any[]) => {
+    try {
+      await command(...args);
+    } catch (e) {
+      spinner.stop(true);
+      logError(null, e.message);
+    }
+  };
 }

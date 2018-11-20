@@ -38,10 +38,15 @@ import {
   spinner,
   validateManifest,
 } from './utils';
+import { script_v1 } from 'googleapis';
 const ellipsize = require('ellipsize');
 const open = require('opn');
-const { prompt } = require('inquirer');
+const inquirer = require('inquirer');
 const padEnd = require('string.prototype.padend');
+
+// setup inquirer
+const prompt = inquirer.prompt;
+inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
@@ -90,7 +95,7 @@ export const push = async (cmd: {
 /**
  * Outputs the help command.
  */
-export const help = () => {
+export const help = async () => {
   commander.outputHelp();
   process.exit(0);
 };
@@ -99,7 +104,7 @@ export const help = () => {
  * Displays a default message when an unknown command is typed.
  * @param command {string} The command that was typed.
  */
-export const defaultCmd = (command: string) => {
+export const defaultCmd = async (command: string) => {
   logError(null, ERROR.COMMAND_DNE(command));
 };
 
@@ -284,7 +289,7 @@ export const login = async (options: {
 /**
  * Logs out the user by deleting credentials.
  */
-export const logout = () => {
+export const logout = async () => {
   if (hasOauthClientSettings(true)) del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
   // del doesn't work with a relative path (~)
   if (hasOauthClientSettings()) del(DOT.RC.ABSOLUTE_PATH, { force: true });
@@ -479,6 +484,38 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   const { scriptId } = await getProjectSettings(true);
 
   const devMode = !cmd.nondev; // default true
+
+  if(!functionName){
+    spinner.setSpinnerTitle(`Getting functions`).start();
+    const content = await script.projects.getContent({
+      scriptId,
+    });
+    spinner.stop(true);
+    if (content.status !== 200) {
+      return logError(content.statusText);
+    }
+    const files = content.data.files || [];
+    type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
+    const functionNames:string[] = files
+      .reduce((functions:TypeFunction[], file) => {
+        if(!file.functionSet || !file.functionSet.values) return functions;
+        return functions.concat( file.functionSet.values );
+      },[])
+      .map( (func:TypeFunction) => func.name ) as string[];
+    const answers = await prompt([{
+      type: 'autocomplete',
+      name: 'functionName',
+      message: 'Select a functionName',
+      source: (input:string) => {
+        const filterd = functionNames.filter((name) => {
+          return input.toLowerCase().indexOf(name.toLowerCase()) !== -1;
+        });
+        Promise.resolve(filterd);
+      },
+    }]);
+    functionName = answers.functionName;
+  }
+
   try {
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
     const res = await localScript.scripts.run({
@@ -657,108 +694,6 @@ export const list = async () => {
   files.map((file: any) => {
     console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
   });
-};
-
-/**
- * Redeploys an Apps Script deployment.
- * @param deploymentId {string} The deployment ID to redeploy.
- * @param version {string} The version to redeploy at.
- * @param description {string} A description of the redeployment.
- */
-export const redeploy = async (deploymentId: string, version: string, description: string) => {
-  await checkIfOnline();
-  await loadAPICredentials();
-  const { scriptId } = await getProjectSettings();
-  if(!deploymentId){
-    spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
-    const deploymentsList = await script.projects.deployments.list({
-      scriptId,
-    });
-    spinner.stop(true);
-    if (deploymentsList.status !== 200) {
-      return logError(deploymentsList.statusText);
-    }
-    const deployments = deploymentsList.data.deployments || [];
-    if (!deployments.length) {
-      return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-    }
-    const choices = deployments
-      .filter((deployment: any) => deployment.deploymentConfig.versionNumber !== undefined)
-      .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
-      .map((deployment: any) => {
-        const DESC_PAD_SIZE = 30;
-        const id = deployment.deploymentId;
-        const description = deployment.deploymentConfig.description;
-        const versionNumber = deployment.deploymentConfig.versionNumber;
-        return {
-          name: `@${padEnd(versionNumber || 'HEAD', 4)} - ${id} - ${description || ''}`,
-          value: deployment,
-        };
-      });
-    const answers = await prompt([{
-      type: 'list',
-      name: 'deployment',
-      message: 'Redeploy which deployment? ',
-      choices,
-    }]);
-    deploymentId = answers.deployment.deploymentId;
-  }
-  if(!version){
-    spinner.setSpinnerTitle('Grabbing versions...').start();
-    const { scriptId } = await getProjectSettings();
-    const versions = await script.projects.versions.list({
-      scriptId,
-      pageSize: 500,
-    });
-    spinner.stop(true);
-    if (versions.status !== 200) {
-      return logError(versions.statusText);
-    }
-    const data = versions.data;
-    if ( !(data && data.versions && data.versions.length) ) {
-      return logError(null, LOG.DEPLOYMENT_DNE);
-    }
-    const numVersions = data.versions.length;
-    console.log(LOG.VERSION_NUM(numVersions));
-    const choices =  data.versions.reverse().map((version: any) => {
-      return {
-        name: LOG.VERSION_DESCRIPTION(version),
-        value: version,
-      };
-    });
-    const answers = await prompt([{
-      type: 'list',
-      name: 'version',
-      message: 'Redeploy which version? ',
-      choices,
-    }]);
-    version = answers.version.versionNumber;
-  }
-  if(!description){
-    const answers = await prompt([{
-      type: 'input',
-      name: 'description',
-      message: 'Give a description:',
-      default: '',
-    }]);
-    description = answers.description;
-  }
-  const deployments = await script.projects.deployments.update({
-    scriptId,
-    deploymentId,
-    requestBody: {
-      deploymentConfig: {
-        versionNumber: +version,
-        manifestFileName: PROJECT_MANIFEST_BASENAME,
-        description,
-      },
-    },
-  });
-  spinner.stop(true);
-  if (deployments.status !== 200) {
-    return logError(null, deployments.statusText); // TODO prettier error
-  }
-  console.log(LOG.REDEPLOY_END);
 };
 
 /**
