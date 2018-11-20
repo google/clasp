@@ -119,6 +119,9 @@ export const create = async (cmd: {
 }) => {
   await checkIfOnline();
   if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
+
+  // TODO Create files with MIME type:
+  // https://developers.google.com/drive/api/v3/mime-types
   await loadAPICredentials();
   let { title } = cmd;
   const { parentId } = cmd;
