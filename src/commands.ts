@@ -5,6 +5,7 @@ import { readFileSync } from 'fs';
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
+import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
@@ -38,7 +39,6 @@ import {
   spinner,
   validateManifest,
 } from './utils';
-import { script_v1 } from 'googleapis';
 const ellipsize = require('ellipsize');
 const open = require('opn');
 const inquirer = require('inquirer');
@@ -485,7 +485,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
 
   const devMode = !cmd.nondev; // default true
 
-  if(!functionName){
+  if (!functionName) {
     spinner.setSpinnerTitle(`Getting functions`).start();
     const content = await script.projects.getContent({
       scriptId,
@@ -496,17 +496,20 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
     }
     const files = content.data.files || [];
     type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
-    const functionNames:string[] = files
-      .reduce((functions:TypeFunction[], file) => {
-        if(!file.functionSet || !file.functionSet.values) return functions;
-        return functions.concat( file.functionSet.values );
-      },[])
-      .map( (func:TypeFunction) => func.name ) as string[];
+    const functionNames: string[] = files
+      .reduce((functions: TypeFunction[], file) => {
+        if (!file.functionSet || !file.functionSet.values) return functions;
+        return functions.concat(file.functionSet.values);
+      }, [])
+      .map((func: TypeFunction) => func.name) as string[];
     const answers = await prompt([{
       type: 'autocomplete',
       name: 'functionName',
       message: 'Select a functionName',
-      source: (input:string) => {
+      source: (input: string) => {
+        if (typeof input === 'object') {
+          throw new Error('Bad input. A function name is required.');
+        }
         const filterd = functionNames.filter((name) => {
           return input.toLowerCase().indexOf(name.toLowerCase()) !== -1;
         });
@@ -545,7 +548,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
         data.error.details[0].errorMessage,
         data.error.details[0].scriptStackTraceElements || []);
     }
-  } catch(err) {
+  } catch (err) {
     spinner.stop(true);
     console.log(err);
     if (err) { // TODO move these to logError when stable?
@@ -580,10 +583,10 @@ export const deploy = async (cmd: {
   if (!scriptId) return;
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
   let { versionNumber } = cmd;
-  const { description='', deploymentId } = cmd;
+  const { description = '', deploymentId } = cmd;
 
   // if no version, create a new version
-  if (!versionNumber){
+  if (!versionNumber) {
     const version = await script.projects.versions.create({
       scriptId,
       requestBody: {
@@ -639,7 +642,7 @@ export const undeploy = async (deploymentId: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
-  if(!deploymentId){
+  if (!deploymentId) {
     const deploymentsList = await script.projects.deployments.list({
       scriptId,
     });
@@ -650,7 +653,7 @@ export const undeploy = async (deploymentId: string) => {
     if (!deployments.length) {
       logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
-    if(deployments.length <= 1) { // @HEAD (Read-only deployments) may not be deleted.
+    if (deployments.length <= 1) { // @HEAD (Read-only deployments) may not be deleted.
       logError(null, ERROR.NO_VERSIONED_DEPLOYMENTS);
     }
     deploymentId = deployments[deployments.length - 1].deploymentId || '';
@@ -759,7 +762,7 @@ export const version = async (description: string) => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
-  if(!description){
+  if (!description) {
     const answers = await prompt([{
       type: 'input',
       name: 'description',
@@ -883,15 +886,15 @@ export const apis = async () => {
     const name = `projects/${projectId}/services/${serviceURL}`;
     try {
       if (enable) {
-        await serviceUsage.services.enable({name});
+        await serviceUsage.services.enable({ name });
       } else {
-        await serviceUsage.services.disable({name});
+        await serviceUsage.services.disable({ name });
       }
       console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName}.`);
     } catch (e) {
-        // If given non-existent API (like fakeAPI, it throws 403 permission denied)
-        // We will log this for the user instead:
-        logError(null, ERROR.NO_API(enable, serviceName));
+      // If given non-existent API (like fakeAPI, it throws 403 permission denied)
+      // We will log this for the user instead:
+      logError(null, ERROR.NO_API(enable, serviceName));
     }
   };
 

@@ -16,7 +16,7 @@ export interface AdvancedService {
  * 1. View > Show manifest file
  * 1. View appsscript.json
  */
-export const PUBLIC_ADVANCED_SERVICES : AdvancedService[] = [{
+export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [{
   userSymbol: 'Classroom',
   serviceId: 'classroom',
   version: 'v1',

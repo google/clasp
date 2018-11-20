@@ -28,10 +28,10 @@ const CLASP_SETTINGS: string = JSON.stringify({
 });
 const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
-const claspSettingsLocalPath  = '.clasp.json'; // path.join('./', '.clasp.json');
+const claspSettingsLocalPath = '.clasp.json'; // path.join('./', '.clasp.json');
 const claspRcGlobalPath = path.join(os.homedir(), '.clasprc.json');
-const claspRcLocalPath  = '.clasprc.json'; // path.join('./', '.clasprc.json');
-const clientCredsLocalPath  = 'client_credentials.json'; // path.join('./', 'client_credentials.json');
+const claspRcLocalPath = '.clasprc.json'; // path.join('./', '.clasprc.json');
+const clientCredsLocalPath = 'client_credentials.json'; // path.join('./', 'client_credentials.json');
 
 const cleanup = () => {
   fs.removeSync('.clasp.json');
@@ -104,7 +104,7 @@ const restoreSettings = () => {
 describe('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
     const result = spawnSync(
-      CLASP, [command, '--help'], { encoding : 'utf8' },
+      CLASP, [command, '--help'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(expected);
@@ -129,7 +129,7 @@ describe('Test --help for each function', () => {
 });
 
 describe('Test clasp list function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -147,7 +147,7 @@ describe('Test clasp list function', () => {
 });
 
 describe('Test clasp create function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -170,7 +170,7 @@ describe('Test clasp create function', () => {
 });
 
 describe.skip('Test clasp create <title> function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -186,7 +186,7 @@ describe.skip('Test clasp create <title> function', () => {
 });
 
 describe('Test clasp clone <scriptId> function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -214,7 +214,7 @@ describe('Test clasp clone <scriptId> function', () => {
 });
 
 describe('Test clasp pull function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -232,7 +232,7 @@ describe('Test clasp pull function', () => {
 });
 
 describe('Test clasp push function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -265,7 +265,7 @@ describe('Test clasp push function', () => {
 });
 
 describe('Test clasp status function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -287,7 +287,7 @@ describe('Test clasp status function', () => {
       { file: 'shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir  });
+    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
@@ -323,7 +323,7 @@ describe('Test clasp status function', () => {
       { file: 'dist/shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'dist/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir  });
+    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     console.log(result.stdout);
     console.log(result.stderr);
@@ -337,7 +337,7 @@ describe('Test clasp status function', () => {
 });
 
 describe('Test clasp open function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -353,7 +353,7 @@ describe('Test clasp open function', () => {
 });
 
 describe('Test clasp deployments function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -370,7 +370,7 @@ describe('Test clasp deployments function', () => {
 });
 
 describe('Test clasp deploy function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -397,7 +397,7 @@ describe('Test clasp deploy function', () => {
 });
 
 describe('Test clasp version and versions function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -428,7 +428,7 @@ describe('Test clasp version and versions function', () => {
 });
 
 describe('Test clasp clone function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -453,7 +453,7 @@ describe('Test clasp clone function', () => {
 });
 
 describe('Test setting function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -580,7 +580,7 @@ describe('Test saveProject function from utils', () => {
 });
 
 describe('Test clasp apis functions', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -650,7 +650,7 @@ describe('Test clasp apis functions', () => {
 });
 
 describe.skip('Test clasp logs function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -678,7 +678,7 @@ describe.skip('Test clasp logs function', () => {
 });
 
 describe('Test clasp login function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -755,7 +755,7 @@ describe('Test clasp login function', () => {
 });
 
 describe('Test clasp logout function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -779,7 +779,7 @@ describe('Test clasp logout function', () => {
 });
 
 describe('Test clasp run function', () => {
-  before(function() {
+  before(function () {
     if (isPR !== 'false') {
       this.skip();
     }
@@ -800,14 +800,14 @@ describe('Test clasp run function', () => {
     expect(result.stdout)
       .to.contain('https://console.developers.google.com/apis/credentials?project=');
     expect(result.status).to.equal(0);
-    });
+  });
   after(cleanup);
 });
 
 describe('Test variations of clasp help', () => {
   const expectHelp = (variation: string) => {
     const result = spawnSync(
-      CLASP, [variation], { encoding : 'utf8' },
+      CLASP, [variation], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(CLASP_USAGE);
@@ -820,7 +820,7 @@ describe('Test variations of clasp help', () => {
 describe('Test variations of clasp --version', () => {
   const expectVersion = (variation: string) => {
     const result = spawnSync(
-      CLASP, [variation], { encoding : 'utf8' },
+      CLASP, [variation], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(require('./../package.json').version);
@@ -846,7 +846,7 @@ describe('Test all functions while logged out', () => {
   });
   const expectNoCredentials = (command: string) => {
     const result = spawnSync(
-      CLASP, [command], { encoding : 'utf8' },
+      CLASP, [command], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(1);
     expect(result.stderr).to.include(ERROR.NO_CREDENTIALS);
