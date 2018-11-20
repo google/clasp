@@ -1,3 +1,11 @@
+// Also see:
+// https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/appsscript.json
+export interface AdvancedService {
+  userSymbol: string;
+  serviceId: string;
+  version: string;
+}
+
 /**
  * This is a list of all public Advanced Services.
  *
@@ -8,7 +16,7 @@
  * 1. View > Show manifest file
  * 1. View appsscript.json
  */
-export const PUBLIC_ADVANCED_SERVICES = [{
+export const PUBLIC_ADVANCED_SERVICES : AdvancedService[] = [{
   userSymbol: 'Classroom',
   serviceId: 'classroom',
   version: 'v1',
