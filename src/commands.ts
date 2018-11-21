@@ -136,7 +136,7 @@ export const create = async (cmd: {
       type: 'list',
       name: 'type',
       message: 'Clone which script? ',
-      choices: Object.keys(SCRIPT_TYPES).map((key)=>SCRIPT_TYPES[key as any]),
+      choices: Object.keys(SCRIPT_TYPES).map((key) => SCRIPT_TYPES[key as any]),
     }]);
     type = answers.type;
   }
