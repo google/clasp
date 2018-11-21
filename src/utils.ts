@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { Spinner } from 'cli-spinner';
 import * as pluralize from 'pluralize';
+import { SCRIPT_TYPES } from './apis';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 const ucfirst = require('ucfirst');
 const path = require('path');
@@ -69,6 +70,7 @@ export const URL = {
   SCRIPT_API_USER: 'https://script.google.com/home/usersettings',
   // It is too expensive to get the script URL from the Drive API. (Async/not offline)
   SCRIPT: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
+  DRIVE: (driveId: string) => `https://drive.google.com/open?id=${driveId}`,
 };
 
 // Error messages (some errors take required params)
@@ -133,7 +135,12 @@ export const LOG = {
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
-  CREATE_PROJECT_FINISH: (scriptId: string) => `Created new script: ${URL.SCRIPT(scriptId)}`,
+  CREATE_DRIVE_FILE_FINISH: (filetype: string, fileid: string) =>
+    `Created new ${getFileTypeName(filetype) || '(unknown type)'}: ${URL.DRIVE(fileid)}`,
+  CREATE_DRIVE_FILE_START: (filetype: string) =>
+    `Creating new ${getFileTypeName(filetype) || '(unknown type)'}...`,
+  CREATE_PROJECT_FINISH: (filetype: string, scriptId: string) =>
+    `Created new ${getScriptTypeName(filetype)} script: ${URL.SCRIPT(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
   CREDENTIALS_FOUND: 'Credentials found, using those to login...',
   DEFAULT_CREDENTIALS: 'No credentials given, continuing with default...',
@@ -386,6 +393,31 @@ export async function validateManifest(): Promise<boolean> {
     return false;
   }
   return true;
+}
+
+/**
+ * Gets a human friendly Google Drive file type name.
+ * @param {string} type The input file type. (i.e. docs, forms, sheets, slides)
+ * @returns The name like "Google Docs".
+ */
+function getFileTypeName(type: string) {
+  const name: { [key: string]: string } = {
+    docs: 'Google Doc',
+    forms: 'Google Form',
+    sheets: 'Google Sheet',
+    slides: 'Google Slide',
+  };
+  return name[type];
+}
+
+/**
+ * Gets a human friendly script type name.
+ * @param {string} type The Apps Script project type. (i.e. docs, forms, sheets, slides)
+ * @returns The script type (i.e. "Google Docs Add-on")
+ */
+function getScriptTypeName(type: string) {
+  const fileType = getFileTypeName(type);
+  return (fileType) ? `${fileType}s Add-on` : fileType;
 }
 
 /**
