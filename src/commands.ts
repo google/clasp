@@ -21,7 +21,7 @@ import {
 } from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
-import { loadManifest, manifestExists } from './manifest';
+import { enableOrDisableAdvanceServiceInManifest, manifestExists, readManifest } from './manifest';
 import {
   ERROR,
   LOG,
@@ -283,7 +283,7 @@ export const login = async (options: {
   if (options.creds) {
     // First read the manifest to detect any additional scopes in "oauthScopes" fields.
     // In the script.google.com UI, these are found under File > Project Properties > Scopes
-    const { oauthScopes } = await loadManifest();
+    const { oauthScopes } = await readManifest();
 
     // Read credentials file.
     const credsFile = readFileSync(options.creds, 'utf8');
@@ -906,10 +906,12 @@ export const apis = async () => {
       } else {
         await serviceUsage.services.disable({ name });
       }
+      await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
       console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName}.`);
     } catch (e) {
       // If given non-existent API (like fakeAPI, it throws 403 permission denied)
       // We will log this for the user instead:
+      console.log(e);
       logError(null, ERROR.NO_API(enable, serviceName));
     }
   };

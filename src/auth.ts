@@ -12,7 +12,7 @@ import {
   ClaspToken,
   DOTFILE,
 } from './dotfile';
-import {loadManifest} from './manifest';
+import {readManifest} from './manifest';
 import {
   ClaspCredentials,
   ERROR,
@@ -295,7 +295,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
     await setOauthCredentials(rc);
     const { scopes } = await globalOAuth2Client.getTokenInfo(
       globalOAuth2Client.credentials.access_token as string);
-    const { oauthScopes } = await loadManifest();
+    const { oauthScopes } = await readManifest();
     const newScopes = oauthScopes &&
       oauthScopes.length ? (oauthScopes as string[]).filter(x => !scopes.includes(x)) : [];
     if (!newScopes.length) return;
