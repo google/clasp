@@ -128,8 +128,18 @@ export const create = async (cmd: {
 
   // Create defaults.
   const title = cmd.title || getDefaultProjectName();
-  const { type } = cmd;
+  let { type } = cmd;
   let { parentId } = cmd;
+
+  if(!type){
+    const answers = await prompt([{
+      type: 'list',
+      name: 'type',
+      message: 'Clone which script? ',
+      choices: Object.keys(SCRIPT_TYPES).map((key) => SCRIPT_TYPES[key as any]),
+    }]);
+    type = answers.type;
+  }
 
   // Create files with MIME type.
   // https://developers.google.com/drive/api/v3/mime-types
