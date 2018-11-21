@@ -12,16 +12,14 @@ import {
   ClaspToken,
   DOTFILE,
 } from './dotfile';
-import { ClaspCredentials } from './utils';
+import {loadManifest} from './manifest';
 import {
+  ClaspCredentials,
   ERROR,
   LOG,
   URL,
   checkIfOnline,
   getOAuthSettings,
-  getProjectId,
-  hasOauthClientSettings,
-  loadManifest,
   logError,
 } from './utils';
 import open = require('opn');

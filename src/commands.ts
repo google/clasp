@@ -21,6 +21,7 @@ import {
 } from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
+import { loadManifest, manifestExists } from './manifest';
 import {
   ERROR,
   LOG,
@@ -32,9 +33,7 @@ import {
   getProjectSettings,
   getWebApplicationURL,
   hasOauthClientSettings,
-  loadManifest,
   logError,
-  manifestExists,
   saveProject,
   spinner,
   validateManifest,
