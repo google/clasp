@@ -68,8 +68,6 @@ const oauth2ClientAuthUrlOpts = {
     'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
     'https://www.googleapis.com/auth/logging.read', // StackDriver logs
 
-    'https://www.googleapis.com/auth/script.send_mail', // temp
-
     // Extra scope since service.management doesn't work alone
     'https://www.googleapis.com/auth/cloud-platform',
   ],
