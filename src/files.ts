@@ -1,21 +1,13 @@
 import * as fs from 'fs';
-import * as anymatch from 'anymatch';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
+import * as path from 'path';
 import * as recursive from 'recursive-readdir';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import {
-  ERROR,
-  LOG,
-  checkIfOnline,
-  getAPIFileType,
-  getProjectSettings,
-  logError,
-  spinner,
-} from './utils';
+import { checkIfOnline, ERROR, getAPIFileType, getProjectSettings, LOG, logError, spinner } from './utils';
+
 const ts2gas = require('ts2gas');
-const path = require('path');
 const readMultipleFiles = require('read-multiple-files');
 
 // An Apps Script API File

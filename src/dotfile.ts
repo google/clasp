@@ -12,13 +12,13 @@
  * This should be the only file that uses DOTFILE.
  */
 import * as fs from 'fs';
-import * as os from 'os';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
+import * as os from 'os';
+import * as path from 'path';
 
 const dotf = require('dotf');
 const read = require('read-file');
-const path = require('path');
 const findParentDir = require('find-parent-dir');
 const splitLines = require('split-lines');
 

@@ -1,27 +1,16 @@
 /**
  * Authentication with Google's APIs.
  */
-import * as http from 'http';
-import { AddressInfo } from 'net';
-import * as url from 'url';
 import { Credentials, OAuth2Client } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 } from 'googleapis';
+import * as http from 'http';
 import { prompt } from 'inquirer';
-import {
-  ClaspToken,
-  DOTFILE,
-} from './dotfile';
-import {readManifest} from './manifest';
-import {
-  ClaspCredentials,
-  ERROR,
-  LOG,
-  URL,
-  checkIfOnline,
-  getOAuthSettings,
-  logError,
-} from './utils';
+import { AddressInfo } from 'net';
+import * as url from 'url';
+import { ClaspToken, DOTFILE } from './dotfile';
+import { readManifest } from './manifest';
+import { checkIfOnline, ClaspCredentials, ERROR, getOAuthSettings, LOG, logError, URL } from './utils';
 import open = require('opn');
 import readline = require('readline');
 

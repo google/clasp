@@ -1,8 +1,9 @@
 import * as fs from 'fs';
+import * as path from 'path';
+
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { DOT } from './dotfile';
-import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, logError } from './utils';
-const path = require('path');
+import { ERROR, getProjectSettings, logError, PROJECT_MANIFEST_FILENAME } from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
