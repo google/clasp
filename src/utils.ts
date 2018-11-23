@@ -1,15 +1,13 @@
-import * as fs from 'fs';
+import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
+import * as fs from 'fs';
+import { prompt } from 'inquirer';
+import * as path from 'path';
 import * as pluralize from 'pluralize';
-import { SCRIPT_TYPES } from './apis';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
+
 const ucfirst = require('ucfirst');
-const path = require('path');
-const findParentDir = require('find-parent-dir');
-const read = require('read-file');
 const isOnline = require('is-online');
-const { prompt } = require('inquirer');
-const chalk = require('chalk');
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
@@ -294,12 +292,12 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
 
 /**
  * Gets the API FileType. Assumes the path is valid.
- * @param  {string} path The file path
- * @return {string}      The API's FileType enum (uppercase), null if not valid.
+ * @param  {string} filePath  The file path
+ * @return {string}           The API's FileType enum (uppercase), null if not valid.
  */
-export function getAPIFileType(path: string): string {
-  const extension: string = path.substr(path.lastIndexOf('.') + 1).toUpperCase();
-  return (extension === 'GS' || extension === 'JS') ? 'SERVER_JS' : extension.toUpperCase();
+export function getAPIFileType(filePath: string): string {
+  const extension = filePath.substr(filePath.lastIndexOf('.') + 1).toUpperCase();
+  return (extension === 'GS' || extension === 'JS') ? 'SERVER_JS' : extension;
 }
 
 /**

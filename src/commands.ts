@@ -1,10 +1,10 @@
 /**
  * Clasp command method bodies.
  */
-import { readFileSync } from 'fs';
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
+import { readFileSync } from 'fs';
 import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
@@ -23,21 +23,22 @@ import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import { enableOrDisableAdvanceServiceInManifest, manifestExists, readManifest } from './manifest';
 import {
-  ERROR,
-  LOG,
-  PROJECT_MANIFEST_BASENAME,
-  URL,
   checkIfOnline,
+  ERROR,
   getDefaultProjectName,
   getProjectId,
   getProjectSettings,
   getWebApplicationURL,
   hasOauthClientSettings,
+  LOG,
   logError,
+  PROJECT_MANIFEST_BASENAME,
   saveProject,
   spinner,
+  URL,
   validateManifest,
 } from './utils';
+
 const ellipsize = require('ellipsize');
 const open = require('opn');
 const inquirer = require('inquirer');
