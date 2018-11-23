@@ -1,10 +1,11 @@
+import { readFileSync } from 'fs';
 /**
  * Clasp command method bodies.
  */
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
-import { readFileSync } from 'fs';
+import * as fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
@@ -23,19 +24,19 @@ import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
 import { enableOrDisableAdvanceServiceInManifest, manifestExists, readManifest } from './manifest';
 import {
-  checkIfOnline,
   ERROR,
+  LOG,
+  PROJECT_MANIFEST_BASENAME,
+  URL,
+  checkIfOnline,
   getDefaultProjectName,
   getProjectId,
   getProjectSettings,
   getWebApplicationURL,
   hasOauthClientSettings,
-  LOG,
   logError,
-  PROJECT_MANIFEST_BASENAME,
   saveProject,
   spinner,
-  URL,
   validateManifest,
 } from './utils';
 
@@ -132,7 +133,7 @@ export const create = async (cmd: {
   let { type } = cmd;
   let { parentId } = cmd;
 
-  if(!type){
+  if (!type) {
     const answers = await prompt([{
       type: 'list',
       name: 'type',
@@ -512,6 +513,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
 
   const devMode = !cmd.nondev; // default true
 
+  // Get the list of functions.
   if (!functionName) {
     spinner.setSpinnerTitle(`Getting functions`).start();
     const content = await script.projects.getContent({
@@ -533,14 +535,17 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       type: 'autocomplete',
       name: 'functionName',
       message: 'Select a functionName',
-      source: (input: string) => {
-        if (typeof input === 'object') {
-          throw new Error('Bad input. A function name is required.');
-        }
-        const filterd = functionNames.filter((name) => {
-          return input.toLowerCase().indexOf(name.toLowerCase()) !== -1;
+      source: (answers: object, input = '') => {
+        // Returns a Promise
+        // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
+        return new Promise((resolve) => {
+          // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
+          const filtered = fuzzy.filter(input, functionNames);
+          const original = filtered.map((el) => {
+            return el.original;
+          });
+          resolve(original);
         });
-        Promise.resolve(filterd);
       },
     }]);
     functionName = answers.functionName;
