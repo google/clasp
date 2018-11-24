@@ -45,14 +45,21 @@
             "ignore-same-line"
         ],
         "forin": true,
-        "indent": [true, "spaces", 2],
+        "indent": [
+            true,
+            "spaces",
+            2
+        ],
         "interface-name": [
             true,
             "never-prefix"
         ],
         "jsdoc-format": true,
         "label-position": true,
-        "max-line-length": [true, 110],
+        "max-line-length": [
+            true,
+            110
+        ],
         "member-access": [
             true,
             "no-public"
@@ -77,7 +84,10 @@
         "no-trailing-whitespace": true,
         "no-unused-expression": true,
         "no-var-keyword": true,
-        "object-literal-key-quotes": [true, "as-needed"],
+        "object-literal-key-quotes": [
+            true,
+            "as-needed"
+        ],
         "object-literal-shorthand": true,
         "only-arrow-functions": [
             true,
@@ -85,7 +95,10 @@
             "allow-named-functions"
         ],
         "prefer-const": true,
-        "quotemark": [true, "single"],
+        "quotemark": [
+            true,
+            "single"
+        ],
         "radix": true,
         "semicolon": [
             true,

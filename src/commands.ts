@@ -532,9 +532,9 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       }, [])
       .map((func: TypeFunction) => func.name) as string[];
     const answers = await prompt([{
-      type: 'autocomplete',
       name: 'functionName',
       message: 'Select a functionName',
+      type: 'autocomplete',
       source: (answers: object, input = '') => {
         // Returns a Promise
         // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
