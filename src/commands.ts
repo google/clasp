@@ -39,6 +39,7 @@ import {
   spinner,
   validateManifest,
 } from './utils';
+import multimatch = require('multimatch');
 
 const ellipsize = require('ellipsize');
 const open = require('opn');
@@ -65,7 +66,6 @@ export const pull = async (cmd: { versionNumber: number }) => {
 
 /**
  * Uploads all files into the script.google.com filesystem.
- * TODO: Only push when a non-ignored file is changed.
  * TODO: Only push the specific files that changed (rather than all files).
  * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
@@ -75,11 +75,16 @@ export const push = async (cmd: { watch: boolean }) => {
   await validateManifest();
   if (cmd.watch) {
     console.log(LOG.PUSH_WATCH);
+    const patterns = await DOTFILE.IGNORE();
     // @see https://www.npmjs.com/package/watch
     watchTree('.', (f, curr, prev) => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
+        if (multimatch([f], patterns).length) {
+          // The file matches the ignored files patterns so we do nothing
+          return;
+        }
       }
       console.log(LOG.PUSHING);
       pushFiles();
