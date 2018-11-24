@@ -48,7 +48,8 @@ export const hasOauthClientSettings = (local = false): boolean =>
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
 export function getOAuthSettings(): Promise<ClaspToken> {
-  return DOTFILE.RC_LOCAL().read()
+  return DOTFILE.RC_LOCAL()
+    .read()
     .then((rc: ClaspToken) => rc)
     .catch((err: any) => {
       return DOTFILE.RC.read()
@@ -61,8 +62,7 @@ export function getOAuthSettings(): Promise<ClaspToken> {
 
 // Helpers to get Apps Script project URLs
 export const URL = {
-  CREDS: (projectId: string) =>
-    `https://console.developers.google.com/apis/credentials?project=${projectId}`,
+  CREDS: (projectId: string) => `https://console.developers.google.com/apis/credentials?project=${projectId}`,
   LOGS: (projectId: string) =>
     `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`,
   SCRIPT_API_USER: 'https://script.google.com/home/usersettings',
@@ -162,10 +162,11 @@ export const LOG = {
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files...\n',
   PUSHING: 'Pushing files...',
-  SAVED_CREDS: (isLocalCreds: boolean) => (isLocalCreds) ?
-    `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
-    `*Be sure to never commit this file!* It's basically a password.` :
-    `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
+  SAVED_CREDS: (isLocalCreds: boolean) =>
+    isLocalCreds
+      ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
+        `*Be sure to never commit this file!* It's basically a password.`
+      : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
@@ -175,8 +176,8 @@ export const LOG = {
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploying ${deploymentId}...`,
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
-  VERSION_DESCRIPTION: ({ versionNumber, description }: any) => `${versionNumber} - ` +
-    (description || '(no description)'),
+  VERSION_DESCRIPTION: ({ versionNumber, description }: any) =>
+    `${versionNumber} - ` + (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
 
   SETUP_LOCAL_OAUTH_STEP_1: `\n${chalk.yellow('BASIC SCRIPT EXECUTION API SETUP')}\n`,
@@ -206,12 +207,14 @@ export const logError = (err: any, description = '') => {
   // change error model. Don't review this method now.
   if (err && typeof err.error === 'string') {
     logError(null, JSON.parse(err.error).error);
-  } else if (err && err.statusCode === 401 || err && err.error &&
-    err.error.error && err.error.error.code === 401) {
+  } else if (
+    (err && err.statusCode === 401) ||
+    (err && err.error && err.error.error && err.error.error.code === 401)
+  ) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
     logError(null, ERROR.UNAUTHENTICATED);
-  } else if (err && (err.error && err.error.code === 403 || err.code === 403)) {
+  } else if (err && ((err.error && err.error.code === 403) || err.code === 403)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.PERMISSION_DENIED : ERROR.PERMISSION_DENIED_LOCAL
     logError(null, ERROR.PERMISSION_DENIED);
@@ -269,17 +272,20 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
-      dotfile.read().then((settings: ProjectSettings) => {
-        // Settings must have the script ID. Otherwise we err.
-        if (settings.scriptId) {
-          resolve(settings);
-        } else {
-          // TODO: Better error message
-          fail(); // Script ID DNE
-        }
-      }).catch((err: object) => {
-        fail(failSilently); // Failed to read dotfile
-      });
+      dotfile
+        .read()
+        .then((settings: ProjectSettings) => {
+          // Settings must have the script ID. Otherwise we err.
+          if (settings.scriptId) {
+            resolve(settings);
+          } else {
+            // TODO: Better error message
+            fail(); // Script ID DNE
+          }
+        })
+        .catch((err: object) => {
+          fail(failSilently); // Failed to read dotfile
+        });
     } else {
       fail(); // Never found a dotfile
     }
@@ -297,7 +303,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
  */
 export function getAPIFileType(filePath: string): string {
   const extension = filePath.substr(filePath.lastIndexOf('.') + 1).toUpperCase();
-  return (extension === 'GS' || extension === 'JS') ? 'SERVER_JS' : extension;
+  return extension === 'GS' || extension === 'JS' ? 'SERVER_JS' : extension;
 }
 
 /**
@@ -338,11 +344,13 @@ export async function getProjectId(promptUser = true): Promise<string> {
     console.log('Open this link: ', URL.SCRIPT(projectSettings.scriptId));
     console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
-    await prompt([{
-      type: 'input',
-      name: 'projectId',
-      message: 'What is your GCP projectId?',
-    }]).then(async (answers: any) => {
+    await prompt([
+      {
+        type: 'input',
+        name: 'projectId',
+        message: 'What is your GCP projectId?',
+      },
+    ]).then(async (answers: any) => {
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
     });
@@ -359,8 +367,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
 export async function validateManifest(): Promise<boolean> {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifest = fs.readFileSync(
-    path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
+  const manifest = fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
   try {
     JSON.parse(manifest);
   } catch (err) {
@@ -392,7 +399,7 @@ function getFileTypeName(type: string) {
  */
 function getScriptTypeName(type: string) {
   const fileType = getFileTypeName(type);
-  return (fileType) ? `${fileType}s Add-on` : fileType;
+  return fileType ? `${fileType}s Add-on` : fileType;
 }
 
 /**

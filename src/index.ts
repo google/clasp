@@ -102,8 +102,10 @@ commander
 commander
   .command('create')
   .description('Create a script')
-  .option('--type <type>',
-    'Creates a new add-on attached to a new Document, Spreadsheet, Presentation, or Form.')
+  .option(
+    '--type <type>',
+    'Creates a new add-on attached to a new Document, Spreadsheet, Presentation, or Form.',
+  )
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
@@ -291,10 +293,12 @@ commander
  */
 commander
   .command('apis')
-  .description(`List, enable, or disable APIs
+  .description(
+    `List, enable, or disable APIs
   list
   enable <api>
-  disable <api>`)
+  disable <api>`,
+  )
   .action(handleError(apis));
 
 /**
@@ -339,11 +343,9 @@ const versionOption = Symbol('version');
 /**
  * Displays clasp version
  */
-commander
-  .option('-v, --version')
-  .on('option:version', () => {
-    commander[versionOption] = true;
-  });
+commander.option('-v, --version').on('option:version', () => {
+  commander[versionOption] = true;
+});
 
 // User input is provided from the process' arguments
 commander.parse(process.argv);

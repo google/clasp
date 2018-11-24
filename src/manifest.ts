@@ -69,18 +69,16 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
   }
   // Copy the list of advanced services:
   let newEnabledAdvancedServices: EnabledAdvancedService[] =
-      manifest.dependencies.enabledAdvancedServices || [];
+    manifest.dependencies.enabledAdvancedServices || [];
 
   // Disable the service (even if we may enable it)
   newEnabledAdvancedServices = manifest.dependencies.enabledAdvancedServices || [];
-  newEnabledAdvancedServices = newEnabledAdvancedServices.filter(
-    (service) => service.serviceId !== serviceId);
+  newEnabledAdvancedServices = newEnabledAdvancedServices.filter(service => service.serviceId !== serviceId);
 
   // Enable the service
   if (enable) {
     // Add new service (get the first one from the public list)
-    const newAdvancedService = PUBLIC_ADVANCED_SERVICES.filter(
-      (service) => service.serviceId === serviceId)[0];
+    const newAdvancedService = PUBLIC_ADVANCED_SERVICES.filter(service => service.serviceId === serviceId)[0];
     newEnabledAdvancedServices.push(newAdvancedService);
   }
 
@@ -222,8 +220,7 @@ interface ExecutionApi {
   access: string;
 }
 
-interface Unconditional {
-}
+interface Unconditional {}
 
 interface ContextualTrigger {
   unconditional: Unconditional;

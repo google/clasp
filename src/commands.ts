@@ -54,9 +54,7 @@ inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'))
  * @param cmd.version {number} The version number of the project to retrieve.
  *                             If not provided, the project's HEAD version is returned.
  */
-export const pull = async (cmd: {
-  versionNumber: number;
-}) => {
+export const pull = async (cmd: { versionNumber: number }) => {
   await checkIfOnline();
   const { scriptId, rootDir } = await getProjectSettings();
   if (scriptId) {
@@ -71,9 +69,7 @@ export const pull = async (cmd: {
  * TODO: Only push the specific files that changed (rather than all files).
  * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export const push = async (cmd: {
-  watch: boolean,
-}) => {
+export const push = async (cmd: { watch: boolean }) => {
   await checkIfOnline();
   await loadAPICredentials();
   await validateManifest();
@@ -81,7 +77,8 @@ export const push = async (cmd: {
     console.log(LOG.PUSH_WATCH);
     // @see https://www.npmjs.com/package/watch
     watchTree('.', (f, curr, prev) => {
-      if (typeof f === 'string') { // The first watch doesn't give a string for some reason.
+      // The first watch doesn't give a string for some reason.
+      if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
       }
       console.log(LOG.PUSHING);
@@ -117,12 +114,7 @@ export const defaultCmd = async (command: string) => {
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export const create = async (cmd: {
-  type: string,
-  title: string,
-  parentId: string
-  rootDir: string,
-}) => {
+export const create = async (cmd: { type: string; title: string; parentId: string; rootDir: string }) => {
   // Handle common errors.
   await checkIfOnline();
   if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
@@ -134,12 +126,14 @@ export const create = async (cmd: {
   let { parentId } = cmd;
 
   if (!type) {
-    const answers = await prompt([{
-      type: 'list',
-      name: 'type',
-      message: 'Clone which script? ',
-      choices: Object.keys(SCRIPT_TYPES).map((key) => SCRIPT_TYPES[key as any]),
-    }]);
+    const answers = await prompt([
+      {
+        type: 'list',
+        name: 'type',
+        message: 'Clone which script? ',
+        choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as any]),
+      },
+    ]);
     type = answers.type;
   }
 
@@ -173,7 +167,8 @@ export const create = async (cmd: {
       logError(null, ERROR.NO_NESTED_PROJECTS);
       process.exit(1);
     }
-  } catch (err) { // no scriptId (because project doesn't exist)
+  } catch (err) {
+    // no scriptId (because project doesn't exist)
     // console.log(err);
   }
 
@@ -228,20 +223,23 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
         value: file.id,
       };
     });
-    const answers = await prompt([{
-      type: 'list',
-      name: 'scriptId',
-      message: 'Clone which script? ',
-      choices: fileIds,
-      pageSize: 30,
-    }]);
+    const answers = await prompt([
+      {
+        type: 'list',
+        name: 'scriptId',
+        message: 'Clone which script? ',
+        choices: fileIds,
+        pageSize: 30,
+      },
+    ]);
     scriptId = answers.scriptId;
   } else {
     // We have a scriptId or URL
     // If we passed a URL, extract the scriptId from that. For example:
     // https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
-    if (scriptId.length !== 57) { // 57 is the magic number
-      const ids = scriptId.split('/').filter((s) => {
+    if (scriptId.length !== 57) {
+      // 57 is the magic number
+      const ids = scriptId.split('/').filter(s => {
         return s.length === 57;
       });
       if (ids.length) {
@@ -251,8 +249,9 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       // We have a scriptId or URL
       // If we passed a URL, extract the scriptId from that.
       // e.g. https://script.google.com/a/DOMAIN/d/{ID}/edit
-      if (scriptId.length !== 57) { // 57 is the magic number
-        const ids = scriptId.split('/').filter((s) => {
+      if (scriptId.length !== 57) {
+        // 57 is the magic number
+        const ids = scriptId.split('/').filter(s => {
           return s.length === 57;
         });
         if (ids.length) {
@@ -275,10 +274,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
  * @param {boolean?} options.localhost If true, authorizes without a HTTP server.
  * @param {string?} options.creds The location of credentials file.
  */
-export const login = async (options: {
-  localhost?: boolean,
-  creds?: string,
-}) => {
+export const login = async (options: { localhost?: boolean; creds?: string }) => {
   // Local vs global checks
   const isLocalLogin = !!options.creds;
   const loggedInLocal = hasOauthClientSettings(true);
@@ -330,12 +326,7 @@ export const logout = async () => {
  * @param cmd.setup {boolean} If true, the command will help you setup logs.
  * @param cmd.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
  */
-export const logs = async (cmd: {
-  json: boolean,
-  open: boolean
-  setup: boolean,
-  watch: boolean,
-}) => {
+export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; watch: boolean }) => {
   await checkIfOnline();
   /**
    * This object holds all log IDs that have been printed to the user.
@@ -372,7 +363,7 @@ export const logs = async (cmd: {
           payloadData = LOG.STACKDRIVER_SETUP;
           functionName = padEnd(protoPayload.methodName, 15);
         }
-        if (payloadData && typeof (payloadData) === 'string') {
+        if (payloadData && typeof payloadData === 'string') {
           payloadData = padEnd(payloadData, 20);
         }
       }
@@ -394,28 +385,35 @@ export const logs = async (cmd: {
   }
   async function setupLogs(projectId?: string): Promise<string> {
     const promise = new Promise<string>((resolve, reject) => {
-      getProjectSettings().then((projectSettings) => {
+      getProjectSettings().then(projectSettings => {
         console.log(`Open this link: ${LOG.SCRIPT_LINK(projectSettings.scriptId)}\n`);
         console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
-        prompt([{
-          type: 'input',
-          name: 'projectId',
-          message: 'What is your GCP projectId?',
-        }]).then((answers: any) => {
-          projectId = answers.projectId;
-          const dotfile = DOTFILE.PROJECT();
-          if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
-          dotfile.read().then((settings: ProjectSettings) => {
-            if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-            dotfile.write(Object.assign(settings, { projectId }));
-            resolve(projectId);
-          }).catch((err: object) => {
-            reject(logError(err));
+        prompt([
+          {
+            type: 'input',
+            name: 'projectId',
+            message: 'What is your GCP projectId?',
+          },
+        ])
+          .then((answers: any) => {
+            projectId = answers.projectId;
+            const dotfile = DOTFILE.PROJECT();
+            if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
+            dotfile
+              .read()
+              .then((settings: ProjectSettings) => {
+                if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
+                dotfile.write(Object.assign(settings, { projectId }));
+                resolve(projectId);
+              })
+              .catch((err: object) => {
+                reject(logError(err));
+              });
+          })
+          .catch((err: any) => {
+            reject(console.log(err));
           });
-        }).catch((err: any) => {
-          reject(console.log(err));
-        });
       });
     });
     promise.catch(err => {
@@ -444,9 +442,7 @@ export const logs = async (cmd: {
    * @param startDate {Date?} Get logs from this date to now.
    */
   async function fetchAndPrintLogs(startDate?: Date) {
-    spinner.setSpinnerTitle(
-      `${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`,
-    ).start();
+    spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
     // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
     // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
     let filter = '';
@@ -455,9 +451,7 @@ export const logs = async (cmd: {
     }
     const logs = await logger.entries.list({
       requestBody: {
-        resourceNames: [
-          `projects/${projectId}`,
-        ],
+        resourceNames: [`projects/${projectId}`],
         filter,
         orderBy: 'timestamp desc',
       },
@@ -469,13 +463,12 @@ export const logs = async (cmd: {
     if (logs.status !== 200) {
       switch (logs.status) {
         case 401:
-          logError(null, oauthSettings.isLocalCreds ?
-            ERROR.UNAUTHENTICATED_LOCAL :
-            ERROR.UNAUTHENTICATED);
+          logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
         case 403:
-          logError(null, oauthSettings.isLocalCreds ?
-            ERROR.PERMISSION_DENIED_LOCAL :
-            ERROR.PERMISSION_DENIED);
+          logError(
+            null,
+            oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED,
+          );
         default:
           logError(null, `(${logs.status}) Error: ${logs.statusText}`);
       }
@@ -490,7 +483,7 @@ export const logs = async (cmd: {
     const POLL_INTERVAL = 6000; // 6s
     setInterval(() => {
       const startDate = new Date();
-      startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL / 1000));
+      startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
       fetchAndPrintLogs(startDate);
     }, POLL_INTERVAL);
   } else {
@@ -531,23 +524,25 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
         return functions.concat(file.functionSet.values);
       }, [])
       .map((func: TypeFunction) => func.name) as string[];
-    const answers = await prompt([{
-      name: 'functionName',
-      message: 'Select a functionName',
-      type: 'autocomplete',
-      source: (answers: object, input = '') => {
-        // Returns a Promise
-        // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
-        return new Promise((resolve) => {
-          // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
-          const filtered = fuzzy.filter(input, functionNames);
-          const original = filtered.map((el) => {
-            return el.original;
+    const answers = await prompt([
+      {
+        name: 'functionName',
+        message: 'Select a functionName',
+        type: 'autocomplete',
+        source: (answers: object, input = '') => {
+          // Returns a Promise
+          // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
+          return new Promise(resolve => {
+            // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
+            const filtered = fuzzy.filter(input, functionNames);
+            const original = filtered.map(el => {
+              return el.original;
+            });
+            resolve(original);
           });
-          resolve(original);
-        });
+        },
       },
-    }]);
+    ]);
     functionName = answers.functionName;
   }
 
@@ -575,15 +570,18 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       }
     } else if (data.error && data.error.details) {
       // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
-      console.error(`${chalk.red('Exception:')}`,
+      console.error(
+        `${chalk.red('Exception:')}`,
         data.error.details[0].errorType,
         data.error.details[0].errorMessage,
-        data.error.details[0].scriptStackTraceElements || []);
+        data.error.details[0].scriptStackTraceElements || [],
+      );
     }
   } catch (err) {
     spinner.stop(true);
     console.log(err);
-    if (err) { // TODO move these to logError when stable?
+    if (err) {
+      // TODO move these to logError when stable?
       switch (err.code) {
         case 401:
           logError(null, ERROR.UNAUTHENTICATED_LOCAL);
@@ -604,11 +602,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
  * @param cmd.desc {string} The deployment description.
  * @param cmd.deploymentId  {string} The deployment ID to redeploy.
  */
-export const deploy = async (cmd: {
-  versionNumber: number,
-  description: string,
-  deploymentId: string,
-}) => {
+export const deploy = async (cmd: { versionNumber: number; description: string; deploymentId: string }) => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
@@ -635,7 +629,8 @@ export const deploy = async (cmd: {
 
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
   let deployments;
-  if (!deploymentId) { // if no deploymentId, create a new deployment
+  if (!deploymentId) {
+    // if no deploymentId, create a new deployment
     deployments = await script.projects.deployments.create({
       scriptId,
       requestBody: {
@@ -644,7 +639,8 @@ export const deploy = async (cmd: {
         description,
       },
     });
-  } else { // elseif, update deployment
+  } else {
+    // elseif, update deployment
     deployments = await script.projects.deployments.update({
       scriptId,
       deploymentId,
@@ -685,7 +681,8 @@ export const undeploy = async (deploymentId: string) => {
     if (!deployments.length) {
       logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
-    if (deployments.length <= 1) { // @HEAD (Read-only deployments) may not be deleted.
+    if (deployments.length <= 1) {
+      // @HEAD (Read-only deployments) may not be deleted.
       logError(null, ERROR.NO_VERSIONED_DEPLOYMENTS);
     }
     deploymentId = deployments[deployments.length - 1].deploymentId || '';
@@ -752,10 +749,8 @@ export const deployments = async () => {
   const deploymentWord = pluralize('Deployment', numDeployments);
   console.log(`${numDeployments} ${deploymentWord}.`);
   deploymentsList.map(({ deploymentId, deploymentConfig }: any) => {
-    const versionString = !!deploymentConfig.versionNumber ?
-      `@${deploymentConfig.versionNumber}` : '@HEAD';
-    const description = deploymentConfig.description ?
-      '- ' + deploymentConfig.description : '';
+    const versionString = !!deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
+    const description = deploymentConfig.description ? '- ' + deploymentConfig.description : '';
     console.log(`- ${deploymentId} ${versionString} ${description}`);
   });
 };
@@ -795,12 +790,14 @@ export const version = async (description: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!description) {
-    const answers = await prompt([{
-      type: 'input',
-      name: 'description',
-      message: 'Give a description:',
-      default: '',
-    }]);
+    const answers = await prompt([
+      {
+        type: 'input',
+        name: 'description',
+        message: 'Give a description:',
+        default: '',
+      },
+    ]);
     description = answers.description;
   }
   spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
@@ -834,10 +831,10 @@ export const status = async (cmd: { json: boolean }) => {
         console.log(JSON.stringify({ filesToPush, untrackedFiles }));
       } else {
         console.log(LOG.STATUS_PUSH);
-        filesToPush.forEach((file) => console.log(`└─ ${file}`));
+        filesToPush.forEach(file => console.log(`└─ ${file}`));
         console.log(); // Separate Ignored files list.
         console.log(LOG.STATUS_IGNORE);
-        untrackedFiles.forEach((file) => console.log(`└─ ${file}`));
+        untrackedFiles.forEach(file => console.log(`└─ ${file}`));
       }
     }
   });
@@ -879,17 +876,20 @@ export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
       const description = deployment.deploymentConfig.description;
       const versionNumber = deployment.deploymentConfig.versionNumber;
       return {
-        name: padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE)
-          + `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+        name:
+          padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE) +
+          `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
         value: deployment,
       };
     });
-  const answers = await prompt([{
-    type: 'list',
-    name: 'deployment',
-    message: 'Open which deployment?',
-    choices,
-  }]);
+  const answers = await prompt([
+    {
+      type: 'list',
+      name: 'deployment',
+      message: 'Open which deployment?',
+      choices,
+    },
+  ]);
   console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
   open(getWebApplicationURL(answers.deployment), { wait: false });
 };
@@ -959,7 +959,7 @@ export const apis = async () => {
       }
 
       // Filter out the disabled ones. Print the enabled ones.
-      const enabledAPIs = serviceList.filter((service) => {
+      const enabledAPIs = serviceList.filter(service => {
         return service.state === 'ENABLED';
       });
       for (const enabledAPI of enabledAPIs) {
@@ -979,7 +979,8 @@ export const apis = async () => {
       const services = data.items || [];
       // Only get the public service IDs
       const PUBLIC_ADVANCED_SERVICE_IDS = PUBLIC_ADVANCED_SERVICES.map(
-        (advancedService) => advancedService.serviceId);
+        advancedService => advancedService.serviceId,
+      );
 
       // Merge discovery data with public services data.
       const publicServices = [];
@@ -1051,9 +1052,9 @@ export const setting = async (settingKey: keyof ProjectSettings, settingValue?: 
 
     try {
       const currentSettings = await getProjectSettings();
-      const currentValue = (settingKey in currentSettings) ? currentSettings[settingKey] : '';
-      const scriptId = (settingKey === 'scriptId') ? settingValue : currentSettings.scriptId;
-      const rootDir = (settingKey === 'rootDir') ? settingValue : currentSettings.rootDir;
+      const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
+      const scriptId = settingKey === 'scriptId' ? settingValue : currentSettings.scriptId;
+      const rootDir = settingKey === 'rootDir' ? settingValue : currentSettings.rootDir;
       await saveProject(scriptId, rootDir);
       console.log(`\nUpdated "${settingKey}": "${currentValue}" -> "${settingValue}"`);
     } catch (e) {

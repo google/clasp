@@ -1,16 +1,16 @@
+import * as http from 'http';
+import { AddressInfo } from 'net';
+import * as url from 'url';
 /**
  * Authentication with Google's APIs.
  */
 import { Credentials, OAuth2Client } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 } from 'googleapis';
-import * as http from 'http';
 import { prompt } from 'inquirer';
-import { AddressInfo } from 'net';
-import * as url from 'url';
 import { ClaspToken, DOTFILE } from './dotfile';
 import { readManifest } from './manifest';
-import { checkIfOnline, ClaspCredentials, ERROR, getOAuthSettings, LOG, logError, URL } from './utils';
+import { ClaspCredentials, ERROR, LOG, URL, checkIfOnline, getOAuthSettings, logError } from './utils';
 import open = require('opn');
 import readline = require('readline');
 
@@ -93,17 +93,18 @@ export async function getLocalScript(): Promise<script_v1.Script> {
  * @param {string[]} [additionalScopes=[]] authorize additional OAuth scopes.
  */
 export async function authorize(options: {
-  useLocalhost: boolean,
-  creds?: ClaspCredentials,
-  additionalScopes?: string[],
+  useLocalhost: boolean;
+  creds?: ClaspCredentials;
+  additionalScopes?: string[];
 }) {
   const creds = options.creds;
   try {
     // Add custom scopes when authing.
-    oauth2ClientAuthUrlOpts.scope = [...oauth2ClientAuthUrlOpts.scope, ...options.additionalScopes || []];
+    oauth2ClientAuthUrlOpts.scope = [...oauth2ClientAuthUrlOpts.scope, ...(options.additionalScopes || [])];
 
     let oAuth2ClientOptions: OAuth2ClientOptions;
-    if (options.creds) { // if we passed our own creds
+    if (options.creds) {
+      // if we passed our own creds
       // Use local credentials
       console.log('Creds from this project:');
       console.log(URL.CREDS(options.creds.installed.project_id));
@@ -125,9 +126,9 @@ export async function authorize(options: {
     }
 
     // Grab a token from the credentials.
-    const token = await (options.useLocalhost ?
-      authorizeWithLocalhost(oAuth2ClientOptions) :
-      authorizeWithoutLocalhost(oAuth2ClientOptions));
+    const token = await (options.useLocalhost
+      ? authorizeWithLocalhost(oAuth2ClientOptions)
+      : authorizeWithoutLocalhost(oAuth2ClientOptions));
     console.log(LOG.AUTH_SUCCESSFUL + '\n');
 
     // Save the token and own creds together.
@@ -244,7 +245,7 @@ async function setOauthCredentials(rc: ClaspToken) {
    * Refreshes the credentials and saves them.
    */
   async function refreshCredentials(oAuthClient: OAuth2Client) {
-    const oldExpiry = oAuthClient.credentials.expiry_date as number || 0;
+    const oldExpiry = (oAuthClient.credentials.expiry_date as number) || 0;
     await oAuthClient.getAccessToken(); // refreshes expiry date if required
     if (oAuthClient.credentials.expiry_date === oldExpiry) return;
     rc.token = oAuthClient.credentials;
@@ -282,25 +283,28 @@ export async function checkOauthScopes(rc: ClaspToken) {
   try {
     await checkIfOnline();
     await setOauthCredentials(rc);
-    const { scopes } = await globalOAuth2Client.getTokenInfo(
-      globalOAuth2Client.credentials.access_token as string);
+    const { scopes } = await globalOAuth2Client.getTokenInfo(globalOAuth2Client.credentials
+      .access_token as string);
     const { oauthScopes } = await readManifest();
-    const newScopes = oauthScopes &&
-      oauthScopes.length ? (oauthScopes as string[]).filter(x => !scopes.includes(x)) : [];
+    const newScopes =
+      oauthScopes && oauthScopes.length ? (oauthScopes as string[]).filter(x => !scopes.includes(x)) : [];
     if (!newScopes.length) return;
     console.log('New authoization scopes detected in manifest:\n', newScopes);
-    await prompt([{
-      type: 'confirm',
-      name: 'doAuth',
-      message: 'Authorize new scopes?',
-    }, {
-      type: 'confirm',
-      name: 'localhost',
-      message: 'Use localhost?',
-      when: (answers: any) => {
-        return answers.doAuth;
+    await prompt([
+      {
+        type: 'confirm',
+        name: 'doAuth',
+        message: 'Authorize new scopes?',
       },
-    }]).then(async (answers: any) => {
+      {
+        type: 'confirm',
+        name: 'localhost',
+        message: 'Use localhost?',
+        when: (answers: any) => {
+          return answers.doAuth;
+        },
+      },
+    ]).then(async (answers: any) => {
       if (answers.doAuth) {
         if (!rc.isLocalCreds) return logError(null, ERROR.NO_LOCAL_CREDENTIALS);
         await authorize({

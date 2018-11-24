@@ -64,6 +64,7 @@ See [/tests/](/tests/) for more information.
 
 - Use `npm run lint` to find common style errors. TravisCI will autodetect these errors too.
 - Download [sort-imports](https://marketplace.visualstudio.com/items?itemName=amatiasq.sort-imports) for VSC to automatically sort imports.
+- Use `npm run prettier` to make the code pretty.
 
 ### Generate Docs
 
