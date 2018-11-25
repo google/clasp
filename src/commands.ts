@@ -73,10 +73,11 @@ export const push = async (cmd: { watch: boolean }) => {
   await checkIfOnline();
   await loadAPICredentials();
   await validateManifest();
+  const { rootDir } = await getProjectSettings();
   if (cmd.watch) {
     console.log(LOG.PUSH_WATCH);
     // @see https://www.npmjs.com/package/watch
-    watchTree('.', (f, curr, prev) => {
+    watchTree(rootDir || '.', (f, curr, prev) => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
