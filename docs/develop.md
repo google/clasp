@@ -66,11 +66,6 @@ See [/tests/](/tests/) for more information.
 - Download [sort-imports](https://marketplace.visualstudio.com/items?itemName=amatiasq.sort-imports) for VSC to automatically sort imports.
 - Use `npm run prettier` to make the code pretty.
 
-### Generate Docs
-
-The core "How To" section of the docs is generated from JSDoc comments from `index.ts`.
-Run `npm run docs` to build the "How To" section. Copy/paste that section into the README.md.
-
 ### Publishing `clasp` to npm (admin)
 
 1. Build `index.js` locally. `.gitignore`/`.npmignore` will hide js/ts files appropriately.
