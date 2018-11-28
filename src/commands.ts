@@ -251,27 +251,11 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       if (ids.length) {
         scriptId = ids[0];
       }
-    } else {
-      // We have a scriptId or URL
-      // If we passed a URL, extract the scriptId from that.
-      // e.g. https://script.google.com/a/DOMAIN/d/{ID}/edit
-      if (scriptId.length !== 57) {
-        // 57 is the magic number
-        const ids = scriptId.split('/').filter(s => {
-          return s.length === 57;
-        });
-        if (ids.length) {
-          scriptId = ids[0];
-        }
-      }
-      spinner.setSpinnerTitle(LOG.CLONING);
-      saveProject(scriptId);
-      fetchProject(scriptId, '', versionNumber);
     }
+    spinner.setSpinnerTitle(LOG.CLONING);
+    saveProject(scriptId);
+    fetchProject(scriptId, '', versionNumber);
   }
-  spinner.setSpinnerTitle(LOG.CLONING);
-  saveProject(scriptId);
-  fetchProject(scriptId, '', versionNumber);
 };
 
 /**
@@ -725,7 +709,7 @@ export const list = async () => {
     return logError(null, ERROR.DRIVE);
   }
   const files = filesList.data.files || [];
-  if (files.length) {
+  if (!files.length) {
     return console.log(LOG.FINDING_SCRIPTS_DNE);
   }
   const NAME_PAD_SIZE = 20;
