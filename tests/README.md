@@ -57,6 +57,7 @@ And edit the `openssl` command in `.travis.yml` file:
 
 * Change the `-in` file to `./tests/.clasprc.json.enc`
 * Change the `-out` file to `.clasprc.json`
+* Add ` || true` to the end of the command
 
 > Note: [Travis will not decrypt files on a Pull Request from a fork.](https://docs.travis-ci.com/user/encrypting-files/)
 
