@@ -142,6 +142,7 @@ export const LOG = {
     `Created new ${getScriptTypeName(filetype)} script: ${URL.SCRIPT(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
   CREDENTIALS_FOUND: 'Credentials found, using those to login...',
+  CREDS_FROM_PROJECT: (projectId: string) => `${URL.CREDS(projectId)}\n` ,
   DEFAULT_CREDENTIALS: 'No credentials given, continuing with default...',
   DEPLOYMENT_CREATE: 'Creating deployment...',
   DEPLOYMENT_DNE: 'No deployed versions of script.',
