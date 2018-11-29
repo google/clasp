@@ -157,7 +157,7 @@ describe('Test clasp create function', () => {
     const result = spawnSync(
       CLASP, ['create'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('Give a script title:');
+    expect(result.stdout).to.contain(LOG.CLONE_SCRIPT_QUESTION);
   });
   it('should not prompt for project name', () => {
     fs.writeFileSync('.clasp.json', '');

@@ -133,6 +133,7 @@ export const LOG = {
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
+  CLONE_SCRIPT_QUESTION: 'Clone which script? ',
   CREATE_DRIVE_FILE_FINISH: (filetype: string, fileid: string) =>
     `Created new ${getFileTypeName(filetype) || '(unknown type)'}: ${URL.DRIVE(fileid)}`,
   CREATE_DRIVE_FILE_START: (filetype: string) =>
