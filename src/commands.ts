@@ -136,7 +136,7 @@ export const create = async (cmd: { type: string; title: string; parentId: strin
       {
         type: 'list',
         name: 'type',
-        message: 'Clone which script? ',
+        message: LOG.CLONE_SCRIPT_QUESTION,
         choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as any]),
       },
     ]);
@@ -233,7 +233,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       {
         type: 'list',
         name: 'scriptId',
-        message: 'Clone which script? ',
+        message: LOG.CLONE_SCRIPT_QUESTION,
         choices: fileIds,
         pageSize: 30,
       },
