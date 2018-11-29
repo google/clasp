@@ -15,7 +15,6 @@ import {
   hasOauthClientSettings,
   saveProject,
 } from './../src/utils.js';
-import { version } from 'punycode';
 const copyFileSync = require('fs-copy-file-sync');
 const { spawnSync } = require('child_process');
 
