@@ -356,9 +356,13 @@ describe('Test clasp open function', () => {
 });
 
 describe('Test URL utils function', () => {
-  const expectedUrl = `https://script.google.com/d/${SCRIPT_ID}/edit`;
   it('should create Script URL correctly', () => {
+    const expectedUrl = `https://script.google.com/d/${SCRIPT_ID}/edit`;
     expect(URL.SCRIPT(SCRIPT_ID)).to.equal(expectedUrl);
+  });
+  it('should create Creds URL correctly', () => {
+    const expectedURL = `https://console.developers.google.com/apis/credentials?project=${SCRIPT_ID}`;
+    expect(URL.CREDS(SCRIPT_ID)).to.equal(expectedURL);
   });
 });
 
@@ -705,7 +709,7 @@ describe('Test clasp login function', () => {
     const result = spawnSync(
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain(LOG.DEFAULT_CREDENTIALS);
+    expect(result.stdout).to.contain(LOG.LOGIN(false));
     expect(result.status).to.equal(0);
   });
   it('should exit(1) with ERROR.LOGGED_IN if global rc and no --creds option', () => {
@@ -752,7 +756,7 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
   });
-  it('should exit(0) with LOG.CREDENTIALS_FOUND if global rc and --creds file valid', () => {
+  it('should exit(1) with LOG.CREDS_FROM_PROJECT if global rc and --creds file valid', () => {
     if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
     fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
     fs.writeFileSync(clientCredsLocalPath, FAKE_CLIENT_CREDS);
@@ -761,8 +765,8 @@ describe('Test clasp login function', () => {
     );
     fs.removeSync(claspRcGlobalPath);
     fs.removeSync(clientCredsLocalPath);
-    expect(result.stdout).to.contain(LOG.CREDENTIALS_FOUND);
-    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(LOG.LOGIN(true));
+    expect(result.status).to.equal(1);
   });
   after(cleanup);
 });

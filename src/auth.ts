@@ -106,9 +106,7 @@ export async function authorize(options: {
     if (options.creds) {
       // if we passed our own creds
       // Use local credentials
-      console.log('Creds from this project:');
-      console.log(URL.CREDS(options.creds.installed.project_id));
-      console.log();
+      console.log(LOG.CREDS_FROM_PROJECT(options.creds.installed.project_id));
       const localOAuth2ClientOptions: OAuth2ClientOptions = {
         clientId: options.creds.installed.client_id,
         clientSecret: options.creds.installed.client_secret,
