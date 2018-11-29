@@ -26,6 +26,8 @@ const CLASP_SETTINGS: string = JSON.stringify({
   scriptId: process.env.SCRIPT_ID,
   projectId: process.env.PROJECT_ID,
 });
+const SCRIPT_ID: string = process.env.SCRIPT_ID || '';
+const PROJECT_ID: string = process.env.PROJECT_ID || '';
 const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
 const claspSettingsLocalPath = '.clasp.json'; // path.join('./', '.clasp.json');
@@ -347,9 +349,16 @@ describe('Test clasp open function', () => {
     const result = spawnSync(
       CLASP, ['open'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('Clone which deployment?');
+    expect(result.stdout).to.contain(`Opening script: ${URL.SCRIPT(SCRIPT_ID)}`);
   });
   after(cleanup);
+});
+
+describe('Test URL utils function', () => {
+  const expectedUrl = `https://script.google.com/d/${SCRIPT_ID}/edit`;
+  it('should create Script URL correctly', () => {
+    expect(URL.SCRIPT(SCRIPT_ID)).to.equal(expectedUrl);
+  });
 });
 
 describe('Test clasp deployments function', () => {
