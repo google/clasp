@@ -15,6 +15,7 @@ import {
   hasOauthClientSettings,
   saveProject,
 } from './../src/utils.js';
+import { version } from 'punycode';
 const copyFileSync = require('fs-copy-file-sync');
 const { spawnSync } = require('child_process');
 
@@ -413,26 +414,29 @@ describe('Test clasp version and versions function', () => {
     }
     setup();
   });
-  let versionNumber = '';
-  it('should create new version correctly', () => {
+  let versionNumber = 0;
+  it('should prompt for version description', () => {
     const result = spawnSync(
       CLASP, ['version'], { encoding: 'utf8' },
     );
-    if (result.stderr) {
-      expect(result.status).to.equal(1);
-    } else {
-      expect(result.stdout).to.contain('Created version ');
-      expect(result.status).to.equal(0);
-      versionNumber = result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2);
-    }
-    it('should list versions correctly', () => {
-      const result = spawnSync(
-        CLASP, ['versions'], { encoding: 'utf8' },
-      );
-      expect(result.stdout).to.contain('Versions');
-      if (versionNumber) expect(result.stdout).to.contain(versionNumber + ' - ');
-      expect(result.status).to.equal(0);
-    });
+    expect(result.stdout).to.contain(LOG.GIVE_DESCRIPTION);
+    expect(result.status).to.equal(0);
+  });
+  it('should create a new version correctly', () => {
+    const result = spawnSync(
+      CLASP, ['version', 'xxx'], { encoding: 'utf8' },
+    );
+    versionNumber =
+      Number(result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2));
+    expect(versionNumber).to.be.greaterThan(0);
+  });
+  it.skip('should list versions correctly', () => {
+    const result = spawnSync(
+      CLASP, ['versions'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('Versions');
+    if (versionNumber) expect(result.stdout).to.contain(versionNumber + ' - ');
+    expect(result.status).to.equal(0);
   });
   after(cleanup);
 });

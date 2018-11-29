@@ -784,7 +784,7 @@ export const version = async (description: string) => {
       {
         type: 'input',
         name: 'description',
-        message: 'Give a description:',
+        message: LOG.GIVE_DESCRIPTION,
         default: '',
       },
     ]);

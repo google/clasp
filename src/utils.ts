@@ -151,6 +151,7 @@ export const LOG = {
   FINDING_SCRIPTS_DNE: 'No script files found.',
   FINDING_SCRIPTS: 'Finding your scripts...',
   GRAB_LOGS: 'Grabbing logs...',
+  GIVE_DESCRIPTION: 'Give a description: ',
   LOCAL_CREDS: `Using local credentials: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME} 🔐 `,
   LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}...`,
   LOGS_SETUP: 'Finished setting up logs.\n',
@@ -180,7 +181,6 @@ export const LOG = {
   VERSION_DESCRIPTION: ({ versionNumber, description }: any) =>
     `${versionNumber} - ` + (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
-
   SETUP_LOCAL_OAUTH_STEP_1: `\n${chalk.yellow('BASIC SCRIPT EXECUTION API SETUP')}\n`,
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
     Open this link: ${chalk.blue(URL.CREDS(projectId))}
