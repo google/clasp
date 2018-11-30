@@ -11,7 +11,6 @@ import { readManifest, readRemoteManifest } from './manifest';
 
 const ts2gas = require('ts2gas');
 const readMultipleFiles = require('read-multiple-files');
-const deepEqual = require('deep-equal');
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -258,24 +257,6 @@ export async function pushFiles(force:boolean) {
   getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     if (err) {
       return logError(err, LOG.PUSH_FAILURE);
-    }
-    if (!force){
-      const localManifest = await readManifest();
-      const remoteManifest = await readRemoteManifest();
-      if( !deepEqual(localManifest,remoteManifest) ){
-        const answers = await prompt([
-          {
-            name: 'overwrite',
-            type: 'confirm',
-            message: 'Manifest file has been updated. Do you want to push and overwrite?',
-            default: false,
-          },
-        ]) as {overwrite:boolean};
-        if( !answers.overwrite ){
-          console.log('Stoping push...');
-          return;
-        }
-      }
     }
     const [nonIgnoredFilePaths] = projectFiles || [[]];
     const filesForAPI: any = files;

@@ -22,7 +22,7 @@ import {
 } from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
-import { enableOrDisableAdvanceServiceInManifest, manifestExists, readManifest } from './manifest';
+import { enableOrDisableAdvanceServiceInManifest, manifestExists, readManifest, manifestHasChanges } from './manifest';
 import {
   ERROR,
   LOG,
@@ -74,6 +74,20 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
   await loadAPICredentials();
   await validateManifest();
   const { rootDir } = await getProjectSettings();
+
+  const confirmManifestUpdate = async () => {
+    if( ! await manifestHasChanges() ) return false;
+    const answers = await prompt([
+      {
+        name: 'overwrite',
+        type: 'confirm',
+        message: 'Manifest file has been updated. Do you want to push and overwrite?',
+        default: false,
+      },
+    ]) as {overwrite:boolean};
+    return answers.overwrite;
+  }
+
   if (cmd.watch) {
     console.log(LOG.PUSH_WATCH);
     const patterns = await DOTFILE.IGNORE();
@@ -87,10 +101,19 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
           return;
         }
       }
+      if( cmd.force || !confirmManifestUpdate() ){
+        console.log('Stoping push...');
+        return;
+      }
       console.log(LOG.PUSHING);
       pushFiles(cmd.force);
     });
   } else {
+    if( cmd.force || !confirmManifestUpdate() ){
+      console.log('Stoping push...');
+      return;
+    }
+    spinner.setSpinnerTitle(LOG.PUSHING).start();
     pushFiles(cmd.force);
   }
 };

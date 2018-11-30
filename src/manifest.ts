@@ -13,6 +13,8 @@ import {
   checkIfOnline,
 } from './utils';
 
+const deepEqual = require('deep-equal');
+
 /**
  * Checks if the rootDir appears to be a valid project.
  * @return {boolean} True if valid project, false otherwise
@@ -117,6 +119,16 @@ export async function readRemoteManifest() : Promise<Manifest>  {
     logError(null, 'Could not read the manifest file.'); // TODO standardize errors.
     throw Error('Could not read the manifest file.'); // TODO standardize errors.
   }
+}
+
+/**
+ * Checks the change in the local manifest.
+ * @returns {Promise} A promise to get whether there is a change in the local manifest as boolean.
+ */
+export async function manifestHasChanges() : Promise<boolean>{
+  const localManifest = await readManifest();
+  const remoteManifest = await readRemoteManifest();
+  return !deepEqual(localManifest,remoteManifest) 
 }
 
 // Manifest Generator
