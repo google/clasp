@@ -3,12 +3,15 @@ import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
 import * as path from 'path';
 import * as recursive from 'recursive-readdir';
+import { prompt } from 'inquirer';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import { checkIfOnline, ERROR, getAPIFileType, getProjectSettings, LOG, logError, spinner } from './utils';
+import { checkIfOnline, ERROR, getAPIFileType, getProjectSettings, LOG, logError, spinner, PROJECT_MANIFEST_FILENAME, PROJECT_MANIFEST_BASENAME } from './utils';
+import { readManifest, readRemoteManifest } from './manifest';
 
 const ts2gas = require('ts2gas');
 const readMultipleFiles = require('read-multiple-files');
+const deepEqual = require('deep-equal');
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -249,49 +252,66 @@ export async function fetchProject(scriptId: string, rootDir = '', versionNumber
 /**
  * Pushes project files to script.google.com.
  */
-export async function pushFiles() {
+export async function pushFiles(force:boolean) {
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
-  getProjectFiles(rootDir, (err, projectFiles, files = []) => {
+  getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     if (err) {
-      logError(err, LOG.PUSH_FAILURE);
-      spinner.stop(true);
-    } else if (projectFiles) {
-      const [nonIgnoredFilePaths] = projectFiles;
-      const filesForAPI: any = files;
-      script.projects.updateContent(
-        {
-          scriptId,
-          requestBody: {
-            scriptId,
-            files: filesForAPI,
-          },
-        },
-        {},
-        (error: any) => {
-          spinner.stop(true);
-          // In the following code, we favor console.error()
-          // over logError() because logError() exits, whereas
-          // we want to log multiple lines of messages, and
-          // eventually exit after logging everything.
-          if (error) {
-            console.error(LOG.PUSH_FAILURE);
-            error.errors.map((err: any) => {
-              console.error(err.message);
-            });
-            console.error(LOG.FILES_TO_PUSH);
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.error(`└─ ${filePath}`);
-            });
-            process.exit(1);
-          } else {
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.log(`└─ ${filePath}`);
-            });
-            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-          }
-        },
-      );
+      return logError(err, LOG.PUSH_FAILURE);
     }
+    
+    if (!force ){
+      const localManifest = await readManifest();
+      const remoteManifest = await readRemoteManifest();
+      if( !deepEqual(localManifest,remoteManifest) ){
+        const answers = await prompt([
+          {
+            name: 'overwrite',
+            type: 'confirm',
+            message: 'Manifest file has been updated. Do you want to push and overwrite?',
+            default: false,
+          },
+        ]) as {overwrite:boolean};
+        if( !answers.overwrite ){
+          console.log("Stoping push...");
+          return;
+        }
+      }
+    }
+    const [nonIgnoredFilePaths] = projectFiles || [[]];
+    const filesForAPI: any = files;
+    script.projects.updateContent(
+      {
+        scriptId,
+        requestBody: {
+          scriptId,
+          files: filesForAPI,
+        },
+      },
+      {},
+      (error: any) => {
+        spinner.stop(true);
+        // In the following code, we favor console.error()
+        // over logError() because logError() exits, whereas
+        // we want to log multiple lines of messages, and
+        // eventually exit after logging everything.
+        if (error) {
+          console.error(LOG.PUSH_FAILURE);
+          error.errors.map((err: any) => {
+            console.error(err.message);
+          });
+          console.error(LOG.FILES_TO_PUSH);
+          nonIgnoredFilePaths.map((filePath: string) => {
+            console.error(`└─ ${filePath}`);
+          });
+          process.exit(1);
+        } else {
+          nonIgnoredFilePaths.map((filePath: string) => {
+            console.log(`└─ ${filePath}`);
+          });
+          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+        }
+      },
+    );
   });
 }
