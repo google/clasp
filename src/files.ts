@@ -6,7 +6,7 @@ import * as recursive from 'recursive-readdir';
 import { prompt } from 'inquirer';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import { checkIfOnline, ERROR, getAPIFileType, getProjectSettings, LOG, logError, spinner, PROJECT_MANIFEST_FILENAME, PROJECT_MANIFEST_BASENAME } from './utils';
+import { checkIfOnline, ERROR, getAPIFileType, getProjectSettings, LOG, logError, spinner } from './utils';
 import { readManifest, readRemoteManifest } from './manifest';
 
 const ts2gas = require('ts2gas');
@@ -259,8 +259,7 @@ export async function pushFiles(force:boolean) {
     if (err) {
       return logError(err, LOG.PUSH_FAILURE);
     }
-    
-    if (!force ){
+    if (!force){
       const localManifest = await readManifest();
       const remoteManifest = await readRemoteManifest();
       if( !deepEqual(localManifest,remoteManifest) ){
@@ -273,7 +272,7 @@ export async function pushFiles(force:boolean) {
           },
         ]) as {overwrite:boolean};
         if( !answers.overwrite ){
-          console.log("Stoping push...");
+          console.log('Stoping push...');
           return;
         }
       }
