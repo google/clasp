@@ -2,8 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
+import { loadAPICredentials, script } from './auth';
 import { DOT } from './dotfile';
-import { ERROR, getProjectSettings, logError, PROJECT_MANIFEST_FILENAME } from './utils';
+import { ERROR, getProjectSettings, logError, PROJECT_MANIFEST_FILENAME, PROJECT_MANIFEST_BASENAME, checkIfOnline } from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -86,6 +87,31 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
   manifest.dependencies.enabledAdvancedServices = newEnabledAdvancedServices;
   await writeManifest(manifest);
 }
+
+/**
+ * Reads the remote appsscript.json manifest file.
+ * @returns {Promise} A promise to get the remote manifest file as object.
+ * @see https://developers.google.com/apps-script/concepts/manifests
+ */
+export async function readRemoteManifest() : Promise<Manifest>  {
+  await checkIfOnline();
+  await loadAPICredentials();
+  const { scriptId } = await getProjectSettings();
+  const content = await script.projects.getContent({scriptId});
+  const files = content.data.files || [];
+  const manifest = files.find((file)=>file.name==PROJECT_MANIFEST_BASENAME);
+  if( !manifest || !manifest.source ){
+    logError(null, 'Could not read the manifest file.'); // TODO standardize errors.
+    throw Error('Could not read the manifest file.'); // TODO standardize errors.
+  }
+  try {
+    return JSON.parse(manifest.source);
+  } catch (err) {
+    logError(null, 'Could not read the manifest file.'); // TODO standardize errors.
+    throw Error('Could not read the manifest file.'); // TODO standardize errors.
+  }
+}
+
 
 // Manifest Generator
 // Generated with:
