@@ -77,7 +77,7 @@ clasp
 - [`clasp create [--title <title>] [--type <type>] [--rootDir <dir>] [--parentid <id>]`](#create)
 - [`clasp clone <scriptId | scriptURL>`](#clone)
 - [`clasp pull [--versionNumber]`](#pull)
-- [`clasp push [--watch]`](#push)
+- [`clasp push [--watch] [--force]`](#push)
 - [`clasp status`](#status)
 - [`clasp open [scriptId] [--webapp]`](#open)
 - [`clasp deployments`](#deployments)
@@ -186,6 +186,7 @@ Ignores files:
 #### Options
 
 - `--watch`: Watches local file changes. Pushes files every few seconds.
+- `-f` `--force`: Forcibly overwrites the remote manifest.
 
 #### Examples
 
