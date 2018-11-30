@@ -128,7 +128,7 @@ export async function readRemoteManifest() : Promise<Manifest>  {
 export async function manifestHasChanges() : Promise<boolean>{
   const localManifest = await readManifest();
   const remoteManifest = await readRemoteManifest();
-  return !deepEqual(localManifest,remoteManifest) 
+  return !deepEqual(localManifest, remoteManifest);
 }
 
 // Manifest Generator

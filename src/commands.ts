@@ -22,7 +22,12 @@ import {
 } from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
-import { enableOrDisableAdvanceServiceInManifest, manifestExists, readManifest, manifestHasChanges } from './manifest';
+import {
+  enableOrDisableAdvanceServiceInManifest,
+  manifestExists,
+  readManifest,
+  manifestHasChanges,
+} from './manifest';
 import {
   ERROR,
   LOG,
@@ -86,7 +91,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
       },
     ]) as {overwrite:boolean};
     return answers.overwrite;
-  }
+  };
 
   if (cmd.watch) {
     console.log(LOG.PUSH_WATCH);
