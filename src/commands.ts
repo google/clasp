@@ -81,7 +81,6 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
   const { rootDir } = await getProjectSettings();
 
   const confirmManifestUpdate = async () => {
-    if( ! await manifestHasChanges() ) return false;
     const answers = await prompt([
       {
         name: 'overwrite',
@@ -97,7 +96,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
     console.log(LOG.PUSH_WATCH);
     const patterns = await DOTFILE.IGNORE();
     // @see https://www.npmjs.com/package/watch
-    watchTree(rootDir || '.', (f, curr, prev) => {
+    watchTree(rootDir || '.', async (f, curr, prev) => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
@@ -106,7 +105,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
           return;
         }
       }
-      if( cmd.force || !confirmManifestUpdate() ){
+      if( !cmd.force && await manifestHasChanges() && !await confirmManifestUpdate() ){
         console.log('Stoping push...');
         return;
       }
@@ -114,7 +113,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
       pushFiles(cmd.force);
     });
   } else {
-    if( cmd.force || !confirmManifestUpdate() ){
+    if( !cmd.force && await manifestHasChanges() && !await confirmManifestUpdate() ){
       console.log('Stoping push...');
       return;
     }
