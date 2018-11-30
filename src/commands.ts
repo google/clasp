@@ -69,7 +69,7 @@ export const pull = async (cmd: { versionNumber: number }) => {
  * TODO: Only push the specific files that changed (rather than all files).
  * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export const push = async (cmd: { watch: boolean }) => {
+export const push = async (cmd: { watch: boolean, force: boolean }) => {
   await checkIfOnline();
   await loadAPICredentials();
   await validateManifest();
@@ -88,11 +88,10 @@ export const push = async (cmd: { watch: boolean }) => {
         }
       }
       console.log(LOG.PUSHING);
-      pushFiles();
+      pushFiles(cmd.force);
     });
   } else {
-    spinner.setSpinnerTitle(LOG.PUSHING).start();
-    pushFiles();
+    pushFiles(cmd.force);
   }
 };
 
