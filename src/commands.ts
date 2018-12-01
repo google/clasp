@@ -105,20 +105,20 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
           return;
         }
       }
-      if( !cmd.force && await manifestHasChanges() && !await confirmManifestUpdate() ){
+      if(!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()){
         console.log('Stoping push...');
         return;
       }
       console.log(LOG.PUSHING);
-      pushFiles(cmd.force);
+      pushFiles();
     });
   } else {
-    if( !cmd.force && await manifestHasChanges() && !await confirmManifestUpdate() ){
+    if(!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()){
       console.log('Stoping push...');
       return;
     }
     spinner.setSpinnerTitle(LOG.PUSHING).start();
-    pushFiles(cmd.force);
+    pushFiles();
   }
 };
 
