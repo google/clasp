@@ -401,7 +401,7 @@ When running `clone` or `create`, a file named `.clasp.json` is created in the c
 {
   "scriptId": "",
   "rootDir": "build/",
-  "projectId": "",
+  "projectId": "project-id-xxxxxxxxxxxxxxxxxxx",
   "fileExtension": "ts",
   "filePushOrder": ["file1.ts", "file2.ts"]
 }
