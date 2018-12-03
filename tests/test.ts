@@ -328,8 +328,6 @@ describe('Test clasp status function', () => {
     ]);
     spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
-    console.log(result.stdout);
-    console.log(result.stderr);
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members(['dist/shouldBeIgnored', 'dist/should/alsoBeIgnored']);
@@ -795,7 +793,8 @@ describe('Test clasp logout function', () => {
   after(cleanup);
 });
 
-describe('Test clasp run function', () => {
+// Skipping for now because you still need to deploy function using GUI
+describe.skip('Test clasp run function', () => {
   before(function () {
     if (isPR !== 'false') {
       this.skip();
