@@ -142,11 +142,13 @@ commander
  * - That are ignored (filename matches a glob pattern in the ignore file)
  * @example push
  * @example push --watch
+ * @example push --force
  */
 commander
   .command('push')
   .description('Update the remote project')
   .option('--watch', 'Watches for local file changes. Pushes when a non-ignored file changs.')
+  .option('-f, --force', 'Forcibly overwrites the remote manifest.')
   .action(handleError(push));
 
 /**
