@@ -89,7 +89,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
     const remoteFiles = await fetchProject(scriptId, undefined, true);
     const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);
     if(!remoteManifest) throw Error('remote manifest no found');
-    return localManifest === remoteManifest.source;
+    return localManifest !== remoteManifest.source;
   };
 
   const confirmManifestUpdate = async (): Promise<boolean> => {
