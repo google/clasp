@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, writeFile } from 'fs';
 /**
  * Clasp command method bodies.
  */
@@ -8,6 +8,7 @@ import * as del from 'del';
 import * as fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
+import * as path from 'path';
 import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
@@ -21,17 +22,17 @@ import {
   serviceUsage,
 } from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
-import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
+import { fetchProject, getProjectFiles, hasProject, pushFiles, writeProjectFiles } from './files';
 import {
   enableOrDisableAdvanceServiceInManifest,
   manifestExists,
   readManifest,
-  manifestHasChanges,
 } from './manifest';
 import {
   ERROR,
   LOG,
   PROJECT_MANIFEST_BASENAME,
+  PROJECT_MANIFEST_FILENAME,
   URL,
   checkIfOnline,
   getDefaultProjectName,
@@ -65,7 +66,8 @@ export const pull = async (cmd: { versionNumber: number }) => {
   const { scriptId, rootDir } = await getProjectSettings();
   if (scriptId) {
     spinner.setSpinnerTitle(LOG.PULLING);
-    fetchProject(scriptId, rootDir, cmd.versionNumber);
+    const files = await fetchProject(scriptId, cmd.versionNumber);
+    await writeProjectFiles(files, rootDir);
   }
 };
 
@@ -80,7 +82,17 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
   await validateManifest();
   const { rootDir } = await getProjectSettings();
 
-  const confirmManifestUpdate = async () => {
+  const manifestHasChanges = async (): Promise<boolean> => {
+    const { scriptId, rootDir } = await getProjectSettings();
+    const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
+    const localManifest = readFileSync(localManifestPath, 'utf8');
+    const remoteFiles = await fetchProject(scriptId, undefined, true);
+    const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);
+    if(!remoteManifest) throw Error('remote manifest no found');
+    return localManifest === remoteManifest.source;
+  };
+
+  const confirmManifestUpdate = async (): Promise<boolean> => {
     const answers = await prompt([
       {
         name: 'overwrite',
@@ -223,7 +235,8 @@ export const create = async (cmd: { type: string; title: string; parentId: strin
     const rootDir = cmd.rootDir;
     saveProject(createdScriptId, rootDir);
     if (!manifestExists()) {
-      fetchProject(createdScriptId, rootDir); // fetches appsscript.json, o.w. `push` breaks
+      const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
+      writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
     }
   }
 };
@@ -280,7 +293,8 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
     }
     spinner.setSpinnerTitle(LOG.CLONING);
     saveProject(scriptId);
-    fetchProject(scriptId, '', versionNumber);
+    const files = await fetchProject(scriptId, versionNumber);
+    await writeProjectFiles(files, '');
   }
 };
 
