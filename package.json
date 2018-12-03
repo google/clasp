@@ -44,7 +44,6 @@
     "cli-spinner": "^0.2.8",
     "commander": "^2.15.1",
     "connect": "^3.6.6",
-    "deep-equal": "1.0.1",
     "del": "^3.0.0",
     "dotf": "^1.2.0",
     "ellipsize": "^0.1.0",
