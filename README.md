@@ -425,7 +425,7 @@ Specifies the id of the Google Script project that clasp will target.
 1. Click `Resources > Cloud Platform project...`.
 1. Specify the project ID `project-id-xxxxxxxxxxxxxxxxxxx`.
 
-Now you can run `clasp logs` for this project.
+Even if you do not set this manually, clasp will ask this via a prompt to you at the required time.
 
 ### `fileExtension` (optional)
 
