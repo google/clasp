@@ -1,4 +1,4 @@
-import { readFileSync, writeFile } from 'fs';
+import { readFileSync } from 'fs';
 /**
  * Clasp command method bodies.
  */
