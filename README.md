@@ -378,21 +378,6 @@ If `newValue` is omitted it returns the current setting value
 
 ## Guides
 
-### [Get Project ID](#get-project-id)
-
-1. Run `clasp open`.
-1. Click `Resources > Cloud Platform project...`
-1. Copy the project ID `project-id-xxxxxxxxxxxxxxxxxxx` into `.clasp.json`. It should look like this:
-
-```json
-{
-  "scriptId":"14Ht4FoesbNDhRbbTMI_IyM9uQ27EXIP_p2rK8xCOECg5s9XKpHp4fh3f",
-  "projectId": "project-id-xxxxxxxxxxxxxxxxxxx"
-}
-```
-
-Now you can run `clasp logs` for this project.
-
 ### Ignore File (`.claspignore`)
 
 Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to not upload on `clasp push`. Steps:
@@ -416,6 +401,7 @@ When running `clone` or `create`, a file named `.clasp.json` is created in the c
 {
   "scriptId": "",
   "rootDir": "build/",
+  "projectId": "",
   "fileExtension": "ts",
   "filePushOrder": ["file1.ts", "file2.ts"]
 }
@@ -425,11 +411,21 @@ The following configuration values can be used:
 
 ### `scriptId` (required)
 
-Specifies the id of the Google Script project that clasp will target. It is the part located inbetween `/d/` and `/edit` in your project's URL: `https://script.google.com/d/<SCRIPT_ID>/edit`.
+Specifies the id of the Google Script that clasp will target. It is the part located inbetween `/d/` and `/edit` in your script's URL: `https://script.google.com/d/<SCRIPT_ID>/edit`.
 
 ### `rootDir` (optional)
 
 Specifies the **local** directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
+
+### `projectId` (optional)
+
+Specifies the id of the Google Script project that clasp will target.
+
+1. Run `clasp open`.
+1. Click `Resources > Cloud Platform project...`.
+1. Specify the project ID `project-id-xxxxxxxxxxxxxxxxxxx`.
+
+Now you can run `clasp logs` for this project.
 
 ### `fileExtension` (optional)
 
