@@ -569,7 +569,6 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
     }
   } catch (err) {
     spinner.stop(true);
-    console.log(err);
     if (err) {
       // TODO move these to logError when stable?
       switch (err.code) {
