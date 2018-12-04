@@ -419,7 +419,8 @@ Specifies the **local** directory in which clasp will store your project files. 
 
 ### `projectId` (optional)
 
-Specifies the id of the Google Script project that clasp will target.
+Specifies the id of the Google Cloud Platform project that clasp will target.
+The Google Script project is associated with the Google Cloud Platform.
 
 1. Run `clasp open`.
 1. Click `Resources > Cloud Platform project...`.
