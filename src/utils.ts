@@ -60,6 +60,11 @@ export function getOAuthSettings(): Promise<ClaspToken> {
     });
 }
 
+// Default settings for clasp.json
+export const DEFAULT_SETTINGS = {
+  SRC_PATTERNS: ['src/**','appsscript.json'],
+};
+
 // Helpers to get Apps Script project URLs
 export const URL = {
   CREDS: (projectId: string) => `https://console.developers.google.com/apis/credentials?project=${projectId}`,
@@ -277,6 +282,10 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
       dotfile
         .read()
         .then((settings: ProjectSettings) => {
+          // Settings can have a src directory specified or we will use the default
+          if (!settings.srcPatterns) {
+            settings.srcPatterns = DEFAULT_SETTINGS.SRC_PATTERNS;
+          }
           // Settings must have the script ID. Otherwise we err.
           if (settings.scriptId) {
             resolve(settings);

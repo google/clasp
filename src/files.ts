@@ -2,13 +2,13 @@ import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
 import * as path from 'path';
-import * as recursive from 'recursive-readdir';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import { checkIfOnline, ERROR, getAPIFileType, getProjectSettings, LOG, logError, spinner } from './utils';
 
 const ts2gas = require('ts2gas');
 const readMultipleFiles = require('read-multiple-files');
+const globby = require('globby');
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -50,11 +50,10 @@ export function hasProject(): boolean {
  *   files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
  */
 export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
-  const { filePushOrder } = await getProjectSettings();
+  const { filePushOrder, srcPatterns } = await getProjectSettings();
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-  recursive(rootDir, (err, filePaths) => {
-    if (err) return callback(err, null, null);
+  globby(srcPatterns).then((filePaths:string[]) => {
     // Filter files that aren't allowed.
     DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
       filePaths = filePaths.sort(); // Sort files alphanumerically
@@ -178,7 +177,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
       });
     });
-  });
+  }).catch((err:object) => callback(true, null, null));
 }
 
 /**

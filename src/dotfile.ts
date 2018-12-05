@@ -33,6 +33,7 @@ export interface ProjectSettings {
   projectId?: string;
   fileExtension?: string;
   filePushOrder?: string[];
+  srcPatterns?: string[];
 }
 // Dotfile names
 export const DOT = {

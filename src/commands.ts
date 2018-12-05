@@ -106,14 +106,19 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
 
   if (cmd.watch) {
     console.log(LOG.PUSH_WATCH);
-    const patterns = await DOTFILE.IGNORE();
+    const ignorePatterns = await DOTFILE.IGNORE();
+    const { srcPatterns } = await getProjectSettings();
     // @see https://www.npmjs.com/package/watch
     watchTree(rootDir || '.', async (f, curr, prev) => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
-        if (multimatch([f], patterns).length) {
-          // The file matches the ignored files patterns so we do nothing
+        // multimatch expects string | string[] but srcPatterns is string[] | undefined
+        // @ts-ignore
+        if (!(multimatch([f], srcPatterns).length) || multimatch([f], ignorePatterns).length) {
+          // The file does not match the source patterns OR
+          // The file matches the ignored files patterns
+          // so we do nothing
           return;
         }
       }
