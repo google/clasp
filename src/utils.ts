@@ -335,7 +335,7 @@ export async function saveProject(scriptId: string, rootDir?: string): Promise<P
 }
 
 /**
- * Get Clould Platform project ID of Apps Script from project settings file or prompt for one.
+ * Gets the script's Cloud Platform Project Id from project settings file or prompt for one.
  * @returns {Promise<string>} A promise to get the projectId string.
  */
 export async function getProjectId(promptUser = true): Promise<string> {
