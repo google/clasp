@@ -278,24 +278,23 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
       },
     ]);
     scriptId = answers.scriptId;
-  } else {
-    // We have a scriptId or URL
-    // If we passed a URL, extract the scriptId from that. For example:
-    // https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
-    if (scriptId.length !== 57) {
-      // 57 is the magic number
-      const ids = scriptId.split('/').filter(s => {
-        return s.length === 57;
-      });
-      if (ids.length) {
-        scriptId = ids[0];
-      }
-    }
-    spinner.setSpinnerTitle(LOG.CLONING);
-    saveProject(scriptId);
-    const files = await fetchProject(scriptId, versionNumber);
-    await writeProjectFiles(files, '');
   }
+  // We have a scriptId or URL
+  // If we passed a URL, extract the scriptId from that. For example:
+  // https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
+  if (scriptId.length !== 57) {
+    // 57 is the magic number
+    const ids = scriptId.split('/').filter(s => {
+      return s.length === 57;
+    });
+    if (ids.length) {
+      scriptId = ids[0];
+    }
+  }
+  spinner.setSpinnerTitle(LOG.CLONING);
+  saveProject(scriptId);
+  const files = await fetchProject(scriptId, versionNumber);
+  await writeProjectFiles(files, '');
 };
 
 /**
