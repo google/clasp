@@ -11,3 +11,4 @@ node_modules/
 *.lock
 /tmp
 .clasprc.json
+package-lock.json # use yarn.lock

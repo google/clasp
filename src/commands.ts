@@ -11,6 +11,10 @@ import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
+  enableOrDisableAPI,
+  getFunctionNames,
+} from './apiutils';
+import {
   authorize,
   discovery,
   drive,
@@ -22,7 +26,7 @@ import {
 } from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles } from './files';
-import { enableOrDisableAdvanceServiceInManifest, manifestExists, readManifest } from './manifest';
+import { manifestExists, readManifest } from './manifest';
 import {
   ERROR,
   LOG,
@@ -281,7 +285,21 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
   if (options.creds) {
     // First read the manifest to detect any additional scopes in "oauthScopes" fields.
     // In the script.google.com UI, these are found under File > Project Properties > Scopes
-    const { oauthScopes } = await readManifest();
+    let { oauthScopes } = await readManifest();
+    oauthScopes = oauthScopes || [];
+    oauthScopes = [...oauthScopes, // TEMP
+      // Use the default scopes needed for clasp.
+      'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+      'https://www.googleapis.com/auth/script.projects', // Apps Script management
+      'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+      'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+      'https://www.googleapis.com/auth/drive.file', // Create Drive files
+      'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+      'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+
+      // Extra scope since service.management doesn't work alone
+      'https://www.googleapis.com/auth/cloud-platform',
+    ];
 
     // Read credentials file.
     const credsFile = readFileSync(options.creds, 'utf8');
@@ -289,12 +307,25 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
     await authorize({
       useLocalhost,
       creds: credentials,
-      additionalScopes: oauthScopes,
+      scopes: oauthScopes,
     });
   } else {
     // Not using own credentials
     await authorize({
       useLocalhost,
+      scopes: [
+        // Use the default scopes needed for clasp.
+        'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+        'https://www.googleapis.com/auth/script.projects', // Apps Script management
+        'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+        'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+        'https://www.googleapis.com/auth/drive.file', // Create Drive files
+        'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+        'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+
+        // Extra scope since service.management doesn't work alone
+        'https://www.googleapis.com/auth/cloud-platform',
+      ],
     });
   }
   process.exit(0); // gracefully exit after successful login
@@ -491,52 +522,21 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
 export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   await checkIfOnline();
   await loadAPICredentials();
-  const localScript = await getLocalScript();
   const { scriptId } = await getProjectSettings(true);
-
-  const devMode = !cmd.nondev; // default true
+  const devMode = !cmd.nondev; // defaults to true
 
   // Get the list of functions.
-  if (!functionName) {
-    spinner.setSpinnerTitle(`Getting functions`).start();
-    const content = await script.projects.getContent({
-      scriptId,
-    });
-    spinner.stop(true);
-    if (content.status !== 200) {
-      return logError(content.statusText);
-    }
-    const files = content.data.files || [];
-    type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
-    const functionNames: string[] = files
-      .reduce((functions: TypeFunction[], file) => {
-        if (!file.functionSet || !file.functionSet.values) return functions;
-        return functions.concat(file.functionSet.values);
-      }, [])
-      .map((func: TypeFunction) => func.name) as string[];
-    const answers = await prompt([
-      {
-        name: 'functionName',
-        message: 'Select a functionName',
-        type: 'autocomplete',
-        source: (answers: object, input = '') => {
-          // Returns a Promise
-          // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
-          return new Promise(resolve => {
-            // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
-            const filtered = fuzzy.filter(input, functionNames);
-            const original = filtered.map(el => {
-              return el.original;
-            });
-            resolve(original);
-          });
-        },
-      },
-    ]);
-    functionName = answers.functionName;
-  }
+  if (!functionName) functionName = await getFunctionNames(script, scriptId);
 
-  try {
+  /**
+   * Runs a function.
+   * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
+   */
+  async function runFunction(functionName: string) {
+    // Load local credentials.
+    await loadAPICredentials(true);
+    const localScript = await getLocalScript();
+    
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
     const res = await localScript.scripts.run({
       scriptId,
@@ -550,40 +550,68 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       logError(null, ERROR.RUN_NODATA);
       process.exit(0); // exit gracefully in case localhost server spun up for authorize
     }
-    const data = res.data;
-    // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
-    if (data.response) {
-      if (data.response.result) {
-        console.log(data.response.result);
-      } else {
-        console.log(chalk.red('No response.'));
-      }
-    } else if (data.error && data.error.details) {
-      // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
-      console.error(
-        `${chalk.red('Exception:')}`,
-        data.error.details[0].errorType,
-        data.error.details[0].errorMessage,
-        data.error.details[0].scriptStackTraceElements || [],
-      );
-    }
-  } catch (err) {
-    spinner.stop(true);
-    console.log(err);
-    if (err) {
-      // TODO move these to logError when stable?
-      switch (err.code) {
-        case 401:
-          logError(null, ERROR.UNAUTHENTICATED_LOCAL);
-        case 403:
-          logError(null, ERROR.PERMISSION_DENIED_LOCAL);
-        case 404:
-          logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
-        default:
-          logError(null, `(${err.code}) Error: ${err.message}`);
-      }
+    return res.data;
+  }
+
+  console.log('good');
+  const data = await runFunction(functionName);
+  console.log('ran');
+  if (data.response) {
+    if (data.response.result) {
+      console.log(data.response.result);
+    } else {
+      console.log(chalk.red('No response.'));
     }
   }
+
+  // try {
+  //   let resultHasScopeError = true;
+  //   while (resultHasScopeError) {
+  //     const data = await runFunction(functionName);
+  //     if (data.response) {
+  //       resultHasScopeError = false;
+  //       if (data.response.result) {
+  //         console.log(data.response.result);
+  //       } else {
+  //         console.log(chalk.red('No response.'));
+  //       }
+  //     } else if (data.error && data.error.details) {
+  //       resultHasScopeError = false; // todo
+  //       // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
+  //       // console.error(
+  //       //   `${chalk.red('Exception:')}`,
+  //       //   data.error.details[0].errorType,
+  //       //   data.error.details[0].errorMessage,
+  //       //   data.error.details[0].scriptStackTraceElements || [],
+  //       // );
+  //       const appsScriptErrorPrefix = 'Required permissions: ';
+  //       const errorMessageWithScope = data.error.details[0].errorMessage + '';
+  //       const index = errorMessageWithScope.indexOf(appsScriptErrorPrefix) +
+  //         appsScriptErrorPrefix.length;
+  //       const scope = errorMessageWithScope.substr(index);
+  //     }
+  //   }
+  // } catch (err) {
+  //   spinner.stop(true);
+  //   console.log(err);
+  //   if (err) {
+  //     // TODO move these to logError when stable?
+  //     switch (err.code) {
+  //       case 401:
+  //         logError(null, ERROR.UNAUTHENTICATED_LOCAL);
+  //         break;
+  //       case 403:
+  //         logError(null, ERROR.PERMISSION_DENIED_LOCAL);
+  //         break;
+  //       case 404:
+  //         logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
+  //         break;
+  //       default:
+  //         logError(null, `(${err.code}) Error: ${err.message}`);
+  //         break;
+  //     }
+  //   }
+  // }
 };
 
 /**
@@ -893,42 +921,14 @@ export const apis = async () => {
   await loadAPICredentials();
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
   const serviceName = process.argv[4]; // clasp apis enable drive => "drive"
-  const getProjectIdAndServiceURL = async () => {
-    if (!serviceName) {
-      logError(null, 'An API name is required. Try sheets');
-    }
-    const serviceURL = `${serviceName}.googleapis.com`; // i.e. sheets.googleapis.com
-    const projectId = await getProjectId(); // will prompt user to set up if required
-    if (!projectId) throw logError(null, ERROR.NO_GCLOUD_PROJECT);
-    return [projectId, serviceURL];
-  };
-
-  const enableOrDisableAPI = async (enable: boolean) => {
-    const [projectId, serviceURL] = await getProjectIdAndServiceURL();
-    const name = `projects/${projectId}/services/${serviceURL}`;
-    try {
-      if (enable) {
-        await serviceUsage.services.enable({ name });
-      } else {
-        await serviceUsage.services.disable({ name });
-      }
-      await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
-      console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName}.`);
-    } catch (e) {
-      // If given non-existent API (like fakeAPI, it throws 403 permission denied)
-      // We will log this for the user instead:
-      console.log(e);
-      logError(null, ERROR.NO_API(enable, serviceName));
-    }
-  };
 
   // The apis subcommands.
   const command: { [key: string]: Function } = {
     enable: async () => {
-      enableOrDisableAPI(true);
+      enableOrDisableAPI(serviceName, true);
     },
     disable: async () => {
-      enableOrDisableAPI(false);
+      enableOrDisableAPI(serviceName, false);
     },
     list: async () => {
       await checkIfOnline();

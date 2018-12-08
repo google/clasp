@@ -1,8 +1,8 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
-import * as fs from 'fs';
 import { prompt } from 'inquirer';
-import * as path from 'path';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 
@@ -43,20 +43,17 @@ export const hasOauthClientSettings = (local = false): boolean =>
 
 /**
  * Gets the OAuth client settings from rc file.
+ * @param {boolean} local If true, gets the local OAuth settings. Global otherwise.
  * Should be used instead of `DOTFILE.RC?().read()`
- * TODO sanity checks & single ClaspSettings iface with backwards compatibility
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
-export function getOAuthSettings(): Promise<ClaspToken> {
-  return DOTFILE.RC_LOCAL()
-    .read()
+export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
+  console.log(local);
+  const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
+  return RC.read()
     .then((rc: ClaspToken) => rc)
     .catch((err: any) => {
-      return DOTFILE.RC.read()
-        .then((rc: ClaspToken) => rc)
-        .catch((err: any) => {
-          logError(err, ERROR.NO_CREDENTIALS);
-        });
+      logError(err, ERROR.NO_CREDENTIALS(local));
     });
 }
 
@@ -98,7 +95,8 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
   NO_API: (enable: boolean, api: string) =>
     `API ${api} doesn\'t exist. Try \'clasp apis ${enable ? 'enable' : 'disable'} sheets\'.`,
-  NO_CREDENTIALS: 'Could not read API credentials. Are you logged in?',
+  NO_CREDENTIALS: (local:boolean) => `Could not read API credentials. ` +
+    `Are you logged in ${local ? 'locall' : 'globall'}y?`,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
@@ -110,7 +108,9 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
-  PERMISSION_DENIED_LOCAL: `Error: Permission denied. Enable required APIs (eg. Script/Logging) for project.`,
+  PERMISSION_DENIED_LOCAL: `Error: Permission denied. Be sure that you have\n` +
+    `- Added the necessary scopes needed for the API.\n` +
+    `- Enable required APIs for project.`,
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:\n${URL.SCRIPT_API_USER}`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   RUN_NODATA: 'Script execution API returned no data.',
@@ -142,7 +142,7 @@ export const LOG = {
     `Created new ${getScriptTypeName(filetype)} script: ${URL.SCRIPT(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
   CREDENTIALS_FOUND: 'Credentials found, using those to login...',
-  CREDS_FROM_PROJECT: (projectId: string) => `${URL.CREDS(projectId)}\n` ,
+  CREDS_FROM_PROJECT: (projectId: string) => `Using credentials located here:\n${URL.CREDS(projectId)}\n` ,
   DEFAULT_CREDENTIALS: 'No credentials given, continuing with default...',
   DEPLOYMENT_CREATE: 'Creating deployment...',
   DEPLOYMENT_DNE: 'No deployed versions of script.',

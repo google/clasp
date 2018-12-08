@@ -107,7 +107,7 @@ Logs the user in. Saves the client credentials to a `.clasprc.json` file.
 #### Options
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
-- `--creds <file>`: Use custom credentials. Saves a `.clasprc.json` file to current working directory. This file should be private!
+- `--creds <file>`: Use custom credentials used for `clasp run`. Saves a `.clasprc.json` file to current working directory. This file should be private!
 
 ### Logout
 
