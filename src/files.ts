@@ -1,11 +1,11 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
-import * as path from 'path';
 import * as recursive from 'recursive-readdir';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import { checkIfOnline, ERROR, getAPIFileType, getProjectSettings, LOG, logError, spinner } from './utils';
+import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
 
 const ts2gas = require('ts2gas');
 const readMultipleFiles = require('read-multiple-files');
@@ -212,13 +212,13 @@ export async function fetchProject(
   await loadAPICredentials();
   spinner.start();
   let res;
-  try{
+  try {
     res = await script.projects.getContent({
       scriptId,
       versionNumber,
     });
-  }catch(error){
-    if(error.statusCode === 404){
+  } catch (error) {
+    if (error.statusCode === 404) {
       throw Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
     throw Error(ERROR.SCRIPT_ID);
@@ -226,7 +226,7 @@ export async function fetchProject(
   spinner.stop(true);
   const data = res.data;
   if (!data.files) throw Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  if(!silent) console.log(LOG.CLONE_SUCCESS(data.files.length));
+  if (!silent) console.log(LOG.CLONE_SUCCESS(data.files.length));
   return data.files as AppsScriptFile[];
 }
 
@@ -235,9 +235,9 @@ export async function fetchProject(
  * @param {AppsScriptFile[]} Files to wirte
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
-export async function writeProjectFiles(files:AppsScriptFile[], rootDir = ''){
+export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
   const { fileExtension } = await getProjectSettings();
-  const sortedFiles = files.sort((file1,file2) => file1.name.localeCompare(file2.name));
+  const sortedFiles = files.sort((file1, file2) => file1.name.localeCompare(file2.name));
   sortedFiles.map((file: AppsScriptFile) => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
@@ -256,49 +256,46 @@ export async function writeProjectFiles(files:AppsScriptFile[], rootDir = ''){
 /**
  * Pushes project files to script.google.com.
  */
-export async function pushFiles() {
+export async function pushFiles(cb?: Function) {
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
-  getProjectFiles(rootDir, (err, projectFiles, files = []) => {
+  getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     if (err) {
       logError(err, LOG.PUSH_FAILURE);
       spinner.stop(true);
     } else if (projectFiles) {
       const [nonIgnoredFilePaths] = projectFiles;
       const filesForAPI: any = files;
-      script.projects.updateContent(
-        {
+      await script.projects.updateContent({
+        scriptId,
+        requestBody: {
           scriptId,
-          requestBody: {
-            scriptId,
-            files: filesForAPI,
-          },
+          files: filesForAPI,
         },
-        {},
-        (error: any) => {
-          spinner.stop(true);
-          // In the following code, we favor console.error()
-          // over logError() because logError() exits, whereas
-          // we want to log multiple lines of messages, and
-          // eventually exit after logging everything.
-          if (error) {
-            console.error(LOG.PUSH_FAILURE);
-            error.errors.map((err: any) => {
-              console.error(err.message);
-            });
-            console.error(LOG.FILES_TO_PUSH);
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.error(`└─ ${filePath}`);
-            });
-            process.exit(1);
-          } else {
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.log(`└─ ${filePath}`);
-            });
-            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-          }
-        },
-      );
+      }, {}, (error: any) => {
+        spinner.stop(true);
+        if (cb) cb();
+        // In the following code, we favor console.error()
+        // over logError() because logError() exits, whereas
+        // we want to log multiple lines of messages, and
+        // eventually exit after logging everything.
+        if (error) {
+          console.error(LOG.PUSH_FAILURE);
+          error.errors.map((err: any) => {
+            console.error(err.message);
+          });
+          console.error(LOG.FILES_TO_PUSH);
+          nonIgnoredFilePaths.map((filePath: string) => {
+            console.error(`└─ ${filePath}`);
+          });
+          process.exit(1);
+        } else {
+          nonIgnoredFilePaths.map((filePath: string) => {
+            console.log(`└─ ${filePath}`);
+          });
+          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+        }
+      });
     }
   });
 }

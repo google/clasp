@@ -28,7 +28,9 @@ import {
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles, writeProjectFiles } from './files';
 import {
+  enableExecutionAPI,
   enableOrDisableAdvanceServiceInManifest,
+  isValidManifest,
   manifestExists,
   readManifest,
 } from './manifest';
@@ -44,7 +46,6 @@ import {
   getProjectSettings,
   getWebApplicationURL,
   hasOauthClientSettings,
-  isValidManifest,
   logError,
   saveProject,
   spinner,
@@ -569,7 +570,16 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   // "executionApi": {
   //   "access": "MYSELF"
   // }
-  await isValidManifest(true);
+  await isValidManifest();
+  await enableExecutionAPI();
+
+  // Pushes the latest code if in dev mode.
+  // We need to update the manifest before executing to:
+  // - Ensure the execution API is enambled.
+  // - Ensure we can run functions that were developed locally but not pushed.
+  if (devMode) {
+    await pushFiles();
+  }
 
   // Get the list of functions.
   if (!functionName) functionName = await getFunctionNames(script, scriptId);
@@ -631,8 +641,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       }
     }
   }
-  const data = await runFunction(functionName);
-  console.log(data);
+  await runFunction(functionName);
 };
 
 /**
