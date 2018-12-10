@@ -12,10 +12,10 @@
  * This should be the only file that uses DOTFILE.
  */
 import * as fs from 'fs';
-import { Credentials } from 'google-auth-library';
-import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 import * as os from 'os';
 import * as path from 'path';
+import { Credentials } from 'google-auth-library';
+import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 
 const dotf = require('dotf');
 const read = require('read-file');
@@ -100,7 +100,7 @@ export const DOTFILE = {
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
   RC_LOCAL: () => {
-    const localDirectory: string = findParentDir.sync(process.cwd(), DOT.RC.LOCAL_PATH) || DOT.RC.LOCAL_DIR;
+    const localDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.RC.LOCAL_DIR;
     return dotf(localDirectory, DOT.RC.NAME);
   },
 };

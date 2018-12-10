@@ -107,7 +107,7 @@ Logs the user in. Saves the client credentials to a `.clasprc.json` file.
 #### Options
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
-- `--creds <file>`: Use custom credentials. Saves a `.clasprc.json` file to current working directory. This file should be private!
+- `--creds <file>`: Use custom credentials used for `clasp run`. Saves a `.clasprc.json` file to current working directory. This file should be private!
 
 ### Logout
 
@@ -324,6 +324,13 @@ To use this command you must:
 1. Log in with your credentials (`clasp login --creds creds.json`)
 1. Deploy the Script as an API executable (Easist done via GUI at the moment).
 1. Enable any APIs that are used by the script.
+1. Have the following in your `appsscript.json`:
+
+```json
+"executionApi": {
+  "access": "ANYONE"
+}
+```
 
 #### Options
 

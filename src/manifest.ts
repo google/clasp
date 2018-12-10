@@ -1,9 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { DOT } from './dotfile';
-import { ERROR, getProjectSettings, logError, PROJECT_MANIFEST_FILENAME } from './utils';
+import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, logError } from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -14,7 +13,7 @@ export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
 
 /**
  * Reads the appsscript.json manifest file.
- * @returns {Promise} A promise to get the manifest file as object.
+ * @returns {Promise<Manifest>} A promise to get the manifest file as object.
  * @see https://developers.google.com/apps-script/concepts/manifests
  */
 export async function readManifest(): Promise<Manifest> {
@@ -42,6 +41,38 @@ export async function writeManifest(manifest: Manifest) {
   } catch (err) {
     logError(null, ERROR.FS_FILE_WRITE);
   }
+}
+
+/**
+ * Returns true if the manifest is valid.
+ * The manifest is valid if it:
+ * - It exists in the project root.
+ * - Is valid JSON.
+ */
+export async function isValidManifest(): Promise<boolean> {
+  let { rootDir } = await getProjectSettings();
+  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
+  const manifest = fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
+  let manifestJSON: Manifest;
+  try {
+    manifestJSON = JSON.parse(manifest);
+  } catch (err) {
+    logError(err, ERROR.BAD_MANIFEST);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Enables the Execution API in the Manifest.
+ * The Execution API requires the manifest to have the "executionApi.access" field set.
+ */
+export async function enableExecutionAPI() {
+  const manifest = await readManifest();
+  manifest.executionApi = manifest.executionApi || {
+    access: 'ANYONE',
+  };
+  await writeManifest(manifest);
 }
 
 /**
@@ -220,7 +251,7 @@ interface ExecutionApi {
   access: string;
 }
 
-interface Unconditional {}
+interface Unconditional { }
 
 interface ContextualTrigger {
   unconditional: Unconditional;
@@ -273,7 +304,7 @@ interface Gmail {
   sheets: Sheets;
 }
 
-interface Manifest {
+export interface Manifest {
   timeZone?: string;
   oauthScopes?: string[];
   dependencies?: Dependencies;
