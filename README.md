@@ -130,9 +130,9 @@ Creates a new script project. Prompts the user for the script type if not specif
 #### Options
 
 - `--type [docs/sheets/slides/forms]`: If specified, creates a new add-on attached to a Document, Spreadsheet, Presentation, or Form. If `--parentId` is specified, this value is ignored.
-- `--title`: A project title.
-- `--rootDir`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
-- `--parentId`: A project parent Id.
+- `--title <title>`: A project title.
+- `--rootDir <dir>`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
+- `--parentId <id>`: A project parent Id.
   - The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
 
 #### Examples
@@ -224,7 +224,7 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 #### Options
 
 - `scriptId`: The optional script project to open.
-- `webapp`: open web application in a browser.
+- `--webapp`: open web application in a browser.
 - `--creds`: Open the URL to create credentials.
 
 #### Examples
