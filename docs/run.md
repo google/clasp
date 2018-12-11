@@ -13,18 +13,18 @@ To use `clasp run`, you need to complete 3 steps:
 #### Setup Instructions
 
 1. Ensure you have upgrade to clasp >= 2.0.0
-  - `clasp -v`
+    - `clasp -v`
 1. Add a `projectId` to your `.clasp.json`. You can find your Project ID via:
-  - `clasp open`
-  - In the menu, click `Resources > Cloud Platform project...`
-  - Copy the project ID. Example: `project-id-7006438181792679938`.
-  - Paste this in `projectId` in your `.clasp.json`.
+    - `clasp open`
+    - In the menu, click `Resources > Cloud Platform project...`
+    - Copy the project ID. Example: `project-id-7006438181792679938`.
+    - Paste this in `projectId` in your `.clasp.json`.
 1. Use your own OAuth 2 client. Create one by following these instructions:
-  - `clasp open --creds`
+    - `clasp open --creds`
 1. Press **Create credentials** > OAuth client ID
-  - Application type: **Other**
-  - **Create** > **OK**
-  - Download the file and name it `creds.json`
+    - Application type: **Other**
+    - **Create** > **OK**
+    - Download the file and name it `creds.json`
 
 ### Run a function
 
