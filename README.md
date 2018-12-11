@@ -48,7 +48,7 @@ clear
 - Interfaces
 - [And more...](docs/typescript.md)
 
-**Execute Apps Script from the Command Line:** Features:
+**➡️ Run Apps Script:** Execute your Apps Script from the command line. Features:
 - _Instant_ deployment.
 - Suggested functions Autocomplete (Fuzzy)
 - Easyily add custom Google OAuth scopes
