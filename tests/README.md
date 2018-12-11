@@ -50,7 +50,7 @@ Now move `.clasprc.json.enc` to the `/tests/` folder:
 ```
 rm ./tests/.clasprc.json.enc
 cp .clasprc.json.enc ./tests/.clasprc.json.enc
-rm ./clasp.json.enc
+rm ./.clasprc.json.enc
 ```
 
 And edit the `openssl` command in `.travis.yml` file:
