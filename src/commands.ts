@@ -28,6 +28,7 @@ import {
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles, writeProjectFiles } from './files';
 import {
+  addScopeToManifest,
   enableExecutionAPI,
   enableOrDisableAdvanceServiceInManifest,
   isValidManifest,
@@ -93,7 +94,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
     const localManifest = readFileSync(localManifestPath, 'utf8');
     const remoteFiles = await fetchProject(scriptId, undefined, true);
     const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);
-    if(!remoteManifest) throw Error('remote manifest no found');
+    if (!remoteManifest) throw Error('remote manifest no found');
     return localManifest !== remoteManifest.source;
   };
 
@@ -105,7 +106,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
         message: 'Manifest file has been updated. Do you want to push and overwrite?',
         default: false,
       },
-    ]) as {overwrite:boolean};
+    ]) as { overwrite: boolean };
     return answers.overwrite;
   };
 
@@ -122,7 +123,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
           return;
         }
       }
-      if(!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()){
+      if (!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()) {
         console.log('Stoping push...');
         return;
       }
@@ -130,7 +131,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
       pushFiles();
     });
   } else {
-    if(!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()){
+    if (!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()) {
       console.log('Stoping push...');
       return;
     }
@@ -313,8 +314,8 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
   const isLocalLogin = !!options.creds;
   const loggedInLocal = hasOauthClientSettings(true);
   const loggedInGlobal = hasOauthClientSettings(false);
-  if (isLocalLogin && loggedInLocal) logError(null, ERROR.LOGGED_IN_LOCAL);
-  if (!isLocalLogin && loggedInGlobal) logError(null, ERROR.LOGGED_IN_GLOBAL);
+  if (isLocalLogin && loggedInLocal) console.warn(ERROR.LOGGED_IN_LOCAL);
+  if (!isLocalLogin && loggedInGlobal) console.warn(ERROR.LOGGED_IN_GLOBAL);
   console.log(LOG.LOGIN(isLocalLogin));
   await checkIfOnline();
 
@@ -327,19 +328,24 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
     // In the script.google.com UI, these are found under File > Project Properties > Scopes
     let { oauthScopes } = await readManifest();
     oauthScopes = oauthScopes || [];
-    oauthScopes = [...oauthScopes, // TEMP
-      // Use the default scopes needed for clasp.
-      'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
-      'https://www.googleapis.com/auth/script.projects', // Apps Script management
-      'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
-      'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
-      'https://www.googleapis.com/auth/drive.file', // Create Drive files
-      'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
-      'https://www.googleapis.com/auth/logging.read', // StackDriver logs
 
-      // Extra scope since service.management doesn't work alone
-      'https://www.googleapis.com/auth/cloud-platform',
-    ];
+    // Google OAuth requires >= 1 scope. Add a random scope and warn the user.
+    if (oauthScopes.length === 0) {
+      console.warn(`Google needs to authenticate with >= 1 scope.
+As such, we're logging in with (random) scope: drive.metadata.readonly`);
+      oauthScopes = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
+    } else {
+      console.log('');
+      console.log(`Authorizing with the following scopes:`);
+      oauthScopes.map((scope) => {
+        console.log(scope);
+      });
+      console.log('');
+      console.log(`NOTE: The full list of scopes you're project may need` +
+      ` can be found at script.google.com under:`);
+      console.log(`File > Project Properties > Scopes`);
+      console.log('');
+    }
 
     // Read credentials file.
     const credsFile = readFileSync(options.creds, 'utf8');
@@ -578,7 +584,8 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   // - Ensure the execution API is enambled.
   // - Ensure we can run functions that were developed locally but not pushed.
   if (devMode) {
-    await pushFiles();
+    // TODO enable this once we can properly await pushFiles
+    // await pushFiles(true);
   }
 
   // Get the list of functions.
@@ -625,12 +632,53 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
       }
     } catch (err) {
       spinner.stop(true);
-      console.log(err);
       if (err) {
         // TODO move these to logError when stable?
         switch (err.code) {
           case 401:
-            logError(null, ERROR.UNAUTHENTICATED_LOCAL);
+            // The 401 is probably due to this error:
+            // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
+            // This is probably due to the OAuth client not having authorized scopes.
+            console.log(`` +
+              `Hey! It looks like you aren't authenticated for the scopes required by this script.
+Please enter the scopes by doing the following:
+1. Open Your Script: ${URL.SCRIPT(scriptId)}
+2. File > Project Properties > Scopes
+3. Copy/Paste the list of scopes here:
+              ~ Example ~
+https://mail.google.com/
+https://www.googleapis.com/auth/presentations
+----(When you're done, press <Enter> 2x)----`);
+            // Example scopes:
+            // https://mail.google.com/
+            // https://www.googleapis.com/auth/presentations
+            // https://www.googleapis.com/auth/spreadsheets
+            const readline = require('readline');
+            const scopes:string[] = [];
+            const rl = readline.createInterface({
+                input: process.stdin,
+                output: process.stdout,
+                prompt: '',
+            });
+            rl.prompt();
+            rl.on('line', (cmd: string) => {
+              if (cmd === '') {
+                rl.close();
+              } else {
+                scopes.push(cmd);
+              }
+            });
+            rl.on('close', async () => {
+              await addScopeToManifest(scopes);
+              const numScopes = scopes.length;
+              console.log(`Added ${numScopes} ` +
+                `${pluralize('scope', numScopes)} to your appsscript.json' oauthScopes`);
+              console.log('Please `clasp login --creds <file>` to log in with these new scopes.');
+            });
+            // We probably don't need to show the unauth error
+            // since we always prompt the user to fix this now.
+            // logError(null, ERROR.UNAUTHENTICATED_LOCAL);
+            break;
           case 403:
             logError(null, ERROR.PERMISSION_DENIED_LOCAL);
           case 404:
@@ -891,20 +939,36 @@ export const status = async (cmd: { json: boolean }) => {
 /**
  * Opens an Apps Script project's script.google.com editor.
  * @param scriptId {string} The Apps Script project to open.
- * @param cmd.open {boolean} If true, the command will open the webapps URL.
+ * @param cmd.webapp {boolean} If true, the command will open the webapps URL.
+ * @param cmd.creds {boolean} If true, the command will open the credentials URL.
  */
-export const openCmd = async (scriptId: any, cmd: { webapp: boolean }) => {
+export const openCmd = async (scriptId: any, cmd: {
+  webapp: boolean,
+  creds: boolean,
+}) => {
   await checkIfOnline();
-  if (!scriptId) scriptId = (await getProjectSettings()).scriptId;
+  const projectSettings = await getProjectSettings();
+  if (!scriptId) scriptId = projectSettings.scriptId;
   if (scriptId.length < 30) {
     return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
+  // We've specified to open creds.
+  if (cmd.creds) {
+    const projectId = projectSettings.projectId;
+    if (!projectId) {
+      return logError(null, ERROR.NO_GCLOUD_PROJECT);
+    }
+    console.log(LOG.OPEN_CREDS(projectId));
+    return open(URL.CREDS(projectId), { wait: false });
+  }
+
   // If we're not a web app, open the script URL.
   if (!cmd.webapp) {
     console.log(LOG.OPEN_PROJECT(scriptId));
     return open(URL.SCRIPT(scriptId), { wait: false });
   }
-  // Otherwise, open the latest deployment.
+
+  // Web app: Otherwise, open the latest deployment.
   await loadAPICredentials();
   const deploymentsList = await script.projects.deployments.list({
     scriptId,

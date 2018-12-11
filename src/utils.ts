@@ -157,6 +157,7 @@ export const LOG = {
   LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}...`,
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
+  OPEN_CREDS: (projectId: string) => `Opening credentials page: ${URL.CREDS(projectId)}`,
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${URL.SCRIPT(scriptId)}`,
   OPEN_WEBAPP: (deploymentId?: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
@@ -182,7 +183,6 @@ export const LOG = {
   VERSION_DESCRIPTION: ({ versionNumber, description }: any) =>
     `${versionNumber} - ` + (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
-  SETUP_LOCAL_OAUTH_STEP_1: `\n${chalk.yellow('BASIC SCRIPT EXECUTION API SETUP')}\n`,
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
     Open this link: ${chalk.blue(URL.CREDS(projectId))}
     Click ${chalk.cyan('Create credentials')}, then select ${chalk.yellow('OAuth client ID')}.

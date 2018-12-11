@@ -64,6 +64,19 @@ export async function isValidManifest(): Promise<boolean> {
 }
 
 /**
+ * Adds a list of scopes to the manifest.
+ * @param {string[]} scopes The list of explicit scopes
+ */
+export async function addScopeToManifest(scopes: string[]) {
+  const manifest = await readManifest();
+  const oldScopes = manifest.oauthScopes || [];
+  const newScopes = oldScopes.concat(scopes);
+  const uniqueNewScopes = Array.from(new Set(newScopes));
+  manifest.oauthScopes = uniqueNewScopes;
+  await writeManifest(manifest);
+}
+
+/**
  * Enables the Execution API in the Manifest.
  * The Execution API requires the manifest to have the "executionApi.access" field set.
  */

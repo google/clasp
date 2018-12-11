@@ -177,6 +177,7 @@ commander
   .command('open [scriptId]')
   .description('Open a script')
   .option('--webapp', 'Open web application in browser')
+  .option('--creds', 'Open the URL to create credentials')
   .action(handleError(openCmd));
 
 /**

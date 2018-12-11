@@ -48,6 +48,12 @@ clear
 - Interfaces
 - [And more...](docs/typescript.md)
 
+**Execute Apps Script from the Command Line:** Features:
+- _Instant_ deployment.
+- Suggested functions Autocomplete (Fuzzy)
+- Easyily add custom Google OAuth scopes
+- [And more...](docs/run.md)
+
 ## Install
 
 First download `clasp`:

@@ -48,6 +48,7 @@ export function hasProject(): boolean {
  *   error: Error if there's an error, otherwise null
  *   result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
  *   files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
+ * @todo Make this function actually return a Promise that can be awaited.
  */
 export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
   const { filePushOrder } = await getProjectSettings();
@@ -255,10 +256,12 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
 
 /**
  * Pushes project files to script.google.com.
+ * @param {boolean} silent If true, doesn't console.log any success message.
  */
-export async function pushFiles(cb?: Function) {
+export async function pushFiles(silent = false) {
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
+  // TODO Make getProjectFiles async
   getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     if (err) {
       logError(err, LOG.PUSH_FAILURE);
@@ -273,8 +276,7 @@ export async function pushFiles(cb?: Function) {
           files: filesForAPI,
         },
       }, {}, (error: any) => {
-        spinner.stop(true);
-        if (cb) cb();
+        if (!silent) spinner.stop(true);
         // In the following code, we favor console.error()
         // over logError() because logError() exits, whereas
         // we want to log multiple lines of messages, and
@@ -290,10 +292,13 @@ export async function pushFiles(cb?: Function) {
           });
           process.exit(1);
         } else {
-          nonIgnoredFilePaths.map((filePath: string) => {
-            console.log(`└─ ${filePath}`);
-          });
-          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+          // no error
+          if (!silent) {
+            nonIgnoredFilePaths.map((filePath: string) => {
+              console.log(`└─ ${filePath}`);
+            });
+            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
+          }
         }
       });
     }

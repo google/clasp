@@ -210,11 +210,12 @@ async function authorizeWithLocalhost(
     const s = http.createServer();
     s.listen(0, () => resolve(s));
   });
-  const port = (server.address() as AddressInfo).port; // (Cast from <string | AddressInfo>)
+  const port = (server.address() as AddressInfo).port;
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: `http://localhost:${port}`,
   });
+  // TODO Add spinner
   const authCode = await new Promise<string>((res, rej) => {
     server.on('request', (req: http.ServerRequest, resp: http.ServerResponse) => {
       const urlParts = url.parse(req.url || '', true);
@@ -248,6 +249,7 @@ async function authorizeWithoutLocalhost(
   });
   const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOpts);
   console.log(LOG.AUTHORIZE(authUrl));
+  // TODO Add spinner
   const authCode = await new Promise<string>((res, rej) => {
     const rl = readline.createInterface({
       input: process.stdin,
