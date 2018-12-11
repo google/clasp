@@ -48,12 +48,16 @@ export const hasOauthClientSettings = (local = false): boolean =>
  * Should be used instead of `DOTFILE.RC?().read()`
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
-export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
-  const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC.read()
+export function getOAuthSettings(): Promise<ClaspToken> {
+  return DOTFILE.RC_LOCAL()
+    .read()
     .then((rc: ClaspToken) => rc)
     .catch((err: any) => {
-      logError(err, ERROR.NO_CREDENTIALS(local));
+      return DOTFILE.RC.read()
+        .then((rc: ClaspToken) => rc)
+        .catch((err: any) => {
+          logError(err, ERROR.NO_CREDENTIALS);
+        });
     });
 }
 
@@ -95,8 +99,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
   NO_API: (enable: boolean, api: string) =>
     `API ${api} doesn\'t exist. Try \'clasp apis ${enable ? 'enable' : 'disable'} sheets\'.`,
-  NO_CREDENTIALS: (local:boolean) => `Could not read API credentials. ` +
-    `Are you logged in ${local ? 'locall' : 'globall'}y?`,
+  NO_CREDENTIALS: `Could not read API credentials. `,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,

@@ -187,9 +187,9 @@ export async function authorize(options: {
  * Loads the Apps Script API credentials for the CLI.
  * Required before every API call.
  */
-export async function loadAPICredentials(local = false): Promise<ClaspToken> {
+export async function loadAPICredentials(): Promise<ClaspToken> {
   // Gets the OAuth settings. May be local or global.
-  const rc: ClaspToken = await getOAuthSettings(local);
+  const rc: ClaspToken = await getOAuthSettings();
   await setOauthClientCredentials(rc);
   return rc;
 }
