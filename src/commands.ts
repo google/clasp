@@ -598,7 +598,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   async function runFunction(functionName: string) {
     try {
       // Load local credentials.
-      await loadAPICredentials();
+      await loadAPICredentials(true);
       const localScript = await getLocalScript();
       spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
       const res = await localScript.scripts.run({
