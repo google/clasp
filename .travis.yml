@@ -5,9 +5,9 @@ os:
 language: node_js
 node_js:
 - node
-- '9'
-- '8'
-- '6'
+- '9' # EOL: 2018-06-30
+- '8' # EOL: December 2019
+- '6' # EOL: April 2019
 env:
   global:
   - SCRIPT_ID=1Q3zCVgK53kEiacR0qvBYFr-A4d720UgZh3cdfDF2oFVJE5SgFiXO0AVZ
