@@ -385,7 +385,9 @@ Displays the help function.
 ### Setting
 
 Update `.clasp.json` settings file.
-If `newValue` is omitted it returns the current setting value
+
+If `settingKey` is omitted it prints the current settings.
+If `newValue` is omitted it returns the current setting value.
 
 #### Options
 
@@ -394,6 +396,7 @@ If `newValue` is omitted it returns the current setting value
 
 #### Examples
 
+- `clasp setting`
 - `clasp setting scriptId`
 - `clasp setting scriptId new-id`
 

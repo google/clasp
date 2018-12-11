@@ -1109,12 +1109,17 @@ export const apis = async () => {
  * @param {keyof ProjectSettings} settingKey The key to set
  * @param {string?} settingValue Optional value to set the key to
  */
-export const setting = async (settingKey: keyof ProjectSettings, settingValue?: string) => {
+export const setting = async (settingKey?: keyof ProjectSettings, settingValue?: string) => {
+  const currentSettings = await getProjectSettings();
+
+  // Display all settings if ran `clasp setting`.
+  if (!settingKey) {
+    console.log(currentSettings);
+    return;
+  }
+
   // Make a new spinner piped to stdErr so we don't interfere with output
   if (!settingValue) {
-    // Display current values
-    const currentSettings = await getProjectSettings();
-
     if (settingKey in currentSettings) {
       let keyValue = currentSettings[settingKey];
       if (Array.isArray(keyValue)) {
@@ -1140,7 +1145,7 @@ export const setting = async (settingKey: keyof ProjectSettings, settingValue?: 
       const scriptId = settingKey === 'scriptId' ? settingValue : currentSettings.scriptId;
       const rootDir = settingKey === 'rootDir' ? settingValue : currentSettings.rootDir;
       await saveProject(scriptId, rootDir);
-      console.log(`\nUpdated "${settingKey}": "${currentValue}" -> "${settingValue}"`);
+      console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
     } catch (e) {
       logError(null, 'Unable to update .clasp.json');
     }

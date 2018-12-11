@@ -316,15 +316,17 @@ commander
 
 /**
  * Update .clasp.json settings file.
- * If `newValue` is omitted it returns the current setting value
+ * If `newValue` is omitted, it returns the current setting value
+ * If `settingKey` is omitted, it returns all keys in .clasp.json
  * @name setting
- * @param {string} settingKey They key in .clasp.json you want to change
+ * @param {string?} settingKey They key in .clasp.json you want to change
  * @param {string?} newValue The new value for the setting
+ * @example setting
  * @example setting scriptId
  * @example setting scriptId new-id
  */
 commander
-  .command('setting <settingKey> [newValue]')
+  .command('setting [settingKey] [newValue]')
   .description('Update <settingKey> in .clasp.json')
   .action(handleError(setting));
 
