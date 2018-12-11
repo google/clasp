@@ -81,11 +81,11 @@ clasp
 - [`clasp login [--no-localhost] [--creds <file>]`](#login)
 - [`clasp logout`](#logout)
 - [`clasp create [--title <title>] [--type <type>] [--rootDir <dir>] [--parentid <id>]`](#create)
-- [`clasp clone <scriptId | scriptURL>`](#clone)
+- [`clasp clone <scriptId | scriptURL> [versionNumber]`](#clone)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch] [--force]`](#push)
-- [`clasp status`](#status)
-- [`clasp open [scriptId] [--webapp]`](#open)
+- [`clasp status [--json]`](#status)
+- [`clasp open [scriptId] [--webapp] [--creds]`](#open)
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
 - [`clasp undeploy [deploymentId]`](#undeploy)
@@ -97,7 +97,7 @@ clasp
 
 > **NOTE**: These commands require Project ID/credentials setup (see below).
 
-- [`clasp logs [--json] [--open] [--watch]`](#logs)
+- [`clasp logs [--json] [--open] [--setup] [--watch]`](#logs)
 - [`clasp run [functionName] [--nondev]`](#run)
 - [`clasp apis list`](#apis)
 - [`clasp apis enable <api>`](#apis)
@@ -130,9 +130,9 @@ Creates a new script project. Prompts the user for the script type if not specif
 #### Options
 
 - `--type [docs/sheets/slides/forms]`: If specified, creates a new add-on attached to a Document, Spreadsheet, Presentation, or Form. If `--parentId` is specified, this value is ignored.
-- `--title`: A project title.
-- `--rootDir`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
-- `--parentId`: A project parent Id.
+- `--title <title>`: A project title.
+- `--rootDir <dir>`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
+- `--parentId <id>`: A project parent Id.
   - The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
 
 #### Examples
@@ -160,6 +160,7 @@ Clones the script project from script.google.com.
 #### Options
 
 - `scriptId | scriptURL`: The script ID _or_ script URL to clone.
+- `versionNumber`: The version of the script to clone.
 
 #### Examples
 
@@ -208,6 +209,10 @@ Ignores files:
 - That don't have an accepted file extension
 - That are ignored (filename matches a glob pattern in the ignore file)
 
+#### Options
+
+- `--json`: Show status in JSON form.
+
 #### Examples
 
 - `clasp status`
@@ -219,7 +224,8 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 #### Options
 
 - `scriptId`: The optional script project to open.
-- `webapp`: open web application in a browser.
+- `--webapp`: open web application in a browser.
+- `--creds`: Open the URL to create credentials.
 
 #### Examples
 
@@ -308,6 +314,7 @@ Prints out most recent the _StackDriver logs_. These are logs from `console.log`
 
 - `--json`: Output logs in json format.
 - `--open`: Open StackDriver logs in a browser.
+- `--setup`: Setup StackDriver logs.
 - `--watch`: Retrieves the newest logs every 5 seconds.
 
 #### Examples
