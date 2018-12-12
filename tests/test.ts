@@ -594,7 +594,7 @@ describe('Test saveProject function from utils', () => {
   it('should save the scriptId correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
-      await saveProject('12345');
+      await saveProject({scriptId: '12345'});
       const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345"}');
     };
@@ -604,7 +604,7 @@ describe('Test saveProject function from utils', () => {
   it('should save the scriptId, rootDir correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
-      await saveProject('12345', './dist');
+      await saveProject({scriptId: '12345', rootDir: './dist'});
       const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345","rootDir":"./dist"}');
     };

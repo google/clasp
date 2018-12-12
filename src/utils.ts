@@ -324,14 +324,18 @@ export async function checkIfOnline() {
 }
 
 /**
- * Saves the script ID, rootDir in the project dotfile.
- * @param  {string} scriptId The script ID
- * @param  {string} rootDir Local root directory that store your project files
+ * Saves the project settings in the project dotfile.
+ * @param {ProjectSettings} newProjectSettings The project settings
+ * @param {boolean} append Appends the settings if true.
  */
-export async function saveProject(scriptId: string, rootDir?: string): Promise<ProjectSettings> {
-  const project: ProjectSettings = { scriptId };
-  project.rootDir = project.rootDir || rootDir;
-  return DOTFILE.PROJECT().write(project);
+export async function saveProject(
+    newProjectSettings: ProjectSettings,
+    append = true): Promise<ProjectSettings> {
+  if (append) {
+    const projectSettings: ProjectSettings = await DOTFILE.PROJECT().read();
+    newProjectSettings = {...projectSettings, ...newProjectSettings};
+  }
+  return DOTFILE.PROJECT().write(newProjectSettings);
 }
 
 /**

@@ -239,7 +239,10 @@ export const create = async (cmd: { type: string; title: string; parentId: strin
     const createdScriptId = res.data.scriptId || '';
     console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
     const rootDir = cmd.rootDir;
-    saveProject(createdScriptId, rootDir);
+    saveProject({
+      scriptId: createdScriptId,
+      rootDir,
+    });
     if (!manifestExists()) {
       const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
       writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
@@ -298,7 +301,9 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
     }
   }
   spinner.setSpinnerTitle(LOG.CLONING);
-  saveProject(scriptId);
+  saveProject({
+    scriptId,
+  });
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, '');
 };
@@ -1135,20 +1140,27 @@ export const setting = async (settingKey?: keyof ProjectSettings, settingValue?:
       // Which interfers with storing the value
       process.stdout.write(keyValue);
     } else {
-      logError(null, `Unknown key "${settingKey}"`);
+      logError(null, `Value not found for "${settingKey}"`); // TODO LOG
     }
   } else {
-    // Set specified key to the specified value
-    if (settingKey !== 'scriptId' && settingKey !== 'rootDir') {
-      logError(null, `Setting "${settingKey}" is unsupported`);
-    }
-
     try {
       const currentSettings = await getProjectSettings();
       const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
+
+      // TODO Add all keys dynamically
       const scriptId = settingKey === 'scriptId' ? settingValue : currentSettings.scriptId;
       const rootDir = settingKey === 'rootDir' ? settingValue : currentSettings.rootDir;
-      await saveProject(scriptId, rootDir);
+      const projectId = settingKey === 'projectId' ? settingValue : currentSettings.projectId;
+      const fileExtension = settingKey === 'fileExtension' ? settingValue : currentSettings.fileExtension;
+      // filePushOrder doesn't work since it requires an array.
+      // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
+      await saveProject({
+        scriptId,
+        rootDir,
+        projectId,
+        fileExtension,
+        // filePushOrder,
+      }, true);
       console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
     } catch (e) {
       logError(null, 'Unable to update .clasp.json');

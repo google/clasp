@@ -141,14 +141,14 @@ commander
  * - That don't have an accepted file extension
  * - That are ignored (filename matches a glob pattern in the ignore file)
  * @example push
- * @example push --watch
  * @example push --force
+ * @example push --watch
  */
 commander
   .command('push')
   .description('Update the remote project')
-  .option('--watch', 'Watches for local file changes. Pushes when a non-ignored file changs.')
   .option('-f, --force', 'Forcibly overwrites the remote manifest.')
+  .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changs.')
   .action(handleError(push));
 
 /**
@@ -340,11 +340,6 @@ commander
   .description('Any other command is not supported')
   .action(handleError(defaultCmd));
 
-// defaults to help if commands are not provided
-if (!process.argv.slice(2).length) {
-  commander.outputHelp();
-}
-
 const versionOption = Symbol('version');
 /**
  * Displays clasp version
@@ -353,10 +348,14 @@ commander.option('-v, --version').on('option:version', () => {
   commander[versionOption] = true;
 });
 
-// User input is provided from the process' arguments
-commander.parse(process.argv);
-
 // Specified `--version` option with no sub-command
 if (commander[versionOption] && !commander.args[0]) {
   console.log(require('../package.json').version);
 }
+
+// defaults to help if commands are not provided
+if (!process.argv.slice(2).length) {
+  commander.outputHelp();
+}
+// User input is provided from the process' arguments
+commander.parse(process.argv);

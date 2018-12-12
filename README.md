@@ -80,7 +80,7 @@ clasp
 ```
 - [`clasp login [--no-localhost] [--creds <file>]`](#login)
 - [`clasp logout`](#logout)
-- [`clasp create [--title <title>] [--type <type>] [--rootDir <dir>] [--parentid <id>]`](#create)
+- [`clasp create [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
 - [`clasp clone <scriptId | scriptURL> [versionNumber]`](#clone)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch] [--force]`](#push)
@@ -134,6 +134,7 @@ Creates a new script project. Prompts the user for the script type if not specif
 - `--rootDir <dir>`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
 - `--parentId <id>`: A project parent Id.
   - The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
+  - i.e. `https://docs.google.com/presentation/d/{id}/edit`
 
 #### Examples
 
@@ -147,11 +148,11 @@ Creates a new script project. Prompts the user for the script type if not specif
 - `clasp create --type api`
 - `clasp create --title "My Script"`
 - `clasp create --rootDir ./dist`
-- `clasp create --parentid "1D_Gxyv*****************************NXO7o"`
+- `clasp create --parentId "1D_Gxyv*****************************NXO7o"`
 
 These options can be combined like so:
 
-- `clasp create --title "My Script" --parentid "1D_Gxyv*****************************NXO7o" --rootDir ./dist`
+- `clasp create --title "My Script" --parentId "1D_Gxyv*****************************NXO7o" --rootDir ./dist`
 
 ### Clone
 
@@ -164,8 +165,8 @@ Clones the script project from script.google.com.
 
 #### Examples
 
-- `clasp clone 15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC`
-- `clasp clone https://script.google.com/d/15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC/edit`
+- `clasp clone "15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC"`
+- `clasp clone "https://script.google.com/d/15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC/edit"`
 
 ### Pull
 
@@ -192,12 +193,13 @@ Ignores files:
 
 #### Options
 
-- `--watch`: Watches local file changes. Pushes files every few seconds.
 - `-f` `--force`: Forcibly overwrites the remote manifest.
+- `-w` `--watch`: Watches local file changes. Pushes files every few seconds.
 
 #### Examples
 
 - `clasp push`
+- `clasp push -f`
 - `clasp push --watch`
 
 ### Status
@@ -216,6 +218,7 @@ Ignores files:
 #### Examples
 
 - `clasp status`
+- `clasp status --json`
 
 ### Open
 
@@ -232,6 +235,7 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 - `clasp open`
 - `clasp open [scriptId]`
 - `clasp open --webapp`
+- `clasp open --creds`
 
 ### Deployments
 
