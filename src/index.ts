@@ -327,6 +327,7 @@ commander
  */
 commander
   .command('setting [settingKey] [newValue]')
+  .alias('settings')
   .description('Update <settingKey> in .clasp.json')
   .action(handleError(setting));
 
