@@ -324,27 +324,31 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
 
   // Using own credentials.
   if (options.creds) {
-    // First read the manifest to detect any additional scopes in "oauthScopes" fields.
-    // In the script.google.com UI, these are found under File > Project Properties > Scopes
-    let { oauthScopes } = await readManifest();
-    oauthScopes = oauthScopes || [];
+    let oauthScopes: string[] = [];
+    const settings = await getProjectSettings(true);
+    if (settings != null) {
+      // First read the manifest to detect any additional scopes in "oauthScopes" fields.
+      // In the script.google.com UI, these are found under File > Project Properties > Scopes
+      const manifest = await readManifest();
+      oauthScopes = manifest.oauthScopes || [];
 
-    // Google OAuth requires >= 1 scope. Add a random scope and warn the user.
-    if (oauthScopes.length === 0) {
-      console.warn(`Google needs to authenticate with >= 1 scope.
-As such, we're logging in with (random) scope: drive.metadata.readonly`);
-      oauthScopes = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
-    } else {
-      console.log('');
-      console.log(`Authorizing with the following scopes:`);
-      oauthScopes.map((scope) => {
-        console.log(scope);
-      });
-      console.log('');
-      console.log(`NOTE: The full list of scopes you're project may need` +
-      ` can be found at script.google.com under:`);
-      console.log(`File > Project Properties > Scopes`);
-      console.log('');
+      // Google OAuth requires >= 1 scope. Add a random scope and warn the user.
+      if (oauthScopes.length === 0) {
+        console.warn(`Google needs to authenticate with >= 1 scope.
+  As such, we're logging in with (random) scope: drive.metadata.readonly`);
+        oauthScopes = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
+      } else {
+        console.log('');
+        console.log(`Authorizing with the following scopes:`);
+        oauthScopes.map((scope) => {
+          console.log(scope);
+        });
+        console.log('');
+        console.log(`NOTE: The full list of scopes you're project may need` +
+        ` can be found at script.google.com under:`);
+        console.log(`File > Project Properties > Scopes`);
+        console.log('');
+      }
     }
 
     // Read credentials file.
