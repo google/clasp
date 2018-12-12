@@ -22,6 +22,7 @@
 
 import 'connect';
 
+import * as commander from 'commander';
 import {
   apis,
   clone,
@@ -46,7 +47,7 @@ import {
 } from './commands';
 import { PROJECT_NAME, handleError } from './utils';
 
-const commander = require('commander');
+// const commander = require('commander');
 
 // CLI
 
@@ -336,22 +337,16 @@ commander
  * @example random
  */
 commander
-  .command('*', { isDefault: true })
+  .command('*', undefined, { isDefault: true })
   .description('Any other command is not supported')
   .action(handleError(defaultCmd));
 
-const versionOption = Symbol('version');
 /**
  * Displays clasp version
  */
 commander.option('-v, --version').on('option:version', () => {
-  commander[versionOption] = true;
-});
-
-// Specified `--version` option with no sub-command
-if (commander[versionOption] && !commander.args[0]) {
   console.log(require('../package.json').version);
-}
+});
 
 // defaults to help if commands are not provided
 if (!process.argv.slice(2).length) {
