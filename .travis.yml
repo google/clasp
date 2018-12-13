@@ -17,7 +17,7 @@ cache:
   - "$HOME/.npm"
 before_install:
 - openssl aes-256-cbc -K $encrypted_9c710391eddd_key -iv $encrypted_9c710391eddd_iv
-  -in ./tests/.clasprc.json.enc -out .clasprc.json -d || true
+  -in ./tests/.clasprc.json.enc -out $HOME/.clasprc.json -d || true
 - npm install -g npm@latest
 install:
 - npm ci
