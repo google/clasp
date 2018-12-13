@@ -95,14 +95,19 @@ clasp
 
 ### Advanced Commands
 
-> **NOTE**: These commands require Project ID/credentials setup (see below).
+> **NOTE**: These commands require you to add your [Project ID](#projectid-optional).
 
 - [`clasp logs [--json] [--open] [--setup] [--watch]`](#logs)
-- [`clasp run [functionName] [--nondev]`](#run)
 - [`clasp apis list`](#apis)
 - [`clasp apis enable <api>`](#apis)
 - [`clasp apis disable <api>`](#apis)
 - [`clasp setting <key> [value]`](#setting)
+
+#### Clasp Run
+
+> **NOTE**: This command requires you to [bring your own Google API credentials](/docs/run.md).
+
+- [`clasp run [functionName] [--nondev]`](#run)
 
 ## Reference
 
