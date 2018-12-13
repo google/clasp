@@ -1140,27 +1140,31 @@ export const setting = async (settingKey?: keyof ProjectSettings, settingValue?:
       // Which interfers with storing the value
       process.stdout.write(keyValue);
     } else {
-      logError(null, `Value not found for "${settingKey}"`); // TODO LOG
+      logError(null, ERROR.UNKNOWN_KEY(settingKey));
     }
   } else {
     try {
       const currentSettings = await getProjectSettings();
       const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
-
-      // TODO Add all keys dynamically
-      const scriptId = settingKey === 'scriptId' ? settingValue : currentSettings.scriptId;
-      const rootDir = settingKey === 'rootDir' ? settingValue : currentSettings.rootDir;
-      const projectId = settingKey === 'projectId' ? settingValue : currentSettings.projectId;
-      const fileExtension = settingKey === 'fileExtension' ? settingValue : currentSettings.fileExtension;
+      switch(settingKey) {
+        case 'scriptId':
+          currentSettings.scriptId = settingValue;
+          break;
+        case 'rootDir':
+          currentSettings.rootDir = settingValue;
+          break;
+        case 'projectId':
+          currentSettings.projectId = settingValue;
+          break;
+        case 'fileExtension':
+          currentSettings.fileExtension = settingValue;
+          break;
+        default:
+          logError(null, ERROR.UNKNOWN_KEY(settingKey));
+      }
       // filePushOrder doesn't work since it requires an array.
       // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
-      await saveProject({
-        scriptId,
-        rootDir,
-        projectId,
-        fileExtension,
-        // filePushOrder,
-      }, true);
+      await saveProject(currentSettings, true);
       console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
     } catch (e) {
       logError(null, 'Unable to update .clasp.json');
