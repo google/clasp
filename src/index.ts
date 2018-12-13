@@ -177,7 +177,7 @@ commander
 commander
   .command('open [scriptId]')
   .description('Open a script')
-  .option('--webapp', 'Open web application in browser')
+  .option('--webapp', 'Open web application in the browser')
   .option('--creds', 'Open the URL to create credentials')
   .action(handleError(openCmd));
 
@@ -265,7 +265,7 @@ commander
   .command('logs')
   .description('Shows the StackDriver logs')
   .option('--json', 'Show logs in JSON form')
-  .option('--open', 'Open the StackDriver logs in browser')
+  .option('--open', 'Open the StackDriver logs in the browser')
   .option('--setup', 'Setup StackDriver logs')
   .option('--watch', 'Watch and print new logs')
   .action(handleError(logs));
@@ -303,6 +303,7 @@ commander
   enable <api>
   disable <api>`,
   )
+  .option('--open', 'Open the API Console in the browser')
   .action(handleError(apis));
 
 /**

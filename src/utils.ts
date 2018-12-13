@@ -59,6 +59,7 @@ export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
 
 // Helpers to get Apps Script project URLs
 export const URL = {
+  APIS: (projectId: string) => `https://console.developers.google.com/apis/dashboard?project=${projectId}`,
   CREDS: (projectId: string) => `https://console.developers.google.com/apis/credentials?project=${projectId}`,
   LOGS: (projectId: string) =>
     `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`,

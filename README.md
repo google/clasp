@@ -378,6 +378,12 @@ The API name can be found using `clasp apis list`.
 - `clasp apis enable drive`
 - `clasp apis disable drive`
 
+#### Open APIs Console
+
+Open the Google Cloud Console where you can view and manage API access.
+
+- `clasp apis --open`
+
 ### Help
 
 Displays the help function.

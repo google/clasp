@@ -1020,10 +1020,17 @@ export const openCmd = async (scriptId: any, cmd: {
  * Calls functions for list, enable, or disable
  * Otherwise returns an error of command not supported
  */
-export const apis = async () => {
+export const apis = async (options: { open?: string }) => {
   await loadAPICredentials();
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
   const serviceName = process.argv[4]; // clasp apis enable drive => "drive"
+
+  // clasp apis --open
+  if (options.open) {
+    const apisUrl = URL.APIS(await getProjectId());
+    console.log(apisUrl);
+    return open(apisUrl, { wait: false });
+  }
 
   // The apis subcommands.
   const command: { [key: string]: Function } = {
