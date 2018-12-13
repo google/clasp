@@ -331,7 +331,7 @@ export async function checkIfOnline() {
 export async function saveProject(
     newProjectSettings: ProjectSettings,
     append = true): Promise<ProjectSettings> {
-  if (append && await DOTFILE.PROJECT().exists()) {
+  if (append) {
     const projectSettings: ProjectSettings = await DOTFILE.PROJECT().read();
     newProjectSettings = {...projectSettings, ...newProjectSettings};
   }

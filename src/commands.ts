@@ -242,7 +242,7 @@ export const create = async (cmd: { type: string; title: string; parentId: strin
     saveProject({
       scriptId: createdScriptId,
       rootDir,
-    });
+    }, false);
     if (!manifestExists()) {
       const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
       writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
@@ -303,7 +303,7 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
   spinner.setSpinnerTitle(LOG.CLONING);
   saveProject({
     scriptId,
-  });
+  }, false);
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, '');
 };
