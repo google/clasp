@@ -122,6 +122,7 @@ Did you provide the correct scriptId?`,
   SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
+  UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
 };
 
 // Log messages (some logs take required params)
