@@ -319,8 +319,8 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
   const isLocalLogin = !!options.creds;
   const loggedInLocal = hasOauthClientSettings(true);
   const loggedInGlobal = hasOauthClientSettings(false);
-  if (isLocalLogin && loggedInLocal) console.warn(ERROR.LOGGED_IN_LOCAL);
-  if (!isLocalLogin && loggedInGlobal) console.warn(ERROR.LOGGED_IN_GLOBAL);
+  if (isLocalLogin && loggedInLocal) logError(null, ERROR.LOGGED_IN_LOCAL);
+  if (!isLocalLogin && loggedInGlobal) logError(null, ERROR.LOGGED_IN_GLOBAL);
   console.log(LOG.LOGIN(isLocalLogin));
   await checkIfOnline();
 
