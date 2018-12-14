@@ -31,6 +31,8 @@
 
 Since Travis cannot `clasp login`, a `.clasprc.json` file is included that was created locally using `clasp login`.
 
+> Use test account `claspcreds@gmail.com`. Password is private.
+
 To then encrypt the `.clasprc.json` file, use these commands using the [Travis CLI](https://github.com/travis-ci/travis.rb):
 
 ```sh
