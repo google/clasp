@@ -65,7 +65,7 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean) {
   };
 
   const [projectId] = await getProjectIdWithErrors();
-  const name = `projects/${projectId}/services/${serviceName}`;
+  const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
   try {
     if (enable) {
       await serviceUsage.services.enable({ name });
