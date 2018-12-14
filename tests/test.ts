@@ -1,4 +1,3 @@
-import * as os from 'os';
 import * as path from 'path';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
@@ -15,94 +14,34 @@ import {
   hasOauthClientSettings,
   saveProject,
 } from './../src/utils.js';
-const copyFileSync = require('fs-copy-file-sync');
+
+import {
+  backupSettings,
+  cleanup,
+  restoreSettings,
+  rndStr,
+  setup,
+} from './commonTestFunctions';
+
+import {
+  CLASP,
+  CLASP_SETTINGS_FAKE_PROJECTID,
+  CLASP_USAGE,
+  claspRcGlobalPath,
+  claspRcLocalPath,
+  claspSettingsLocalPath,
+  clientCredsLocalPath,
+  FAKE_CLASPRC,
+  FAKE_CLIENT_CREDS,
+  FAKE_CLASPRC_LOCAL,
+  isPR,
+  INVALID_CLIENT_CREDS,
+  SCRIPT_ID,
+  TEST_CODE_JS,
+  TEST_APPSSCRIPT,
+} from './commonTestConstants';
+
 const { spawnSync } = require('child_process');
-
-const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
-const TEST_APPSSCRIPT: string = JSON.stringify({timeZone: 'America/New_York'});
-const CLASP = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp';
-const isPR = process.env.TRAVIS_PULL_REQUEST;
-const CLASP_SETTINGS: string = JSON.stringify({
-  scriptId: process.env.SCRIPT_ID,
-  projectId: process.env.PROJECT_ID,
-});
-const SCRIPT_ID: string = process.env.SCRIPT_ID || '';
-const PROJECT_ID: string = process.env.PROJECT_ID || '';
-const CLASP_USAGE = 'Usage: clasp <command> [options]';
-
-const claspSettingsLocalPath = '.clasp.json'; // path.join('./', '.clasp.json');
-const claspRcGlobalPath = path.join(os.homedir(), '.clasprc.json');
-const claspRcLocalPath = '.clasprc.json'; // path.join('./', '.clasprc.json');
-const clientCredsLocalPath = 'client_credentials.json'; // path.join('./', 'client_credentials.json');
-
-const cleanup = () => {
-  fs.removeSync('.clasp.json');
-  fs.removeSync('.claspignore');
-  fs.removeSync('Code.js');
-  fs.removeSync('appsscript.json');
-};
-
-const setup = () => {
-  fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
-  fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT);
-};
-
-const rndStr = () => Math.random().toString(36).substr(2);
-
-const FAKE_CLASPRC: string = JSON.stringify({
-  access_token: rndStr(),
-  refresh_token: rndStr(),
-  scope: 'https://www.googleapis.com/auth/script.projects',
-  token_type: 'Bearer',
-  expiry_date: (new Date()).getTime(),
-});
-const FAKE_CLASPRC_LOCAL: string = JSON.stringify({
-  token: FAKE_CLASPRC,
-  oauth2ClientSettings: {
-    clientId: `${rndStr()}.apps.googleusercontent.com`,
-    clientSecret: rndStr(),
-  },
-});
-const CLASP_SETTINGS_FAKE_PROJECTID: string = JSON.stringify({
-  scriptId: process.env.SCRIPT_ID,
-  projectId: `project-id-${rndStr()}`,
-});
-const FAKE_CLIENT_CREDS: string = JSON.stringify({
-  installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com`,
-    client_secret: rndStr(),
-  },
-});
-const INVALID_CLIENT_CREDS: string = JSON.stringify({
-  installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com`,
-  },
-});
-
-const backupSettings = () => {
-  // fs.copyFileSync isn't supported in Node 6/7
-  if (fs.existsSync(claspRcGlobalPath)) {
-    copyFileSync(claspRcGlobalPath, `${claspRcGlobalPath}~`);
-  }
-  if (fs.existsSync(claspRcLocalPath)) {
-    copyFileSync(claspRcLocalPath, `${claspRcLocalPath}~`);
-  }
-  if (fs.existsSync(claspSettingsLocalPath)) {
-    copyFileSync(claspSettingsLocalPath, `${claspSettingsLocalPath}~`);
-  }
-};
-
-const restoreSettings = () => {
-  if (fs.existsSync(`${claspRcGlobalPath}~`)) {
-    fs.renameSync(`${claspRcGlobalPath}~`, claspRcGlobalPath);
-  }
-  if (fs.existsSync(`${claspRcLocalPath}~`)) {
-    fs.renameSync(`${claspRcLocalPath}~`, claspRcLocalPath);
-  }
-  if (fs.existsSync(`${claspSettingsLocalPath}~`)) {
-    fs.renameSync(`${claspSettingsLocalPath}~`, claspSettingsLocalPath);
-  }
-};
 
 describe('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
@@ -701,8 +640,7 @@ describe.skip('Test clasp logs function', () => {
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('Open this link:');
-    const scriptId = JSON.parse(CLASP_SETTINGS).scriptId;
-    expect(result.stdout).to.include(`https://script.google.com/d/${scriptId}/edit`);
+    expect(result.stdout).to.include(`https://script.google.com/d/${SCRIPT_ID}/edit`);
     expect(result.stdout).to.contain('Go to *Resource > Cloud Platform Project...*');
     expect(result.stdout).to.include('and copy your projectId\n(including "project-id-")');
     expect(result.stdout).to.contain('What is your GCP projectId?');
