@@ -17,7 +17,7 @@ cache:
   - "$HOME/.npm"
 before_install:
 - openssl aes-256-cbc -K $encrypted_200b2e234285_key -iv $encrypted_200b2e234285_iv
-  -in ./tests/.clasprc.json.enc -out $HOME/.clasprc.json -d && echo "Successfully decrypted keys into $HOME/.clasprc.json" || true && echo "Could not decrypt keys. Is this a PR?"
+  -in ./tests/.clasprc.json.enc -out $HOME/.clasprc.json -d && echo "Successfully decrypted keys into $HOME/.clasprc.json" || (true && echo "Could not decrypt keys. Is this a PR?")
 - npm install -g npm@latest
 install:
 - npm ci
