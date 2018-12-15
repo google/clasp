@@ -15,7 +15,7 @@ export const cleanup = () => {
 };
 
 export const setup = () => {
-  fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
+  fs.writeFileSync('.clasp.json', CLASP_SETTINGS.valid);
   fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON);
 };
 
