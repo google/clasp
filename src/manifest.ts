@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
+import { enableOrDisableAPI, isEnabled } from './apiutils';
 import { DOT } from './dotfile';
 import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, logError } from './utils';
 
@@ -81,11 +82,20 @@ export async function addScopeToManifest(scopes: string[]) {
  * The Execution API requires the manifest to have the "executionApi.access" field set.
  */
 export async function enableExecutionAPI() {
+  console.log('Writing manifest');
   const manifest = await readManifest();
   manifest.executionApi = manifest.executionApi || {
     access: 'ANYONE',
   };
   await writeManifest(manifest);
+  console.log('Wrote manifest');
+
+  console.log('Checking Apps Script API');
+  if (!(await isEnabled('script'))) {
+    console.log('Apps Script API is currently disabled. Enabling...');
+    await enableOrDisableAPI('script', true);
+  }
+  console.log('Apps Script API is enabled.');
 }
 
 /**

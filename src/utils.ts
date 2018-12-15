@@ -109,8 +109,9 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
   PAYLOAD_UNKNOWN: 'Unknown StackDriver payload.',
-  PERMISSION_DENIED_LOCAL: `Error: Permission denied. Be sure that you have\n` +
+  PERMISSION_DENIED_LOCAL: `Error: Permission denied. Be sure that you have:\n` +
     `- Added the necessary scopes needed for the API.\n` +
+    `- Enabled the Apps Script API.\n` +
     `- Enable required APIs for project.`,
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:\n${URL.SCRIPT_API_USER}`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
@@ -119,7 +120,9 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   SCRIPT_ID_DNE: `No scriptId found in your ${DOT.PROJECT.PATH} file.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
-  SCRIPT_ID: '\n> Did you provide the correct scriptId?\n',
+  SCRIPT_ID: `Could not find script.
+Did you provide the correct scriptId?
+Are you logged in to the correct account with the script?`,
   SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
@@ -135,7 +138,7 @@ export const LOG = {
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
-  CLONE_SCRIPT_QUESTION: 'Clone which script? ',
+  CLONE_SCRIPT_QUESTION: 'Clone which script?',
   CREATE_DRIVE_FILE_FINISH: (filetype: string, fileid: string) =>
     `Created new ${getFileTypeName(filetype) || '(unknown type)'}: ${URL.DRIVE(fileid)}`,
   CREATE_DRIVE_FILE_START: (filetype: string) =>

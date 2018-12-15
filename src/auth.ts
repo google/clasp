@@ -9,7 +9,7 @@ import { GenerateAuthUrlOpts, OAuth2ClientOptions } from 'google-auth-library/bu
 import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 } from 'googleapis';
 import { prompt } from 'inquirer';
 import { ClaspToken, DOTFILE } from './dotfile';
-import { readManifest } from './manifest';
+import { enableExecutionAPI, readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, URL, checkIfOnline, getOAuthSettings, logError } from './utils';
 import open = require('opn');
 import readline = require('readline');
@@ -108,8 +108,7 @@ export async function authorize(options: {
     // Set scopes
     let scope = (options.creds) ?
       // Set scopes to custom scopes
-      options.scopes :
-      [
+      options.scopes : [
         // Default to clasp scopes
         'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
         'https://www.googleapis.com/auth/script.projects', // Apps Script management

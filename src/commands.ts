@@ -88,6 +88,9 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
   await isValidManifest();
   const { rootDir } = await getProjectSettings();
 
+  /**
+   * Checks if the manifest has changes.
+   */
   const manifestHasChanges = async (): Promise<boolean> => {
     const { scriptId, rootDir } = await getProjectSettings();
     const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
@@ -99,14 +102,12 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
   };
 
   const confirmManifestUpdate = async (): Promise<boolean> => {
-    const answers = await prompt([
-      {
-        name: 'overwrite',
-        type: 'confirm',
-        message: 'Manifest file has been updated. Do you want to push and overwrite?',
-        default: false,
-      },
-    ]) as { overwrite: boolean };
+    const answers = await prompt([{
+      name: 'overwrite',
+      type: 'confirm',
+      message: 'Manifest file has been updated. Do you want to push and overwrite?',
+      default: false,
+    }]) as { overwrite: boolean };
     return answers.overwrite;
   };
 
@@ -319,8 +320,8 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
   const isLocalLogin = !!options.creds;
   const loggedInLocal = hasOauthClientSettings(true);
   const loggedInGlobal = hasOauthClientSettings(false);
-  if (isLocalLogin && loggedInLocal) logError(null, ERROR.LOGGED_IN_LOCAL);
-  if (!isLocalLogin && loggedInGlobal) logError(null, ERROR.LOGGED_IN_GLOBAL);
+  if (isLocalLogin && loggedInLocal) console.error(ERROR.LOGGED_IN_LOCAL);
+  if (!isLocalLogin && loggedInGlobal) console.error(ERROR.LOGGED_IN_GLOBAL);
   console.log(LOG.LOGIN(isLocalLogin));
   await checkIfOnline();
 
@@ -330,31 +331,23 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
   // Using own credentials.
   if (options.creds) {
     let oauthScopes: string[] = [];
-    const settings = await getProjectSettings(true);
-    if (settings != null) {
-      // First read the manifest to detect any additional scopes in "oauthScopes" fields.
-      // In the script.google.com UI, these are found under File > Project Properties > Scopes
-      const manifest = await readManifest();
-      oauthScopes = manifest.oauthScopes || [];
-
-      // Google OAuth requires >= 1 scope. Add a random scope and warn the user.
-      if (oauthScopes.length === 0) {
-        console.warn(`Google needs to authenticate with >= 1 scope.
-  As such, we're logging in with (random) scope: drive.metadata.readonly`);
-        oauthScopes = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
-      } else {
-        console.log('');
-        console.log(`Authorizing with the following scopes:`);
-        oauthScopes.map((scope) => {
-          console.log(scope);
-        });
-        console.log('');
-        console.log(`NOTE: The full list of scopes you're project may need` +
-        ` can be found at script.google.com under:`);
-        console.log(`File > Project Properties > Scopes`);
-        console.log('');
-      }
-    }
+    // First read the manifest to detect any additional scopes in "oauthScopes" fields.
+    // In the script.google.com UI, these are found under File > Project Properties > Scopes
+    const manifest = await readManifest();
+    oauthScopes = manifest.oauthScopes || [];
+    oauthScopes = oauthScopes.concat([
+      'https://www.googleapis.com/auth/script.webapp.deploy', // Scope needed for script.run
+    ]);
+    console.log('');
+    console.log(`Authorizing with the following scopes:`);
+    oauthScopes.map((scope) => {
+      console.log(scope);
+    });
+    console.log('');
+    console.log(`NOTE: The full list of scopes you're project may need` +
+    ` can be found at script.google.com under:`);
+    console.log(`File > Project Properties > Scopes`);
+    console.log('');
 
     // Read credentials file.
     const credsFile = readFileSync(options.creds, 'utf8');
@@ -535,7 +528,10 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
 
     // We have an API response. Now, check the API response status.
     spinner.stop(true);
-    console.log(filter);
+    // Only print filter if provided.
+    if (filter.length) {
+      console.log(filter);
+    }
     if (logs.status !== 200) {
       switch (logs.status) {
         case 401:
@@ -586,7 +582,9 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
   //   "access": "MYSELF"
   // }
   await isValidManifest();
-  await enableExecutionAPI();
+
+  // TODO COMMENT THIS. This uses a method that gives a HTML 404.
+  // await enableExecutionAPI();
 
   // Pushes the latest code if in dev mode.
   // We need to update the manifest before executing to:
@@ -690,8 +688,10 @@ https://www.googleapis.com/auth/presentations
             break;
           case 403:
             logError(null, ERROR.PERMISSION_DENIED_LOCAL);
+            break;
           case 404:
             logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
+            break;
           default:
             logError(null, `(${err.code}) Error: ${err.message}`);
         }
