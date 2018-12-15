@@ -1,4 +1,3 @@
-import * as os from 'os';
 import * as path from 'path';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
@@ -15,94 +14,29 @@ import {
   hasOauthClientSettings,
   saveProject,
 } from './../src/utils.js';
-const copyFileSync = require('fs-copy-file-sync');
+
+import {
+  backupSettings,
+  cleanup,
+  restoreSettings,
+  rndStr,
+  setup,
+} from './functions';
+
+import {
+  CLASP,
+  CLASP_SETTINGS,
+  CLASP_USAGE,
+  CLASP_PATHS,
+  CLIENT_CREDS,
+  FAKE_CLASPRC,
+  IS_PR,
+  SCRIPT_ID,
+  TEST_APPSSCRIPT_JSON,
+  TEST_CODE_JS,
+} from './constants';
+
 const { spawnSync } = require('child_process');
-
-const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
-const TEST_APPSSCRIPT: string = JSON.stringify({timeZone: 'America/New_York'});
-const CLASP = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp';
-const isPR = process.env.TRAVIS_PULL_REQUEST;
-const CLASP_SETTINGS: string = JSON.stringify({
-  scriptId: process.env.SCRIPT_ID,
-  projectId: process.env.PROJECT_ID,
-});
-const SCRIPT_ID: string = process.env.SCRIPT_ID || '';
-const PROJECT_ID: string = process.env.PROJECT_ID || '';
-const CLASP_USAGE = 'Usage: clasp <command> [options]';
-
-const claspSettingsLocalPath = '.clasp.json'; // path.join('./', '.clasp.json');
-const claspRcGlobalPath = path.join(os.homedir(), '.clasprc.json');
-const claspRcLocalPath = '.clasprc.json'; // path.join('./', '.clasprc.json');
-const clientCredsLocalPath = 'client_credentials.json'; // path.join('./', 'client_credentials.json');
-
-const cleanup = () => {
-  fs.removeSync('.clasp.json');
-  fs.removeSync('.claspignore');
-  fs.removeSync('Code.js');
-  fs.removeSync('appsscript.json');
-};
-
-const setup = () => {
-  fs.writeFileSync('.clasp.json', CLASP_SETTINGS);
-  fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT);
-};
-
-const rndStr = () => Math.random().toString(36).substr(2);
-
-const FAKE_CLASPRC: string = JSON.stringify({
-  access_token: rndStr(),
-  refresh_token: rndStr(),
-  scope: 'https://www.googleapis.com/auth/script.projects',
-  token_type: 'Bearer',
-  expiry_date: (new Date()).getTime(),
-});
-const FAKE_CLASPRC_LOCAL: string = JSON.stringify({
-  token: FAKE_CLASPRC,
-  oauth2ClientSettings: {
-    clientId: `${rndStr()}.apps.googleusercontent.com`,
-    clientSecret: rndStr(),
-  },
-});
-const CLASP_SETTINGS_FAKE_PROJECTID: string = JSON.stringify({
-  scriptId: process.env.SCRIPT_ID,
-  projectId: `project-id-${rndStr()}`,
-});
-const FAKE_CLIENT_CREDS: string = JSON.stringify({
-  installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com`,
-    client_secret: rndStr(),
-  },
-});
-const INVALID_CLIENT_CREDS: string = JSON.stringify({
-  installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com`,
-  },
-});
-
-const backupSettings = () => {
-  // fs.copyFileSync isn't supported in Node 6/7
-  if (fs.existsSync(claspRcGlobalPath)) {
-    copyFileSync(claspRcGlobalPath, `${claspRcGlobalPath}~`);
-  }
-  if (fs.existsSync(claspRcLocalPath)) {
-    copyFileSync(claspRcLocalPath, `${claspRcLocalPath}~`);
-  }
-  if (fs.existsSync(claspSettingsLocalPath)) {
-    copyFileSync(claspSettingsLocalPath, `${claspSettingsLocalPath}~`);
-  }
-};
-
-const restoreSettings = () => {
-  if (fs.existsSync(`${claspRcGlobalPath}~`)) {
-    fs.renameSync(`${claspRcGlobalPath}~`, claspRcGlobalPath);
-  }
-  if (fs.existsSync(`${claspRcLocalPath}~`)) {
-    fs.renameSync(`${claspRcLocalPath}~`, claspRcLocalPath);
-  }
-  if (fs.existsSync(`${claspSettingsLocalPath}~`)) {
-    fs.renameSync(`${claspSettingsLocalPath}~`, claspSettingsLocalPath);
-  }
-};
 
 describe('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
@@ -133,7 +67,7 @@ describe('Test --help for each function', () => {
 
 describe('Test clasp list function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
   });
@@ -151,7 +85,7 @@ describe('Test clasp list function', () => {
 
 describe('Test clasp create function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
   });
@@ -174,7 +108,7 @@ describe('Test clasp create function', () => {
 
 describe.skip('Test clasp create <title> function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
   });
@@ -190,7 +124,7 @@ describe.skip('Test clasp create <title> function', () => {
 
 describe('Test clasp clone <scriptId> function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -226,7 +160,7 @@ describe('Test clasp clone <scriptId> function', () => {
 
 describe('Test clasp pull function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -244,7 +178,7 @@ describe('Test clasp pull function', () => {
 
 describe('Test clasp push function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -252,7 +186,7 @@ describe('Test clasp push function', () => {
   it.skip('should push local project correctly', () => {
     fs.removeSync('.claspignore');
     fs.writeFileSync('Code.js', TEST_CODE_JS);
-    fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT);
+    fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON);
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
     const result = spawnSync(
       CLASP, ['push'], { encoding: 'utf8' },
@@ -277,7 +211,7 @@ describe('Test clasp push function', () => {
 
 describe('Test clasp status function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -294,7 +228,7 @@ describe('Test clasp status function', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
       { file: 'build/main.js', data: TEST_CODE_JS },
-      { file: 'appsscript.json', data: TEST_APPSSCRIPT },
+      { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON },
       { file: 'shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
@@ -312,7 +246,7 @@ describe('Test clasp status function', () => {
   it('should ignore dotfiles if the parent folder is ignored', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json' },
-      { file: 'appsscript.json', data: TEST_APPSSCRIPT },
+      { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON },
       { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: TEST_CODE_JS },
     ]);
     spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
@@ -330,7 +264,7 @@ describe('Test clasp status function', () => {
       { file: '.clasp.json', data: '{ "scriptId":"1234", "rootDir":"dist" }' },
       { file: '.claspignore', data: '**/**\n!dist/build/main.js\n!dist/appsscript.json' },
       { file: 'dist/build/main.js', data: TEST_CODE_JS },
-      { file: 'dist/appsscript.json', data: TEST_APPSSCRIPT },
+      { file: 'dist/appsscript.json', data: TEST_APPSSCRIPT_JSON },
       { file: 'dist/shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'dist/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
@@ -347,7 +281,7 @@ describe('Test clasp status function', () => {
 
 describe('Test clasp open function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -374,7 +308,7 @@ describe('Test URL utils function', () => {
 
 describe('Test clasp deployments function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -391,7 +325,7 @@ describe('Test clasp deployments function', () => {
 
 describe('Test clasp deploy function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -418,7 +352,7 @@ describe('Test clasp deploy function', () => {
 
 describe('Test clasp version and versions function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -452,7 +386,7 @@ describe('Test clasp version and versions function', () => {
 
 describe('Test clasp clone function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -487,7 +421,7 @@ describe('Test clasp clone function', () => {
 
 describe('Test setting function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -614,7 +548,7 @@ describe('Test saveProject function from utils', () => {
 
 describe('Test clasp apis functions', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -684,7 +618,7 @@ describe('Test clasp apis functions', () => {
 
 describe.skip('Test clasp logs function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -701,8 +635,7 @@ describe.skip('Test clasp logs function', () => {
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain('Open this link:');
-    const scriptId = JSON.parse(CLASP_SETTINGS).scriptId;
-    expect(result.stdout).to.include(`https://script.google.com/d/${scriptId}/edit`);
+    expect(result.stdout).to.include(`https://script.google.com/d/${SCRIPT_ID}/edit`);
     expect(result.stdout).to.contain('Go to *Resource > Cloud Platform Project...*');
     expect(result.stdout).to.include('and copy your projectId\n(including "project-id-")');
     expect(result.stdout).to.contain('What is your GCP projectId?');
@@ -712,7 +645,7 @@ describe.skip('Test clasp logs function', () => {
 
 describe('Test clasp login function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -720,8 +653,8 @@ describe('Test clasp login function', () => {
   beforeEach(backupSettings);
   afterEach(restoreSettings);
   it('should exit(0) with LOG.DEFAULT_CREDENTIALS for default login (no global or local rc)', () => {
-    if (fs.existsSync(claspRcGlobalPath)) fs.removeSync(claspRcGlobalPath);
-    if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
+    if (fs.existsSync(CLASP_PATHS.rcGlobal)) fs.removeSync(CLASP_PATHS.rcGlobal);
+    if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
     const result = spawnSync(
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
     );
@@ -729,58 +662,58 @@ describe('Test clasp login function', () => {
     expect(result.status).to.equal(0);
   });
   it('should exit(1) with ERROR.LOGGED_IN if global rc and no --creds option', () => {
-    fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
+    fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
     const result = spawnSync(
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspRcGlobalPath);
+    fs.removeSync(CLASP_PATHS.rcGlobal);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_GLOBAL);
     expect(result.status).to.equal(1);
   });
   it('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
-    fs.writeFileSync(claspRcLocalPath, FAKE_CLASPRC_LOCAL);
+    fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspRcLocalPath);
+    fs.removeSync(CLASP_PATHS.rcLocal);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_LOCAL);
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {
-    if (fs.existsSync(clientCredsLocalPath)) fs.removeSync(clientCredsLocalPath);
+    if (fs.existsSync(CLASP_PATHS.clientCredsLocal)) fs.removeSync(CLASP_PATHS.clientCredsLocal);
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    expect(result.stderr).to.contain(ERROR.CREDENTIALS_DNE(clientCredsLocalPath));
+    expect(result.stderr).to.contain(ERROR.CREDENTIALS_DNE(CLASP_PATHS.clientCredsLocal));
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(1) with ERROR.BAD_CREDENTIALS_FILE if --creds file invalid', () => {
-    fs.writeFileSync(clientCredsLocalPath, INVALID_CLIENT_CREDS);
+    fs.writeFileSync(CLASP_PATHS.clientCredsLocal, CLIENT_CREDS.invalid);
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(clientCredsLocalPath);
+    fs.removeSync(CLASP_PATHS.clientCredsLocal);
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(0) with ERROR.BAD_CREDENTIALS_FILE if --creds file corrupt json', () => {
-    fs.writeFileSync(clientCredsLocalPath, rndStr());
+    fs.writeFileSync(CLASP_PATHS.clientCredsLocal, rndStr());
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(clientCredsLocalPath);
+    fs.removeSync(CLASP_PATHS.clientCredsLocal);
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
   });
   it('should exit(1) with LOG.CREDS_FROM_PROJECT if global rc and --creds file valid', () => {
-    if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
-    fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
-    fs.writeFileSync(clientCredsLocalPath, FAKE_CLIENT_CREDS);
+    if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
+    fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
+    fs.writeFileSync(CLASP_PATHS.clientCredsLocal, CLIENT_CREDS.fake);
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${clientCredsLocalPath}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspRcGlobalPath);
-    fs.removeSync(clientCredsLocalPath);
+    fs.removeSync(CLASP_PATHS.rcGlobal);
+    fs.removeSync(CLASP_PATHS.clientCredsLocal);
     expect(result.stdout).to.contain(LOG.LOGIN(true));
     expect(result.status).to.equal(1);
   });
@@ -789,7 +722,7 @@ describe('Test clasp login function', () => {
 
 describe('Test clasp logout function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -797,14 +730,14 @@ describe('Test clasp logout function', () => {
   beforeEach(backupSettings);
   afterEach(restoreSettings);
   it('should remove global AND local credentails', () => {
-    fs.writeFileSync(claspRcGlobalPath, FAKE_CLASPRC);
-    fs.writeFileSync(claspRcLocalPath, FAKE_CLASPRC_LOCAL);
+    fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
+    fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(
       CLASP, ['logout'], { encoding: 'utf8' },
     );
-    expect(fs.existsSync(claspRcGlobalPath)).to.equal(false);
+    expect(fs.existsSync(CLASP_PATHS.rcGlobal)).to.equal(false);
     expect(hasOauthClientSettings()).to.equal(false);
-    expect(fs.existsSync(claspRcLocalPath)).to.equal(false);
+    expect(fs.existsSync(CLASP_PATHS.rcLocal)).to.equal(false);
     expect(hasOauthClientSettings(true)).to.equal(false);
     expect(result.status).to.equal(0);
   });
@@ -814,7 +747,7 @@ describe('Test clasp logout function', () => {
 // Skipping for now because you still need to deploy function using GUI
 describe.skip('Test clasp run function', () => {
   before(function () {
-    if (isPR !== 'false') {
+    if (IS_PR) {
       this.skip();
     }
     setup();
@@ -826,11 +759,11 @@ describe.skip('Test clasp run function', () => {
     expect(result.stdout).to.contain('What is your GCP projectId?');
   });
   it('should prompt to set up new OAuth client', () => {
-    fs.writeFileSync(claspSettingsLocalPath, CLASP_SETTINGS_FAKE_PROJECTID);
+    fs.writeFileSync(CLASP_PATHS.settingsLocal, CLASP_SETTINGS.invalid);
     const result = spawnSync(
       CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspSettingsLocalPath);
+    fs.removeSync(CLASP_PATHS.settingsLocal);
     expect(result.stdout)
       .to.contain('https://console.developers.google.com/apis/credentials?project=');
     expect(result.status).to.equal(0);
@@ -875,8 +808,8 @@ describe('Test unknown functions', () => {
 
 describe('Test all functions while logged out', () => {
   before(() => {
-    if (fs.existsSync(claspRcGlobalPath)) fs.removeSync(claspRcGlobalPath);
-    if (fs.existsSync(claspRcLocalPath)) fs.removeSync(claspRcLocalPath);
+    if (fs.existsSync(CLASP_PATHS.rcGlobal)) fs.removeSync(CLASP_PATHS.rcGlobal);
+    if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
   });
   const expectNoCredentials = (command: string) => {
     const result = spawnSync(
