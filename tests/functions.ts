@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import {
   CLASP_SETTINGS,
-  claspPaths,
+  CLASP_PATHS,
   TEST_APPSSCRIPT_JSON,
 } from './constants';
 
@@ -23,25 +23,25 @@ export const rndStr = () => Math.random().toString(36).substr(2);
 
 export const backupSettings = () => {
   // fs.copyFileSync isn't supported in Node 6/7
-  if (fs.existsSync(claspPaths.rcGlobal)) {
-    copyFileSync(claspPaths.rcGlobal, `${claspPaths.rcGlobal}~`);
+  if (fs.existsSync(CLASP_PATHS.rcGlobal)) {
+    copyFileSync(CLASP_PATHS.rcGlobal, `${CLASP_PATHS.rcGlobal}~`);
   }
-  if (fs.existsSync(claspPaths.rcLocal)) {
-    copyFileSync(claspPaths.rcLocal, `${claspPaths.rcLocal}~`);
+  if (fs.existsSync(CLASP_PATHS.rcLocal)) {
+    copyFileSync(CLASP_PATHS.rcLocal, `${CLASP_PATHS.rcLocal}~`);
   }
-  if (fs.existsSync(claspPaths.settingsLocal)) {
-    copyFileSync(claspPaths.settingsLocal, `${claspPaths.settingsLocal}~`);
+  if (fs.existsSync(CLASP_PATHS.settingsLocal)) {
+    copyFileSync(CLASP_PATHS.settingsLocal, `${CLASP_PATHS.settingsLocal}~`);
   }
 };
 
 export const restoreSettings = () => {
-  if (fs.existsSync(`${claspPaths.rcGlobal}~`)) {
-    fs.renameSync(`${claspPaths.rcGlobal}~`, claspPaths.rcGlobal);
+  if (fs.existsSync(`${CLASP_PATHS.rcGlobal}~`)) {
+    fs.renameSync(`${CLASP_PATHS.rcGlobal}~`, CLASP_PATHS.rcGlobal);
   }
-  if (fs.existsSync(`${claspPaths.rcLocal}~`)) {
-    fs.renameSync(`${claspPaths.rcLocal}~`, claspPaths.rcLocal);
+  if (fs.existsSync(`${CLASP_PATHS.rcLocal}~`)) {
+    fs.renameSync(`${CLASP_PATHS.rcLocal}~`, CLASP_PATHS.rcLocal);
   }
-  if (fs.existsSync(`${claspPaths.settingsLocal}~`)) {
-    fs.renameSync(`${claspPaths.settingsLocal}~`, claspPaths.settingsLocal);
+  if (fs.existsSync(`${CLASP_PATHS.settingsLocal}~`)) {
+    fs.renameSync(`${CLASP_PATHS.settingsLocal}~`, CLASP_PATHS.settingsLocal);
   }
 };

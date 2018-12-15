@@ -18,11 +18,11 @@ const PROJECT_ID: string = process.env.PROJECT_ID || '';
 const HOME: string = process.env.HOME || '';
 
 // Paths
-export const claspPaths = {
-  clientCredsLocal: 'client_credentials.json' as string,
-  rcGlobal: path.join(HOME, '.clasprc.json') as string,
-  rcLocal: '.clasprc.json' as string,
-  settingsLocal: '.clasp.json' as string,
+export const CLASP_PATHS = {
+  clientCredsLocal: 'client_credentials.json',
+  rcGlobal: path.join(HOME, '.clasprc.json'),
+  rcLocal: '.clasprc.json',
+  settingsLocal: '.clasp.json',
 };
 
 // Other constants
@@ -30,58 +30,58 @@ export const CLASP: string = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp
 export const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
 const VALID_CLASP_SETTINGS = {
-  scriptId: SCRIPT_ID as string,
-  projectId: PROJECT_ID as string,
+  scriptId: SCRIPT_ID,
+  projectId: PROJECT_ID,
 };
 
 const INVALID_CLASP_SETTINGS = {
-  scriptId: SCRIPT_ID as string,
-  projectId: `project-id-${rndStr()}` as string,
+  scriptId: SCRIPT_ID,
+  projectId: `project-id-${rndStr()}`,
 };
 
 export const CLASP_SETTINGS = {
-  valid: JSON.stringify(VALID_CLASP_SETTINGS) as string,
-  invalid: JSON.stringify(INVALID_CLASP_SETTINGS) as string,
+  valid: JSON.stringify(VALID_CLASP_SETTINGS),
+  invalid: JSON.stringify(INVALID_CLASP_SETTINGS),
 };
 
 const FAKE_CLASPRC_TOKEN = {
-  access_token: rndStr() as string,
-  refresh_token: rndStr() as string,
-  scope: 'https://www.googleapis.com/auth/script.projects' as string,
-  token_type: 'Bearer' as string,
-  expiry_date: (new Date()).getTime() as number,
+  access_token: rndStr(),
+  refresh_token: rndStr(),
+  scope: 'https://www.googleapis.com/auth/script.projects',
+  token_type: 'Bearer',
+  expiry_date: (new Date()).getTime(),
 };
 
 const oAuth2ClientOptions: OAuth2ClientOptions = {
-  clientId: `${rndStr()}.apps.googleusercontent.com` as string,
-  clientSecret: rndStr() as string,
+  clientId: `${rndStr()}.apps.googleusercontent.com`,
+  clientSecret: rndStr(),
 };
 
 const FAKE_CLASPRC_LOCAL: ClaspToken = {
   token: FAKE_CLASPRC_TOKEN,
-  oauth2ClientSettings: oAuth2ClientOptions as OAuth2ClientOptions,
-  isLocalCreds: true as boolean,
+  oauth2ClientSettings: oAuth2ClientOptions,
+  isLocalCreds: true,
 };
 
 export const FAKE_CLASPRC = {
-  local: JSON.stringify(FAKE_CLASPRC_LOCAL) as string,
-  token: JSON.stringify(FAKE_CLASPRC_TOKEN) as string,
+  local: JSON.stringify(FAKE_CLASPRC_LOCAL),
+  token: JSON.stringify(FAKE_CLASPRC_TOKEN),
 };
 
 const FAKE_CLIENT_CREDS = {
   installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com` as string,
-    client_secret: rndStr() as string,
+    client_id: `${rndStr()}.apps.googleusercontent.com`,
+    client_secret: rndStr(),
   },
 };
 
 const INVALID_CLIENT_CREDS = {
   installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com` as string,
+    client_id: `${rndStr()}.apps.googleusercontent.com`,
   },
 };
 
 export const CLIENT_CREDS = {
-  fake: JSON.stringify(FAKE_CLIENT_CREDS) as string,
-  invalid: JSON.stringify(INVALID_CLIENT_CREDS) as string,
+  fake: JSON.stringify(FAKE_CLIENT_CREDS),
+  invalid: JSON.stringify(INVALID_CLIENT_CREDS),
 };

@@ -27,7 +27,7 @@ import {
   CLASP,
   CLASP_SETTINGS,
   CLASP_USAGE,
-  claspPaths,
+  CLASP_PATHS,
   CLIENT_CREDS,
   FAKE_CLASPRC,
   IS_PR,
@@ -653,8 +653,8 @@ describe('Test clasp login function', () => {
   beforeEach(backupSettings);
   afterEach(restoreSettings);
   it('should exit(0) with LOG.DEFAULT_CREDENTIALS for default login (no global or local rc)', () => {
-    if (fs.existsSync(claspPaths.rcGlobal)) fs.removeSync(claspPaths.rcGlobal);
-    if (fs.existsSync(claspPaths.rcLocal)) fs.removeSync(claspPaths.rcLocal);
+    if (fs.existsSync(CLASP_PATHS.rcGlobal)) fs.removeSync(CLASP_PATHS.rcGlobal);
+    if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
     const result = spawnSync(
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
     );
@@ -662,58 +662,58 @@ describe('Test clasp login function', () => {
     expect(result.status).to.equal(0);
   });
   it('should exit(1) with ERROR.LOGGED_IN if global rc and no --creds option', () => {
-    fs.writeFileSync(claspPaths.rcGlobal, FAKE_CLASPRC.token);
+    fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
     const result = spawnSync(
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspPaths.rcGlobal);
+    fs.removeSync(CLASP_PATHS.rcGlobal);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_GLOBAL);
     expect(result.status).to.equal(1);
   });
   it('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
-    fs.writeFileSync(claspPaths.rcLocal, FAKE_CLASPRC.local);
+    fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${claspPaths.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspPaths.rcLocal);
+    fs.removeSync(CLASP_PATHS.rcLocal);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_LOCAL);
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {
-    if (fs.existsSync(claspPaths.clientCredsLocal)) fs.removeSync(claspPaths.clientCredsLocal);
+    if (fs.existsSync(CLASP_PATHS.clientCredsLocal)) fs.removeSync(CLASP_PATHS.clientCredsLocal);
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${claspPaths.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    expect(result.stderr).to.contain(ERROR.CREDENTIALS_DNE(claspPaths.clientCredsLocal));
+    expect(result.stderr).to.contain(ERROR.CREDENTIALS_DNE(CLASP_PATHS.clientCredsLocal));
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(1) with ERROR.BAD_CREDENTIALS_FILE if --creds file invalid', () => {
-    fs.writeFileSync(claspPaths.clientCredsLocal, CLIENT_CREDS.invalid);
+    fs.writeFileSync(CLASP_PATHS.clientCredsLocal, CLIENT_CREDS.invalid);
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${claspPaths.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspPaths.clientCredsLocal);
+    fs.removeSync(CLASP_PATHS.clientCredsLocal);
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
   });
   it.skip('should exit(0) with ERROR.BAD_CREDENTIALS_FILE if --creds file corrupt json', () => {
-    fs.writeFileSync(claspPaths.clientCredsLocal, rndStr());
+    fs.writeFileSync(CLASP_PATHS.clientCredsLocal, rndStr());
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${claspPaths.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspPaths.clientCredsLocal);
+    fs.removeSync(CLASP_PATHS.clientCredsLocal);
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
   });
   it('should exit(1) with LOG.CREDS_FROM_PROJECT if global rc and --creds file valid', () => {
-    if (fs.existsSync(claspPaths.rcLocal)) fs.removeSync(claspPaths.rcLocal);
-    fs.writeFileSync(claspPaths.rcGlobal, FAKE_CLASPRC.token);
-    fs.writeFileSync(claspPaths.clientCredsLocal, CLIENT_CREDS.fake);
+    if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
+    fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
+    fs.writeFileSync(CLASP_PATHS.clientCredsLocal, CLIENT_CREDS.fake);
     const result = spawnSync(
-      CLASP, ['login', '--creds', `${claspPaths.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
+      CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspPaths.rcGlobal);
-    fs.removeSync(claspPaths.clientCredsLocal);
+    fs.removeSync(CLASP_PATHS.rcGlobal);
+    fs.removeSync(CLASP_PATHS.clientCredsLocal);
     expect(result.stdout).to.contain(LOG.LOGIN(true));
     expect(result.status).to.equal(1);
   });
@@ -730,14 +730,14 @@ describe('Test clasp logout function', () => {
   beforeEach(backupSettings);
   afterEach(restoreSettings);
   it('should remove global AND local credentails', () => {
-    fs.writeFileSync(claspPaths.rcGlobal, FAKE_CLASPRC.token);
-    fs.writeFileSync(claspPaths.rcLocal, FAKE_CLASPRC.local);
+    fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
+    fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(
       CLASP, ['logout'], { encoding: 'utf8' },
     );
-    expect(fs.existsSync(claspPaths.rcGlobal)).to.equal(false);
+    expect(fs.existsSync(CLASP_PATHS.rcGlobal)).to.equal(false);
     expect(hasOauthClientSettings()).to.equal(false);
-    expect(fs.existsSync(claspPaths.rcLocal)).to.equal(false);
+    expect(fs.existsSync(CLASP_PATHS.rcLocal)).to.equal(false);
     expect(hasOauthClientSettings(true)).to.equal(false);
     expect(result.status).to.equal(0);
   });
@@ -759,11 +759,11 @@ describe.skip('Test clasp run function', () => {
     expect(result.stdout).to.contain('What is your GCP projectId?');
   });
   it('should prompt to set up new OAuth client', () => {
-    fs.writeFileSync(claspPaths.settingsLocal, CLASP_SETTINGS.invalid);
+    fs.writeFileSync(CLASP_PATHS.settingsLocal, CLASP_SETTINGS.invalid);
     const result = spawnSync(
       CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
     );
-    fs.removeSync(claspPaths.settingsLocal);
+    fs.removeSync(CLASP_PATHS.settingsLocal);
     expect(result.stdout)
       .to.contain('https://console.developers.google.com/apis/credentials?project=');
     expect(result.status).to.equal(0);
@@ -808,8 +808,8 @@ describe('Test unknown functions', () => {
 
 describe('Test all functions while logged out', () => {
   before(() => {
-    if (fs.existsSync(claspPaths.rcGlobal)) fs.removeSync(claspPaths.rcGlobal);
-    if (fs.existsSync(claspPaths.rcLocal)) fs.removeSync(claspPaths.rcLocal);
+    if (fs.existsSync(CLASP_PATHS.rcGlobal)) fs.removeSync(CLASP_PATHS.rcGlobal);
+    if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
   });
   const expectNoCredentials = (command: string) => {
     const result = spawnSync(
