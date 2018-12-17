@@ -1,6 +1,6 @@
 import * as fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
-import { serviceUsage } from './auth';
+import { serviceUsage, loadAPICredentials } from './auth';
 import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
 
@@ -93,4 +93,14 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean) {
     console.log(e);
     logError(null, ERROR.NO_API(enable, serviceName));
   }
+}
+
+/**
+ * Enable 'script.googleapis.com' of Google API.
+ */
+export async function enableAppsScriptAPI(){
+   await loadAPICredentials();
+   const projectId = await getProjectIdWithErrors();
+   const name = `projects/${projectId}/services/script.googleapis.com`;
+   await serviceUsage.services.enable({ name });
 }

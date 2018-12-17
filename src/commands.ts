@@ -14,7 +14,7 @@ import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
   enableOrDisableAPI,
   getFunctionNames,
-  getProjectIdWithErrors,
+  enableAppsScriptAPI,
 } from './apiutils';
 import {
   authorize,
@@ -358,12 +358,7 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
       creds: credentials,
       scopes: oauthScopes,
     });
-
-    // Ebnable script.googleapis.com for clasp.run
-    await loadAPICredentials();
-    const projectId = await getProjectIdWithErrors();
-    const name = `projects/${projectId}/services/script.googleapis.com`;
-    await serviceUsage.services.enable({ name });
+    await enableAppsScriptAPI();
   } else {
     // Not using own credentials
     await authorize({
