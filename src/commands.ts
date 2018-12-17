@@ -14,6 +14,7 @@ import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
   enableOrDisableAPI,
   getFunctionNames,
+  enableAppsScriptAPI,
 } from './apiutils';
 import {
   authorize,
@@ -357,6 +358,7 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
       creds: credentials,
       scopes: oauthScopes,
     });
+    await enableAppsScriptAPI();
   } else {
     // Not using own credentials
     await authorize({
