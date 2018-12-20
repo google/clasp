@@ -152,7 +152,7 @@ describe('Test clasp clone <scriptId> function', () => {
     const result = spawnSync(
       CLASP, ['clone', 'non-existing-project'], { encoding: 'utf8' },
     );
-    expect(result.stderr).to.contain('> Did you provide the correct scriptId?');
+    expect(result.stderr).to.contain(ERROR.SCRIPT_ID);
     expect(result.status).to.equal(1);
   });
   after(cleanup);
@@ -573,7 +573,7 @@ describe('Test clasp apis functions', () => {
       CLASP, ['apis', 'enable', 'sheets'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('Enabled sheets.');
+    expect(result.stdout).to.contain('Enabled sheets API.');
   });
   it('should give error message for non-existent API', () => {
     const result = spawnSync(
@@ -594,7 +594,7 @@ describe('Test clasp apis functions', () => {
       CLASP, ['apis', 'disable', 'sheets'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('Disabled sheets.');
+    expect(result.stdout).to.contain('Disabled sheets API.');
   });
   it('should show suggestions for using clasp apis', () => {
     const result = spawnSync(
@@ -661,14 +661,14 @@ describe('Test clasp login function', () => {
     expect(result.stdout).to.contain(LOG.LOGIN(false));
     expect(result.status).to.equal(0);
   });
-  it('should exit(1) with ERROR.LOGGED_IN if global rc and no --creds option', () => {
+  it('should ERROR.LOGGED_IN if global rc and no --creds option but continue to login', () => {
     fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
     const result = spawnSync(
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
     );
     fs.removeSync(CLASP_PATHS.rcGlobal);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_GLOBAL);
-    expect(result.status).to.equal(1);
+    expect(result.status).to.equal(0);
   });
   it('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
     fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);

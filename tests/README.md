@@ -17,8 +17,8 @@
 1. Rebuild: `sudo npm run build`
 1. Set environmental variables:
     * `export TRAVIS_PULL_REQUEST=false`
-    * `export SCRIPT_ID=1Q3zCVgK53kEiacR0qvBYFr-A4d720UgZh3cdfDF2oFVJE5SgFiXO0AVZ`
-    * `export PROJECT_ID=project-id-2758325992214167277`
+    * `export SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL`
+    * `export PROJECT_ID=project-id-3961473932623644264`
 1. Test: `npm run test`
 
 ## Configuration using Travis
