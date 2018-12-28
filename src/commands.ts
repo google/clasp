@@ -574,12 +574,12 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
  */
 export const run = async (functionName: string, cmd: { nondev: boolean; params: string }) => {
   function IsValidJSONString(str: string) {
-      try {
-          JSON.parse(str);
-      } catch (error) {
-          throw new Error('Error: Input params not Valid JSON string. Please fix and try again');
-      }
-      return true;
+    try {
+      JSON.parse(str);
+    } catch (error) {
+      throw new Error('Error: Input params not Valid JSON string. Please fix and try again');
+    }
+    return true;
   }
 
   await checkIfOnline();
