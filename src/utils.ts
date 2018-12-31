@@ -394,7 +394,7 @@ function getFileTypeName(type: string) {
  */
 function getScriptTypeName(type: string) {
   const fileType = getFileTypeName(type);
-  return fileType ? `${fileType}s Add-on` : fileType;
+  return fileType ? `${fileType}s Add-on` : type;
 }
 
 /**
