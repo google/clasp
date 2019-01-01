@@ -29,11 +29,11 @@ This quickstart guide describes how to create a TypeScript project from scratch.
 ```json
 {
   "compilerOptions": {
-    "noLib": true
+    "lib": ["esnext"]
   }
 }
 ```
-(See [1](https://github.com/Microsoft/monaco-editor/issues/61#issuecomment-342359348) [2](https://code.visualstudio.com/docs/languages/jsconfig#_jsconfig-options))
+(See [1](https://github.com/Microsoft/monaco-editor/issues/61#issuecomment-342359348) [2](https://code.visualstudio.com/docs/languages/jsconfig#_jsconfig-options) [esnext](https://basarat.gitbooks.io/typescript/docs/types/lib.d.ts.html))
 
 ### Create the TypeScript Project
 
