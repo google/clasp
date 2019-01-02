@@ -51,7 +51,7 @@ clear
 **➡️ Run Apps Script:** Execute your Apps Script from the command line. Features:
 - _Instant_ deployment.
 - Suggested functions Autocomplete (Fuzzy)
-- Easyily add custom Google OAuth scopes
+- Easily add custom Google OAuth scopes
 - [And more...](docs/run.md)
 
 ## Install
@@ -107,7 +107,7 @@ clasp
 
 > **NOTE**: This command requires you to [bring your own Google API credentials](/docs/run.md).
 
-- [`clasp run [functionName] [--nondev]`](#run)
+- [`clasp run [functionName] [--nondev] [--params <StringArray>]`](#run)
 
 ## Reference
 
@@ -344,7 +344,7 @@ Remotely executes an Apps Script function.
 
 To use this command you must:
 1. Log in with your credentials (`clasp login --creds creds.json`)
-1. Deploy the Script as an API executable (Easist done via GUI at the moment).
+1. Deploy the Script as an API executable (Easiest done via GUI at the moment).
 1. Enable any APIs that are used by the script.
 1. Have the following in your `appsscript.json`:
 
@@ -358,10 +358,12 @@ To use this command you must:
 
 - `functionName`: The name of the function in the script that you want to run.
 - `nondev`: If true, runs the function in non-devMode.
+- `-p <StringArray>` `--params <StringArray>`: A JSON string array of parameters to pass to the function
 
 #### Examples
 
 - `clasp run 'sendEmail'`
+- `clasp run 'addOptions' '["string", 123, {"test": "for"}, true]'`
 
 ### List/Enable/Disable Google APIs
 
