@@ -216,7 +216,7 @@ async function authorizeWithLocalhost(
   });
   // TODO Add spinner
   const authCode = await new Promise<string>((res, rej) => {
-    server.on('request', (req: http.ServerRequest, resp: http.ServerResponse) => {
+    server.on('request', (req: http.IncomingMessage, resp: http.ServerResponse) => {
       const urlParts = url.parse(req.url || '', true);
       if (urlParts.query.code) {
         res(urlParts.query.code as string);
