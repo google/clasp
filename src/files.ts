@@ -91,6 +91,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
           .map((name, i) => {
             // Replace OS specific path separator to common '/' char for console output
             name = name.replace(/\\/g, '/');
+            const normalizedName = path.normalize(name);
 
             let type = getAPIFileType(name);
 
@@ -119,7 +120,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
               let isValidJSONIfJSON = true;
               if (type === 'JSON') {
                 if (rootDir) {
-                  isValidJSONIfJSON = name === path.join(rootDir, 'appsscript.json');
+                  isValidJSONIfJSON = normalizedName === path.join(rootDir, 'appsscript.json');
                 } else {
                   isValidJSONIfJSON = name === 'appsscript.json';
                 }
