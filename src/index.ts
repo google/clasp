@@ -286,6 +286,7 @@ commander
   .command('run [functionName]')
   .description('Run a function in your Apps Scripts project')
   .option('--nondev', 'Run script function in non-devMode')
+  .option('-p, --params [StringArray]', 'Add parameters required for the function as a JSON String Array')
   .action(handleError(run));
 
 /**

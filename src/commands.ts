@@ -572,12 +572,23 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  * @requires `clasp login --creds` to be run beforehand.
  */
-export const run = async (functionName: string, cmd: { nondev: boolean }) => {
+export const run = async (functionName: string, cmd: { nondev: boolean; params: string }) => {
+  function IsValidJSONString(str: string) {
+    try {
+      JSON.parse(str);
+    } catch (error) {
+      throw new Error('Error: Input params not Valid JSON string. Please fix and try again');
+    }
+    return true;
+  }
+
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings(true);
   const devMode = !cmd.nondev; // defaults to true
-
+  const { params: paramString = '[]' } = cmd;
+  IsValidJSONString(paramString);
+  const params = JSON.parse(paramString);
   // Ensures the manifest is correct for running a function.
   // The manifest must include:
   // "executionApi": {
@@ -604,7 +615,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
    * Runs a function.
    * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
    */
-  async function runFunction(functionName: string) {
+  async function runFunction(functionName: string, params: any[]) {
     try {
       // Load local credentials.
       await loadAPICredentials(true);
@@ -614,6 +625,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean }) => {
         scriptId,
         requestBody: {
           function: functionName,
+          parameters: params,
           devMode,
         },
       });
@@ -700,7 +712,7 @@ https://www.googleapis.com/auth/presentations
       }
     }
   }
-  await runFunction(functionName);
+  await runFunction(functionName, params);
 };
 
 /**
