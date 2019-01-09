@@ -188,18 +188,25 @@ export async function authorize(options: {
  */
 export async function loadAPICredentials(): Promise<ClaspToken> {
   // Gets the OAuth settings.
-
   // loads both
-  const rcLocalPromise: Promise<ClaspToken> = getOAuthSettings(true);
-  const rcGlobalPromise: Promise<ClaspToken> = getOAuthSettings(false);
+  const rcLocalPromise: Promise<ClaspToken | null> = getOAuthSettings(true);
+  const rcGlobalPromise: Promise<ClaspToken | null> = getOAuthSettings(false);
 
   // wait the promises
   const [rcLocal, rcGlobal] = await Promise.all([rcLocalPromise, rcGlobalPromise]);
 
-  // override the global with local settings
-  const rc: ClaspToken = Object.assign(rcGlobal, rcLocal);
+  const rc: ClaspToken | null = rcGlobal
+    // override the global with local settings
+    ? Object.assign(rcGlobal, rcLocal)
+    : rcLocal;
+
+  if (!rc) {
+    logError(null, ERROR.NO_CREDENTIALS);
+    throw new Error('Never reaches here.');
+  }
 
   await setOauthClientCredentials(rc);
+
   return rc;
 }
 
@@ -296,21 +303,25 @@ async function setOauthClientCredentials(rc: ClaspToken) {
   // Set credentials and refresh them.
   try {
     await checkIfOnline();
-    if (rc.isLocalCreds) {
-      localOAuth2Client = new OAuth2Client({
+
+    const oAuth2Client = rc.isLocalCreds
+      ? new OAuth2Client({
         clientId: rc.oauth2ClientSettings.clientId,
         clientSecret: rc.oauth2ClientSettings.clientSecret,
         redirectUri: rc.oauth2ClientSettings.redirectUri,
-      });
-      localOAuth2Client.setCredentials(rc.token);
-      await refreshCredentials(localOAuth2Client);
-    }
-    // Always use the global credentials too for non-run functions.
-    globalOAuth2Client.setCredentials(rc.token);
-    await refreshCredentials(globalOAuth2Client);
+      })
+      : globalOAuth2Client;
+
+    oAuth2Client.setCredentials(rc.token);
+    await refreshCredentials(oAuth2Client);
 
     // Save the credentials.
-    await (rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC).write(rc);
+    const dotFileRc = rc.isLocalCreds
+      ? DOTFILE.RC_LOCAL()
+      : DOTFILE.RC;
+
+    await dotFileRc.write(rc);
+
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
   }
