@@ -79,21 +79,22 @@ export async function authorize(options: {
     }
 
     // Set scopes
-    let scope = (options.creds) ?
-      // Set scopes to custom scopes
-      options.scopes : [
-        // Default to clasp scopes
-        'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
-        'https://www.googleapis.com/auth/script.projects', // Apps Script management
-        'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
-        'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
-        'https://www.googleapis.com/auth/drive.file', // Create Drive files
-        'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
-        'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+    let scope = options.creds
+      ? // Set scopes to custom scopes
+        options.scopes
+      : [
+          // Default to clasp scopes
+          'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+          'https://www.googleapis.com/auth/script.projects', // Apps Script management
+          'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+          'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+          'https://www.googleapis.com/auth/drive.file', // Create Drive files
+          'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+          'https://www.googleapis.com/auth/logging.read', // StackDriver logs
 
-        // Extra scope since service.management doesn't work alone
-        'https://www.googleapis.com/auth/cloud-platform',
-      ];
+          // Extra scope since service.management doesn't work alone
+          'https://www.googleapis.com/auth/cloud-platform',
+        ];
     if (options.creds && scope.length === 0) {
       scope = [
         // Default to clasp scopes
@@ -169,8 +170,8 @@ export async function loadAPICredentials(): Promise<ClaspToken> {
   const [rcLocal, rcGlobal] = await Promise.all([rcLocalPromise, rcGlobalPromise]);
 
   const rc: ClaspToken | null = rcGlobal
-    // override the global with local settings
-    ? Object.assign(rcGlobal, rcLocal)
+    ? // override the global with local settings
+      Object.assign(rcGlobal, rcLocal)
     : rcLocal;
 
   if (!rc) {
@@ -192,7 +193,8 @@ export async function loadAPICredentials(): Promise<ClaspToken> {
  */
 async function authorizeWithLocalhost(
   oAuth2ClientOptions: OAuth2ClientOptions,
-  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts): Promise<Credentials> {
+  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts,
+): Promise<Credentials> {
   // Wait until the server is listening, otherwise we don't have
   // the server port needed to set up the Oauth2Client.
   const server = await new Promise<http.Server>((resolve, _) => {
@@ -231,7 +233,8 @@ async function authorizeWithLocalhost(
  */
 async function authorizeWithoutLocalhost(
   oAuth2ClientOptions: OAuth2ClientOptions,
-  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts): Promise<Credentials> {
+  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts,
+): Promise<Credentials> {
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: REDIRECT_URI_OOB,
@@ -279,22 +282,19 @@ async function setOauthClientCredentials(rc: ClaspToken) {
 
     const oAuth2Client = rc.isLocalCreds
       ? new OAuth2Client({
-        clientId: rc.oauth2ClientSettings.clientId,
-        clientSecret: rc.oauth2ClientSettings.clientSecret,
-        redirectUri: rc.oauth2ClientSettings.redirectUri,
-      })
+          clientId: rc.oauth2ClientSettings.clientId,
+          clientSecret: rc.oauth2ClientSettings.clientSecret,
+          redirectUri: rc.oauth2ClientSettings.redirectUri,
+        })
       : globalOAuth2Client;
 
     oAuth2Client.setCredentials(rc.token);
     await refreshCredentials(oAuth2Client);
 
     // Save the credentials.
-    const dotFileRc = rc.isLocalCreds
-      ? DOTFILE.RC_LOCAL()
-      : DOTFILE.RC;
+    const dotFileRc = rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
 
     await dotFileRc.write(rc);
-
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
   }
