@@ -257,8 +257,10 @@ export const create = async (cmd: { type: string; title: string; parentId: strin
  * Prompts the user if no script ID is provided.
  * @param scriptId {string} The Apps Script project ID to fetch.
  * @param versionNumber {string} An optional version to pull the script from.
+ * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
+ *                    If not specified, clasp will default to the current directory.
  */
-export const clone = async (scriptId: string, versionNumber?: number) => {
+export const clone = async (scriptId: string, versionNumber: number, cmd: { rootDir: string }) => {
   await checkIfOnline();
   if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
   if (!scriptId) {
@@ -303,8 +305,10 @@ export const clone = async (scriptId: string, versionNumber?: number) => {
     }
   }
   spinner.setSpinnerTitle(LOG.CLONING);
+  const rootDir = cmd.rootDir;
   saveProject({
     scriptId,
+    rootDir,
   }, false);
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, '');

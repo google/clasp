@@ -116,10 +116,12 @@ commander
  * Fetches a project and saves the script id locally.
  * @param {string?} [scriptId] The script ID to clone.
  * @param {string?} [versionNumber] The version of the script to clone.
+ * @param {string?} [--rootDir] Local root directory that store your project files.
  */
 commander
   .command('clone [scriptId] [versionNumber]')
   .description('Clone a project')
+  .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
   .action(handleError(clone));
 
 /**
