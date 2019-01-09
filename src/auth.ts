@@ -14,33 +14,6 @@ import { ClaspCredentials, ERROR, LOG, URL, checkIfOnline, getOAuthSettings, log
 import open = require('opn');
 import readline = require('readline');
 
-// Auth is complicated. Consider yourself warned.
-// tslint:disable:max-line-length
-// GLOBAL: clasp login will store this (~/.clasprc.json):
-// {
-//   "access_token": "XXX",
-//   "refresh_token": "1/k4rt_hgxbeGdaRag2TSVgnXgUrWcXwerPpvlzGG1peHVfzI58EZH0P25c7ykiRYd",
-//   "scope": "https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/script ...",
-//   "token_type": "Bearer",
-//   "expiry_date": 1539130731398
-// }
-// LOCAL: clasp login will store this (./.clasprc.json):
-// {
-//   "token": {
-//     "access_token": "XXX",
-//     "refresh_token": "1/k4rw_hgxbeGdaRag2TSVgnXgUrWcXwerPpvlzGG1peHVfzI58EZH0P25c7ykiRYd",
-//     "scope": "https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/script ...",
-//     "token_type": "Bearer",
-//     "expiry_date": 1539130731398
-//   },
-//   // Settings
-//   "oauth2ClientSettings": {
-//     "clientId": "807925367021-infvb16rd7lasqi22q2npeahkeodfrq5.apps.googleusercontent.com",
-//     "clientSecret": "9dbdeOCRHUyriewCoDrLHtPg",
-//     "redirectUri": "http://localhost"
-//   },
-//   "isLocalCreds": true
-// }
 // API settings
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
