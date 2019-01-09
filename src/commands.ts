@@ -311,7 +311,7 @@ export const clone = async (scriptId: string, versionNumber: number, cmd: { root
     rootDir,
   }, false);
   const files = await fetchProject(scriptId, versionNumber);
-  await writeProjectFiles(files, '');
+  await writeProjectFiles(files, rootDir);
 };
 
 /**
