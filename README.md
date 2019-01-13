@@ -81,7 +81,7 @@ clasp
 - [`clasp login [--no-localhost] [--creds <file>]`](#login)
 - [`clasp logout`](#logout)
 - [`clasp create [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
-- [`clasp clone <scriptId | scriptURL> [versionNumber]`](#clone)
+- [`clasp clone <scriptId | scriptURL> [versionNumber] [--rootDir <dir>]`](#clone)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch] [--force]`](#push)
 - [`clasp status [--json]`](#status)
@@ -167,11 +167,13 @@ Clones the script project from script.google.com.
 
 - `scriptId | scriptURL`: The script ID _or_ script URL to clone.
 - `versionNumber`: The version of the script to clone.
+- `--rootDir <dir>`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
 
 #### Examples
 
 - `clasp clone "15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC"`
 - `clasp clone "https://script.google.com/d/15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC/edit"`
+- `clasp clone "15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC" --rootDir ./src`
 
 ### Pull
 
