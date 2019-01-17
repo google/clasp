@@ -25,7 +25,6 @@ This quickstart guide describes how to create a TypeScript project from scratch.
     - `clasp -v`
 1. Install TypeScript definitions for Apps Script in your project's folder.
     - `npm i -S @types/google-apps-script`
-    - `npm i -S @types/node # may be useful for types like console.log`
 1. Create a file called `jsconfig.json` to prevent non AS features:
 ```json
 {
