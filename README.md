@@ -88,7 +88,7 @@ clasp
 - [`clasp open [scriptId] [--webapp] [--creds]`](#open)
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
-- [`clasp undeploy [deploymentId]`](#undeploy)
+- [`clasp undeploy [deploymentId] [--all]`](#undeploy)
 - [`clasp version [description]`](#version)
 - [`clasp versions`](#versions)
 - [`clasp list`](#list)
@@ -278,11 +278,13 @@ Undeploys a deployment of a script.
 #### Options
 
 - `deploymentId`: An optional deployment ID.
+- `-a` `--all`: Undeploy all deployments.
 
 #### Examples
 
 - `clasp undeploy` (undeploy the last deployment.)
 - `clasp undeploy "123"`
+- `clasp undeploy --all`
 
 ### Version
 
