@@ -182,6 +182,7 @@ export const LOG = {
   STATUS_IGNORE: 'Ignored files:',
   STATUS_PUSH: 'Not ignored files:',
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
+  UNDEPLOYMENT_ALL_FINISH: `Undeployed all deployments.`,
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploying ${deploymentId}...`,
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
