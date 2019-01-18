@@ -3,12 +3,15 @@ import * as path from 'path';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
 import * as recursive from 'recursive-readdir';
+import * as ts from 'typescript';
+import * as tsconfig from 'tsconfig';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
 
 const ts2gas = require('ts2gas');
 const readMultipleFiles = require('read-multiple-files');
+const findParentDir = require('find-parent-dir');
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -52,6 +55,11 @@ export function hasProject(): boolean {
  */
 export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
   const { filePushOrder } = await getProjectSettings();
+
+  // load tsconfig
+  const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
+  const transpileOptions = (await tsconfig.load(projectDirectory)).config as ts.TranspileOptions;
+
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
   recursive(rootDir, (err, filePaths) => {
@@ -100,7 +108,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             if (type === 'TS') {
               // Transpile TypeScript to Google Apps Script
               // @see github.com/grant/ts2gas
-              source = ts2gas(source);
+              source = ts2gas(source, transpileOptions);
               type = 'SERVER_JS';
             }
 
