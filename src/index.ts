@@ -215,12 +215,15 @@ commander
  * Undeploys a deployment of a script.
  * @name undeploy
  * @param {string?} [deploymentId] The deployment ID.
+ * @param {boolean?} all Setup StackDriver logs.
  * @example "undeploy" (undeploy the last deployment.)
  * @example "undeploy 123"
+ * @example "undeploy --all"
  */
 commander
   .command('undeploy [deploymentId]')
   .description('Undeploy a deployment of a project')
+  .option('-a, --all', 'Undeploy all deployments')
   .action(handleError(undeploy));
 
 /**
