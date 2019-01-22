@@ -12,7 +12,7 @@ To use `clasp run`, you need to complete 3 steps:
 
 #### Setup Instructions
 
-1. Ensure you have upgrade to clasp >= 2.0.0
+1. Ensure you have upgraded to the latest version
     - `clasp -v`
 1. Add a `projectId` to your `.clasp.json`. You can find your Project ID via:
     - `clasp open`
