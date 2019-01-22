@@ -126,7 +126,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
         }
       }
       if (!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()) {
-        console.log('Stoping push...');
+        console.log('Stopping push...');
         return;
       }
       console.log(LOG.PUSHING);
@@ -134,7 +134,7 @@ export const push = async (cmd: { watch: boolean, force: boolean }) => {
     });
   } else {
     if (!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()) {
-      console.log('Stoping push...');
+      console.log('Stopping push...');
       return;
     }
     spinner.setSpinnerTitle(LOG.PUSHING).start();
