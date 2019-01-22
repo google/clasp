@@ -46,9 +46,7 @@ import {
 } from './commands';
 import { PROJECT_NAME, handleError } from './utils';
 
-import {
-  pull,
-} from './commands/pull';
+import pull from './commands/pull';
 
 // const commander = require('commander');
 

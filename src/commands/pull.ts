@@ -1,13 +1,13 @@
 import {
-    checkIfOnline,
-    getProjectSettings,
-    LOG,
-    spinner,
+  checkIfOnline,
+  getProjectSettings,
+  LOG,
+  spinner,
  } from './../utils';
 
 import {
-    fetchProject,
-    writeProjectFiles,
+  fetchProject,
+  writeProjectFiles,
 } from './../files';
 
 /**
@@ -15,7 +15,7 @@ import {
  * @param cmd.versionNumber {number} The version number of the project to retrieve.
  *                             If not provided, the project's HEAD version is returned.
  */
-export const pull = async (cmd: { versionNumber: number }) => {
+export default async (cmd: { versionNumber: number }) => {
   await checkIfOnline();
   const { scriptId, rootDir } = await getProjectSettings();
   if (scriptId) {
