@@ -64,21 +64,6 @@ const prompt = inquirer.prompt;
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
- * Force downloads all Apps Script project files into the local filesystem.
- * @param cmd.version {number} The version number of the project to retrieve.
- *                             If not provided, the project's HEAD version is returned.
- */
-export const pull = async (cmd: { versionNumber: number }) => {
-  await checkIfOnline();
-  const { scriptId, rootDir } = await getProjectSettings();
-  if (scriptId) {
-    spinner.setSpinnerTitle(LOG.PULLING);
-    const files = await fetchProject(scriptId, cmd.versionNumber);
-    await writeProjectFiles(files, rootDir);
-  }
-};
-
-/**
  * Uploads all files into the script.google.com filesystem.
  * TODO: Only push the specific files that changed (rather than all files).
  * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
