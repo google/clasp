@@ -25,6 +25,7 @@ To use `clasp run`, you need to complete 3 steps:
     - Application type: **Other**
     - **Create** > **OK**
     - Download the file and name it `creds.json`
+1. Call `clasp login --creds creds.json`
 
 ### Run a function
 
