@@ -21,7 +21,7 @@ To use `clasp run`, you need to complete 3 steps:
     - Paste this in `projectId` in your `.clasp.json`.
 1. Use your own OAuth 2 client. Create one by following these instructions:
     - `clasp open --creds`
-1. Press **Create credentials** > OAuth client ID
+    - Press **Create credentials** > OAuth client ID
     - Application type: **Other**
     - **Create** > **OK**
     - Download the file and name it `creds.json`
