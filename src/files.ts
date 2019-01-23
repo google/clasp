@@ -43,6 +43,23 @@ export function hasProject(): boolean {
 }
 
 /**
+ * Returns in tsconfig.json.
+ * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
+ */
+export function getTranspileOptions(): ts.TranspileOptions{
+  const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
+  const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
+  const userConf: ts.TranspileOptions = {};
+  if(fs.existsSync(tsconfigPath)){
+    const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath,fs.readFileSync(tsconfigPath, 'utf8'));
+    return {
+      compilerOptions: parsedConfigResult.config.compilerOptions
+    }
+  }
+  return {};
+}
+
+/**
  * Recursively finds all files that are part of the current project, and those that are ignored
  * by .claspignore and calls the passed callback function with the file lists.
  * @param {string} rootDir The project's root directory
@@ -55,14 +72,8 @@ export function hasProject(): boolean {
 export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
   const { filePushOrder } = await getProjectSettings();
 
-  // load tsconfig
-  const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-  const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
-  const userConf: ts.TranspileOptions = {};
-  if(fs.existsSync(tsconfigPath)){
-    const tsCongAsJson = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
-    userConf.compilerOptions = tsCongAsJson.compilerOptions;
-  }
+  // Load tsconfig
+  const userConf = getTranspileOptions();
 
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
