@@ -72,7 +72,6 @@
         "no-consecutive-blank-lines": true,
         "no-construct": true,
         "no-debugger": true,
-        "no-default-export": true,
         "no-duplicate-variable": true,
         "no-inferrable-types": true,
         "no-namespace": [
