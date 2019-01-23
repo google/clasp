@@ -108,7 +108,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         if (abortPush) return callback(new Error(), null, null);
 
         // Replace OS specific path separator to common '/' char for console output
-        filePaths = filePaths.map( (name) => name.replace(/\\/g, '/') );
+        filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
 
         // check ignore files
         const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
