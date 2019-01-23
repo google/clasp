@@ -51,10 +51,11 @@ export function getTranspileOptions(): ts.TranspileOptions{
   const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
   const userConf: ts.TranspileOptions = {};
   if(fs.existsSync(tsconfigPath)){
-    const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath,fs.readFileSync(tsconfigPath, 'utf8'));
+    const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
+    const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
     return {
-      compilerOptions: parsedConfigResult.config.compilerOptions
-    }
+      compilerOptions: parsedConfigResult.config.compilerOptions,
+    };
   }
   return {};
 }
