@@ -3,12 +3,14 @@ import * as path from 'path';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
 import * as recursive from 'recursive-readdir';
+import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
 
 const ts2gas = require('ts2gas');
 const readMultipleFiles = require('read-multiple-files');
+const findParentDir = require('find-parent-dir');
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -41,6 +43,24 @@ export function hasProject(): boolean {
 }
 
 /**
+ * Returns in tsconfig.json.
+ * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
+ */
+export function getTranspileOptions(): ts.TranspileOptions{
+  const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
+  const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
+  const userConf: ts.TranspileOptions = {};
+  if(fs.existsSync(tsconfigPath)){
+    const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
+    const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
+    return {
+      compilerOptions: parsedConfigResult.config.compilerOptions,
+    };
+  }
+  return {};
+}
+
+/**
  * Recursively finds all files that are part of the current project, and those that are ignored
  * by .claspignore and calls the passed callback function with the file lists.
  * @param {string} rootDir The project's root directory
@@ -52,6 +72,10 @@ export function hasProject(): boolean {
  */
 export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
   const { filePushOrder } = await getProjectSettings();
+
+  // Load tsconfig
+  const userConf = getTranspileOptions();
+
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
   recursive(rootDir, (err, filePaths) => {
@@ -100,7 +124,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             if (type === 'TS') {
               // Transpile TypeScript to Google Apps Script
               // @see github.com/grant/ts2gas
-              source = ts2gas(source);
+              source = ts2gas(source, userConf);
               type = 'SERVER_JS';
             }
 
