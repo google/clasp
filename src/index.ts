@@ -25,7 +25,6 @@ import 'connect';
 import * as commander from 'commander';
 import {
   apis,
-  clone,
   create,
   defaultCmd,
   deploy,
@@ -47,6 +46,7 @@ import {
 import { PROJECT_NAME, handleError } from './utils';
 
 import pull from './commands/pull';
+import clone from './commands/clone';
 
 // const commander = require('commander');
 
