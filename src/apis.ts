@@ -182,3 +182,5 @@ export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
     version: 'v3',
   },
 ];
+
+export const SCRIPT_ID_LENGTH = 57;

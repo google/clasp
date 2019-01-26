@@ -4,6 +4,10 @@ import {
 } from './../auth';
 
 import {
+  extractScriptId,
+} from './../urls';
+
+import {
   checkIfOnline,
   ERROR,
   LOG,
@@ -20,7 +24,6 @@ import {
 
 const padEnd = require('string.prototype.padend');
 const prompt = require('inquirer').prompt;
-const scriptIdStandardLength = 57;
 
 /**
  * Fetches an Apps Script project.
@@ -33,11 +36,7 @@ const scriptIdStandardLength = 57;
 export default async (scriptId: string, versionNumber: number, cmd: { rootDir: string }) => {
   await checkIfOnline();
   if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
-  if (!scriptId) {
-    scriptId = await getScriptId();
-  } else {
-    scriptId = extractScriptId(scriptId);
-  }
+  scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
   const rootDir = cmd.rootDir;
   saveProject({
@@ -48,6 +47,9 @@ export default async (scriptId: string, versionNumber: number, cmd: { rootDir: s
   await writeProjectFiles(files, rootDir);
 };
 
+/**
+ * Lists a user's AppsScripts and prompts them to choose one to clone.
+ */
 const getScriptId = async () => {
   await loadAPICredentials();
   const list = await drive.files.list({
@@ -76,19 +78,4 @@ const getScriptId = async () => {
     },
   ]);
   return answers.scriptId;
-};
-
-// We have a scriptId or URL
-// If we passed a URL, extract the scriptId from that. For example:
-// https://script.google.com/a/DOMAIN/d/1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I/edit
-const extractScriptId = (scriptId: string) => {
-  if (scriptId.length !== scriptIdStandardLength) {
-    const ids = scriptId.split('/').filter(s => {
-      return s.length === scriptIdStandardLength;
-    });
-    if (ids.length) {
-      scriptId = ids[0];
-    }
-  }
-  return scriptId;
 };
