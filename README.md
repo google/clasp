@@ -483,7 +483,7 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ## Troubleshooting
 
-The library requires **Node version >= 6.0.0**. Use this script to check your version and **upgrade Node if necessary**:
+The library requires **Node version >= 6.3.0**. Use this script to check your version and **upgrade Node if necessary**:
 
 ```sh
 node -v # Check Node version
