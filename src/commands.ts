@@ -36,12 +36,12 @@ import {
   manifestExists,
   readManifest,
 } from './manifest';
+import { URL } from './urls';
 import {
   ERROR,
   LOG,
   PROJECT_MANIFEST_BASENAME,
   PROJECT_MANIFEST_FILENAME,
-  URL,
   checkIfOnline,
   getDefaultProjectName,
   getProjectId,

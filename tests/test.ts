@@ -7,13 +7,12 @@ import { getAppsScriptFileName, getFileType } from './../src/files';
 import {
   ERROR,
   LOG,
-  URL,
   getAPIFileType,
   getDefaultProjectName,
   getWebApplicationURL,
   hasOauthClientSettings,
   saveProject,
-} from './../src/utils.js';
+} from './../src/utils';
 
 import {
   backupSettings,
@@ -35,6 +34,11 @@ import {
   TEST_APPSSCRIPT_JSON,
   TEST_CODE_JS,
 } from './constants';
+
+import {
+  extractScriptId,
+  URL,
+} from './../src/urls';
 
 const { spawnSync } = require('child_process');
 
@@ -156,6 +160,13 @@ describe('Test clasp clone <scriptId> function', () => {
     expect(result.status).to.equal(1);
   });
   after(cleanup);
+});
+
+describe('Test extractScriptId function', () => {
+  it('should return scriptId correctly', () => {
+    expect(extractScriptId(SCRIPT_ID)).to.equal(SCRIPT_ID);
+    expect(extractScriptId(URL.SCRIPT(SCRIPT_ID))).to.equal(SCRIPT_ID);
+  });
 });
 
 describe('Test clasp pull function', () => {

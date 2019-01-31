@@ -10,7 +10,8 @@ import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 
 import { prompt } from 'inquirer';
 import { ClaspToken, DOTFILE } from './dotfile';
 import { enableExecutionAPI, readManifest } from './manifest';
-import { ClaspCredentials, ERROR, LOG, URL, checkIfOnline, getOAuthSettings, logError } from './utils';
+import { URL } from './urls';
+import { ClaspCredentials, ERROR, LOG,checkIfOnline, getOAuthSettings, logError } from './utils';
 import open = require('opn');
 import readline = require('readline');
 
