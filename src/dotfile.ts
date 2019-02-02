@@ -76,7 +76,7 @@ export const DOTFILE = {
    * Reads DOT.IGNORE.PATH to get a glob pattern of ignored paths.
    * @return {Promise<string[]>} A list of file glob patterns
    */
-  IGNORE: () => {
+  IGNORE: async () => {
     const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
     return new Promise<string[]>((res, rej) => {
       if (fs.existsSync(path.join(projectDirectory, DOT.IGNORE.PATH))) {
@@ -92,14 +92,14 @@ export const DOTFILE = {
    * that the command was run in.
    * @return {dotf} A dotf with that dotfile. Null if there is no file
    */
-  PROJECT: () => {
+  PROJECT: async () => {
     const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
     return dotf(projectDirectory, DOT.PROJECT.NAME);
   },
   // Stores {ClaspCredentials}
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
-  RC_LOCAL: () => {
+  RC_LOCAL: async () => {
     const localDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.RC.LOCAL_DIR;
     return dotf(localDirectory, DOT.RC.NAME);
   },

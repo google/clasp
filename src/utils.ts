@@ -258,15 +258,15 @@ export function getDefaultProjectName(): string {
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
 export async function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
-  const promise = new Promise<ProjectSettings>((resolve, reject) => {
-    const fail = (failSilently?: boolean) => {
+  const promise = new Promise<ProjectSettings>(async (resolve, reject) => {
+    const fail = async (failSilently?: boolean) => {
       if (!failSilently) {
         logError(null, ERROR.SETTINGS_DNE);
         reject();
       }
       resolve();
     };
-    const dotfile = DOTFILE.PROJECT();
+    const dotfile = await DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
       dotfile
@@ -327,10 +327,10 @@ export async function saveProject(
     newProjectSettings: ProjectSettings,
     append = true): Promise<ProjectSettings> {
   if (append) {
-    const projectSettings: ProjectSettings = await DOTFILE.PROJECT().read();
+    const projectSettings: ProjectSettings = (await DOTFILE.PROJECT()).read();
     newProjectSettings = {...projectSettings, ...newProjectSettings};
   }
-  return DOTFILE.PROJECT().write(newProjectSettings);
+  return (await DOTFILE.PROJECT()).write(newProjectSettings);
 }
 
 /**
@@ -353,7 +353,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
       },
     ]).then(async (answers: any) => {
       projectSettings.projectId = answers.projectId;
-      await DOTFILE.PROJECT().write(projectSettings);
+      (await DOTFILE.PROJECT()).write(projectSettings);
     });
     return projectSettings.projectId || '';
   } catch (err) {
