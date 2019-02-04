@@ -645,7 +645,7 @@ https://www.googleapis.com/auth/presentations
 /**
  * Deploys an Apps Script project.
  * @param cmd.versionNumber {string} The project version to deploy at.
- * @param cmd.desc {string} The deployment description.
+ * @param cmd.description   {string} The deployment description.
  * @param cmd.deploymentId  {string} The deployment ID to redeploy.
  */
 export const deploy = async (cmd: { versionNumber: number; description: string; deploymentId: string }) => {
