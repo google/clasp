@@ -33,7 +33,7 @@ export async function readManifest(): Promise<Manifest> {
  * Writes the appsscript.json manifest file.
  * @param {Manifest} manifest The new manifest to write.
  */
-export async function writeManifest(manifest: Manifest) {
+export async function writeManifest(manifest: Manifest):Promise<void> {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
@@ -68,7 +68,7 @@ export async function isValidManifest(): Promise<boolean> {
  * Adds a list of scopes to the manifest.
  * @param {string[]} scopes The list of explicit scopes
  */
-export async function addScopeToManifest(scopes: string[]) {
+export async function addScopeToManifest(scopes: string[]):Promise<void> {
   const manifest = await readManifest();
   const oldScopes = manifest.oauthScopes || [];
   const newScopes = oldScopes.concat(scopes);
@@ -81,7 +81,7 @@ export async function addScopeToManifest(scopes: string[]) {
  * Enables the Execution API in the Manifest.
  * The Execution API requires the manifest to have the "executionApi.access" field set.
  */
-export async function enableExecutionAPI() {
+export async function enableExecutionAPI():Promise<void> {
   console.log('Writing manifest');
   const manifest = await readManifest();
   manifest.executionApi = manifest.executionApi || {
@@ -104,7 +104,7 @@ export async function enableExecutionAPI() {
  * @param enable {boolean} True if you want to enable a service. Disables otherwise.
  * @see PUBLIC_ADVANCED_SERVICES
  */
-export async function enableOrDisableAdvanceServiceInManifest(serviceId: string, enable: boolean) {
+export const enableOrDisableAdvanceServiceInManifest = async (serviceId: string, enable: boolean) => {
   /**
    * "enabledAdvancedServices": [
    *   {
@@ -139,7 +139,7 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
   // Overwrites the old list with the new list.
   manifest.dependencies.enabledAdvancedServices = newEnabledAdvancedServices;
   await writeManifest(manifest);
-}
+};
 
 // Manifest Generator
 // Generated with:

@@ -234,7 +234,7 @@ export const logError = (err: any, description = '') => {
  * @param  {any} deployment The deployment
  * @return {string}          The URL of the web application in the online script editor.
  */
-export function getWebApplicationURL(deployment: any) {
+export function getWebApplicationURL(deployment: any): any {
   const entryPoints = deployment.entryPoints || [];
   const webEntryPoint = entryPoints.find((entryPoint: any) => entryPoint.entryPointType === 'WEB_APP');
   if (!webEntryPoint) {
@@ -306,7 +306,7 @@ export function getAPIFileType(filePath: string): string {
 /**
  * Checks if the network is available. Gracefully exits if not.
  */
-export async function checkIfOnline() {
+export async function checkIfOnline(): Promise<true | undefined> {
   // If using a proxy, return true since `isOnline` doesn't work.
   // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
   if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
@@ -367,7 +367,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
  * @param {string} type The input file type. (i.e. docs, forms, sheets, slides)
  * @returns The name like "Google Docs".
  */
-function getFileTypeName(type: string) {
+function getFileTypeName(type: string): string {
   const name: { [key: string]: string } = {
     docs: 'Google Doc',
     forms: 'Google Form',
@@ -382,15 +382,15 @@ function getFileTypeName(type: string) {
  * @param {string} type The Apps Script project type. (i.e. docs, forms, sheets, slides)
  * @returns The script type (i.e. "Google Docs Add-on")
  */
-function getScriptTypeName(type: string) {
+const getScriptTypeName = (type: string) => {
   const fileType = getFileTypeName(type);
   return fileType ? `${fileType}s Add-on` : type;
-}
+};
 
 /**
  * Handles error of each command.
  */
-export function handleError(command: (...args: any[]) => Promise<void>) {
+export const handleError = (command: (...args: any[]) => Promise<void>) => {
   return async (...args: any[]) => {
     try {
       await command(...args);
@@ -399,4 +399,4 @@ export function handleError(command: (...args: any[]) => Promise<void>) {
       logError(null, e.message);
     }
   };
-}
+};

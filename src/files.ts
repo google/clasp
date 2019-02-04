@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as globby from 'globby';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
-import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import {
@@ -131,7 +130,7 @@ export async function fetchProject(
  * @param {AppsScriptAPIFile[]} Files to wirte
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
-export async function writeProjectFiles(files: AppsScriptAPIFile[], rootDir = '') {
+export const writeProjectFiles = async (files: AppsScriptAPIFile[], rootDir = '') => {
   const { fileExtension } = await getProjectSettings();
   const sortedFiles = files.sort((file1, file2) => file1.name.localeCompare(file2.name));
   sortedFiles.map((file: AppsScriptAPIFile) => {
@@ -147,19 +146,19 @@ export async function writeProjectFiles(files: AppsScriptAPIFile[], rootDir = ''
       console.log(`└─ ${rootDir ? truePath : filePath}`);
     });
   });
-}
+};
 
 /**
  * Pushes project files to script.google.com.
  * @param {boolean} silent If true, doesn't console.log any success message.
  */
-export async function pushFiles(silent = false) {
+export const pushFiles = async (silent = false) => {
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
+
   try {
     const {
       error,
-      projectFiles,
       files,
     } = await getProjectFiles(rootDir);
     const filesForAPI: any = files;
@@ -169,34 +168,25 @@ export async function pushFiles(silent = false) {
         scriptId,
         files: filesForAPI,
       },
-    }, {}, (error: any) => {
-      if (!silent) spinner.stop(true);
-      // In the following code, we favor console.error()
-      // over logError() because logError() exits, whereas
-      // we want to log multiple lines of messages, and
-      // eventually exit after logging everything.
-      if (error) {
-        console.error(LOG.PUSH_FAILURE);
-        error.errors.map((err: any) => {
-          console.error(err.message);
-        });
-        console.error(LOG.FILES_TO_PUSH);
-        nonIgnoredFilePaths.map((filePath: string) => {
-          console.error(`└─ ${filePath}`);
-        });
-        process.exit(1);
-      } else {
-        // no error
-        if (!silent) {
-          nonIgnoredFilePaths.map((filePath: string) => {
-            console.log(`└─ ${filePath}`);
-          });
-          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-        }
-      }
     });
+    if (!silent) spinner.stop(true);
+    // In the following code, we favor console.error()
+    // over logError() because logError() exits, whereas
+    // we want to log multiple lines of messages, and
+    // eventually exit after logging everything.
+    if (error) {
+      console.error(LOG.PUSH_FAILURE);
+      console.log(error.message);
+      console.error(LOG.FILES_TO_PUSH);
+      process.exit(1);
+    } else if (files) {
+      // no error
+      if (!silent) {
+        console.log(LOG.PUSH_SUCCESS(files.length));
+      }
+    }
   } catch (e) {
     logError(e, LOG.PUSH_FAILURE);
     spinner.stop(true);
   }
-}
+};

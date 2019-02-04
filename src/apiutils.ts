@@ -1,6 +1,6 @@
 import * as fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
-import { serviceUsage, loadAPICredentials } from './auth';
+import { loadAPICredentials, serviceUsage } from './auth';
 import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
 
@@ -52,7 +52,7 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
 /**
  * Gets the project ID from the manifest. If there is no project ID, it returns an error.
  */
-export async function getProjectIdWithErrors() {
+export async function getProjectIdWithErrors(): Promise<string> {
   const projectId = await getProjectId(); // will prompt user to set up if required
   if (!projectId) throw logError(null, ERROR.NO_GCLOUD_PROJECT);
   return projectId;
@@ -63,7 +63,7 @@ export async function getProjectIdWithErrors() {
  * @param {string} serviceName The service name.
  * @returns {boolean} True if the service is enabled.
  */
-export async function isEnabled(serviceName: string) {
+export async function isEnabled(serviceName: string): Promise<boolean> {
   const serviceDetails = await serviceUsage.services.get({ name: serviceName });
   return serviceDetails.data.state === 'ENABLED';
 }
@@ -73,7 +73,7 @@ export async function isEnabled(serviceName: string) {
  * @param {string} serviceName The name of the service. i.e. sheets
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
-export async function enableOrDisableAPI(serviceName: string, enable: boolean) {
+export async function enableOrDisableAPI(serviceName: string, enable: boolean): Promise<void> {
   if (!serviceName) {
     logError(null, 'An API name is required. Try sheets');
   }
@@ -98,7 +98,7 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean) {
 /**
  * Enable 'script.googleapis.com' of Google API.
  */
-export async function enableAppsScriptAPI(){
+export async function enableAppsScriptAPI(): Promise<void> {
    await loadAPICredentials();
    const projectId = await getProjectIdWithErrors();
    const name = `projects/${projectId}/services/script.googleapis.com`;

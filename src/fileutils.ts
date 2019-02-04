@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as recursive from 'recursive-readdir';
 import * as ts from 'typescript';
+import {DOT} from './dotfile';
 import { ProjectFile } from './fileutils';
 import { ERROR, getAPIFileType, logError, spinner } from './utils';
 const readMultipleFiles = require('read-multiple-files');
@@ -95,7 +96,7 @@ export async function getAllFiles({
   nonIgnoredFilePaths: string[],
   rootDir: string,
 }): Promise<ProjectFile[]> {
-  const files = filePaths.map((name, i) => {
+  const files: Array<AppsScriptAPIFile | undefined> = filePaths.map((name, i) => {
     const normalizedName = path.normalize(name);
     const type = getAPIFileType(name);
 
@@ -121,12 +122,26 @@ export async function getAllFiles({
       return file;
     } else {
       ignoredFilePaths.push(name);
-      return; // Skip ignored files
+      return undefined; // Skip ignored files
     }
-  })
-    .filter(Boolean); // remove null values
-
-  return files;
+  });
+  // Fixes TypeScript errors.
+  function notEmpty<T>(value: T | undefined): value is T {
+    return !!value;
+  }
+  const nonNullFiles: AppsScriptAPIFile[] = files.filter(notEmpty);
+  const projectFilesList: ProjectFile[] = nonNullFiles.map((f: AppsScriptAPIFile) => {
+    const projectFile: ProjectFile = {
+      fileContents: {
+        name: '',
+        type: '',
+        source: '',
+      },
+      ignored: false,
+    };
+    return projectFile;
+  });
+  return projectFilesList;
 }
 
 /**
@@ -155,7 +170,7 @@ export function getTranspileOptions(): ts.TranspileOptions {
  * @param {string} rootDir The directory to save the project files to.
  * @param {string} filePath Path of file that is part of the current project
  */
-export function getAppsScriptFileName(rootDir: string, filePath: string) {
+export function getAppsScriptFileName(rootDir: string, filePath: string): string {
   const nameWithoutExt = filePath.slice(0, -path.extname(filePath).length);
   let fullFilePathNoExt = rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt;
   // Replace OS specific path separator to common '/' char
@@ -168,7 +183,7 @@ export function getAppsScriptFileName(rootDir: string, filePath: string) {
  * @param {ProjectFile[]} projectFiles A list of project files.
  * @see http://github.com/grant/ts2gas
  */
-export function transpileTsFiles(projectFiles: ProjectFile[]) {
+export function transpileTsFiles(projectFiles: ProjectFile[]): ProjectFile[] {
   // Load tsconfig
   const userTranspileOptions: ts.TranspileOptions = getTranspileOptions();
   return projectFiles.map((projectFile: ProjectFile) => {
@@ -185,7 +200,7 @@ export function transpileTsFiles(projectFiles: ProjectFile[]) {
  * Sorts files by push order.
  * @param {ProjectFile[]} ProjectFile A list of project files.
  */
-export function sortFilesByPushOrder(files: ProjectFile[], filePushOrder: string[]) {
+export const sortFilesByPushOrder = (files: ProjectFile[], filePushOrder: string[]) => {
   // This statement customizes the order in which the files are pushed.
   // It puts the files in the setting's filePushOrder first.
   // This is needed because Apps Script blindly executes files in order of creation time.
@@ -205,7 +220,7 @@ export function sortFilesByPushOrder(files: ProjectFile[], filePushOrder: string
     path2Index = path2Index === -1 ? Number.NEGATIVE_INFINITY : path2Index;
     return path2Index - path1Index;
   });
-}
+};
 
 /**
  * If the file is valid, add it to our file list.

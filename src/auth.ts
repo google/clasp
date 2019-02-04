@@ -11,7 +11,7 @@ import { prompt } from 'inquirer';
 import { ClaspToken, DOTFILE } from './dotfile';
 import { enableExecutionAPI, readManifest } from './manifest';
 import { URL } from './urls';
-import { ClaspCredentials, ERROR, LOG,checkIfOnline, getOAuthSettings, logError } from './utils';
+import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
 import open = require('opn');
 import readline = require('readline');
 
@@ -82,7 +82,7 @@ export async function authorize(options: {
   useLocalhost: boolean;
   creds?: ClaspCredentials;
   scopes: string[]; // only used with custom creds.
-}) {
+}): Promise<void> {
   try {
     // Set OAuth2 Client Options
     let oAuth2ClientOptions: OAuth2ClientOptions;
@@ -167,7 +167,7 @@ export async function authorize(options: {
         },
         isLocalCreds: true,
       };
-      await DOTFILE.RC_LOCAL().write(claspToken);
+      (await DOTFILE.RC_LOCAL()).write(claspToken);
     } else {
       // Save global ClaspCredentials.
       claspToken = {
@@ -273,16 +273,16 @@ async function authorizeWithoutLocalhost(
  * Saves new credentials if access token refreshed.
  * @param {ClaspToken} rc OAuth client settings from rc file.
  */
-async function setOauthClientCredentials(rc: ClaspToken) {
+async function setOauthClientCredentials(rc: ClaspToken): Promise<void> {
   /**
    * Refreshes the credentials and saves them.
    */
-  async function refreshCredentials(oAuthClient: OAuth2Client) {
+  const refreshCredentials = async (oAuthClient: OAuth2Client): Promise<void> => {
     const oldExpiry = (oAuthClient.credentials.expiry_date as number) || 0;
     await oAuthClient.getAccessToken(); // refreshes expiry date if required
     if (oAuthClient.credentials.expiry_date === oldExpiry) return;
     rc.token = oAuthClient.credentials;
-  }
+  };
 
   // Set credentials and refresh them.
   try {
@@ -312,7 +312,7 @@ async function setOauthClientCredentials(rc: ClaspToken) {
  * authorize if new scopes found (local OAuth credentails only).
  * @param {ClaspToken} rc OAuth client settings from rc file.
  */
-export async function checkOauthScopes(rc: ClaspToken) {
+export async function checkOauthScopes(rc: ClaspToken): Promise<void> {
   try {
     await checkIfOnline();
     await setOauthClientCredentials(rc);
@@ -322,7 +322,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
     const newScopes =
       oauthScopes && oauthScopes.length ? (oauthScopes as string[]).filter(x => !scopes.includes(x)) : [];
     if (!newScopes.length) return;
-    console.log('New authoization scopes detected in manifest:\n', newScopes);
+    console.log('New authorization scopes detected in manifest:\n', newScopes);
     await prompt([
       {
         type: 'confirm',

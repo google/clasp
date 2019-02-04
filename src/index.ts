@@ -25,7 +25,6 @@ import 'connect';
 import * as commander from 'commander';
 import {
   apis,
-  create,
   defaultCmd,
   deploy,
   deployments,
@@ -34,19 +33,19 @@ import {
   login,
   logout,
   logs,
-  openCmd,
   push,
   run,
-  setting,
   status,
   undeploy,
   version,
   versions,
 } from './commands';
-import { PROJECT_NAME, handleError } from './utils';
-
-import pull from './commands/pull';
 import clone from './commands/clone';
+import create from './commands/create';
+import openCmd from './commands/open';
+import pull from './commands/pull';
+import setting from './commands/settings';
+import { PROJECT_NAME, handleError } from './utils';
 
 // const commander = require('commander');
 

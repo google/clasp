@@ -1,5 +1,6 @@
 {
     "rules": {
+        "typedef": [true, "call-signature", "allow-assignment", "member-variable-declaration"],
         "array-type": [
             true,
             "array-simple"

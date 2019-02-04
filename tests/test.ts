@@ -3,7 +3,14 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
-import { getAppsScriptFileName, getFileType } from './../src/files';
+import { getFileType } from './../src/files';
+import {
+  getAppsScriptFileName,
+} from './../src/fileutils';
+import {
+  URL,
+  extractScriptId,
+} from './../src/urls';
 import {
   ERROR,
   LOG,
@@ -13,20 +20,11 @@ import {
   hasOauthClientSettings,
   saveProject,
 } from './../src/utils';
-
-import {
-  backupSettings,
-  cleanup,
-  restoreSettings,
-  rndStr,
-  setup,
-} from './functions';
-
 import {
   CLASP,
+  CLASP_PATHS,
   CLASP_SETTINGS,
   CLASP_USAGE,
-  CLASP_PATHS,
   CLIENT_CREDS,
   FAKE_CLASPRC,
   IS_PR,
@@ -34,11 +32,13 @@ import {
   TEST_APPSSCRIPT_JSON,
   TEST_CODE_JS,
 } from './constants';
-
 import {
-  extractScriptId,
-  URL,
-} from './../src/urls';
+  backupSettings,
+  cleanup,
+  restoreSettings,
+  rndStr,
+  setup,
+} from './functions';
 
 const { spawnSync } = require('child_process');
 
@@ -70,7 +70,7 @@ describe('Test --help for each function', () => {
 });
 
 describe('Test clasp list function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -88,7 +88,7 @@ describe('Test clasp list function', () => {
 });
 
 describe('Test clasp create function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -111,7 +111,7 @@ describe('Test clasp create function', () => {
 });
 
 describe.skip('Test clasp create <title> function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -127,7 +127,7 @@ describe.skip('Test clasp create <title> function', () => {
 });
 
 describe('Test clasp clone <scriptId> function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -170,7 +170,7 @@ describe('Test extractScriptId function', () => {
 });
 
 describe('Test clasp pull function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -188,7 +188,7 @@ describe('Test clasp pull function', () => {
 });
 
 describe('Test clasp push function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -221,13 +221,13 @@ describe('Test clasp push function', () => {
 });
 
 describe('Test clasp status function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
     setup();
   });
-  function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
+  function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>): string {
     fs.ensureDirSync('tmp');
     const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
     filepathsAndContents.forEach(({ file, data }) => {
@@ -291,7 +291,7 @@ describe('Test clasp status function', () => {
 });
 
 describe('Test clasp open function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -318,7 +318,7 @@ describe('Test URL utils function', () => {
 });
 
 describe('Test clasp deployments function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -335,7 +335,7 @@ describe('Test clasp deployments function', () => {
 });
 
 describe('Test clasp deploy function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -362,7 +362,7 @@ describe('Test clasp deploy function', () => {
 });
 
 describe('Test clasp version and versions function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -396,7 +396,7 @@ describe('Test clasp version and versions function', () => {
 });
 
 describe('Test clasp clone function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -431,7 +431,7 @@ describe('Test clasp clone function', () => {
 });
 
 describe('Test setting function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -558,7 +558,7 @@ describe('Test saveProject function from utils', () => {
 });
 
 describe('Test clasp apis functions', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -628,7 +628,7 @@ describe('Test clasp apis functions', () => {
 });
 
 describe.skip('Test clasp logs function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -655,7 +655,7 @@ describe.skip('Test clasp logs function', () => {
 });
 
 describe('Test clasp login function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -732,7 +732,7 @@ describe('Test clasp login function', () => {
 });
 
 describe('Test clasp logout function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }
@@ -757,7 +757,7 @@ describe('Test clasp logout function', () => {
 
 // Skipping for now because you still need to deploy function using GUI
 describe.skip('Test clasp run function', () => {
-  before(function () {
+  before(function():void {
     if (IS_PR) {
       this.skip();
     }

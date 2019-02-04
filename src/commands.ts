@@ -6,11 +6,9 @@ import * as path from 'path';
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
-import * as fuzzy from 'fuzzy';
-import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
 import { watchTree } from 'watch';
-import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
+import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import {
   enableAppsScriptAPI,
   enableOrDisableAPI,
@@ -27,13 +25,10 @@ import {
   serviceUsage,
 } from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
-import { fetchProject, getProjectFiles, hasProject, pushFiles, writeProjectFiles } from './files';
+import { fetchProject, getProjectFiles, pushFiles } from './files';
 import {
   addScopeToManifest,
-  enableExecutionAPI,
-  enableOrDisableAdvanceServiceInManifest,
   isValidManifest,
-  manifestExists,
   readManifest,
 } from './manifest';
 import { URL } from './urls';
@@ -43,13 +38,10 @@ import {
   PROJECT_MANIFEST_BASENAME,
   PROJECT_MANIFEST_FILENAME,
   checkIfOnline,
-  getDefaultProjectName,
   getProjectId,
   getProjectSettings,
-  getWebApplicationURL,
   hasOauthClientSettings,
   logError,
-  saveProject,
   spinner,
 } from './utils';
 import multimatch = require('multimatch');
@@ -141,100 +133,6 @@ export const help = async () => {
  */
 export const defaultCmd = async (command: string) => {
   logError(null, ERROR.COMMAND_DNE(command));
-};
-
-/**
- * Creates a new Apps Script project.
- * @param cmd.type {string} The type of the Apps Script project.
- * @param cmd.title {string} The title of the Apps Script project's file
- * @param cmd.parentId {string} The Drive ID of the G Suite doc this script is bound to.
- * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
- *                    If not specified, clasp will default to the current directory.
- */
-export const create = async (cmd: { type: string; title: string; parentId: string; rootDir: string }) => {
-  // Handle common errors.
-  await checkIfOnline();
-  if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
-  await loadAPICredentials();
-
-  // Create defaults.
-  const title = cmd.title || getDefaultProjectName();
-  let { type } = cmd;
-  let { parentId } = cmd;
-
-  if (!type) {
-    const answers = await prompt([
-      {
-        type: 'list',
-        name: 'type',
-        message: LOG.CLONE_SCRIPT_QUESTION,
-        choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as any]),
-      },
-    ]);
-    type = answers.type;
-  }
-
-  // Create files with MIME type.
-  // https://developers.google.com/drive/api/v3/mime-types
-  const DRIVE_FILE_MIMETYPES: { [key: string]: string } = {
-    [SCRIPT_TYPES.DOCS]: 'application/vnd.google-apps.document',
-    [SCRIPT_TYPES.FORMS]: 'application/vnd.google-apps.form',
-    [SCRIPT_TYPES.SHEETS]: 'application/vnd.google-apps.spreadsheet',
-    [SCRIPT_TYPES.SLIDES]: 'application/vnd.google-apps.presentation',
-  };
-  const driveFileType = DRIVE_FILE_MIMETYPES[type];
-  if (driveFileType) {
-    spinner.setSpinnerTitle(LOG.CREATE_DRIVE_FILE_START(type)).start();
-    const driveFile = await drive.files.create({
-      requestBody: {
-        mimeType: driveFileType,
-        name: title,
-      },
-    });
-    parentId = driveFile.data.id || '';
-    spinner.stop(true);
-    console.log(LOG.CREATE_DRIVE_FILE_FINISH(type, parentId));
-  }
-
-  // CLI Spinner
-  spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
-  try {
-    const { scriptId } = await getProjectSettings(true);
-    if (scriptId) {
-      logError(null, ERROR.NO_NESTED_PROJECTS);
-      process.exit(1);
-    }
-  } catch (err) {
-    // no scriptId (because project doesn't exist)
-    // console.log(err);
-  }
-
-  // Create a new Apps Script project
-  const res = await script.projects.create({
-    requestBody: {
-      title,
-      parentId,
-    },
-  });
-  spinner.stop(true);
-  if (res.status !== 200) {
-    if (parentId) {
-      console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
-    }
-    logError(res.statusText, ERROR.CREATE);
-  } else {
-    const createdScriptId = res.data.scriptId || '';
-    console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
-    const rootDir = cmd.rootDir;
-    saveProject({
-      scriptId: createdScriptId,
-      rootDir,
-    }, false);
-    if (!manifestExists()) {
-      const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
-      writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
-    }
-  }
 };
 
 /**
@@ -339,7 +237,7 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
    * Prints log entries
    * @param entries {any[]} StackDriver log entries.
    */
-  function printLogs(entries: any[] = []) {
+  function printLogs(entries: any[] = []): void {
     entries = entries.reverse(); // print in syslog ascending order
     for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
       const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload, insertId } = entries[i];
@@ -439,7 +337,7 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
    * Fetches the logs and prints the to the user.
    * @param startDate {Date?} Get logs from this date to now.
    */
-  async function fetchAndPrintLogs(startDate?: Date) {
+  async function fetchAndPrintLogs(startDate?: Date): Promise<void> {
     spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
     // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
     // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
@@ -500,21 +398,21 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
  * @requires `clasp login --creds` to be run beforehand.
  */
 export const run = async (functionName: string, cmd: { nondev: boolean; params: string }) => {
-  function IsValidJSONString(str: string) {
+  const IS_VALID_JSON_STRING = (str: string):boolean => {
     try {
       JSON.parse(str);
     } catch (error) {
       throw new Error('Error: Input params not Valid JSON string. Please fix and try again');
     }
     return true;
-  }
+  };
 
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings(true);
   const devMode = !cmd.nondev; // defaults to true
   const { params: paramString = '[]' } = cmd;
-  IsValidJSONString(paramString);
+  IS_VALID_JSON_STRING(paramString);
   const params = JSON.parse(paramString);
   // Ensures the manifest is correct for running a function.
   // The manifest must include:
@@ -542,7 +440,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean; params: 
    * Runs a function.
    * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
    */
-  async function runFunction(functionName: string, params: any[]) {
+  const RUN_FUNCTION = async (functionName: string, params: any[]) => {
     try {
       // Load local credentials.
       await loadAPICredentials(true);
@@ -638,8 +536,8 @@ https://www.googleapis.com/auth/presentations
         }
       }
     }
-  }
-  await runFunction(functionName, params);
+  };
+  await RUN_FUNCTION(functionName, params);
 };
 
 /**
@@ -899,87 +797,18 @@ export const status = async (cmd: { json: boolean }) => {
   if (!scriptId) return;
   const projectFiles = await getProjectFiles(rootDir);
   if (projectFiles) {
-    const [filesToPush, untrackedFiles] = projectFiles;
+    // const [filesToPush, untrackedFiles] = projectFiles;
+    const [filesToPush, untrackedFiles] = [[],[]];
     if (cmd.json) {
       console.log(JSON.stringify({ filesToPush, untrackedFiles }));
     } else {
       console.log(LOG.STATUS_PUSH);
-      filesToPush.forEach(file => console.log(`└─ ${file}`));
+      filesToPush.forEach((file: any) => console.log(`└─ ${file}`));
       console.log(); // Separate Ignored files list.
       console.log(LOG.STATUS_IGNORE);
-      untrackedFiles.forEach(file => console.log(`└─ ${file}`));
+      untrackedFiles.forEach((file: any) => console.log(`└─ ${file}`));
     }
   }
-};
-
-/**
- * Opens an Apps Script project's script.google.com editor.
- * @param scriptId {string} The Apps Script project to open.
- * @param cmd.webapp {boolean} If true, the command will open the webapps URL.
- * @param cmd.creds {boolean} If true, the command will open the credentials URL.
- */
-export const openCmd = async (scriptId: any, cmd: {
-  webapp: boolean,
-  creds: boolean,
-}) => {
-  await checkIfOnline();
-  const projectSettings = await getProjectSettings();
-  if (!scriptId) scriptId = projectSettings.scriptId;
-  if (scriptId.length < 30) {
-    return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  }
-  // We've specified to open creds.
-  if (cmd.creds) {
-    const projectId = projectSettings.projectId;
-    if (!projectId) {
-      return logError(null, ERROR.NO_GCLOUD_PROJECT);
-    }
-    console.log(LOG.OPEN_CREDS(projectId));
-    return open(URL.CREDS(projectId), { wait: false });
-  }
-
-  // If we're not a web app, open the script URL.
-  if (!cmd.webapp) {
-    console.log(LOG.OPEN_PROJECT(scriptId));
-    return open(URL.SCRIPT(scriptId), { wait: false });
-  }
-
-  // Web app: Otherwise, open the latest deployment.
-  await loadAPICredentials();
-  const deploymentsList = await script.projects.deployments.list({
-    scriptId,
-  });
-  if (deploymentsList.status !== 200) {
-    return logError(deploymentsList.statusText);
-  }
-  const deployments = deploymentsList.data.deployments || [];
-  if (!deployments.length) {
-    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  }
-  const choices = deployments
-    .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
-    .map((deployment: any) => {
-      const DESC_PAD_SIZE = 30;
-      const id = deployment.deploymentId;
-      const description = deployment.deploymentConfig.description;
-      const versionNumber = deployment.deploymentConfig.versionNumber;
-      return {
-        name:
-          padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE) +
-          `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
-        value: deployment,
-      };
-    });
-  const answers = await prompt([
-    {
-      type: 'list',
-      name: 'deployment',
-      message: 'Open which deployment?',
-      choices,
-    },
-  ]);
-  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
-  open(getWebApplicationURL(answers.deployment), { wait: false });
 };
 
 /**
@@ -1084,64 +913,5 @@ export const apis = async (options: { open?: string }) => {
     command[subcommand]();
   } else {
     logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
-  }
-};
-
-/**
- * Gets or sets a setting in .clasp.json
- * @param {keyof ProjectSettings} settingKey The key to set
- * @param {string?} settingValue Optional value to set the key to
- */
-export const setting = async (settingKey?: keyof ProjectSettings, settingValue?: string) => {
-  const currentSettings = await getProjectSettings();
-
-  // Display all settings if ran `clasp setting`.
-  if (!settingKey) {
-    console.log(currentSettings);
-    return;
-  }
-
-  // Make a new spinner piped to stdErr so we don't interfere with output
-  if (!settingValue) {
-    if (settingKey in currentSettings) {
-      let keyValue = currentSettings[settingKey];
-      if (Array.isArray(keyValue)) {
-        keyValue = keyValue.toString();
-      } else if (typeof keyValue !== 'string') {
-        keyValue = '';
-      }
-      // We don't use console.log as it automatically adds a new line
-      // Which interfers with storing the value
-      process.stdout.write(keyValue);
-    } else {
-      logError(null, ERROR.UNKNOWN_KEY(settingKey));
-    }
-  } else {
-    try {
-      const currentSettings = await getProjectSettings();
-      const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
-      switch(settingKey) {
-        case 'scriptId':
-          currentSettings.scriptId = settingValue;
-          break;
-        case 'rootDir':
-          currentSettings.rootDir = settingValue;
-          break;
-        case 'projectId':
-          currentSettings.projectId = settingValue;
-          break;
-        case 'fileExtension':
-          currentSettings.fileExtension = settingValue;
-          break;
-        default:
-          logError(null, ERROR.UNKNOWN_KEY(settingKey));
-      }
-      // filePushOrder doesn't work since it requires an array.
-      // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
-      await saveProject(currentSettings, true);
-      console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
-    } catch (e) {
-      logError(null, 'Unable to update .clasp.json');
-    }
   }
 };
