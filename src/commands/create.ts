@@ -1,7 +1,7 @@
 import { SCRIPT_TYPES } from './../apis';
 import { drive, loadAPICredentials, script } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
-import {manifestExists} from '../manifest';
+import { manifestExists } from '../manifest';
 import {
   ERROR,
   LOG,
@@ -35,15 +35,12 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   let { parentId } = cmd;
 
   if (!type) {
-    const answers = await prompt([
-
-      {
-        type: 'list',
-        name: 'type',
-        message: LOG.CLONE_SCRIPT_QUESTION,
-        choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as any]),
-      },
-    ]);
+    const answers = await prompt([{
+      type: 'list',
+      name: 'type',
+      message: LOG.CREATE_WHICH_SCRIPT_TYPE,
+      choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as any]),
+    }]);
     type = answers.type;
   }
 

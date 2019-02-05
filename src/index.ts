@@ -27,7 +27,6 @@ import {
   apis,
   defaultCmd,
   deploy,
-  deployments,
   help,
   list,
   login,
@@ -37,14 +36,15 @@ import {
   run,
   status,
   undeploy,
-  version,
   versions,
 } from './commands';
 import clone from './commands/clone';
 import create from './commands/create';
+import deployments from './commands/deployments';
 import openCmd from './commands/open';
 import pull from './commands/pull';
 import setting from './commands/settings';
+import version from './commands/version';
 import { PROJECT_NAME, handleError } from './utils';
 
 // const commander = require('commander');

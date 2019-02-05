@@ -135,6 +135,7 @@ export const LOG = {
   CREATE_PROJECT_FINISH: (filetype: string, scriptId: string) =>
     `Created new ${getScriptTypeName(filetype)} script: ${URL.SCRIPT(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
+  CREATE_WHICH_SCRIPT_TYPE: 'Create what type of script?',
   CREDENTIALS_FOUND: 'Credentials found, using those to login...',
   CREDS_FROM_PROJECT: (projectId: string) => `Using credentials located here:\n${URL.CREDS(projectId)}\n` ,
   DEFAULT_CREDENTIALS: 'No credentials given, continuing with default...',
@@ -168,8 +169,8 @@ export const LOG = {
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
-  STATUS_IGNORE: 'Ignored files:',
-  STATUS_PUSH: 'Not ignored files:',
+  STATUS_IGNORE_TRUE: '# Ignored files:',
+  STATUS_IGNORE_FALSE: '# Not ignored files:',
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
   UNDEPLOYMENT_ALL_FINISH: `Undeployed all deployments.`,
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploying ${deploymentId}...`,

@@ -701,33 +701,6 @@ export const list = async () => {
 };
 
 /**
- * Lists a script's deployments.
- */
-export const deployments = async () => {
-  await checkIfOnline();
-  await loadAPICredentials();
-  const { scriptId } = await getProjectSettings();
-  if (!scriptId) return;
-  spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
-  const deployments = await script.projects.deployments.list({
-    scriptId,
-  });
-  spinner.stop(true);
-  if (deployments.status !== 200) {
-    return logError(deployments.statusText);
-  }
-  const deploymentsList = deployments.data.deployments || [];
-  const numDeployments = deploymentsList.length;
-  const deploymentWord = pluralize('Deployment', numDeployments);
-  console.log(`${numDeployments} ${deploymentWord}.`);
-  deploymentsList.map(({ deploymentId, deploymentConfig }: any) => {
-    const versionString = !!deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
-    const description = deploymentConfig.description ? '- ' + deploymentConfig.description : '';
-    console.log(`- ${deploymentId} ${versionString} ${description}`);
-  });
-};
-
-/**
  * Lists versions of an Apps Script project.
  */
 export const versions = async () => {
@@ -755,38 +728,6 @@ export const versions = async () => {
 };
 
 /**
- * Creates a new version of an Apps Script project.
- */
-export const version = async (description: string) => {
-  await checkIfOnline();
-  await loadAPICredentials();
-  const { scriptId } = await getProjectSettings();
-  if (!description) {
-    const answers = await prompt([
-      {
-        type: 'input',
-        name: 'description',
-        message: LOG.GIVE_DESCRIPTION,
-        default: '',
-      },
-    ]);
-    description = answers.description;
-  }
-  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
-  const versions = await script.projects.versions.create({
-    scriptId,
-    requestBody: {
-      description,
-    },
-  });
-  spinner.stop(true);
-  if (versions.status !== 200) {
-    return logError(versions.statusText);
-  }
-  console.log(LOG.VERSION_CREATED(versions.data.versionNumber || -1));
-};
-
-/**
  * Displays the status of which Apps Script files are ignored from .claspignore
  * @param cmd.json {boolean} Displays the status in json format.
  */
@@ -802,10 +743,9 @@ export const status = async (cmd: { json: boolean }) => {
     if (cmd.json) {
       console.log(JSON.stringify({ filesToPush, untrackedFiles }));
     } else {
-      console.log(LOG.STATUS_PUSH);
+      console.log(LOG.STATUS_IGNORE_FALSE);
       filesToPush.forEach((file: any) => console.log(`└─ ${file}`));
-      console.log(); // Separate Ignored files list.
-      console.log(LOG.STATUS_IGNORE);
+      console.log(LOG.STATUS_IGNORE_TRUE);
       untrackedFiles.forEach((file: any) => console.log(`└─ ${file}`));
     }
   }
@@ -902,7 +842,6 @@ export const apis = async (options: { open?: string }) => {
     },
     undefined: () => {
       command.list();
-
       console.log(`# Try these commands:
 - clasp apis list
 - clasp apis enable slides

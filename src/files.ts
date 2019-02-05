@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as globby from 'globby';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
 import { loadAPICredentials, script } from './auth';
@@ -21,7 +20,7 @@ import { ERROR, LOG, checkIfOnline, getProjectSettings, logError, spinner } from
 interface ProjectFilesCallback {
   error?: Error;
   projectFiles?: string[][];
-  files?: Array<AppsScriptAPIFile | undefined>;
+  files?: Array<ProjectFile | undefined>;
 }
 
 /**
