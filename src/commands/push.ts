@@ -1,6 +1,4 @@
-import {
-  loadAPICredentials,
-} from './../auth';
+import { loadAPICredentials } from './../auth';
 
 import {
   DOT,

@@ -1,15 +1,11 @@
 import { readFileSync } from 'fs';
-import * as path from 'path';
 /**
  * Clasp command method bodies.
  */
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
-import * as fuzzy from 'fuzzy';
-import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
-import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
   enableOrDisableAPI,
@@ -30,8 +26,6 @@ import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles, writeProjectFiles } from './files';
 import {
   addScopeToManifest,
-  enableExecutionAPI,
-  enableOrDisableAdvanceServiceInManifest,
   isValidManifest,
   manifestExists,
   readManifest,
@@ -40,7 +34,6 @@ import {
   ERROR,
   LOG,
   PROJECT_MANIFEST_BASENAME,
-  PROJECT_MANIFEST_FILENAME,
   URL,
   checkIfOnline,
   getDefaultProjectName,
@@ -52,7 +45,6 @@ import {
   saveProject,
   spinner,
 } from './utils';
-import multimatch = require('multimatch');
 
 const ellipsize = require('ellipsize');
 const open = require('opn');
