@@ -30,11 +30,11 @@ import {
   manifestExists,
   readManifest,
 } from './manifest';
+import { URL } from './urls';
 import {
   ERROR,
   LOG,
   PROJECT_MANIFEST_BASENAME,
-  URL,
   checkIfOnline,
   getDefaultProjectName,
   getProjectId,
