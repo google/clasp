@@ -456,7 +456,7 @@ export const run = async (functionName: string, cmd: { nondev: boolean; params: 
 
   // Pushes the latest code if in dev mode.
   // We need to update the manifest before executing to:
-  // - Ensure the execution API is enambled.
+  // - Ensure the execution API is enabled.
   // - Ensure we can run functions that were developed locally but not pushed.
   if (devMode) {
     // TODO enable this once we can properly await pushFiles
@@ -573,7 +573,7 @@ https://www.googleapis.com/auth/presentations
 /**
  * Deploys an Apps Script project.
  * @param cmd.versionNumber {string} The project version to deploy at.
- * @param cmd.desc {string} The deployment description.
+ * @param cmd.description   {string} The deployment description.
  * @param cmd.deploymentId  {string} The deployment ID to redeploy.
  */
 export const deploy = async (cmd: { versionNumber: number; description: string; deploymentId: string }) => {

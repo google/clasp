@@ -9,6 +9,7 @@
       "es2017"
     ],
     "strict": true,
+    "inlineSourceMap": true,
   },
   "moduleResolution": "node",
   "files": [
