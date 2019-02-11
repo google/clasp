@@ -1,15 +1,11 @@
 import { readFileSync } from 'fs';
-import * as path from 'path';
 /**
  * Clasp command method bodies.
  */
 import chalk from 'chalk';
 import * as commander from 'commander';
 import * as del from 'del';
-import * as fuzzy from 'fuzzy';
-import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
-import { watchTree } from 'watch';
 import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
   enableOrDisableAPI,
@@ -30,8 +26,6 @@ import { DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles, writeProjectFiles } from './files';
 import {
   addScopeToManifest,
-  enableExecutionAPI,
-  enableOrDisableAdvanceServiceInManifest,
   isValidManifest,
   manifestExists,
   readManifest,
@@ -41,7 +35,6 @@ import {
   ERROR,
   LOG,
   PROJECT_MANIFEST_BASENAME,
-  PROJECT_MANIFEST_FILENAME,
   checkIfOnline,
   getDefaultProjectName,
   getProjectId,
@@ -52,7 +45,6 @@ import {
   saveProject,
   spinner,
 } from './utils';
-import multimatch = require('multimatch');
 
 const ellipsize = require('ellipsize');
 const open = require('opn');
@@ -62,70 +54,6 @@ const padEnd = require('string.prototype.padend');
 // setup inquirer
 const prompt = inquirer.prompt;
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
-
-/**
- * Uploads all files into the script.google.com filesystem.
- * TODO: Only push the specific files that changed (rather than all files).
- * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
- */
-export const push = async (cmd: { watch: boolean, force: boolean }) => {
-  await checkIfOnline();
-  await loadAPICredentials();
-  await isValidManifest();
-  const { rootDir } = await getProjectSettings();
-
-  /**
-   * Checks if the manifest has changes.
-   */
-  const manifestHasChanges = async (): Promise<boolean> => {
-    const { scriptId, rootDir } = await getProjectSettings();
-    const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
-    const localManifest = readFileSync(localManifestPath, 'utf8');
-    const remoteFiles = await fetchProject(scriptId, undefined, true);
-    const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);
-    if (!remoteManifest) throw Error('remote manifest no found');
-    return localManifest !== remoteManifest.source;
-  };
-
-  const confirmManifestUpdate = async (): Promise<boolean> => {
-    const answers = await prompt([{
-      name: 'overwrite',
-      type: 'confirm',
-      message: 'Manifest file has been updated. Do you want to push and overwrite?',
-      default: false,
-    }]) as { overwrite: boolean };
-    return answers.overwrite;
-  };
-
-  if (cmd.watch) {
-    console.log(LOG.PUSH_WATCH);
-    const patterns = await DOTFILE.IGNORE();
-    // @see https://www.npmjs.com/package/watch
-    watchTree(rootDir || '.', async (f, curr, prev) => {
-      // The first watch doesn't give a string for some reason.
-      if (typeof f === 'string') {
-        console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
-        if (multimatch([f], patterns).length) {
-          // The file matches the ignored files patterns so we do nothing
-          return;
-        }
-      }
-      if (!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()) {
-        console.log('Stopping push...');
-        return;
-      }
-      console.log(LOG.PUSHING);
-      pushFiles();
-    });
-  } else {
-    if (!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()) {
-      console.log('Stopping push...');
-      return;
-    }
-    spinner.setSpinnerTitle(LOG.PUSHING).start();
-    pushFiles();
-  }
-};
 
 /**
  * Outputs the help command.

@@ -35,7 +35,6 @@ import {
   logout,
   logs,
   openCmd,
-  push,
   run,
   setting,
   status,
@@ -47,6 +46,7 @@ import { PROJECT_NAME, handleError } from './utils';
 
 import pull from './commands/pull';
 import clone from './commands/clone';
+import push from './commands/push';
 
 // const commander = require('commander');
 
