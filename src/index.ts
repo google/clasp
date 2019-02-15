@@ -30,23 +30,23 @@ import {
   deploy,
   deployments,
   help,
-  list,
   login,
-  logout,
   logs,
   openCmd,
   run,
   setting,
-  status,
   undeploy,
   version,
-  versions,
 } from './commands';
 import { PROJECT_NAME, handleError } from './utils';
 
 import pull from './commands/pull';
 import clone from './commands/clone';
 import push from './commands/push';
+import status from './commands/status';
+import list from './commands/list';
+import logout from './commands/logout';
+import versions from './commands/versions';
 
 // const commander = require('commander');
 

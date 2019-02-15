@@ -4,7 +4,6 @@ import { readFileSync } from 'fs';
  */
 import chalk from 'chalk';
 import * as commander from 'commander';
-import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
@@ -23,7 +22,7 @@ import {
   serviceUsage,
 } from './auth';
 import { DOT, DOTFILE, ProjectSettings } from './dotfile';
-import { fetchProject, getProjectFiles, hasProject, pushFiles, writeProjectFiles } from './files';
+import { fetchProject, hasProject, pushFiles, writeProjectFiles } from './files';
 import {
   addScopeToManifest,
   isValidManifest,
@@ -234,15 +233,6 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
     });
   }
   process.exit(0); // gracefully exit after successful login
-};
-
-/**
- * Logs out the user by deleting credentials.
- */
-export const logout = async () => {
-  if (hasOauthClientSettings(true)) del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
-  // del doesn't work with a relative path (~)
-  if (hasOauthClientSettings()) del(DOT.RC.ABSOLUTE_PATH, { force: true });
 };
 
 /**
@@ -703,34 +693,6 @@ export const undeploy = async (deploymentId: string, cmd: { all: boolean }) => {
 };
 
 /**
- * Lists a user's Apps Script projects using Google Drive.
- */
-export const list = async () => {
-  await checkIfOnline();
-  await loadAPICredentials();
-  spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
-  const filesList = await drive.files.list({
-    pageSize: 50,
-    // fields isn't currently supported
-    // https://github.com/googleapis/google-api-nodejs-client/issues/1374
-    // fields: 'nextPageToken, files(id, name)',
-    q: 'mimeType="application/vnd.google-apps.script"',
-  });
-  spinner.stop(true);
-  if (filesList.status !== 200) {
-    return logError(null, ERROR.DRIVE);
-  }
-  const files = filesList.data.files || [];
-  if (!files.length) {
-    return console.log(LOG.FINDING_SCRIPTS_DNE);
-  }
-  const NAME_PAD_SIZE = 20;
-  files.map((file: any) => {
-    console.log(`${padEnd(ellipsize(file.name, NAME_PAD_SIZE), NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id)}`);
-  });
-};
-
-/**
  * Lists a script's deployments.
  */
 export const deployments = async () => {
@@ -754,33 +716,6 @@ export const deployments = async () => {
     const versionString = !!deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
     const description = deploymentConfig.description ? '- ' + deploymentConfig.description : '';
     console.log(`- ${deploymentId} ${versionString} ${description}`);
-  });
-};
-
-/**
- * Lists versions of an Apps Script project.
- */
-export const versions = async () => {
-  await checkIfOnline();
-  await loadAPICredentials();
-  spinner.setSpinnerTitle('Grabbing versions...').start();
-  const { scriptId } = await getProjectSettings();
-  const versions = await script.projects.versions.list({
-    scriptId,
-    pageSize: 500,
-  });
-  spinner.stop(true);
-  if (versions.status !== 200) {
-    return logError(versions.statusText);
-  }
-  const data = versions.data;
-  if (!data || !data.versions || !data.versions.length) {
-    return logError(null, LOG.DEPLOYMENT_DNE);
-  }
-  const numVersions = data.versions.length;
-  console.log(LOG.VERSION_NUM(numVersions));
-  data.versions.reverse().map((version: any) => {
-    console.log(LOG.VERSION_DESCRIPTION(version));
   });
 };
 
@@ -814,32 +749,6 @@ export const version = async (description: string) => {
     return logError(versions.statusText);
   }
   console.log(LOG.VERSION_CREATED(versions.data.versionNumber || -1));
-};
-
-/**
- * Displays the status of which Apps Script files are ignored from .claspignore
- * @param cmd.json {boolean} Displays the status in json format.
- */
-export const status = async (cmd: { json: boolean }) => {
-  await checkIfOnline();
-  await isValidManifest();
-  const { scriptId, rootDir } = await getProjectSettings();
-  if (!scriptId) return;
-  getProjectFiles(rootDir, (err, projectFiles) => {
-    if (err) return console.log(err);
-    if (projectFiles) {
-      const [filesToPush, untrackedFiles] = projectFiles;
-      if (cmd.json) {
-        console.log(JSON.stringify({ filesToPush, untrackedFiles }));
-      } else {
-        console.log(LOG.STATUS_PUSH);
-        filesToPush.forEach(file => console.log(`└─ ${file}`));
-        console.log(); // Separate Ignored files list.
-        console.log(LOG.STATUS_IGNORE);
-        untrackedFiles.forEach(file => console.log(`└─ ${file}`));
-      }
-    }
-  });
 };
 
 /**
