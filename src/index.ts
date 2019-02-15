@@ -30,9 +30,7 @@ import {
   deploy,
   deployments,
   help,
-  list,
   login,
-  logout,
   logs,
   openCmd,
   run,
@@ -47,6 +45,8 @@ import pull from './commands/pull';
 import clone from './commands/clone';
 import push from './commands/push';
 import status from './commands/status';
+import list from './commands/list';
+import logout from './commands/logout';
 
 // const commander = require('commander');
 
