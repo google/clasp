@@ -30,7 +30,6 @@ import {
   deploy,
   deployments,
   help,
-  list,
   login,
   logs,
   openCmd,
@@ -46,6 +45,7 @@ import { PROJECT_NAME, handleError } from './utils';
 import pull from './commands/pull';
 import clone from './commands/clone';
 import push from './commands/push';
+import list from './commands/list';
 import logout from './commands/logout';
 
 // const commander = require('commander');
