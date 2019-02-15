@@ -44,6 +44,7 @@ import {
   saveProject,
   spinner,
 } from './utils';
+import { print } from 'util';
 
 const ellipsize = require('ellipsize');
 const open = require('opn');
@@ -200,7 +201,7 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
     });
     console.log('');
     console.log(`NOTE: The full list of scopes you're project may need` +
-    ` can be found at script.google.com under:`);
+      ` can be found at script.google.com under:`);
     console.log(`File > Project Properties > Scopes`);
     console.log('');
 
@@ -365,34 +366,45 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
     if (startDate) {
       filter = `timestamp >= "${startDate.toISOString()}"`;
     }
-    const logs = await logger.entries.list({
-      requestBody: {
-        resourceNames: [`projects/${projectId}`],
-        filter,
-        orderBy: 'timestamp desc',
-      },
-    });
-
-    // We have an API response. Now, check the API response status.
-    spinner.stop(true);
-    // Only print filter if provided.
-    if (filter.length) {
-      console.log(filter);
+    // validate projectId
+    if (!projectId) {
+      return logError(null, ERROR.NO_GCLOUD_PROJECT);
     }
-    if (logs.status !== 200) {
-      switch (logs.status) {
-        case 401:
-          logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
-        case 403:
-          logError(
-            null,
-            oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED,
-          );
-        default:
-          logError(null, `(${logs.status}) Error: ${logs.statusText}`);
+    if (!projectId.match(/^[a-z][a-z0-9\-]{5,29}$/)) {
+      return logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
+    }
+    try {
+      const logs = await logger.entries.list({
+        requestBody: {
+          resourceNames: [`projects/${projectId}`],
+          filter,
+          orderBy: 'timestamp desc',
+        },
+      });
+      // We have an API response. Now, check the API response status.
+      spinner.stop(true);
+      // Only print filter if provided.
+      if (filter.length) {
+        console.log(filter);
       }
-    } else {
-      printLogs(logs.data.entries);
+      if (logs.status !== 200) {
+        switch (logs.status) {
+          case 401:
+            logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+          case 403:
+            logError(
+              null,
+              oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED,
+            );
+          default:
+            logError(null, `(${logs.status}) Error: ${logs.statusText}`);
+        }
+      } else {
+        printLogs(logs.data.entries);
+      }
+    } catch (error) {
+      spinner.stop(true);
+      logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
     }
   }
 
@@ -520,11 +532,11 @@ https://www.googleapis.com/auth/presentations
             // https://www.googleapis.com/auth/presentations
             // https://www.googleapis.com/auth/spreadsheets
             const readline = require('readline');
-            const scopes:string[] = [];
+            const scopes: string[] = [];
             const rl = readline.createInterface({
-                input: process.stdin,
-                output: process.stdout,
-                prompt: '',
+              input: process.stdin,
+              output: process.stdout,
+              prompt: '',
             });
             rl.prompt();
             rl.on('line', (cmd: string) => {
@@ -634,7 +646,7 @@ export const undeploy = async (deploymentId: string, cmd: { all: boolean }) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!scriptId) return;
-  if (cmd.all){
+  if (cmd.all) {
     const deploymentsList = await script.projects.deployments.list({
       scriptId,
     });
@@ -646,7 +658,7 @@ export const undeploy = async (deploymentId: string, cmd: { all: boolean }) => {
       logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
     deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
-    for(const deployment of deployments){
+    for (const deployment of deployments) {
       const deploymentId = deployment.deploymentId || '';
       spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
       const result = await script.projects.deployments.delete({
@@ -959,7 +971,7 @@ export const setting = async (settingKey?: keyof ProjectSettings, settingValue?:
     try {
       const currentSettings = await getProjectSettings();
       const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
-      switch(settingKey) {
+      switch (settingKey) {
         case 'scriptId':
           currentSettings.scriptId = settingValue;
           break;
