@@ -15,7 +15,6 @@ To use `clasp run`, you need to complete 4 steps:
     "access": "ANYONE"
   }
   ```
-- _(Optional) Setup Scopes_
 
 #### Setup Instructions
 
