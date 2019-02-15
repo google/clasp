@@ -30,7 +30,6 @@ import {
   deploy,
   deployments,
   help,
-  list,
   login,
   logout,
   logs,
@@ -47,6 +46,7 @@ import { PROJECT_NAME, handleError } from './utils';
 import pull from './commands/pull';
 import clone from './commands/clone';
 import push from './commands/push';
+import list from './commands/list';
 
 // const commander = require('commander');
 
