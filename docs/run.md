@@ -4,11 +4,18 @@
 
 ### Prerequisites
 
-To use `clasp run`, you need to complete 3 steps:
+To use `clasp run`, you need to complete 4 steps:
 
 - Set up a **Project ID**.
 - Create an **OAuth Client ID** (Other). Download as `creds.json`.
 - `clasp login --creds creds.json` with this downloaded file.
+- Add the following to `appsscript.json`:
+  ```json
+  "executionApi": {
+    "access": "ANYONE"
+  }
+  ```
+- _(Optional) Setup Scopes_
 
 #### Setup Instructions
 
