@@ -44,7 +44,6 @@ import {
   saveProject,
   spinner,
 } from './utils';
-import { print } from 'util';
 
 const ellipsize = require('ellipsize');
 const open = require('opn');
