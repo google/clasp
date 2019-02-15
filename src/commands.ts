@@ -4,7 +4,6 @@ import { readFileSync } from 'fs';
  */
 import chalk from 'chalk';
 import * as commander from 'commander';
-import * as del from 'del';
 import * as pluralize from 'pluralize';
 import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
@@ -22,7 +21,7 @@ import {
   script,
   serviceUsage,
 } from './auth';
-import { DOT, DOTFILE, ProjectSettings } from './dotfile';
+import { DOTFILE, ProjectSettings } from './dotfile';
 import { fetchProject, getProjectFiles, hasProject, pushFiles, writeProjectFiles } from './files';
 import {
   addScopeToManifest,
@@ -234,15 +233,6 @@ export const login = async (options: { localhost?: boolean; creds?: string }) =>
     });
   }
   process.exit(0); // gracefully exit after successful login
-};
-
-/**
- * Logs out the user by deleting credentials.
- */
-export const logout = async () => {
-  if (hasOauthClientSettings(true)) del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
-  // del doesn't work with a relative path (~)
-  if (hasOauthClientSettings()) del(DOT.RC.ABSOLUTE_PATH, { force: true });
 };
 
 /**
