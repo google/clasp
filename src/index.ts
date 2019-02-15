@@ -37,7 +37,6 @@ import {
   openCmd,
   run,
   setting,
-  status,
   undeploy,
   version,
   versions,
@@ -47,6 +46,7 @@ import { PROJECT_NAME, handleError } from './utils';
 import pull from './commands/pull';
 import clone from './commands/clone';
 import push from './commands/push';
+import status from './commands/status';
 
 // const commander = require('commander');
 
