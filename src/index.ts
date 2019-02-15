@@ -38,7 +38,6 @@ import {
   status,
   undeploy,
   version,
-  versions,
 } from './commands';
 import { PROJECT_NAME, handleError } from './utils';
 
@@ -47,6 +46,7 @@ import clone from './commands/clone';
 import push from './commands/push';
 import list from './commands/list';
 import logout from './commands/logout';
+import versions from './commands/versions';
 
 // const commander = require('commander');
 
