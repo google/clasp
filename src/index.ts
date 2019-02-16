@@ -26,10 +26,8 @@ import * as commander from 'commander';
 import {
   apis,
   create,
-  defaultCmd,
   deploy,
   deployments,
-  help,
   login,
   openCmd,
   run,
@@ -47,6 +45,8 @@ import list from './commands/list';
 import logout from './commands/logout';
 import versions from './commands/versions';
 import logs from './commands/logs'
+import defaultCmd from './commands/defaultCmd';
+import help from './commands/help';
 
 // const commander = require('commander');
 
