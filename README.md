@@ -346,10 +346,12 @@ INFO  Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      info message
 
 Remotely executes an Apps Script function.
 
-To use this command you must:
-1. Log in with your credentials (`clasp login --creds creds.json`)
+The complete step-by-step information on how to use `clasp run` is available here: [Run](/docs/run.md)  
+Below is a short summary:
+
+1. Log in with your credentials (`clasp login --creds creds.json`), see: [Run - Prerequisites](/docs/run.md#prerequisites)
 1. Deploy the Script as an API executable (Easiest done via GUI at the moment).
-1. Enable any APIs that are used by the script.
+1. Enable any APIs that are used by the script, see: [Run - Function with Scopes](/docs/run.md#run-a-function-that-requires-scopes)
 1. Have the following in your `appsscript.json`:
 
 ```json
