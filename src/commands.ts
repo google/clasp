@@ -3,7 +3,6 @@ import { readFileSync } from 'fs';
  * Clasp command method bodies.
  */
 import chalk from 'chalk';
-import * as commander from 'commander';
 import * as pluralize from 'pluralize';
 import { PUBLIC_ADVANCED_SERVICES, SCRIPT_TYPES } from './apis';
 import {
@@ -53,22 +52,6 @@ const padEnd = require('string.prototype.padend');
 // setup inquirer
 const prompt = inquirer.prompt;
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
-
-/**
- * Outputs the help command.
- */
-export const help = async () => {
-  commander.outputHelp();
-  process.exit(0);
-};
-
-/**
- * Displays a default message when an unknown command is typed.
- * @param command {string} The command that was typed.
- */
-export const defaultCmd = async (command: string) => {
-  logError(null, ERROR.COMMAND_DNE(command));
-};
 
 /**
  * Creates a new Apps Script project.
