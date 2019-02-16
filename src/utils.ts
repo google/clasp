@@ -403,6 +403,11 @@ export function handleError(command: (...args: any[]) => Promise<void>) {
   };
 }
 
+/**
+ * Validate the project id.
+ * @param {string} projectId The project id.
+ * @returns {boolean} Is the project id valid
+ */
 export function isValidProjectId(projectId: string) {
-  return projectId.match(/^[a-z][a-z0-9\-]{5,29}$/);
+  return new RegExp(/^[a-z][a-z0-9\-]{5,29}$/).test(projectId);
 }

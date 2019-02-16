@@ -31,7 +31,6 @@ import {
   deployments,
   help,
   login,
-  logs,
   openCmd,
   run,
   setting,
@@ -47,6 +46,7 @@ import status from './commands/status';
 import list from './commands/list';
 import logout from './commands/logout';
 import versions from './commands/versions';
+import logs from './commands/logs';
 
 // const commander = require('commander');
 
