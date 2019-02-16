@@ -45,6 +45,8 @@ import {
   spinner,
   isValidProjectId,
 } from './utils';
+import { AxiosResponse } from 'axios'
+
 
 const ellipsize = require('ellipsize');
 const open = require('opn');
@@ -387,21 +389,26 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
       if (filter.length) {
         console.log(filter);
       }
-      if (logs.status !== 200) {
-        switch (logs.status) {
-          case 401:
-            logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
-          case 403:
-            logError(
-              null,
-              oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED,
-            );
-          default:
-            logError(null, `(${logs.status}) Error: ${logs.statusText}`);
+      // Parse response and print logs or print error message.
+      const parseResponse = (response: AxiosResponse) => {
+        if (logs.status !== 200) {
+          switch (logs.status) {
+            case 401:
+              logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+            case 403:
+              logError(
+                null,
+                oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED,
+              );
+            default:
+              logError(null, `(${logs.status}) Error: ${logs.statusText}`);
+          }
+        } else {
+          printLogs(logs.data.entries);
         }
-      } else {
-        printLogs(logs.data.entries);
       }
+      parseResponse(logs)
+
     } catch (error) {
       spinner.stop(true);
       logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
