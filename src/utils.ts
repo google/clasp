@@ -404,5 +404,5 @@ export function handleError(command: (...args: any[]) => Promise<void>) {
 }
 
 export function isValidProjectId(projectId: string) {
-  return projectId.match(/^[a-z][a-z0-9\-]{5,29}$/)
+  return projectId.match(/^[a-z][a-z0-9\-]{5,29}$/);
 }

@@ -45,8 +45,7 @@ import {
   spinner,
   isValidProjectId,
 } from './utils';
-import { AxiosResponse } from 'axios'
-
+import { AxiosResponse } from 'axios';
 
 const ellipsize = require('ellipsize');
 const open = require('opn');
@@ -394,7 +393,10 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
         if (logs.status !== 200) {
           switch (logs.status) {
             case 401:
-              logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+              logError(
+                null,
+                oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED,
+              );
             case 403:
               logError(
                 null,
@@ -406,9 +408,8 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
         } else {
           printLogs(logs.data.entries);
         }
-      }
-      parseResponse(logs)
-
+      };
+      parseResponse(logs);
     } catch (error) {
       spinner.stop(true);
       logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
