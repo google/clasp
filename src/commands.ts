@@ -43,6 +43,7 @@ import {
   logError,
   saveProject,
   spinner,
+  isValidProjectId,
 } from './utils';
 
 const ellipsize = require('ellipsize');
@@ -369,7 +370,7 @@ export const logs = async (cmd: { json: boolean; open: boolean; setup: boolean; 
     if (!projectId) {
       return logError(null, ERROR.NO_GCLOUD_PROJECT);
     }
-    if (!projectId.match(/^[a-z][a-z0-9\-]{5,29}$/)) {
+    if (!isValidProjectId(projectId)) {
       return logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
     }
     try {
