@@ -30,7 +30,6 @@ import {
   deployments,
   login,
   openCmd,
-  logs,
   run,
   setting,
   undeploy,
