@@ -29,7 +29,6 @@ import {
   deploy,
   deployments,
   login,
-  logs,
   run,
   setting,
   undeploy,
@@ -44,6 +43,7 @@ import status from './commands/status';
 import list from './commands/list';
 import logout from './commands/logout';
 import versions from './commands/versions';
+import logs from './commands/logs';
 import defaultCmd from './commands/defaultCmd';
 import help from './commands/help';
 import openCmd from './commands/openCmd';

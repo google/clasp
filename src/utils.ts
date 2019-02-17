@@ -5,7 +5,7 @@ import { Spinner } from 'cli-spinner';
 import { prompt } from 'inquirer';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
-import {Manifest} from './manifest';
+import { Manifest } from './manifest';
 import { URL } from './urls';
 
 const ucfirst = require('ucfirst');
@@ -85,7 +85,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
   NO_API: (enable: boolean, api: string) =>
     `API ${api} doesn\'t exist. Try \'clasp apis ${enable ? 'enable' : 'disable'} sheets\'.`,
-  NO_CREDENTIALS: (local:boolean) => `Could not read API credentials. ` +
+  NO_CREDENTIALS: (local: boolean) => `Could not read API credentials. ` +
     `Are you logged in ${local ? 'locall' : 'globall'}y?`,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
@@ -116,6 +116,8 @@ Are you logged in to the correct account with the script?`,
   UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
+  PROJECT_ID_INCORRECT: (projectId: string) => `The projectId "${projectId}" looks incorrect.
+Did you provide the correct projectID?`,
 };
 
 // Log messages (some logs take required params)
@@ -136,7 +138,7 @@ export const LOG = {
     `Created new ${getScriptTypeName(filetype)} script: ${URL.SCRIPT(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}...`,
   CREDENTIALS_FOUND: 'Credentials found, using those to login...',
-  CREDS_FROM_PROJECT: (projectId: string) => `Using credentials located here:\n${URL.CREDS(projectId)}\n` ,
+  CREDS_FROM_PROJECT: (projectId: string) => `Using credentials located here:\n${URL.CREDS(projectId)}\n`,
   DEFAULT_CREDENTIALS: 'No credentials given, continuing with default...',
   DEPLOYMENT_CREATE: 'Creating deployment...',
   DEPLOYMENT_DNE: 'No deployed versions of script.',
@@ -163,7 +165,7 @@ export const LOG = {
   SAVED_CREDS: (isLocalCreds: boolean) =>
     isLocalCreds
       ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
-        `*Be sure to never commit this file!* It's basically a password.`
+      `*Be sure to never commit this file!* It's basically a password.`
       : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
@@ -324,11 +326,11 @@ export async function checkIfOnline() {
  * @param {boolean} append Appends the settings if true.
  */
 export async function saveProject(
-    newProjectSettings: ProjectSettings,
-    append = true): Promise<ProjectSettings> {
+  newProjectSettings: ProjectSettings,
+  append = true): Promise<ProjectSettings> {
   if (append) {
     const projectSettings: ProjectSettings = await DOTFILE.PROJECT().read();
-    newProjectSettings = {...projectSettings, ...newProjectSettings};
+    newProjectSettings = { ...projectSettings, ...newProjectSettings };
   }
   return DOTFILE.PROJECT().write(newProjectSettings);
 }
@@ -399,4 +401,13 @@ export function handleError(command: (...args: any[]) => Promise<void>) {
       logError(null, e.message);
     }
   };
+}
+
+/**
+ * Validate the project id.
+ * @param {string} projectId The project id.
+ * @returns {boolean} Is the project id valid
+ */
+export function isValidProjectId(projectId: string) {
+  return new RegExp(/^[a-z][a-z0-9\-]{5,29}$/).test(projectId);
 }
