@@ -30,7 +30,6 @@ import {
   deployments,
   login,
   logs,
-  openCmd,
   run,
   setting,
   undeploy,
@@ -47,6 +46,7 @@ import logout from './commands/logout';
 import versions from './commands/versions';
 import defaultCmd from './commands/defaultCmd';
 import help from './commands/help';
+import openCmd from './commands/openCmd';
 
 // const commander = require('commander');
 
