@@ -52,7 +52,7 @@ export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
   return RC.read()
     .then((rc: ClaspToken) => rc)
-    .catch((err: any) => {
+    .catch((err: Error) => {
       logError(err, ERROR.NO_CREDENTIALS(local));
     });
 }
@@ -176,8 +176,10 @@ export const LOG = {
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploying ${deploymentId}...`,
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
-  VERSION_DESCRIPTION: ({ versionNumber, description }: any) =>
-    `${versionNumber} - ` + (description || '(no description)'),
+  VERSION_DESCRIPTION: ({ versionNumber, description }: {
+    versionNumber: string;
+    description: string;
+  }) => `${versionNumber} - ` + (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
     Open this link: ${chalk.blue(URL.CREDS(projectId))}

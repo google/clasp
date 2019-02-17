@@ -1,3 +1,4 @@
+import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
 import {
   loadAPICredentials,
@@ -31,7 +32,8 @@ export default async () => {
   const numDeployments = deploymentsList.length;
   const deploymentWord = pluralize('Deployment', numDeployments);
   console.log(`${numDeployments} ${deploymentWord}.`);
-  deploymentsList.map(({ deploymentId, deploymentConfig }: any) => {
+  deploymentsList.map(({ deploymentId, deploymentConfig }: script_v1.Schema$Deployment) => {
+    if (!deploymentId || !deploymentConfig) return; // fix ts errors
     const versionString = !!deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
     const description = deploymentConfig.description ? '- ' + deploymentConfig.description : '';
     console.log(`- ${deploymentId} ${versionString} ${description}`);

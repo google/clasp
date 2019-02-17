@@ -1,5 +1,6 @@
 import { AxiosResponse } from 'axios';
 import chalk from 'chalk';
+import {logging_v2} from 'googleapis';
 import {
   loadAPICredentials,
   logger,
@@ -46,17 +47,26 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
    * Prints log entries
    * @param entries {any[]} StackDriver log entries.
    */
-  function printLogs(entries: any[] = []) {
+  function printLogs(entries: logging_v2.Schema$LogEntry[] = []) {
     entries = entries.reverse(); // print in syslog ascending order
     for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
-      const { severity, timestamp, resource, textPayload, protoPayload, jsonPayload, insertId } = entries[i];
+      const {
+        severity = '',
+        timestamp = '',
+        resource,
+        textPayload = '',
+        protoPayload = {},
+        jsonPayload = null,
+        insertId = '',
+      } = entries[i];
+      if (!resource || !resource.labels) return;
       let functionName = resource.labels.function_name;
       functionName = functionName ? padEnd(functionName, 15) : ERROR.NO_FUNCTION_NAME;
       let payloadData: any = '';
       if (cmd.json) {
         payloadData = JSON.stringify(entries[i], null, 2);
       } else {
-        const data: any = {
+        const data = {
           textPayload,
           // chokes on unmatched json payloads
           // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
@@ -116,7 +126,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
                 reject(logError(err));
               });
           })
-          .catch((err: any) => {
+          .catch((err: Error) => {
             reject(console.log(err));
           });
       });
@@ -176,7 +186,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
         console.log(filter);
       }
       // Parse response and print logs or print error message.
-      const parseResponse = (response: AxiosResponse) => {
+      const parseResponse = (response: any) => {
         if (logs.status !== 200) {
           switch (logs.status) {
             case 401:
