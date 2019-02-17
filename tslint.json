@@ -67,6 +67,7 @@
         "new-parens": true,
         "no-angle-bracket-type-assertion": true,
         "no-arg": true,
+        "no-any": true,
         "no-conditional-assignment": true,
         "no-consecutive-blank-lines": true,
         "no-construct": true,

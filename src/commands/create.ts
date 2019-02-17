@@ -48,6 +48,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
       type: 'list',
       name: 'type',
       message: LOG.CLONE_SCRIPT_QUESTION,
+      // tslint:disable-next-line:no-any
       choices: Object.keys(SCRIPT_TYPES).map((key: string) => SCRIPT_TYPES[key as any]),
     }]);
     type = answers.type;

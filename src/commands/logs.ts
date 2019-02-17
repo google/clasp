@@ -62,6 +62,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
       if (!resource || !resource.labels) return;
       let functionName = resource.labels.function_name;
       functionName = functionName ? padEnd(functionName, 15) : ERROR.NO_FUNCTION_NAME;
+      // tslint:disable-next-line:no-any
       let payloadData: any = '';
       if (cmd.json) {
         payloadData = JSON.stringify(entries[i], null, 2);
@@ -82,6 +83,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
           payloadData = padEnd(payloadData, 20);
         }
       }
+      // tslint:disable-next-line:no-any
       const coloredStringMap: any = {
         ERROR: chalk.red(severity),
         INFO: chalk.cyan(severity),
@@ -111,6 +113,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
             message: 'What is your GCP projectId?',
           },
         ])
+          // tslint:disable-next-line:no-any
           .then((answers: any) => {
             projectId = answers.projectId;
             const dotfile = DOTFILE.PROJECT();
@@ -186,6 +189,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
         console.log(filter);
       }
       // Parse response and print logs or print error message.
+      // tslint:disable-next-line:no-any
       const parseResponse = (response: any) => {
         if (logs.status !== 200) {
           switch (logs.status) {
