@@ -1,3 +1,4 @@
+import { AxiosResponse } from 'axios';
 import chalk from 'chalk';
 import {
   loadAPICredentials,
@@ -10,11 +11,10 @@ import {
   LOG,
   checkIfOnline,
   getProjectSettings,
+  isValidProjectId,
   logError,
   spinner,
-  isValidProjectId,
 } from './../utils';
-import { AxiosResponse } from 'axios';
 
 const open = require('opn');
 const inquirer = require('inquirer');
