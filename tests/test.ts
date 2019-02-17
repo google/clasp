@@ -3,14 +3,14 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
-import { getFileType } from './../src/files';
+import { getFileType } from '../src/files';
 import {
   getAppsScriptFileName,
-} from './../src/fileutils';
+} from '../src/fileutils';
 import {
   URL,
   extractScriptId,
-} from './../src/urls';
+} from '../src/urls';
 import {
   ERROR,
   LOG,
@@ -19,7 +19,7 @@ import {
   getWebApplicationURL,
   hasOauthClientSettings,
   saveProject,
-} from './../src/utils';
+} from '../src/utils';
 import {
   CLASP,
   CLASP_PATHS,
@@ -801,7 +801,7 @@ describe('Test variations of clasp --version', () => {
       CLASP, [variation], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.include(require('./../package.json').version);
+    expect(result.stdout).to.include(require('../package.json').version);
   };
   it('should show version for clasp --version', () => expectVersion('--version'));
   it('should show version for clasp -v', () => expectVersion('-v'));

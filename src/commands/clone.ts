@@ -1,26 +1,23 @@
 import {
   drive,
   loadAPICredentials,
-} from './../auth';
-
-import {
-  extractScriptId,
-} from './../urls';
-
-import {
-  checkIfOnline,
-  ERROR,
-  LOG,
-  logError,
-  saveProject,
-  spinner,
-} from './../utils';
-
+} from '../auth';
 import {
   fetchProject,
   hasProject,
   writeProjectFiles,
-} from './../files';
+} from '../files';
+import {
+  extractScriptId,
+} from '../urls';
+import {
+  ERROR,
+  LOG,
+  checkIfOnline,
+  logError,
+  saveProject,
+  spinner,
+} from '../utils';
 
 const padEnd = require('string.prototype.padend');
 const prompt = require('inquirer').prompt;

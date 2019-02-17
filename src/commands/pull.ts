@@ -1,14 +1,14 @@
-import {
-  checkIfOnline,
-  getProjectSettings,
-  LOG,
-  spinner,
- } from './../utils';
-
+import { loadAPICredentials } from '../auth';
 import {
   fetchProject,
   writeProjectFiles,
-} from './../files';
+} from '../files';
+import {
+  LOG,
+  checkIfOnline,
+  getProjectSettings,
+  spinner,
+} from '../utils';
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.
@@ -17,6 +17,7 @@ import {
  */
 export default async (cmd: { versionNumber: number }) => {
   await checkIfOnline();
+  await loadAPICredentials();
   const { scriptId, rootDir } = await getProjectSettings();
   if (scriptId) {
     spinner.setSpinnerTitle(LOG.PULLING);

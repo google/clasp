@@ -3,7 +3,7 @@ import * as path from 'path';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
 import { DOT } from './dotfile';
-import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, logError } from './utils';
+import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, logError, spinner } from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -54,14 +54,13 @@ export async function isValidManifest(): Promise<boolean> {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifest = fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
-  let manifestJSON: Manifest;
   try {
-    manifestJSON = JSON.parse(manifest);
+    JSON.parse(manifest);
+    return true;
   } catch (err) {
     logError(err, ERROR.BAD_MANIFEST);
     return false;
   }
-  return true;
 }
 
 /**

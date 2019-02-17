@@ -4,8 +4,8 @@ const prompt = inquirer.prompt;
 const padEnd = require('string.prototype.padend');
 const open = require('opn');
 
-import { loadAPICredentials, script } from './../auth';
-import { URL } from './../urls';
+import { loadAPICredentials, script } from '../auth';
+import { URL } from '../urls';
 import {
   ERROR,
   LOG,

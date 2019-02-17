@@ -6,22 +6,23 @@ import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import {
   AppsScriptAPIFile,
-  ProjectFile,
-  checkConflictingFilePaths,
-  getAllFiles,
+  File,
+  fixFilePaths,
+  getAllFilePaths,
   getFileContents,
-  getFilePaths,
+  getValidFilePaths,
+  removeExtensionFromName,
   sortFilesByPushOrder,
   transpileTsFiles,
 } from './fileutils';
-import { ERROR, LOG, checkIfOnline, getProjectSettings, logError, spinner } from './utils';
-
-// Used to receive files tracked by current project
-interface ProjectFilesCallback {
-  error?: Error;
-  projectFiles?: string[][];
-  files?: Array<ProjectFile | undefined>;
-}
+import {
+  ERROR,
+  LOG,
+  checkIfOnline,
+  getProjectSettings,
+  logError,
+  spinner,
+} from './utils';
 
 /**
  * Gets the local file type from the API FileType.
@@ -30,6 +31,7 @@ interface ProjectFilesCallback {
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
  */
 export function getFileType(type: string, fileExtension?: string): string {
+  throw Error('TODO');
   return type === 'SERVER_JS' ? fileExtension || 'js' : type.toLowerCase();
 }
 
@@ -39,56 +41,6 @@ export function getFileType(type: string, fileExtension?: string): string {
  */
 export function hasProject(): boolean {
   return fs.existsSync(DOT.PROJECT.PATH);
-}
-
-/**
- * Recursively finds all files that are part of the current project, and those that are ignored
- * by .claspignore and calls the passed callback function with the file lists.
- * @param {string} rootDir The project's root directory
- */
-export async function getProjectFiles(rootDir: string = path.join('.', '/')): Promise<ProjectFilesCallback> {
-  const { filePushOrder } = await getProjectSettings();
-
-  // Read all filenames as a flattened tree
-  // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-  let filePaths: string[] = await getFilePaths(rootDir);
-
-  // Filter files that aren't allowed.
-  const ignorePatterns: string[] = await DOTFILE.IGNORE();
-  filePaths = filePaths.sort(); // Sort files alphanumerically
-  const fileContents = await getFileContents(filePaths);
-  const abortPush = await checkConflictingFilePaths(filePaths);
-  if (abortPush) return await {};
-
-  // Replace OS specific path separator to common '/' char for console output
-  filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
-
-  // check ignore files
-  const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
-
-  // Loop through every file.
-  let files: ProjectFile[] = await getAllFiles({
-    filePaths,
-    fileContents,
-    ignoreMatches,
-    ignoredFilePaths: [],
-    nonIgnoredFilePaths: [],
-    rootDir,
-  });
-
-  // Transpile TS files
-  files = transpileTsFiles(files);
-
-  // Sort files by push order
-  if (filePushOrder) {
-    files = sortFilesByPushOrder(files, filePushOrder);
-  }
-
-  return await {
-    error: undefined,
-    projectFiles: undefined,
-    files: undefined,
-  };
 }
 
 /**
@@ -155,12 +107,51 @@ export const pushFiles = async (silent = false) => {
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
 
+  // Little util for messaging during the process of pushing.
+  const m = (text: string) => {
+    if (!silent) {
+      console.log(text);
+    }
+  };
   try {
-    const {
-      error,
-      files,
-    } = await getProjectFiles(rootDir);
-    const filesForAPI: any = files;
+    // Get all file paths.
+    m(LOG.PUSHING);
+    const filePaths = await getAllFilePaths(rootDir || '.');
+    const validFilePaths = await getValidFilePaths(filePaths);
+    m(LOG.PUSHING_DETECTED_VALID_FILES(validFilePaths.length));
+
+    // Get ignore patterns.
+    const ignorePatterns: string[] = await DOTFILE.IGNORE();
+    m(LOG.PUSHING_IGNORE_PATTERNS(ignorePatterns.length));
+
+    // Filter out paths that match patterns.
+    const ignoreMatches = multimatch(validFilePaths, ignorePatterns, { dot: true });
+    m(LOG.PUSHING_IGNORE_MATCHES(ignoreMatches.length));
+
+    // Get non-filtered paths
+    const nonIgnoreMatches = validFilePaths.filter((p) => {
+      return ignoreMatches.indexOf(p) === -1;
+    });
+    console.log(nonIgnoreMatches);
+
+    // Get all file contents
+    const fileContents = await getFileContents(nonIgnoreMatches);
+    const fixedFileContents = await fixFilePaths(fileContents);
+    const sortedFixedFileContents = await sortFilesByPushOrder(fixedFileContents);
+    const transpiledSortedFixedFileContents = await transpileTsFiles(sortedFixedFileContents);
+    const finalContents = await removeExtensionFromName(transpiledSortedFixedFileContents);
+
+    // Organize the files into an array for the server.
+    const filesForAPI = finalContents.map((f: File) => {
+      return {
+        name: f.name,
+        source: f.content,
+        type: f.name,
+      };
+    });
+    console.log(filesForAPI);
+
+    // Make the request to the server.
     await script.projects.updateContent({
       scriptId,
       requestBody: {
@@ -168,24 +159,25 @@ export const pushFiles = async (silent = false) => {
         files: filesForAPI,
       },
     });
-    if (!silent) spinner.stop(true);
-    // In the following code, we favor console.error()
-    // over logError() because logError() exits, whereas
-    // we want to log multiple lines of messages, and
-    // eventually exit after logging everything.
-    if (error) {
-      console.error(LOG.PUSH_FAILURE);
-      console.log(error.message);
-      console.error(LOG.FILES_TO_PUSH);
-      process.exit(1);
-    } else if (files) {
-      // no error
-      if (!silent) {
-        console.log(LOG.PUSH_SUCCESS(files.length));
-      }
-    }
+    // if (!silent) spinner.stop(true);
+    // // In the following code, we favor console.error()
+    // // over logError() because logError() exits, whereas
+    // // we want to log multiple lines of messages, and
+    // // eventually exit after logging everything.
+    // if (error) {
+    //   console.error(LOG.PUSH_FAILURE);
+    //   console.log(error.message);
+    //   console.error(LOG.FILES_TO_PUSH);
+    //   process.exit(1);
+    // } else if (files) {
+    //   // no error
+    //   if (!silent) {
+    //     console.log(LOG.PUSH_SUCCESS(files.length));
+    //   }
+    // }
   } catch (e) {
-    logError(e, LOG.PUSH_FAILURE);
+    console.error(LOG.PUSH_FAILURE);
+    console.error(e.errors);
     spinner.stop(true);
   }
 };

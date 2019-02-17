@@ -1,4 +1,4 @@
-import { SCRIPT_TYPES } from './../apis';
+import { SCRIPT_TYPES } from '../apis';
 import { drive, loadAPICredentials, script } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
 import { manifestExists } from '../manifest';

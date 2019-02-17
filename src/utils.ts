@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
+import * as commander from 'commander';
 import { prompt } from 'inquirer';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
-import {Manifest} from './manifest';
 import { URL } from './urls';
 
 const ucfirst = require('ucfirst');
@@ -109,8 +109,8 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   SCRIPT_ID_DNE: `No scriptId found in your ${DOT.PROJECT.PATH} file.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
-  SCRIPT_ID: `Could not find script.
-Did you provide the correct scriptId?
+  SCRIPT_ID: `Could not find script associated with this clasp login.
+Did you provide the correct scriptId? Are you logged in with an account that has access to the script?
 Are you logged in to the correct account with the script?`,
   SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
@@ -121,8 +121,23 @@ Are you logged in to the correct account with the script?`,
 // Log messages (some logs take required params)
 export const LOG = {
   AUTH_CODE: 'Enter the code from that page here: ',
-  // TODO: Make AUTH_PAGE_SUCCESSFUL show an HTML page with something useful!
-  AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page. `, // HTML Redirect Page
+  AUTH_PAGE_SUCCESSFUL: async () => {
+  return new Promise((res, rej) => {
+    // Get the output for commander as text.
+    commander.outputHelp((helpText) => {
+      // TODO: Indent commands
+      const html = `` +
+`<h1>Logged in!</h1>
+<em>You may close this page.</em>
+<hr>
+<h2>clasp cheat sheet</h2>
+<code>${helpText.split('\n').join('<br>')}</code>
+<style>html { font-family: monospace; }</style>`;
+      res(html);
+      return ''; // Don't actually return anything in commander.
+    });
+  });
+}, // HTML Redirect Page
   AUTH_SUCCESSFUL: `Authorization successful.`,
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
@@ -157,10 +172,16 @@ export const LOG = {
   OPEN_WEBAPP: (deploymentId?: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
   PUSH_FAILURE: 'Push failed. Errors:',
-  PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
+  PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('file', numFiles)}.`,
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files...\n',
   PUSHING: 'Pushing files...',
+  PUSHING_DETECTED_VALID_FILES: (numFiles: number) =>
+    `📄 Detected ${numFiles} valid ${pluralize('file', numFiles)} in directory.`,
+  PUSHING_IGNORE_PATTERNS: (numPatterns: number) =>
+    `🚫 Detected ${numPatterns} ${pluralize('pattern', numPatterns)} in .claspignore`,
+  PUSHING_IGNORE_MATCHES: (numMatches: number) =>
+    `❌ Matched ${numMatches} ignored ${pluralize('file', numMatches)}.`,
   SAVED_CREDS: (isLocalCreds: boolean) =>
     isLocalCreds
       ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +

@@ -9,8 +9,7 @@ import { GenerateAuthUrlOpts, OAuth2ClientOptions } from 'google-auth-library/bu
 import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 } from 'googleapis';
 import { prompt } from 'inquirer';
 import { ClaspToken, DOTFILE } from './dotfile';
-import { enableExecutionAPI, readManifest } from './manifest';
-import { URL } from './urls';
+import { readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
 import open = require('opn');
 import readline = require('readline');
@@ -217,14 +216,15 @@ async function authorizeWithLocalhost(
   });
   // TODO Add spinner
   const authCode = await new Promise<string>((res, rej) => {
-    server.on('request', (req: http.IncomingMessage, resp: http.ServerResponse) => {
+    server.on('request', async (req: http.IncomingMessage, resp: http.ServerResponse) => {
       const urlParts = url.parse(req.url || '', true);
       if (urlParts.query.code) {
         res(urlParts.query.code as string);
       } else {
         rej(urlParts.query.error);
       }
-      resp.end(LOG.AUTH_PAGE_SUCCESSFUL);
+      resp.writeHead(200, { 'Content-Type': 'text/html' }); // Treat as HTML
+      resp.end(await LOG.AUTH_PAGE_SUCCESSFUL());
     });
     const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOpts);
     console.log(LOG.AUTHORIZE(authUrl));
