@@ -29,7 +29,6 @@ import {
   deploy,
   deployments,
   login,
-  openCmd,
   run,
   setting,
   undeploy,
