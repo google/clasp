@@ -5,7 +5,6 @@ import { Spinner } from 'cli-spinner';
 import { prompt } from 'inquirer';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
-import { Manifest } from './manifest';
 import { URL } from './urls';
 
 const ucfirst = require('ucfirst');
