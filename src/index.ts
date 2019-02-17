@@ -24,12 +24,12 @@ import 'connect';
 
 import * as commander from 'commander';
 import {
-  create,
   login,
   run,
 } from './commands';
 import apis from './commands/apis';
 import clone from './commands/clone';
+import create from './commands/create';
 import defaultCmd from './commands/defaultCmd';
 import deploy from './commands/deploy';
 import deployments from './commands/deployments';
