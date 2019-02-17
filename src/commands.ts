@@ -524,38 +524,6 @@ export const deployments = async () => {
 };
 
 /**
- * Creates a new version of an Apps Script project.
- */
-export const version = async (description: string) => {
-  await checkIfOnline();
-  await loadAPICredentials();
-  const { scriptId } = await getProjectSettings();
-  if (!description) {
-    const answers = await prompt([
-      {
-        type: 'input',
-        name: 'description',
-        message: LOG.GIVE_DESCRIPTION,
-        default: '',
-      },
-    ]);
-    description = answers.description;
-  }
-  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
-  const versions = await script.projects.versions.create({
-    scriptId,
-    requestBody: {
-      description,
-    },
-  });
-  spinner.stop(true);
-  if (versions.status !== 200) {
-    return logError(versions.statusText);
-  }
-  console.log(LOG.VERSION_CREATED(versions.data.versionNumber || -1));
-};
-
-/**
  * Acts as a router to apis subcommands
  * Calls functions for list, enable, or disable
  * Otherwise returns an error of command not supported
@@ -599,7 +567,7 @@ export const apis = async (options: { open?: string }) => {
       }
 
       // Filter out the disabled ones. Print the enabled ones.
-      const enabledAPIs = serviceList.filter(service => {
+      const enabledAPIs = serviceList.filter((service: any) => {
         return service.state === 'ENABLED';
       });
       for (const enabledAPI of enabledAPIs) {
@@ -625,7 +593,7 @@ export const apis = async (options: { open?: string }) => {
       // Merge discovery data with public services data.
       const publicServices = [];
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
-        const service: any = services.find(s => s.name === publicServiceId);
+        const service: any = services.find((s: any) => s.name === publicServiceId);
         // for some reason 'youtubePartner' is not in the api list.
         if (service && service.id && service.description) {
           publicServices.push(service);

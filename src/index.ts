@@ -31,7 +31,6 @@ import {
   login,
   run,
   undeploy,
-  version,
 } from './commands';
 import clone from './commands/clone';
 import defaultCmd from './commands/defaultCmd';
@@ -44,6 +43,7 @@ import pull from './commands/pull';
 import push from './commands/push';
 import setting from './commands/setting';
 import status from './commands/status';
+import version from './commands/version';
 import versions from './commands/versions';
 import { PROJECT_NAME, handleError } from './utils';
 
