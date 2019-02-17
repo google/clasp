@@ -30,23 +30,22 @@ import {
   deployments,
   login,
   run,
-  setting,
   undeploy,
   version,
 } from './commands';
-import { PROJECT_NAME, handleError } from './utils';
-
-import pull from './commands/pull';
 import clone from './commands/clone';
-import push from './commands/push';
-import status from './commands/status';
-import list from './commands/list';
-import logout from './commands/logout';
-import versions from './commands/versions';
-import logs from './commands/logs';
 import defaultCmd from './commands/defaultCmd';
 import help from './commands/help';
+import list from './commands/list';
+import logout from './commands/logout';
+import logs from './commands/logs';
 import openCmd from './commands/openCmd';
+import pull from './commands/pull';
+import push from './commands/push';
+import setting from './commands/setting';
+import status from './commands/status';
+import versions from './commands/versions';
+import { PROJECT_NAME, handleError } from './utils';
 
 // const commander = require('commander');
 
