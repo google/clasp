@@ -14,6 +14,7 @@
   "moduleResolution": "node",
   "files": [
     "src/index.ts",
-    "tests/test.ts"
+    "tests/test.ts",
+    "tests/commands/logout.ts"
   ]
 }
