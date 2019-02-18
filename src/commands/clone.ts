@@ -57,9 +57,15 @@ const getScriptId = async () => {
     q: 'mimeType="application/vnd.google-apps.script"',
   });
   const data = list.data;
-  if (!data) return logError(list.statusText, 'Unable to use the Drive API.');
+  if (!data) {
+    logError(list.statusText, 'Unable to use the Drive API.');
+    return '';
+  }
   const files = data.files;
-  if (!files || !files.length) return console.log(LOG.FINDING_SCRIPTS_DNE);
+  if (!files || !files.length) {
+    logError(null, LOG.FINDING_SCRIPTS_DNE);
+    return '';
+  }
   const fileIds = files.map((file: drive_v3.Schema$File) => {
     return {
       name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
@@ -72,6 +78,6 @@ const getScriptId = async () => {
     message: LOG.CLONE_SCRIPT_QUESTION,
     choices: fileIds,
     pageSize: 30,
-  }]);
+  }]) as {scriptId: string};
   return answers.scriptId;
 };

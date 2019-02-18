@@ -1,31 +1,27 @@
+import { readFileSync } from 'fs';
+import * as path from 'path';
+import { watchTree } from 'watch';
 import { loadAPICredentials } from './../auth';
-
 import {
   DOT,
   DOTFILE,
 } from './../dotfile';
-
 import {
   fetchProject,
   pushFiles,
 } from './../files';
-
 import {
   isValidManifest,
 } from './../manifest';
-
 import {
-  checkIfOnline,
-  getProjectSettings,
   LOG,
   PROJECT_MANIFEST_BASENAME,
   PROJECT_MANIFEST_FILENAME,
+  checkIfOnline,
+  getProjectSettings,
   spinner,
 } from './../utils';
 
-import { readFileSync } from 'fs';
-import * as path from 'path';
-import { watchTree } from 'watch';
 import multimatch = require('multimatch');
 const inquirer = require('inquirer');
 const prompt = inquirer.prompt;

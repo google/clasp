@@ -89,10 +89,11 @@ export default async (scriptId: string, cmd: {
   });
   const answers = await prompt([{
     type: 'list',
-    name: 'deployment',
+    name: 'deploymentId',
     message: 'Open which deployment?',
     choices,
-  }]);
-  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
-  open(getWebApplicationURL(answers.deployment), { wait: false });
+  }]) as {deploymentId: string};
+  const deployment = await script.projects.deployments.get({deploymentId: answers.deploymentId});
+  console.log(LOG.OPEN_WEBAPP(answers.deploymentId));
+  open(getWebApplicationURL(deployment.data), { wait: false });
 };
