@@ -1,12 +1,12 @@
+import { script_v1 } from 'googleapis';
 import {
   loadAPICredentials,
   script,
 } from './../auth';
-
 import {
+  LOG,
   checkIfOnline,
   getProjectSettings,
-  LOG,
   logError,
   spinner,
 } from './../utils';
@@ -33,7 +33,7 @@ export default async () => {
   }
   const numVersions = data.versions.length;
   console.log(LOG.VERSION_NUM(numVersions));
-  data.versions.reverse().map((version: any) => {
+  data.versions.reverse().map((version: script_v1.Schema$Version) => {
     console.log(LOG.VERSION_DESCRIPTION(version));
   });
 };
