@@ -70,7 +70,7 @@ export default async (functionName: string, cmd: { nondev: boolean; params: stri
    * Runs a function.
    * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
    */
-  async function runFunction(functionName: string, params: any[]) {
+  async function runFunction(functionName: string, params: string[]) {
     try {
       // Load local credentials.
       await loadAPICredentials(true);

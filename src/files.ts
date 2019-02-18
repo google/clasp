@@ -294,6 +294,7 @@ export async function pushFiles(silent = false) {
       spinner.stop(true);
     } else if (projectFiles) {
       const [nonIgnoredFilePaths] = projectFiles;
+      // tslint:disable-next-line:no-any
       const filesForAPI: any = files;
       await script.projects.updateContent({
         scriptId,
@@ -301,6 +302,7 @@ export async function pushFiles(silent = false) {
           scriptId,
           files: filesForAPI,
         },
+      // tslint:disable-next-line:no-any
       }, {}, (error: any) => {
         if (!silent) spinner.stop(true);
         // In the following code, we favor console.error()
@@ -309,6 +311,7 @@ export async function pushFiles(silent = false) {
         // eventually exit after logging everything.
         if (error) {
           console.error(LOG.PUSH_FAILURE);
+          // tslint:disable-next-line:no-any
           error.errors.map((err: any) => {
             console.error(err.message);
           });

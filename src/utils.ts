@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
+import { script_v1 } from 'googleapis';
 import { prompt } from 'inquirer';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
@@ -52,7 +53,7 @@ export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
   return RC.read()
     .then((rc: ClaspToken) => rc)
-    .catch((err: any) => {
+    .catch((err: Error) => {
       logError(err, ERROR.NO_CREDENTIALS(local));
     });
 }
@@ -176,7 +177,7 @@ export const LOG = {
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploying ${deploymentId}...`,
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
-  VERSION_DESCRIPTION: ({ versionNumber, description }: any) =>
+  VERSION_DESCRIPTION: ({ versionNumber, description }: script_v1.Schema$Version) =>
     `${versionNumber} - ` + (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
@@ -198,6 +199,7 @@ export const spinner = new Spinner();
  * @param  {object} err         The object from the request's error
  * @param  {string} description The description of the error
  */
+// tslint:disable-next-line:no-any
 export const logError = (err: any, description = '') => {
   spinner.stop(true);
   // Errors are weird. The API returns interesting error structures.
@@ -235,13 +237,14 @@ export const logError = (err: any, description = '') => {
  * @param  {any} deployment The deployment
  * @return {string}          The URL of the web application in the online script editor.
  */
-export function getWebApplicationURL(deployment: any) {
+export function getWebApplicationURL(deployment: script_v1.Schema$Deployment) {
   const entryPoints = deployment.entryPoints || [];
-  const webEntryPoint = entryPoints.find((entryPoint: any) => entryPoint.entryPointType === 'WEB_APP');
+  const webEntryPoint = entryPoints.find((entryPoint: script_v1.Schema$EntryPoint) =>
+    entryPoint.entryPointType === 'WEB_APP');
   if (!webEntryPoint) {
-    logError(null, ERROR.NO_WEBAPP(deployment.deploymentId));
+    logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
   }
-  return webEntryPoint.webApp.url;
+  return webEntryPoint && webEntryPoint.webApp && webEntryPoint.webApp.url;
 }
 
 /**
@@ -346,13 +349,12 @@ export async function getProjectId(promptUser = true): Promise<string> {
     console.log('Open this link: ', URL.SCRIPT(projectSettings.scriptId));
     console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")\n`);
-    await prompt([
-      {
-        type: 'input',
-        name: 'projectId',
-        message: 'What is your GCP projectId?',
-      },
-    ]).then(async (answers: any) => {
+    await prompt([{
+      type: 'input',
+      name: 'projectId',
+      message: 'What is your GCP projectId?',
+    // tslint:disable-next-line:no-any
+    }]).then(async (answers: any) => {
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
     });
@@ -391,7 +393,9 @@ function getScriptTypeName(type: string) {
 /**
  * Handles error of each command.
  */
+// tslint:disable-next-line:no-any
 export function handleError(command: (...args: any[]) => Promise<void>) {
+  // tslint:disable-next-line:no-any
   return async (...args: any[]) => {
     try {
       await command(...args);

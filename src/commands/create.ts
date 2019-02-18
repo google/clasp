@@ -44,14 +44,13 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   let { parentId } = cmd;
 
   if (!type) {
-    const answers = await prompt([
-      {
-        type: 'list',
-        name: 'type',
-        message: LOG.CLONE_SCRIPT_QUESTION,
-        choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as any]),
-      },
-    ]);
+    const answers = await prompt([{
+      type: 'list',
+      name: 'type',
+      message: LOG.CLONE_SCRIPT_QUESTION,
+      // tslint:disable-next-line:no-any
+      choices: Object.keys(SCRIPT_TYPES).map((key: string) => SCRIPT_TYPES[key as any]),
+    }]);
     type = answers.type;
   }
 

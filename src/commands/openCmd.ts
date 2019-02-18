@@ -1,16 +1,15 @@
+import { script_v1 } from 'googleapis';
 import {
   loadAPICredentials,
   script,
 } from './../auth';
-
 import { URL } from './../urls';
-
 import {
-  checkIfOnline,
   ERROR,
+  LOG,
+  checkIfOnline,
   getProjectSettings,
   getWebApplicationURL,
-  LOG,
   logError,
 } from './../utils';
 
@@ -29,7 +28,7 @@ inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'))
  * @param cmd.webapp {boolean} If true, the command will open the webapps URL.
  * @param cmd.creds {boolean} If true, the command will open the credentials URL.
  */
-export default async (scriptId: any, cmd: {
+export default async (scriptId: string, cmd: {
   webapp: boolean,
   creds: boolean,
 }) => {
@@ -67,28 +66,33 @@ export default async (scriptId: any, cmd: {
   if (!deployments.length) {
     logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
-  const choices = deployments
-    .sort((d1: any, d2: any) => d1.updateTime.localeCompare(d2.updateTime))
-    .map((deployment: any) => {
-      const DESC_PAD_SIZE = 30;
-      const id = deployment.deploymentId;
-      const description = deployment.deploymentConfig.description;
-      const versionNumber = deployment.deploymentConfig.versionNumber;
-      return {
-        name:
-          padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE) +
-          `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
-        value: deployment,
-      };
-    });
-  const answers = await prompt([
-    {
-      type: 'list',
-      name: 'deployment',
-      message: 'Open which deployment?',
-      choices,
-    },
-  ]);
+  // Order deployments by update time.
+  const orderedDeployments = deployments.sort(
+    (d1: script_v1.Schema$Deployment, d2: script_v1.Schema$Deployment) => {
+    if (!d1.updateTime || !d2.updateTime) {
+      return 0; // should never happen
+    }
+    return d1.updateTime.localeCompare(d2.updateTime);
+  });
+  const choices = orderedDeployments.map((deployment: script_v1.Schema$Deployment) => {
+    const DESC_PAD_SIZE = 30;
+    const id = deployment.deploymentId;
+    const deploymentConfig = deployment.deploymentConfig || {};
+    const description = deploymentConfig.description;
+    const versionNumber = deploymentConfig.versionNumber;
+    return {
+      name:
+        padEnd(ellipsize(description || '', DESC_PAD_SIZE), DESC_PAD_SIZE) +
+        `@${padEnd(versionNumber || 'HEAD', 4)} - ${id}`,
+      value: deployment,
+    };
+  });
+  const answers = await prompt([{
+    type: 'list',
+    name: 'deployment',
+    message: 'Open which deployment?',
+    choices,
+  }]);
   console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
   open(getWebApplicationURL(answers.deployment), { wait: false });
 };

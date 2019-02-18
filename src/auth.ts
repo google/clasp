@@ -10,8 +10,7 @@ import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 
 import { prompt } from 'inquirer';
 import { ClaspToken, DOTFILE } from './dotfile';
 import { enableExecutionAPI, readManifest } from './manifest';
-import { URL } from './urls';
-import { ClaspCredentials, ERROR, LOG,checkIfOnline, getOAuthSettings, logError } from './utils';
+import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
 import open = require('opn');
 import readline = require('readline');
 
@@ -323,21 +322,23 @@ export async function checkOauthScopes(rc: ClaspToken) {
       oauthScopes && oauthScopes.length ? (oauthScopes as string[]).filter(x => !scopes.includes(x)) : [];
     if (!newScopes.length) return;
     console.log('New authoization scopes detected in manifest:\n', newScopes);
-    await prompt([
-      {
-        type: 'confirm',
-        name: 'doAuth',
-        message: 'Authorize new scopes?',
+
+    interface PromptAnswers {
+      doAuth: boolean; // in sync with prompt
+      localhost: boolean; // in sync with prompt
+    }
+    await prompt([{
+      type: 'confirm',
+      name: 'doAuth',
+      message: 'Authorize new scopes?',
+    }, {
+      type: 'confirm',
+      name: 'localhost',
+      message: 'Use localhost?',
+      when: (answers: PromptAnswers) => {
+        return answers.doAuth;
       },
-      {
-        type: 'confirm',
-        name: 'localhost',
-        message: 'Use localhost?',
-        when: (answers: any) => {
-          return answers.doAuth;
-        },
-      },
-    ]).then(async (answers: any) => {
+    }]).then(async (answers: PromptAnswers) => {
       if (answers.doAuth) {
         if (!rc.isLocalCreds) return logError(null, ERROR.NO_LOCAL_CREDENTIALS);
         await authorize({

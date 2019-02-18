@@ -1,6 +1,8 @@
 const open = require('opn');
 const padEnd = require('string.prototype.padend');
 
+import {GaxiosResponse} from 'gaxios';
+import {discovery_v1, serviceusage_v1} from 'googleapis';
 import { PUBLIC_ADVANCED_SERVICES } from '../apis';
 import {
   enableOrDisableAPI,
@@ -51,7 +53,8 @@ export default async (options: { open?: string }) => {
       console.log('\n# Currently enabled APIs:');
       const projectId = await getProjectId(); // will prompt user to set up if required
       const MAX_PAGE_SIZE = 200; // This is the max page size according to the docs.
-      const list = await serviceUsage.services.list({
+      const list: GaxiosResponse<serviceusage_v1.Schema$ListServicesResponse> =
+      await serviceUsage.services.list({
         parent: `projects/${projectId}`,
         filter: 'state:ENABLED',
         pageSize: MAX_PAGE_SIZE,
@@ -62,7 +65,8 @@ export default async (options: { open?: string }) => {
       }
 
       // Filter out the disabled ones. Print the enabled ones.
-      const enabledAPIs = serviceList.filter((service: any) => {
+      const enabledAPIs = serviceList.filter((service:
+        serviceusage_v1.Schema$GoogleApiServiceusageV1Service) => {
         return service.state === 'ENABLED';
       });
       for (const enabledAPI of enabledAPIs) {
@@ -88,7 +92,7 @@ export default async (options: { open?: string }) => {
       // Merge discovery data with public services data.
       const publicServices = [];
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
-        const service: any = services.find((s: any) => s.name === publicServiceId);
+        const service = services.find((s) => s.name === publicServiceId);
         // for some reason 'youtubePartner' is not in the api list.
         if (service && service.id && service.description) {
           publicServices.push(service);
@@ -96,6 +100,7 @@ export default async (options: { open?: string }) => {
       }
 
       // Sort the services based on id
+      // tslint:disable-next-line:no-any
       publicServices.sort((a: any, b: any) => {
         if (a.id < b.id) return -1;
         if (a.id > b.id) return 1;
