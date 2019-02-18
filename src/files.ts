@@ -294,39 +294,29 @@ export async function pushFiles(silent = false) {
       spinner.stop(true);
     } else if (projectFiles) {
       const [nonIgnoredFilePaths] = projectFiles;
+      // tslint:disable-next-line:no-any
       const filesForAPI: any = files;
-      await script.projects.updateContent({
-        scriptId,
-        requestBody: {
+      try {
+        await script.projects.updateContent({
           scriptId,
-          files: filesForAPI,
-        },
-      }, {}, (error: any) => {
+          requestBody: {
+            scriptId,
+            files: filesForAPI,
+          },
+        });
+      } catch (e) {
+        console.error(LOG.PUSH_FAILURE);
+        console.log(e);
+      } finally {
         if (!silent) spinner.stop(true);
-        // In the following code, we favor console.error()
-        // over logError() because logError() exits, whereas
-        // we want to log multiple lines of messages, and
-        // eventually exit after logging everything.
-        if (error) {
-          console.error(LOG.PUSH_FAILURE);
-          error.errors.map((err: any) => {
-            console.error(err.message);
-          });
-          console.error(LOG.FILES_TO_PUSH);
+        // no error
+        if (!silent) {
           nonIgnoredFilePaths.map((filePath: string) => {
-            console.error(`└─ ${filePath}`);
+            console.log(`└─ ${filePath}`);
           });
-          process.exit(1);
-        } else {
-          // no error
-          if (!silent) {
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.log(`└─ ${filePath}`);
-            });
-            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-          }
+          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
         }
-      });
+      }
     }
   });
 }

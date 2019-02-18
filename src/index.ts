@@ -23,32 +23,27 @@
 import 'connect';
 
 import * as commander from 'commander';
-import {
-  apis,
-  create,
-  defaultCmd,
-  deploy,
-  deployments,
-  help,
-  login,
-  logs,
-  openCmd,
-  run,
-  setting,
-  undeploy,
-  version,
-} from './commands';
-import { PROJECT_NAME, handleError } from './utils';
-
-import pull from './commands/pull';
+import apis from './commands/apis';
 import clone from './commands/clone';
-import push from './commands/push';
-import status from './commands/status';
+import create from './commands/create';
+import defaultCmd from './commands/defaultCmd';
+import deploy from './commands/deploy';
+import deployments from './commands/deployments';
+import help from './commands/help';
 import list from './commands/list';
+import login from './commands/login';
 import logout from './commands/logout';
+import logs from './commands/logs';
+import openCmd from './commands/openCmd';
+import pull from './commands/pull';
+import push from './commands/push';
+import run from './commands/run';
+import setting from './commands/setting';
+import status from './commands/status';
+import undeploy from './commands/undeploy';
+import version from './commands/version';
 import versions from './commands/versions';
-
-// const commander = require('commander');
+import { PROJECT_NAME, handleError } from './utils';
 
 // CLI
 

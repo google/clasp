@@ -1,26 +1,24 @@
+import {drive_v3} from 'googleapis';
 import {
   drive,
   loadAPICredentials,
-} from './../auth';
-
-import {
-  extractScriptId,
-} from './../urls';
-
-import {
-  checkIfOnline,
-  ERROR,
-  LOG,
-  logError,
-  saveProject,
-  spinner,
-} from './../utils';
-
+} from '../auth';
 import {
   fetchProject,
   hasProject,
   writeProjectFiles,
-} from './../files';
+} from '../files';
+import {
+  extractScriptId,
+} from '../urls';
+import {
+  ERROR,
+  LOG,
+  checkIfOnline,
+  logError,
+  saveProject,
+  spinner,
+} from '../utils';
 
 const padEnd = require('string.prototype.padend');
 const prompt = require('inquirer').prompt;
@@ -59,23 +57,27 @@ const getScriptId = async () => {
     q: 'mimeType="application/vnd.google-apps.script"',
   });
   const data = list.data;
-  if (!data) return logError(list.statusText, 'Unable to use the Drive API.');
+  if (!data) {
+    logError(list.statusText, 'Unable to use the Drive API.');
+    return '';
+  }
   const files = data.files;
-  if (!files || !files.length) return console.log(LOG.FINDING_SCRIPTS_DNE);
-  const fileIds = files.map((file: any) => {
+  if (!files || !files.length) {
+    logError(null, LOG.FINDING_SCRIPTS_DNE);
+    return '';
+  }
+  const fileIds = files.map((file: drive_v3.Schema$File) => {
     return {
-      name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id)}`,
+      name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
       value: file.id,
     };
   });
-  const answers = await prompt([
-    {
-      type: 'list',
-      name: 'scriptId',
-      message: LOG.CLONE_SCRIPT_QUESTION,
-      choices: fileIds,
-      pageSize: 30,
-    },
-  ]);
+  const answers = await prompt([{
+    type: 'list',
+    name: 'scriptId',
+    message: LOG.CLONE_SCRIPT_QUESTION,
+    choices: fileIds,
+    pageSize: 30,
+  }]) as {scriptId: string};
   return answers.scriptId;
 };
