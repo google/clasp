@@ -8,7 +8,7 @@
     "build-fresh": "npm cache clean --force && npm i && npm run build",
     "publish": "npm publish --access public",
     "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
-    "test": "nyc --cache false mocha --timeout 100000 -- tests/*.js",
+    "test": "nyc --cache false mocha --timeout 100000 -- 'tests/**/*.js'",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "./node_modules/prettier/bin-prettier.js --parser typescript --single-quote --bracket-spacing --print-width 110 --trailing-comma all src/**/*.ts --write"
   },

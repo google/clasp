@@ -12,8 +12,8 @@
     "inlineSourceMap": true,
   },
   "moduleResolution": "node",
-  "files": [
-    "src/index.ts",
-    "tests/test.ts"
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts"
   ]
 }

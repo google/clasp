@@ -10,7 +10,6 @@ import {
   getAPIFileType,
   getDefaultProjectName,
   getWebApplicationURL,
-  hasOauthClientSettings,
   saveProject,
 } from './../src/utils';
 
@@ -727,30 +726,6 @@ describe('Test clasp login function', () => {
     fs.removeSync(CLASP_PATHS.clientCredsLocal);
     expect(result.stdout).to.contain(LOG.LOGIN(true));
     expect(result.status).to.equal(1);
-  });
-  after(cleanup);
-});
-
-describe('Test clasp logout function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  beforeEach(backupSettings);
-  afterEach(restoreSettings);
-  it('should remove global AND local credentails', () => {
-    fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
-    fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
-    const result = spawnSync(
-      CLASP, ['logout'], { encoding: 'utf8' },
-    );
-    expect(fs.existsSync(CLASP_PATHS.rcGlobal)).to.equal(false);
-    expect(hasOauthClientSettings()).to.equal(false);
-    expect(fs.existsSync(CLASP_PATHS.rcLocal)).to.equal(false);
-    expect(hasOauthClientSettings(true)).to.equal(false);
-    expect(result.status).to.equal(0);
   });
   after(cleanup);
 });
