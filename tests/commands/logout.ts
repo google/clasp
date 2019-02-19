@@ -7,18 +7,18 @@ import {
   CLASP,
   CLASP_PATHS,
   FAKE_CLASPRC,
-} from './../constants';
+} from '../constants';
 
 import {
   backupSettings,
   cleanup,
   restoreSettings,
   setup,
-} from './../functions';
+} from '../functions';
 
 import {
   hasOauthClientSettings,
-} from './../../src/utils';
+} from '../../src/utils';
 
 describe('Test clasp logout function', () => {
   before(setup);
