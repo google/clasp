@@ -5,7 +5,6 @@ const { spawnSync } = require('child_process');
 
 import {
   CLASP,
-  TEST_APPSSCRIPT_JSON,
   TEST_CODE_JS,
 } from '../constants';
 
@@ -37,5 +36,5 @@ describe('Test clasp push function', () => {
     expect(result.stderr).to.contain('Files to push were:');
     expect(result.status).to.equal(1);
   });
-  // after(cleanup);
+  after(cleanup);
 });
