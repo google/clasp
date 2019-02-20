@@ -85,7 +85,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       filePaths = filePaths.sort(); // Sort files alphanumerically
       let abortPush = false;
       let nonIgnoredFilePaths: string[] = [];
-      const ignoredFilePaths: string[] = [];
+      let ignoredFilePaths: string[] = [];
+      ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
       // Match the files with ignored glob pattern
       readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
         if (err) return callback(new Error(err), null, null);
@@ -112,16 +113,17 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
 
         // check ignore files
         const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
+        const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
 
-        // Loop through every file.
-        const files = filePaths
+        // Loop through files that are not ignored
+        const files = intersection
           .map((name, i) => {
             const normalizedName = path.normalize(name);
 
             let type = getAPIFileType(name);
 
             // File source
-            let source = contents[i];
+            let source = fs.readFileSync(name).toString();
             if (type === 'TS') {
               // Transpile TypeScript to Google Apps Script
               // @see github.com/grant/ts2gas

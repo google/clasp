@@ -20,7 +20,7 @@ import {
   hasOauthClientSettings,
 } from '../../src/utils';
 
-describe('Test clasp logout function', () => {
+describe.skip('Test clasp logout function', () => {
   before(setup);
   beforeEach(backupSettings);
   it('should remove global AND local credentails', () => {
