@@ -485,6 +485,8 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ## Troubleshooting
 
+### Node Version
+
 The library requires **Node version >= 6.3.0**. Use this script to check your version and **upgrade Node if necessary**:
 
 ```sh
@@ -492,6 +494,12 @@ node -v # Check Node version
 sudo npm install n -g
 sudo n latest
 ```
+
+### Using a Proxy
+
+Clasp supports proxies via the Google APIs Node Module.
+See ["Using a Proxy"](https://github.com/googleapis/google-api-nodejs-client#using-a-proxy) and [this discussion](https://github.com/google/clasp/issues/8#issuecomment-427560737) for details on how to use the proxy.
+This requires using the environment variables `HTTP_PROXY` / `HTTPS_PROXY`.
 
 ## README Badge
 
