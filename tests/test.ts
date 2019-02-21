@@ -186,39 +186,6 @@ describe('Test clasp pull function', () => {
   after(cleanup);
 });
 
-describe('Test clasp push function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  it.skip('should push local project correctly', () => {
-    fs.removeSync('.claspignore');
-    fs.writeFileSync('Code.js', TEST_CODE_JS);
-    fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON);
-    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
-    const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf8' },
-    );
-    expect(result.stdout).to.contain('Pushed');
-    expect(result.stdout).to.contain('files.');
-    expect(result.status).to.equal(0);
-  });
-  it.skip('should return non-0 exit code when push failed', () => {
-    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
-    fs.writeFileSync('unexpected_file', TEST_CODE_JS);
-    const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf8' },
-    );
-    expect(result.stderr).to.contain('Invalid value at');
-    expect(result.stderr).to.contain('UNEXPECTED_FILE');
-    expect(result.stderr).to.contain('Files to push were:');
-    expect(result.status).to.equal(1);
-  });
-  after(cleanup);
-});
-
 describe('Test clasp status function', () => {
   before(function () {
     if (IS_PR) {
@@ -282,7 +249,10 @@ describe('Test clasp status function', () => {
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
-    expect(resultJson.untrackedFiles).to.have.members(['dist/shouldBeIgnored', 'dist/should/alsoBeIgnored']);
+    expect(resultJson.untrackedFiles).to.have.members([
+      '**/**',
+      '!dist/build/main.js',
+      '!dist/appsscript.json']);
     expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
     // TODO test with a rootDir with a relative directory like "../src"
   });
