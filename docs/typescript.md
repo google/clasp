@@ -24,12 +24,13 @@ This quickstart guide describes how to create a TypeScript project from scratch.
 1. Ensure you have upgrade to clasp >= 1.5.0
     - `clasp -v`
 1. Install TypeScript definitions for Apps Script in your project's folder.
-    - `npm i -S @types/google-apps-script`
+    - `npm i -S @types/google-apps-script @types/node`
 1. Create a file called `jsconfig.json` to prevent non AS features:
 ```json
 {
   "compilerOptions": {
-    "lib": ["esnext"]
+    "lib": ["esnext"],
+    "experimentalDecorators": true
   }
 }
 ```
@@ -40,10 +41,8 @@ This quickstart guide describes how to create a TypeScript project from scratch.
 Create a clasp project in an empty directory (or use an existing project):
 
 ```sh
-clasp create
+clasp create --type standalone
 ```
-
-If you haven't already, run `npm i -S @types/google-apps-script` to allow your code editor to autocomplete TypeScript.
 
 Create a TypeScript file called `hello.ts` with the following contents:
 
@@ -121,9 +120,8 @@ var age = 42;
 console.log(`hello my name is ${name}, and I am ${age} years old`);
 
 // Rest arguments
-const add = (a, b) => a + b;
-let args = [3, 5];
-add(...args); // same as `add(args[0], args[1])`, or `add.apply(null, args)`
+const buildName = (first: string, ...rest) => first + ' ' + rest.join(' ');
+buildName('First', 'Second', 'Third');
 
 // Spread operator (array)
 let cde = ['c', 'd', 'e'];
