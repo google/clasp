@@ -136,38 +136,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             // (rootDir/foo/Code.js becomes foo/Code.js)
             const formattedName = getAppsScriptFileName(rootDir, name);
 
-            /**
-             * If the file is valid, add it to our file list.
-             * We generally want to allow for all file types, including files in node_modules/.
-             * However, node_modules/@types/ files should be ignored.
-             */
-            const isValidFileName = (name: string) => {
-              let valid = true; // Valid by default, until proven otherwise.
-              // Has a type or is appsscript.json
-              let isValidJSONIfJSON = true;
-              if (type === 'JSON') {
-                if (rootDir) {
-                  isValidJSONIfJSON = normalizedName === path.join(rootDir, 'appsscript.json');
-                } else {
-                  isValidJSONIfJSON = name === 'appsscript.json';
-                }
-              } else {
-                // Must be SERVER_JS or HTML.
-                // https://developers.google.com/apps-script/api/reference/rest/v1/File
-                valid = type === 'SERVER_JS' || type === 'HTML';
-              }
-              // Prevent node_modules/@types/
-              if (name.includes('node_modules/@types')) {
-                return false;
-              }
-              const validType = type && isValidJSONIfJSON;
-              const notIgnored = !ignoreMatches.includes(name);
-              valid = !!(valid && validType && notIgnored);
-              return valid;
-            };
-
             // If the file is valid, return the file in a format suited for the Apps Script API.
-            if (isValidFileName(name)) {
+            if (isValidFileName(name, type, rootDir, normalizedName, ignoreMatches)) {
               nonIgnoredFilePaths.push(name);
               const file: AppsScriptFile = {
                 name: formattedName, // the file base name
@@ -208,6 +178,40 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       });
     });
   });
+}
+
+/**
+ * If the file is valid, add it to our file list.
+ * We generally want to allow for all file types, including files in node_modules/.
+ * However, node_modules/@types/ files should be ignored.
+ */
+export function isValidFileName(name: string,
+                                type: string,
+                                rootDir: string,
+                                normalizedName: string,
+                                ignoreMatches: string[]): boolean {
+  let valid = true; // Valid by default, until proven otherwise.
+  // Has a type or is appsscript.json
+  let isValidJSONIfJSON = true;
+  if (type === 'JSON') {
+    if (rootDir) {
+      isValidJSONIfJSON = normalizedName === path.join(rootDir, 'appsscript.json');
+    } else {
+      isValidJSONIfJSON = name === 'appsscript.json';
+    }
+  } else {
+    // Must be SERVER_JS or HTML.
+    // https://developers.google.com/apps-script/api/reference/rest/v1/File
+    valid = type === 'SERVER_JS' || type === 'HTML';
+  }
+  // Prevent node_modules/@types/
+  if (name.includes('node_modules/@types')) {
+    return false;
+  }
+  const validType = type && isValidJSONIfJSON;
+  const notIgnored = !ignoreMatches.includes(name);
+  valid = !!(valid && validType && notIgnored);
+  return valid;
 }
 
 /**
