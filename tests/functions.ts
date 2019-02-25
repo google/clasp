@@ -19,6 +19,11 @@ export const setup = () => {
   fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON);
 };
 
+export const setupWithoutGCPProject = () => {
+  fs.writeFileSync('.clasp.json', CLASP_SETTINGS.validWithoutProjectId);
+  fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON);
+};
+
 export const rndStr = () => Math.random().toString(36).substr(2);
 
 export const backupSettings = () => {
