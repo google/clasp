@@ -12,24 +12,29 @@ import {
   setupWithoutGCPProject,
 } from '../functions';
 
+import {
+  LOG,
+} from '../../src/utils';
+
 describe('Test clasp logs function', () => {
   before(setupWithoutGCPProject);
   it('should prompt for logs setup', () => {
     const result = spawnSync(
-      CLASP, ['logs'], { encoding: 'utf8' },  // --setup is default behaviour
+      CLASP, ['logs'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('What is your GCP projectId?');
+    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(SCRIPT_ID))}\n`);
+    expect(result.stdout).to.contain(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
+    expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
   });
   it('should prompt for logs setup', () => {
     const result = spawnSync(
       CLASP, ['logs', '--setup'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('Open this link:');
-    expect(result.stdout).to.include(`https://script.google.com/d/${SCRIPT_ID}/edit`);
-    expect(result.stdout).to.contain('Go to *Resource > Cloud Platform Project...*');
-    expect(result.stdout).to.include('and copy your projectId\n  (including "project-id-")');
-    expect(result.stdout).to.contain('What is your GCP projectId?');
+    expect(result.stdout).to.contain(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(SCRIPT_ID))}\n`);
+    expect(result.stdout).to.contain(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
+    expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
   });
   after(cleanup);
 });

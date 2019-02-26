@@ -103,14 +103,13 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
   async function setupLogs(projectId?: string): Promise<string> {
     const promise = new Promise<string>((resolve, reject) => {
       getProjectSettings().then(projectSettings => {
-        console.log(`Open this link: ${LOG.SCRIPT_LINK(projectSettings.scriptId)}\n`);
-        console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
-  (including "project-id-")\n`);
+        console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
+        console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
         prompt([
           {
             type: 'input',
             name: 'projectId',
-            message: 'What is your GCP projectId?',
+            message: `${LOG.ASK_PROJECT_ID}`,
           },
         ])
           // tslint:disable-next-line:no-any
