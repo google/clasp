@@ -2,18 +2,15 @@ import * as path from 'path';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
-import * as tmp from 'tmp';
 import { getAppsScriptFileName, getFileType } from './../src/files';
 import {
   ERROR,
   LOG,
-  URL,
   getAPIFileType,
   getDefaultProjectName,
   getWebApplicationURL,
-  hasOauthClientSettings,
   saveProject,
-} from './../src/utils.js';
+} from './../src/utils';
 
 import {
   backupSettings,
@@ -35,6 +32,11 @@ import {
   TEST_APPSSCRIPT_JSON,
   TEST_CODE_JS,
 } from './constants';
+
+import {
+  extractScriptId,
+  URL,
+} from './../src/urls';
 
 const { spawnSync } = require('child_process');
 
@@ -158,6 +160,13 @@ describe('Test clasp clone <scriptId> function', () => {
   after(cleanup);
 });
 
+describe('Test extractScriptId function', () => {
+  it('should return scriptId correctly', () => {
+    expect(extractScriptId(SCRIPT_ID)).to.equal(SCRIPT_ID);
+    expect(extractScriptId(URL.SCRIPT(SCRIPT_ID))).to.equal(SCRIPT_ID);
+  });
+});
+
 describe('Test clasp pull function', () => {
   before(function () {
     if (IS_PR) {
@@ -172,109 +181,6 @@ describe('Test clasp pull function', () => {
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
-  });
-  after(cleanup);
-});
-
-describe('Test clasp push function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  it.skip('should push local project correctly', () => {
-    fs.removeSync('.claspignore');
-    fs.writeFileSync('Code.js', TEST_CODE_JS);
-    fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON);
-    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
-    const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf8' },
-    );
-    expect(result.stdout).to.contain('Pushed');
-    expect(result.stdout).to.contain('files.');
-    expect(result.status).to.equal(0);
-  });
-  it.skip('should return non-0 exit code when push failed', () => {
-    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
-    fs.writeFileSync('unexpected_file', TEST_CODE_JS);
-    const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf8' },
-    );
-    expect(result.stderr).to.contain('Invalid value at');
-    expect(result.stderr).to.contain('UNEXPECTED_FILE');
-    expect(result.stderr).to.contain('Files to push were:');
-    expect(result.status).to.equal(1);
-  });
-  after(cleanup);
-});
-
-describe('Test clasp status function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
-    fs.ensureDirSync('tmp');
-    const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
-    filepathsAndContents.forEach(({ file, data }) => {
-      fs.outputFileSync(path.join(tmpdir, file), data);
-    });
-    return tmpdir;
-  }
-  it('should respect globs and negation rules', () => {
-    const tmpdir = setupTmpDirectory([
-      { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
-      { file: 'build/main.js', data: TEST_CODE_JS },
-      { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON },
-      { file: 'shouldBeIgnored', data: TEST_CODE_JS },
-      { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
-    ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
-    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
-    expect(result.status).to.equal(0);
-    const resultJson = JSON.parse(result.stdout);
-    expect(resultJson.untrackedFiles).to.have.members([
-      '.claspignore', // TODO Should these be untracked?
-      'should/alsoBeIgnored',
-      'shouldBeIgnored',
-    ]);
-    expect(resultJson.filesToPush).to.have.members(['build/main.js', 'appsscript.json']);
-  });
-  it('should ignore dotfiles if the parent folder is ignored', () => {
-    const tmpdir = setupTmpDirectory([
-      { file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json' },
-      { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON },
-      { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: TEST_CODE_JS },
-    ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
-    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
-    expect(result.status).to.equal(0);
-    const resultJson = JSON.parse(result.stdout);
-    expect(resultJson.untrackedFiles).to.have.members([
-      '.claspignore', // TODO Should these be untracked?
-      'node_modules/fsevents/build/Release/.deps/Release/.node.d',
-    ]);
-    expect(resultJson.filesToPush).to.have.members(['appsscript.json']);
-  });
-  it('should respect globs and negation rules when rootDir given', () => {
-    const tmpdir = setupTmpDirectory([
-      { file: '.clasp.json', data: '{ "scriptId":"1234", "rootDir":"dist" }' },
-      { file: '.claspignore', data: '**/**\n!dist/build/main.js\n!dist/appsscript.json' },
-      { file: 'dist/build/main.js', data: TEST_CODE_JS },
-      { file: 'dist/appsscript.json', data: TEST_APPSSCRIPT_JSON },
-      { file: 'dist/shouldBeIgnored', data: TEST_CODE_JS },
-      { file: 'dist/should/alsoBeIgnored', data: TEST_CODE_JS },
-    ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
-    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
-    expect(result.status).to.equal(0);
-    const resultJson = JSON.parse(result.stdout);
-    expect(resultJson.untrackedFiles).to.have.members(['dist/shouldBeIgnored', 'dist/should/alsoBeIgnored']);
-    expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
-    // TODO test with a rootDir with a relative directory like "../src"
   });
   after(cleanup);
 });
@@ -716,30 +622,6 @@ describe('Test clasp login function', () => {
     fs.removeSync(CLASP_PATHS.clientCredsLocal);
     expect(result.stdout).to.contain(LOG.LOGIN(true));
     expect(result.status).to.equal(1);
-  });
-  after(cleanup);
-});
-
-describe('Test clasp logout function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  beforeEach(backupSettings);
-  afterEach(restoreSettings);
-  it('should remove global AND local credentails', () => {
-    fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
-    fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
-    const result = spawnSync(
-      CLASP, ['logout'], { encoding: 'utf8' },
-    );
-    expect(fs.existsSync(CLASP_PATHS.rcGlobal)).to.equal(false);
-    expect(hasOauthClientSettings()).to.equal(false);
-    expect(fs.existsSync(CLASP_PATHS.rcLocal)).to.equal(false);
-    expect(hasOauthClientSettings(true)).to.equal(false);
-    expect(result.status).to.equal(0);
   });
   after(cleanup);
 });

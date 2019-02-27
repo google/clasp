@@ -1,6 +1,6 @@
 import * as fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
-import { serviceUsage, loadAPICredentials } from './auth';
+import { loadAPICredentials, serviceUsage } from './auth';
 import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
 
@@ -24,7 +24,7 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
   const files = content.data.files || [];
   type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
   const functionNames: string[] = files
-    .reduce((functions: TypeFunction[], file) => {
+    .reduce((functions: TypeFunction[], file: script_v1.Schema$File) => {
       if (!file.functionSet || !file.functionSet.values) return functions;
       return functions.concat(file.functionSet.values);
     }, [])

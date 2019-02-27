@@ -4,7 +4,7 @@
   <br>
 </h1>
 
-<p align="center"><a href="https://travis-ci.org/google/clasp"><img src="https://travis-ci.org/google/clasp.svg?branch=master" alt="Build Status"></a> <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/v/@google/clasp.svg" alt="npm Version"></a> <a href="https://npmcharts.com/compare/@google/clasp?minimal=true"><img src="https://img.shields.io/npm/dw/@google/clasp.svg" alt="npm Downloads"></a> <a href="http://packagequality.com/#?package=%40google%2Fclasp"><img src="http://npm.packagequality.com/shield/%40google%2Fclasp.svg" alt="Package Quality"></a></p>
+<p align="center"><a href="https://travis-ci.org/google/clasp"><img src="https://travis-ci.org/google/clasp.svg?branch=master" alt="Build Status"></a> <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/v/@google/clasp.svg" alt="npm Version"></a> <a href="https://npmcharts.com/compare/@google/clasp?minimal=true"><img src="https://img.shields.io/npm/dw/@google/clasp.svg" alt="npm Downloads"></a> <a href="http://packagequality.com/#?package=%40google%2Fclasp"><img src="http://npm.packagequality.com/shield/%40google%2Fclasp.svg" alt="Package Quality"></a> <a href="https://david-dm.org/google/clasp" title="dependencies status"><img src="https://david-dm.org/google/clasp/status.svg"/></a></p>
 
 > Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
@@ -267,7 +267,7 @@ The response gives the version of the deployment.
 
 - `clasp deploy` (create new deployment and new version)
 - `clasp deploy --versionNumber 4` (create new deployment)
-- `clasp deploy --desc "Updates sidebar logo."` (deploy with description)
+- `clasp deploy --description "Updates sidebar logo."` (deploy with description)
 - `clasp deploy --deploymentId 123` (create new version)
 - `clasp deploy -V 7 -d "Updates sidebar logo." -i 456`
 
@@ -346,10 +346,12 @@ INFO  Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      info message
 
 Remotely executes an Apps Script function.
 
-To use this command you must:
-1. Log in with your credentials (`clasp login --creds creds.json`)
+The complete step-by-step information on how to use `clasp run` is available here: [Run](/docs/run.md)  
+Below is a short summary:
+
+1. Log in with your credentials (`clasp login --creds creds.json`), see: [Run - Prerequisites](/docs/run.md#prerequisites)
 1. Deploy the Script as an API executable (Easiest done via GUI at the moment).
-1. Enable any APIs that are used by the script.
+1. Enable any APIs that are used by the script, see: [Run - Function with Scopes](/docs/run.md#run-a-function-that-requires-scopes)
 1. Have the following in your `appsscript.json`:
 
 ```json
@@ -483,13 +485,21 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ## Troubleshooting
 
-The library requires **Node version >= 6.0.0**. Use this script to check your version and **upgrade Node if necessary**:
+### Node Version
+
+The library requires **Node version >= 6.3.0**. Use this script to check your version and **upgrade Node if necessary**:
 
 ```sh
 node -v # Check Node version
 sudo npm install n -g
 sudo n latest
 ```
+
+### Using a Proxy
+
+Clasp supports proxies via the Google APIs Node Module.
+See ["Using a Proxy"](https://github.com/googleapis/google-api-nodejs-client#using-a-proxy) and [this discussion](https://github.com/google/clasp/issues/8#issuecomment-427560737) for details on how to use the proxy.
+This requires using the environment variables `HTTP_PROXY` / `HTTPS_PROXY`.
 
 ## README Badge
 

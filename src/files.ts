@@ -3,12 +3,14 @@ import * as path from 'path';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
 import * as recursive from 'recursive-readdir';
+import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
 
 const ts2gas = require('ts2gas');
 const readMultipleFiles = require('read-multiple-files');
+const findParentDir = require('find-parent-dir');
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -41,6 +43,24 @@ export function hasProject(): boolean {
 }
 
 /**
+ * Returns in tsconfig.json.
+ * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
+ */
+export function getTranspileOptions(): ts.TranspileOptions{
+  const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
+  const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
+  const userConf: ts.TranspileOptions = {};
+  if(fs.existsSync(tsconfigPath)){
+    const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
+    const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
+    return {
+      compilerOptions: parsedConfigResult.config.compilerOptions,
+    };
+  }
+  return {};
+}
+
+/**
  * Recursively finds all files that are part of the current project, and those that are ignored
  * by .claspignore and calls the passed callback function with the file lists.
  * @param {string} rootDir The project's root directory
@@ -52,6 +72,10 @@ export function hasProject(): boolean {
  */
 export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
   const { filePushOrder } = await getProjectSettings();
+
+  // Load tsconfig
+  const userConf = getTranspileOptions();
+
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
   recursive(rootDir, (err, filePaths) => {
@@ -61,7 +85,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       filePaths = filePaths.sort(); // Sort files alphanumerically
       let abortPush = false;
       let nonIgnoredFilePaths: string[] = [];
-      const ignoredFilePaths: string[] = [];
+      let ignoredFilePaths: string[] = [];
+      ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
       // Match the files with ignored glob pattern
       readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
         if (err) return callback(new Error(err), null, null);
@@ -83,24 +108,26 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         });
         if (abortPush) return callback(new Error(), null, null);
 
+        // Replace OS specific path separator to common '/' char for console output
+        filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
+
         // check ignore files
         const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
+        const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
 
-        // Loop through every file.
-        const files = filePaths
+        // Loop through files that are not ignored
+        const files = intersection
           .map((name, i) => {
-            // Replace OS specific path separator to common '/' char for console output
-            name = name.replace(/\\/g, '/');
             const normalizedName = path.normalize(name);
 
             let type = getAPIFileType(name);
 
             // File source
-            let source = contents[i];
+            let source = fs.readFileSync(name).toString();
             if (type === 'TS') {
               // Transpile TypeScript to Google Apps Script
               // @see github.com/grant/ts2gas
-              source = ts2gas(source);
+              source = ts2gas(source, userConf);
               type = 'SERVER_JS';
             }
 
@@ -109,38 +136,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             // (rootDir/foo/Code.js becomes foo/Code.js)
             const formattedName = getAppsScriptFileName(rootDir, name);
 
-            /**
-             * If the file is valid, add it to our file list.
-             * We generally want to allow for all file types, including files in node_modules/.
-             * However, node_modules/@types/ files should be ignored.
-             */
-            const isValidFileName = (name: string) => {
-              let valid = true; // Valid by default, until proven otherwise.
-              // Has a type or is appsscript.json
-              let isValidJSONIfJSON = true;
-              if (type === 'JSON') {
-                if (rootDir) {
-                  isValidJSONIfJSON = normalizedName === path.join(rootDir, 'appsscript.json');
-                } else {
-                  isValidJSONIfJSON = name === 'appsscript.json';
-                }
-              } else {
-                // Must be SERVER_JS or HTML.
-                // https://developers.google.com/apps-script/api/reference/rest/v1/File
-                valid = type === 'SERVER_JS' || type === 'HTML';
-              }
-              // Prevent node_modules/@types/
-              if (name.includes('node_modules/@types')) {
-                return false;
-              }
-              const validType = type && isValidJSONIfJSON;
-              const notIgnored = !ignoreMatches.includes(name);
-              valid = !!(valid && validType && notIgnored);
-              return valid;
-            };
-
             // If the file is valid, return the file in a format suited for the Apps Script API.
-            if (isValidFileName(name)) {
+            if (isValidFileName(name, type, rootDir, normalizedName, ignoreMatches)) {
               nonIgnoredFilePaths.push(name);
               const file: AppsScriptFile = {
                 name: formattedName, // the file base name
@@ -181,6 +178,40 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       });
     });
   });
+}
+
+/**
+ * If the file is valid, add it to our file list.
+ * We generally want to allow for all file types, including files in node_modules/.
+ * However, node_modules/@types/ files should be ignored.
+ */
+export function isValidFileName(name: string,
+                                type: string,
+                                rootDir: string,
+                                normalizedName: string,
+                                ignoreMatches: string[]): boolean {
+  let valid = true; // Valid by default, until proven otherwise.
+  // Has a type or is appsscript.json
+  let isValidJSONIfJSON = true;
+  if (type === 'JSON') {
+    if (rootDir) {
+      isValidJSONIfJSON = normalizedName === path.join(rootDir, 'appsscript.json');
+    } else {
+      isValidJSONIfJSON = name === 'appsscript.json';
+    }
+  } else {
+    // Must be SERVER_JS or HTML.
+    // https://developers.google.com/apps-script/api/reference/rest/v1/File
+    valid = type === 'SERVER_JS' || type === 'HTML';
+  }
+  // Prevent node_modules/@types/
+  if (name.includes('node_modules/@types')) {
+    return false;
+  }
+  const validType = type && isValidJSONIfJSON;
+  const notIgnored = !ignoreMatches.includes(name);
+  valid = !!(valid && validType && notIgnored);
+  return valid;
 }
 
 /**
@@ -269,39 +300,29 @@ export async function pushFiles(silent = false) {
       spinner.stop(true);
     } else if (projectFiles) {
       const [nonIgnoredFilePaths] = projectFiles;
+      // tslint:disable-next-line:no-any
       const filesForAPI: any = files;
-      await script.projects.updateContent({
-        scriptId,
-        requestBody: {
+      try {
+        await script.projects.updateContent({
           scriptId,
-          files: filesForAPI,
-        },
-      }, {}, (error: any) => {
+          requestBody: {
+            scriptId,
+            files: filesForAPI,
+          },
+        });
+      } catch (e) {
+        console.error(LOG.PUSH_FAILURE);
+        console.log(e);
+      } finally {
         if (!silent) spinner.stop(true);
-        // In the following code, we favor console.error()
-        // over logError() because logError() exits, whereas
-        // we want to log multiple lines of messages, and
-        // eventually exit after logging everything.
-        if (error) {
-          console.error(LOG.PUSH_FAILURE);
-          error.errors.map((err: any) => {
-            console.error(err.message);
-          });
-          console.error(LOG.FILES_TO_PUSH);
+        // no error
+        if (!silent) {
           nonIgnoredFilePaths.map((filePath: string) => {
-            console.error(`└─ ${filePath}`);
+            console.log(`└─ ${filePath}`);
           });
-          process.exit(1);
-        } else {
-          // no error
-          if (!silent) {
-            nonIgnoredFilePaths.map((filePath: string) => {
-              console.log(`└─ ${filePath}`);
-            });
-            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-          }
+          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
         }
-      });
+      }
     }
   });
 }
