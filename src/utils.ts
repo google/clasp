@@ -122,6 +122,7 @@ Did you provide the correct projectID?`,
 
 // Log messages (some logs take required params)
 export const LOG = {
+  ASK_PROJECT_ID: `What is your GCP projectId?`,
   AUTH_CODE: 'Enter the code from that page here: ',
   // TODO: Make AUTH_PAGE_SUCCESSFUL show an HTML page with something useful!
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page. `, // HTML Redirect Page
@@ -148,12 +149,15 @@ export const LOG = {
   FINDING_SCRIPTS_DNE: 'No script files found.',
   FINDING_SCRIPTS: 'Finding your scripts...',
   GRAB_LOGS: 'Grabbing logs...',
+  GET_PROJECT_ID_INSTRUCTIONS: `Go to *Resource > Cloud Platform Project...* and copy your projectId
+(including "project-id-")`,
   GIVE_DESCRIPTION: 'Give a description: ',
   LOCAL_CREDS: `Using local credentials: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME} 🔐 `,
   LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}...`,
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
   OPEN_CREDS: (projectId: string) => `Opening credentials page: ${URL.CREDS(projectId)}`,
+  OPEN_LINK: (link: string) => `Open this link: ${link}`,
   OPEN_PROJECT: (scriptId: string) => `Opening script: ${URL.SCRIPT(scriptId)}`,
   OPEN_WEBAPP: (deploymentId?: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
@@ -346,13 +350,12 @@ export async function getProjectId(promptUser = true): Promise<string> {
     const projectSettings: ProjectSettings = await getProjectSettings();
     if (projectSettings.projectId) return projectSettings.projectId;
     if (!promptUser) throw new Error('Project ID not found.');
-    console.log('Open this link: ', URL.SCRIPT(projectSettings.scriptId));
-    console.log(`Go to *Resource > Cloud Platform Project...* and copy your projectId
-(including "project-id-")\n`);
+    console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
+    console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
     await prompt([{
       type: 'input',
       name: 'projectId',
-      message: 'What is your GCP projectId?',
+      message: `${LOG.ASK_PROJECT_ID}`,
     // tslint:disable-next-line:no-any
     }]).then(async (answers: any) => {
       projectSettings.projectId = answers.projectId;

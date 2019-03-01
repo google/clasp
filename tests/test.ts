@@ -522,33 +522,6 @@ describe('Test clasp apis functions', () => {
   after(cleanup);
 });
 
-describe.skip('Test clasp logs function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  it('should prompt for logs setup', () => {
-    const result = spawnSync(
-      CLASP, ['logs'], { encoding: 'utf8' },  // --setup is default behaviour
-    );
-    expect(result.stdout).to.contain('What is your GCP projectId?');
-  });
-  it('should prompt for logs setup', () => {
-    const result = spawnSync(
-      CLASP, ['logs', '--setup'], { encoding: 'utf8' },
-    );
-    expect(result.status).to.equal(0);
-    expect(result.stdout).to.contain('Open this link:');
-    expect(result.stdout).to.include(`https://script.google.com/d/${SCRIPT_ID}/edit`);
-    expect(result.stdout).to.contain('Go to *Resource > Cloud Platform Project...*');
-    expect(result.stdout).to.include('and copy your projectId\n(including "project-id-")');
-    expect(result.stdout).to.contain('What is your GCP projectId?');
-  });
-  after(cleanup);
-});
-
 describe('Test clasp login function', () => {
   before(function () {
     if (IS_PR) {
@@ -638,7 +611,7 @@ describe.skip('Test clasp run function', () => {
     const result = spawnSync(
       CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('What is your GCP projectId?');
+    expect(result.stdout).to.contain(LOG.ASK_PROJECT_ID);
   });
   it('should prompt to set up new OAuth client', () => {
     fs.writeFileSync(CLASP_PATHS.settingsLocal, CLASP_SETTINGS.invalid);

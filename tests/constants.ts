@@ -18,7 +18,7 @@ export const TEST_APPSSCRIPT_JSON = JSON.stringify({
 // Travis Env Variables
 export const IS_PR: boolean = (process.env.TRAVIS_PULL_REQUEST === 'true');
 export const SCRIPT_ID: string = process.env.SCRIPT_ID || '';
-const PROJECT_ID: string = process.env.PROJECT_ID || '';
+export const PROJECT_ID: string = process.env.PROJECT_ID || '';
 const HOME: string = process.env.HOME || '';
 
 // Paths
@@ -43,9 +43,14 @@ const INVALID_CLASP_SETTINGS = {
   projectId: `project-id-${rndStr()}`,
 };
 
+const VALID_CLASP_SETTINGS_WITHOUT_PROJECT_ID = {
+  scriptId: SCRIPT_ID,
+};
+
 export const CLASP_SETTINGS = {
   valid: JSON.stringify(VALID_CLASP_SETTINGS),
   invalid: JSON.stringify(INVALID_CLASP_SETTINGS),
+  validWithoutProjectId: JSON.stringify(VALID_CLASP_SETTINGS_WITHOUT_PROJECT_ID),
 };
 
 const FAKE_CLASPRC_TOKEN = {
