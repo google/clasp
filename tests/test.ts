@@ -611,7 +611,7 @@ describe.skip('Test clasp run function', () => {
     const result = spawnSync(
       CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
+    expect(result.stdout).to.contain(LOG.ASK_PROJECT_ID);
   });
   it('should prompt to set up new OAuth client', () => {
     fs.writeFileSync(CLASP_PATHS.settingsLocal, CLASP_SETTINGS.invalid);
