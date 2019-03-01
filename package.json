@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.json && npm i -g --loglevel=error",
     "build-fresh": "npm cache clean --force && npm i && npm run build",
+    "watch": "tsc --project tsconfig.json --watch",
     "publish": "npm publish --access public",
     "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
     "test": "nyc --cache false mocha --timeout 100000 -- 'tests/**/*.js'",
