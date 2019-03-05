@@ -85,22 +85,6 @@ describe('Test clasp pull function', () => {
   after(cleanup);
 });
 
-describe('Test clasp open function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  it('should prompt for which deployment to open correctly', () => {
-    const result = spawnSync(
-      CLASP, ['open'], { encoding: 'utf8' },
-    );
-    expect(result.stdout).to.contain(`Opening script: ${URL.SCRIPT(SCRIPT_ID)}`);
-  });
-  after(cleanup);
-});
-
 describe('Test URL utils function', () => {
   it('should create Script URL correctly', () => {
     const expectedUrl = `https://script.google.com/d/${SCRIPT_ID}/edit`;
