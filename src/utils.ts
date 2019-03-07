@@ -78,6 +78,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
+  INVALID_JSON: `Input params not Valid JSON string. Please fix and try again`,
   LOGGED_IN_LOCAL: `Warning: You seem to already be logged in *locally*. You have a ./.clasprc.json`,
   LOGGED_IN_GLOBAL: `Warning: You seem to already be logged in *globally*. You have a ~/.clasprc.json`,
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
@@ -416,4 +417,16 @@ export function handleError(command: (...args: any[]) => Promise<void>) {
  */
 export function isValidProjectId(projectId: string) {
   return new RegExp(/^[a-z][a-z0-9\-]{5,29}$/).test(projectId);
+}
+
+/**
+ * Gets valid JSON obj or throws error.
+ * @param str JSON string.
+ */
+export function getValidJSON(str: string): string[] {
+  try {
+    return JSON.parse(str);
+  } catch (error) {
+    throw new Error(ERROR.INVALID_JSON);
+  }
 }

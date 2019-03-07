@@ -19,7 +19,6 @@ import {
 
 import {
   CLASP,
-  CLASP_SETTINGS,
   CLASP_USAGE,
   CLASP_PATHS,
   IS_PR,
@@ -255,33 +254,6 @@ describe('Test saveProject function from utils', () => {
     };
     expect(isSaved).to.not.equal(null);
   });
-});
-
-// Skipping for now because you still need to deploy function using GUI
-describe.skip('Test clasp run function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  it('should prompt for project ID', () => {
-    const result = spawnSync(
-      CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
-    );
-    expect(result.stdout).to.contain(LOG.ASK_PROJECT_ID);
-  });
-  it('should prompt to set up new OAuth client', () => {
-    fs.writeFileSync(CLASP_PATHS.settingsLocal, CLASP_SETTINGS.invalid);
-    const result = spawnSync(
-      CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
-    );
-    fs.removeSync(CLASP_PATHS.settingsLocal);
-    expect(result.stdout)
-      .to.contain('https://console.developers.google.com/apis/credentials?project=');
-    expect(result.status).to.equal(0);
-  });
-  after(cleanup);
 });
 
 describe('Test variations of clasp help', () => {

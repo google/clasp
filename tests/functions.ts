@@ -16,12 +16,17 @@ export const cleanup = () => {
 
 export const setup = () => {
   fs.writeFileSync('.clasp.json', CLASP_SETTINGS.valid);
-  fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON);
+  fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON.withoutRunApi);
 };
 
 export const setupWithoutGCPProject = () => {
   fs.writeFileSync('.clasp.json', CLASP_SETTINGS.validWithoutProjectId);
   fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON);
+};
+
+export const setupWithRunManifest = () => {
+  fs.writeFileSync('.clasp.json', CLASP_SETTINGS.valid);
+  fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON.withRunApi);
 };
 
 export const rndStr = () => Math.random().toString(36).substr(2);

@@ -9,11 +9,26 @@ import { OAuth2ClientOptions } from 'google-auth-library';
 
 // Sample files
 export const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
-export const TEST_APPSSCRIPT_JSON = JSON.stringify({
+
+const APPSSCRIPT_JSON_WITHOUT_RUN = JSON.stringify({
   timeZone: 'America/Los_Angeles',
   dependencies: {},
   exceptionLogging: 'STACKDRIVER',
 });
+
+const APPSSCRIPT_JSON_WITH_RUN = JSON.stringify({
+  timeZone: 'America/Los_Angeles',
+  dependencies: {},
+  exceptionLogging: 'STACKDRIVER',
+  executionApi: {
+    access: 'MYSELF',
+  },
+});
+
+export const TEST_APPSSCRIPT_JSON = {
+  withoutRunApi: APPSSCRIPT_JSON_WITHOUT_RUN,
+  withRunApi: APPSSCRIPT_JSON_WITH_RUN,
+};
 
 // Travis Env Variables
 export const IS_PR: boolean = (process.env.TRAVIS_PULL_REQUEST === 'true');
