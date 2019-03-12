@@ -65,7 +65,7 @@
     "recursive-readdir": "^2.2.2",
     "split-lines": "^1.1.0",
     "string.prototype.padend": "^3.0.0",
-    "ts2gas": "1.6.0",
+    "ts2gas": "1.6.1",
     "ucfirst": "^1.0.0",
     "url": "^0.11.0",
     "watch": "^1.0.2"
