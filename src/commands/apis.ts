@@ -61,7 +61,7 @@ export default async (options: { open?: string }) => {
       });
       const serviceList = list.data.services || [];
       if (serviceList.length >= MAX_PAGE_SIZE) {
-        console.log('Uh oh. It looks like Grant did not add pagination. Please create a bug.');
+        console.log('There is a bug with pagination. Please file an issue on Github.');
       }
 
       // Filter out the disabled ones. Print the enabled ones.
