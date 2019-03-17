@@ -53,7 +53,7 @@ export default async (options: { localhost?: boolean; creds?: string }) => {
       console.log(scope);
     });
     console.log('');
-    console.log(`NOTE: The full list of scopes you're project may need` +
+    console.log(`NOTE: The full list of scopes your project may need` +
       ` can be found at script.google.com under:`);
     console.log(`File > Project Properties > Scopes`);
     console.log('');
