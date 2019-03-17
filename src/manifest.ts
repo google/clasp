@@ -60,9 +60,9 @@ export async function isValidManifest(): Promise<boolean> {
  * }
  */
 export async function isValidRunManifest(): Promise<boolean> {
-  if (isValidManifest) {
+  if (await isValidManifest()) {
     const manifest = await getManifest();
-    if (manifest.executionApi && manifest.executionApi.access === 'MYSELF') {
+    if (manifest.executionApi && manifest.executionApi.access) {
       return true;
     }
   }
