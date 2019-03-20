@@ -170,7 +170,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             // If a file path isn't in the filePushOrder array, set the order to -∞.
             path1Index = path1Index === -1 ? Number.NEGATIVE_INFINITY : path1Index;
             path2Index = path2Index === -1 ? Number.NEGATIVE_INFINITY : path2Index;
-            return path2Index - path1Index;
+            return path1Index - path2Index;
           });
         }
 
