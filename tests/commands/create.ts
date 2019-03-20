@@ -44,3 +44,16 @@ describe.skip('Test clasp create <title> function', () => {
     expect(result.status).to.equal(0);
   });
 });
+
+describe('Test clasp create <parentId> function', () => {
+  before(setup);
+  it('should not prompt for script types with parentId', () => {
+    spawnSync('rm', ['.clasp.json']);
+    const result = spawnSync(
+      CLASP, ['create', '--parentId', '"1D_Gxyv*****************************NXO7o"'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.not.contain(LOG.CLONE_SCRIPT_QUESTION);
+    expect(result.stderr).to.contain('Request contains an invalid argument.');
+  });
+  after(cleanup);
+});

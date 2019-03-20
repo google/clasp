@@ -43,7 +43,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   let { type } = cmd;
   let { parentId } = cmd;
 
-  if (!type) {
+  if (!parentId && !type) {
     const answers = await prompt([{
       type: 'list',
       name: 'type',
