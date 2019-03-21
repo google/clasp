@@ -22,7 +22,7 @@ This quickstart guide describes how to create a TypeScript project from scratch.
 
 ### Prerequisites
 
-1. Ensure you have upgraded to clasp version 1.5.0 or more
+1. Ensure you have upgraded to clasp's version >= 1.5.0
     - `clasp -v`
 
 1. Install TypeScript definitions for Apps Script in your project's folder.
@@ -209,25 +209,28 @@ Currently, `clasp` supports [`typescript@3.3.3`](https://www.npmjs.com/package/t
 
 ### Modules, exports and imports
 
-Currently, Google Apps Script does not support modules, hence the typical `export`/`import` patern cannot be used and the example below will fail:
+Currently, Google Apps Script does not support ES modules. Hence the typical `export`/`import` patern cannot be used and the example below will fail:
 
 ```ts
 // module.ts
-export const foo = 'Hello from Module';  // `foo` is added to the `exports` object in the global namespace
+
+// `foo` is added to the `exports` object in the global namespace
+export const foo = 'Hello from Module';
 ```
 
 ```ts
 // main.ts
-import { foo } from './module';  // this statement is ignored
+import { foo } from './module'; // this statement is ignored
 
-const bar = foo;  // the variable `foo` does not exist in the global namespace
+// the variable `foo` does not exist in the global namespace
+const bar = foo;
 ```
 
 There are some possible workaround though:
 
 #### The `exports` declaration workaround
 
-The idea here is to make TypeScript aware of the `exports` object and its imported content.
+This workaround makes TypeScript aware of the `exports` object and its imported content.
 
 ```ts
 import { foo } from './module';
@@ -242,12 +245,12 @@ exports.foo;  // address important content as it will be visible when transpiled
 
 #### The `namespace` statement workaround
 
-Here we take advantage of TypeScript "namespaces" (formerly known as "internal module") to achieve code isolation.
+This workaround takes advantage of TypeScript "namespaces" (formerly known as "internal module") to achieve code isolation.
 
 Namespace definition can be nested, spread over multiple files and do not need any `import`/`require` statement to be used.
 
 ```ts
-// anyFiles.ts
+// module.ts
 namespace Module {
   export function foo() {}
   function bar() {}  // this function can only be addressed from within the `Module` namespace
@@ -255,10 +258,10 @@ namespace Module {
 ```
 
 ```ts
-// anyFiles.ts
+// anyFilests
 Module.foo();  // address a namespace's exported content directly
 
-const nameIWantForMyImports = Package.foo;  // to simulate `import` with renaming
+const nameIWantForMyImports = Module.foo;  // to simulate `import` with renaming
 nameIWantForMyImports();
 ```
 
