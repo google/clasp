@@ -85,6 +85,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       filePaths = filePaths.sort(); // Sort files alphanumerically
       let abortPush = false;
       let nonIgnoredFilePaths: string[] = [];
+      const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
       let ignoredFilePaths: string[] = [];
       ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
       // Match the files with ignored glob pattern
@@ -116,7 +117,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
 
         // Loop through files that are not ignored
-        const files = intersection
+        let files = intersection
           .map((name, i) => {
             const normalizedName = path.normalize(name);
 
@@ -144,6 +145,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
                 type, // the file extension
                 source, //the file contents
               };
+              file2path.push({ file, path: name });  // allow matching of nonIgnoredFilePaths and files arrays
               return file;
             } else {
               ignoredFilePaths.push(name);
@@ -163,14 +165,24 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             console.log(`└─ ${file}`);
           });
           console.log('');
-          nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1: string, path2: string) => {
+          nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1, path2) => {
             // Get the file order index
             let path1Index = filePushOrder.indexOf(path1);
             let path2Index = filePushOrder.indexOf(path2);
-            // If a file path isn't in the filePushOrder array, set the order to -∞.
-            path1Index = path1Index === -1 ? Number.NEGATIVE_INFINITY : path1Index;
-            path2Index = path2Index === -1 ? Number.NEGATIVE_INFINITY : path2Index;
-            return path2Index - path1Index;
+            // If a file path isn't in the filePushOrder array, set the order to +∞.
+            path1Index = path1Index === -1 ? Number.POSITIVE_INFINITY : path1Index;
+            path2Index = path2Index === -1 ? Number.POSITIVE_INFINITY : path2Index;
+            return path1Index - path2Index;
+          });
+          // apply nonIgnoredFilePaths sort order to files
+          files = (files as AppsScriptFile[]).sort((file1, file2) => {
+            // Get the file path from file2path
+            const path1 = file2path.find(e => e.file === file1);
+            const path2 = file2path.find(e => e.file === file2);
+            // If a file path isn't in the nonIgnoredFilePaths array, set the order to +∞.
+            const path1Index = path1 ? nonIgnoredFilePaths.indexOf(path1.path) : Number.POSITIVE_INFINITY;
+            const path2Index = path2 ? nonIgnoredFilePaths.indexOf(path2.path) : Number.POSITIVE_INFINITY;
+            return path1Index - path2Index;
           });
         }
 
@@ -271,7 +283,7 @@ export async function fetchProject(
 export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
   const { fileExtension } = await getProjectSettings();
   const sortedFiles = files.sort((file1, file2) => file1.name.localeCompare(file2.name));
-  sortedFiles.map((file: AppsScriptFile) => {
+  sortedFiles.map((file) => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
     mkdirp(path.dirname(truePath), err => {
@@ -301,7 +313,7 @@ export async function pushFiles(silent = false) {
     } else if (projectFiles) {
       const [nonIgnoredFilePaths] = projectFiles;
       // tslint:disable-next-line:no-any
-      const filesForAPI: any = files;
+      const filesForAPI = files as AppsScriptFile[];
       try {
         await script.projects.updateContent({
           scriptId,
