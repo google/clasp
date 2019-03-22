@@ -1,7 +1,8 @@
 # TypeScript
 
 [TypeScript](https://www.typescriptlang.org/) is a typed superset of JavaScript that can compile to plain Apps Script.
-Using TypeScript with your `clasp` project can allow you to use TypeScript features such as:
+Using TypeScript with your `clasp` project allows you to use features such as:
+
 - Arrow functions
 - Optional structural typing
 - Classes
@@ -9,7 +10,7 @@ Using TypeScript with your `clasp` project can allow you to use TypeScript featu
 - Interfaces
 - And more...
 
-Clasp `1.5.0` allows **new** and **existing** Apps Script projects to use TypeScript.
+Starting with version  `1.5.0`, Clasp allows **new** and **existing** Apps Script projects to use TypeScript.
 
 > Note: Once you use TypeScript, you cannot develop on script.google.com (the [transpiled](https://en.wikipedia.org/wiki/Source-to-source_compiler) code).
 
@@ -21,12 +22,14 @@ This quickstart guide describes how to create a TypeScript project from scratch.
 
 ### Prerequisites
 
-1. Ensure you have upgrade to clasp >= 1.5.0
+1. Ensure you have upgraded to clasp's version >= 1.5.0
     - `clasp -v`
+
 1. Install TypeScript definitions for Apps Script in your project's folder.
     - `npm i -S @types/google-apps-script`
-    - (At your own risk) `npm i -S @types/node`
-1. Create a file called `tsconfig.json` to prevent non AS features:
+
+1. Create a file called `tsconfig.json` to enable TypeScript features:
+
 ```json
 {
   "compilerOptions": {
@@ -35,6 +38,7 @@ This quickstart guide describes how to create a TypeScript project from scratch.
   }
 }
 ```
+
 (See [1](https://github.com/Microsoft/monaco-editor/issues/61#issuecomment-342359348) [2](https://code.visualstudio.com/docs/languages/jsconfig#_jsconfig-options) [esnext](https://basarat.gitbooks.io/typescript/docs/types/lib.d.ts.html))
 
 ### Create the TypeScript Project
@@ -151,7 +155,7 @@ doc.getBody().appendParagraph('This document was created by Google Apps Script.'
 // Decorators
 function Override(label: string) {
   return function (target: any, key: string) {
-    Object.defineProperty(target, key, { 
+    Object.defineProperty(target, key, {
       configurable: false,
       get: () => label
     });
@@ -201,7 +205,65 @@ Advanced Service currently do not have TypeScript autocompletion.
 
 ### TypeScript Support
 
-Currently, `clasp` supports [`typescript@2.9.2`](https://www.npmjs.com/package/typescript/v/2.9.2). If there is a feature in a newer  TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please file a bug.
+Currently, `clasp` supports [`typescript@3.3.3`](https://www.npmjs.com/package/typescript/v/3.3.3). If there is a feature in a newer TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please open an issue.
+
+### Modules, exports and imports
+
+Currently, Google Apps Script does not support ES modules. Hence the typical `export`/`import` patern cannot be used and the example below will fail:
+
+```ts
+// module.ts
+
+// `foo` is added to the `exports` object in the global namespace
+export const foo = 'Hello from Module';
+```
+
+```ts
+// main.ts
+import { foo } from './module'; // this statement is ignored
+
+// the variable `foo` does not exist in the global namespace
+const bar = foo;
+```
+
+There are some possible workaround though:
+
+#### The `exports` declaration workaround
+
+This workaround makes TypeScript aware of the `exports` object and its imported content.
+
+```ts
+import { foo } from './module';
+
+type _i_foo = typeof foo;  // add a type definition for imported content
+declare namespace exports {
+  const foo: _i_foo;  // declare typed imported content to the proper namespcae
+}
+
+exports.foo;  // address important content as it will be visible when transpiled
+```
+
+#### The `namespace` statement workaround
+
+This workaround takes advantage of TypeScript "namespaces" (formerly known as "internal module") to achieve code isolation.
+
+Namespace definition can be nested, spread over multiple files and do not need any `import`/`require` statement to be used.
+
+```ts
+// module.ts
+namespace Module {
+  export function foo() {}
+  function bar() {}  // this function can only be addressed from within the `Module` namespace
+}
+```
+
+```ts
+// anyFilests
+Module.foo();  // address a namespace's exported content directly
+
+const nameIWantForMyImports = Module.foo;  // to simulate `import` with renaming
+nameIWantForMyImports();
+```
 
 ### Apps Script Libraries and TypeScript
 
@@ -209,7 +271,7 @@ If your project contains libraries referenced in `appsscript.json`, TypeScript w
 
 One workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
 
-```
+```ts
 function getOAuthService() {
     // Ignore OAuth2 library resolution when working locally with clasp and TypeScript
     // @ts-ignore
