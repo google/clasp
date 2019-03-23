@@ -62,7 +62,9 @@ First download `clasp`:
 sudo npm i @google/clasp -g
 ```
 
-Then enable Apps Script API: https://script.google.com/home/usersettings
+Then enable the Google Apps Script API: https://script.google.com/home/usersettings
+
+![Enable Apps Script API](https://user-images.githubusercontent.com/744973/54870967-a9135780-4d6a-11e9-991c-9f57a508bdf0.gif)
 
 (If that fails, run this:)
 ```sh
