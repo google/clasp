@@ -78,116 +78,115 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
 
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-  recursive(rootDir, (err, filePaths) => {
+  recursive(rootDir, async (err, filePaths) => {
     if (err) return callback(err, null, null);
     // Filter files that aren't allowed.
-    DOTFILE.IGNORE().then((ignorePatterns: string[]) => {
-      filePaths = filePaths.sort(); // Sort files alphanumerically
-      let abortPush = false;
-      let nonIgnoredFilePaths: string[] = [];
-      const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
-      let ignoredFilePaths: string[] = [];
-      ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
-      // Match the files with ignored glob pattern
-      readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
-        if (err) return callback(new Error(err), null, null);
-        // Check if there are files that will conflict if renamed .gs to .js.
-        // When pushing to Apps Script, these files will overwrite each other.
-        filePaths.map((name: string) => {
-          const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
-          if (
-            filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
-            filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1
-          ) {
-            // Can't rename, conflicting files
-            abortPush = true;
-            if (path.extname(name) === '.gs') {
-              // only print error once (for .gs)
-              logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
-            }
+    const ignorePatterns = await DOTFILE.IGNORE();
+    filePaths = filePaths.sort(); // Sort files alphanumerically
+    let abortPush = false;
+    let nonIgnoredFilePaths: string[] = [];
+    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
+    let ignoredFilePaths: string[] = [];
+    ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
+    // Match the files with ignored glob pattern
+    readMultipleFiles(filePaths, 'utf8', (err: string, contents: string[]) => {
+      if (err) return callback(new Error(err), null, null);
+      // Check if there are files that will conflict if renamed .gs to .js.
+      // When pushing to Apps Script, these files will overwrite each other.
+      filePaths.map((name: string) => {
+        const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
+        if (
+          filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
+          filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1
+        ) {
+          // Can't rename, conflicting files
+          abortPush = true;
+          if (path.extname(name) === '.gs') {
+            // only print error once (for .gs)
+            logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
           }
-        });
-        if (abortPush) return callback(new Error(), null, null);
-
-        // Replace OS specific path separator to common '/' char for console output
-        filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
-
-        // check ignore files
-        const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
-        const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
-
-        // Loop through files that are not ignored
-        let files = intersection
-          .map((name, i) => {
-            const normalizedName = path.normalize(name);
-
-            let type = getAPIFileType(name);
-
-            // File source
-            let source = fs.readFileSync(name).toString();
-            if (type === 'TS') {
-              // Transpile TypeScript to Google Apps Script
-              // @see github.com/grant/ts2gas
-              source = ts2gas(source, userConf);
-              type = 'SERVER_JS';
-            }
-
-            // Formats rootDir/appsscript.json to appsscript.json.
-            // Preserves subdirectory names in rootDir
-            // (rootDir/foo/Code.js becomes foo/Code.js)
-            const formattedName = getAppsScriptFileName(rootDir, name);
-
-            // If the file is valid, return the file in a format suited for the Apps Script API.
-            if (isValidFileName(name, type, rootDir, normalizedName, ignoreMatches)) {
-              nonIgnoredFilePaths.push(name);
-              const file: AppsScriptFile = {
-                name: formattedName, // the file base name
-                type, // the file extension
-                source, //the file contents
-              };
-              file2path.push({ file, path: name });  // allow matching of nonIgnoredFilePaths and files arrays
-              return file;
-            } else {
-              ignoredFilePaths.push(name);
-              return; // Skip ignored files
-            }
-          })
-          .filter(Boolean); // remove null values
-
-        // This statement customizes the order in which the files are pushed.
-        // It puts the files in the setting's filePushOrder first.
-        // This is needed because Apps Script blindly executes files in order of creation time.
-        // The Apps Script API updates the creation time of files.
-        if (filePushOrder) {
-          spinner.stop(true);
-          console.log('Detected filePushOrder setting. Pushing these files first:');
-          filePushOrder.map(file => {
-            console.log(`└─ ${file}`);
-          });
-          console.log('');
-          nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1, path2) => {
-            // Get the file order index
-            let path1Index = filePushOrder.indexOf(path1);
-            let path2Index = filePushOrder.indexOf(path2);
-            // If a file path isn't in the filePushOrder array, set the order to +∞.
-            path1Index = path1Index === -1 ? Number.POSITIVE_INFINITY : path1Index;
-            path2Index = path2Index === -1 ? Number.POSITIVE_INFINITY : path2Index;
-            return path1Index - path2Index;
-          });
-          // apply nonIgnoredFilePaths sort order to files
-          files = (files as AppsScriptFile[]).sort((file1, file2) => {
-            // Get the file path from file2path
-            const path1 = file2path.find(e => e.file === file1);
-            const path2 = file2path.find(e => e.file === file2);
-            // If a file path isn't in the nonIgnoredFilePaths array, set the order to +∞.
-            const path1Index = path1 ? nonIgnoredFilePaths.indexOf(path1.path) : Number.POSITIVE_INFINITY;
-            const path2Index = path2 ? nonIgnoredFilePaths.indexOf(path2.path) : Number.POSITIVE_INFINITY;
-            return path1Index - path2Index;
-          });
         }
-
-        callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
       });
+      if (abortPush) return callback(new Error(), null, null);
+
+      // Replace OS specific path separator to common '/' char for console output
+      filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
+
+      // check ignore files
+      const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
+      const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
+
+      // Loop through files that are not ignored
+      let files = intersection
+        .map((name, i) => {
+          const normalizedName = path.normalize(name);
+
+          let type = getAPIFileType(name);
+
+          // File source
+          let source = fs.readFileSync(name).toString();
+          if (type === 'TS') {
+            // Transpile TypeScript to Google Apps Script
+            // @see github.com/grant/ts2gas
+            source = ts2gas(source, userConf);
+            type = 'SERVER_JS';
+          }
+
+          // Formats rootDir/appsscript.json to appsscript.json.
+          // Preserves subdirectory names in rootDir
+          // (rootDir/foo/Code.js becomes foo/Code.js)
+          const formattedName = getAppsScriptFileName(rootDir, name);
+
+          // If the file is valid, return the file in a format suited for the Apps Script API.
+          if (isValidFileName(name, type, rootDir, normalizedName, ignoreMatches)) {
+            nonIgnoredFilePaths.push(name);
+            const file: AppsScriptFile = {
+              name: formattedName, // the file base name
+              type, // the file extension
+              source, //the file contents
+            };
+            file2path.push({ file, path: name });  // allow matching of nonIgnoredFilePaths and files arrays
+            return file;
+          } else {
+            ignoredFilePaths.push(name);
+            return; // Skip ignored files
+          }
+        })
+        .filter(Boolean); // remove null values
+
+      // This statement customizes the order in which the files are pushed.
+      // It puts the files in the setting's filePushOrder first.
+      // This is needed because Apps Script blindly executes files in order of creation time.
+      // The Apps Script API updates the creation time of files.
+      if (filePushOrder) {
+        spinner.stop(true);
+        console.log('Detected filePushOrder setting. Pushing these files first:');
+        filePushOrder.map(file => {
+          console.log(`└─ ${file}`);
+        });
+        console.log('');
+        nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1, path2) => {
+          // Get the file order index
+          let path1Index = filePushOrder.indexOf(path1);
+          let path2Index = filePushOrder.indexOf(path2);
+          // If a file path isn't in the filePushOrder array, set the order to +∞.
+          path1Index = path1Index === -1 ? Number.POSITIVE_INFINITY : path1Index;
+          path2Index = path2Index === -1 ? Number.POSITIVE_INFINITY : path2Index;
+          return path1Index - path2Index;
+        });
+        // apply nonIgnoredFilePaths sort order to files
+        files = (files as AppsScriptFile[]).sort((file1, file2) => {
+          // Get the file path from file2path
+          const path1 = file2path.find(e => e.file === file1);
+          const path2 = file2path.find(e => e.file === file2);
+          // If a file path isn't in the nonIgnoredFilePaths array, set the order to +∞.
+          const path1Index = path1 ? nonIgnoredFilePaths.indexOf(path1.path) : Number.POSITIVE_INFINITY;
+          const path2Index = path2 ? nonIgnoredFilePaths.indexOf(path2.path) : Number.POSITIVE_INFINITY;
+          return path1Index - path2Index;
+        });
+      }
+
+      callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
     });
   });
 }
