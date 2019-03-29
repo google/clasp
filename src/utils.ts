@@ -7,6 +7,7 @@ import { prompt } from 'inquirer';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { URL } from './urls';
+import { APPS_SCRIPT_FILETYPE } from './fileutils';
 
 const ucfirst = require('ucfirst');
 const isOnline = require('is-online');
@@ -309,7 +310,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
  */
 export function getAPIFileType(filePath: string): string {
   const extension = filePath.substr(filePath.lastIndexOf('.') + 1).toUpperCase();
-  return extension === 'GS' || extension === 'JS' ? 'SERVER_JS' : extension;
+  return extension === 'GS' || extension === 'JS' ? APPS_SCRIPT_FILETYPE.SERVER_JS : extension;
 }
 
 /**
@@ -357,7 +358,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
       type: 'input',
       name: 'projectId',
       message: `${LOG.ASK_PROJECT_ID}`,
-    // tslint:disable-next-line:no-any
+      // tslint:disable-next-line:no-any
     }]).then(async (answers: any) => {
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
