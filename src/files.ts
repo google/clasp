@@ -306,33 +306,38 @@ export async function pushFiles(silent = false) {
   if (!scriptId) return;
   // TODO Make getProjectFiles async
   getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
+    // Check for edge cases.
     if (err) {
       logError(err, LOG.PUSH_FAILURE);
-      spinner.stop(true);
-    } else if (projectFiles) {
-      const [nonIgnoredFilePaths] = projectFiles;
-      // tslint:disable-next-line:no-any
-      const filesForAPI = files as AppsScriptFile[];
-      try {
-        await script.projects.updateContent({
+      return spinner.stop(true);
+    }
+    if (!projectFiles) {
+      console.log(LOG.PUSH_NO_FILES)
+      return spinner.stop(true);
+    }
+
+    // Start pushing.
+    const [nonIgnoredFilePaths] = projectFiles;
+    const filesForAPI = files as AppsScriptFile[];
+    try {
+      await script.projects.updateContent({
+        scriptId,
+        requestBody: {
           scriptId,
-          requestBody: {
-            scriptId,
-            files: filesForAPI,
-          },
+          files: filesForAPI,
+        },
+      });
+    } catch (e) {
+      console.error(LOG.PUSH_FAILURE);
+      console.log(e);
+    } finally {
+      if (!silent) spinner.stop(true);
+      // no error
+      if (!silent) {
+        nonIgnoredFilePaths.map((filePath: string) => {
+          console.log(`└─ ${filePath}`);
         });
-      } catch (e) {
-        console.error(LOG.PUSH_FAILURE);
-        console.log(e);
-      } finally {
-        if (!silent) spinner.stop(true);
-        // no error
-        if (!silent) {
-          nonIgnoredFilePaths.map((filePath: string) => {
-            console.log(`└─ ${filePath}`);
-          });
-          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-        }
+        console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
       }
     }
   });
