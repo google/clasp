@@ -24,7 +24,7 @@ interface FilesCallback {
   (
     error: Error | boolean,
     result: string[][] | null,
-    files: Array<AppsScriptFile | undefined> | null
+    files: Array<AppsScriptFile | undefined> | null,
   ): void;
 }
 
@@ -83,7 +83,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
 
   // Filter filepaths that aren't allowed.
   const ignorePatterns = await DOTFILE.IGNORE();
-  let nonIgnoredFilePaths: string[] = [];
+  const nonIgnoredFilePaths: string[] = [];
   const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
   let ignoredFilePaths: string[] = [];
   ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
@@ -159,7 +159,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
   }
 
   callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
-});
+}
 
 /**
  * If the file is valid, add it to our file list.

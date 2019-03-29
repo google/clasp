@@ -23,7 +23,7 @@ export const getFilePaths = async (rootDir: string): Promise<string[]> => {
       return res(filePaths);
     });
   });
-}
+};
 
 /**
  * Gets files in a specific push order.
@@ -35,7 +35,7 @@ export const getFilesInPushOrder = async ({
 }: {
   filePushOrder: string[],
   nonIgnoredFilePaths: string[],
-  files: (AppsScriptFile | undefined)[],
+  files: Array<AppsScriptFile | undefined>,
 }) => {
   const file2path: Array<{ path: string; file: AppsScriptFile }> = [];
   filePushOrder.map(file => {
