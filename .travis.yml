@@ -1,10 +1,10 @@
 sudo: required
 os:
 - linux
-- osx
+# - osx
 language: node_js
 node_js:
-- node
+# - node
 - '10'
 - '8'
 - '6'
