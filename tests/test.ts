@@ -66,24 +66,6 @@ describe('Test extractScriptId function', () => {
   });
 });
 
-describe('Test clasp pull function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  it('should pull an existing project correctly', () => {
-    const result = spawnSync(
-      CLASP, ['pull'], { encoding: 'utf8' },
-    );
-    expect(result.stdout).to.contain('Cloned');
-    expect(result.stdout).to.contain('files.');
-    expect(result.status).to.equal(0);
-  });
-  after(cleanup);
-});
-
 describe('Test URL utils function', () => {
   it('should create Script URL correctly', () => {
     const expectedUrl = `https://script.google.com/d/${SCRIPT_ID}/edit`;
