@@ -4,10 +4,9 @@ os:
 # - osx
 language: node_js
 node_js:
-# - node
+- node
 - '10'
 - '8'
-- '6'
 env:
   global:
   - SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL
