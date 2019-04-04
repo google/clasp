@@ -4,6 +4,7 @@ import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
 import { DOT } from './dotfile';
 import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, logError } from './utils';
+import { getValidJSON } from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -46,22 +47,40 @@ export async function writeManifest(manifest: Manifest) {
 
 /**
  * Returns true if the manifest is valid.
+ */
+export async function isValidManifest(): Promise<boolean> {
+  return await getManifest() != null;
+}
+
+/**
+ * Ensures the manifest is correct for running a function.
+ * The manifest must include:
+ * "executionApi": {
+ *   "access": "MYSELF"
+ * }
+ */
+export async function isValidRunManifest(): Promise<boolean> {
+  if (await isValidManifest()) {
+    const manifest = await getManifest();
+    if (manifest.executionApi && manifest.executionApi.access) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Reads manifest file from project root dir.
  * The manifest is valid if it:
  * - It exists in the project root.
  * - Is valid JSON.
  */
-export async function isValidManifest(): Promise<boolean> {
+// tslint:disable-next-line:no-any
+export async function getManifest(): Promise<any> {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifest = fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
-  let manifestJSON: Manifest;
-  try {
-    manifestJSON = JSON.parse(manifest);
-  } catch (err) {
-    logError(err, ERROR.BAD_MANIFEST);
-    return false;
-  }
-  return true;
+  const manifestString =  fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
+  return getValidJSON(manifestString);
 }
 
 /**

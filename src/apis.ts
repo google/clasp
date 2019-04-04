@@ -52,11 +52,6 @@ export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
     version: 'v2',
   },
   {
-    userSymbol: 'PlusDomains',
-    serviceId: 'plusDomains',
-    version: 'v1',
-  },
-  {
     userSymbol: 'DoubleClickCampaigns',
     serviceId: 'dfareporting',
     version: 'v3.2',
@@ -115,11 +110,6 @@ export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
     userSymbol: 'TagManager',
     serviceId: 'tagmanager',
     version: 'v2',
-  },
-  {
-    userSymbol: 'Plus',
-    serviceId: 'plus',
-    version: 'v1',
   },
   {
     userSymbol: 'AdminGroupsMigration',

@@ -7,7 +7,7 @@ import * as path from 'path';
 
 import {
   CLASP,
-  TEST_APPSSCRIPT_JSON,
+  TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
   TEST_CODE_JS,
 } from '../constants';
 
@@ -30,7 +30,7 @@ describe('Test clasp status function', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
       { file: 'build/main.js', data: TEST_CODE_JS },
-      { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON },
+      { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
       { file: 'shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
@@ -48,7 +48,7 @@ describe('Test clasp status function', () => {
   it('should ignore dotfiles if the parent folder is ignored', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json' },
-      { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON },
+      { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
       { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: TEST_CODE_JS },
     ]);
     spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
@@ -66,7 +66,7 @@ describe('Test clasp status function', () => {
       { file: '.clasp.json', data: '{ "scriptId":"1234", "rootDir":"dist" }' },
       { file: '.claspignore', data: '**/**\n!dist/build/main.js\n!dist/appsscript.json' },
       { file: 'dist/build/main.js', data: TEST_CODE_JS },
-      { file: 'dist/appsscript.json', data: TEST_APPSSCRIPT_JSON },
+      { file: 'dist/appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
       { file: 'dist/shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'dist/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
