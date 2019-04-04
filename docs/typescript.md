@@ -14,7 +14,7 @@ Starting with version  `1.5.0`, Clasp allows **new** and **existing** Apps Scrip
 
 > Note: Once you use TypeScript, you cannot develop on script.google.com (the [transpiled](https://en.wikipedia.org/wiki/Source-to-source_compiler) code).
 
-> Warning: Apps Script's runtime/execution is different than Node or web browers. In particular, you cannot use the terms `export` or `require` in the same way you would with Node. You cannot use `window` like in web browsers.
+> Warning: Apps Script's runtime/execution is different than Node or web browsers. In particular, you cannot use the terms `export` or `require` in the same way you would with Node. You cannot use `window` like in web browsers.
 
 ## Quickstart
 
@@ -199,7 +199,7 @@ In most cases, the inferred type is sufficient for Apps Script autocompletion.
 
 ### Advanced Services
 
-Enableing advanced services modifies the `appsscript.json` file on script.google.com. After enabling an advanced service in the UI, copy the `appsscript.json` file from script.google.com into your editor to use the advanced services in your project.
+Enabling advanced services modifies the `appsscript.json` file on script.google.com. After enabling an advanced service in the UI, copy the `appsscript.json` file from script.google.com into your editor to use the advanced services in your project.
 
 Advanced Service currently do not have TypeScript autocompletion.
 
