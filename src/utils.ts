@@ -163,6 +163,7 @@ export const LOG = {
   OPEN_WEBAPP: (deploymentId?: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
   PUSH_FAILURE: 'Push failed. Errors:',
+  PUSH_NO_FILES: 'No files to push.',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files...\n',
