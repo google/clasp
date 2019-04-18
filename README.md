@@ -60,16 +60,12 @@ First download `clasp`:
 
 ```sh
 sudo npm i @google/clasp -g
+# Alternatively: sudo npm i -g grpc @google/clasp --unsafe-perm
 ```
 
 Then enable the Google Apps Script API: https://script.google.com/home/usersettings
 
 ![Enable Apps Script API](https://user-images.githubusercontent.com/744973/54870967-a9135780-4d6a-11e9-991c-9f57a508bdf0.gif)
-
-(If that fails, run this:)
-```sh
-sudo npm i -g grpc @google/clasp --unsafe-perm
-```
 
 ## Commands
 
