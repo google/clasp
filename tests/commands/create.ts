@@ -21,7 +21,7 @@ describe('Test clasp create function', () => {
     const result = spawnSync(
       CLASP, ['create'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain(LOG.CLONE_SCRIPT_QUESTION);
+    expect(result.stdout).to.contain(LOG.CREATE_SCRIPT_QUESTION);
   });
   it('should not prompt for project name', () => {
     fs.writeFileSync('.clasp.json', '');
@@ -52,7 +52,7 @@ describe('Test clasp create <parentId> function', () => {
     const result = spawnSync(
       CLASP, ['create', '--parentId', '"1D_Gxyv*****************************NXO7o"'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.not.contain(LOG.CLONE_SCRIPT_QUESTION);
+    expect(result.stdout).to.not.contain(LOG.CREATE_SCRIPT_QUESTION);
     expect(result.stderr).to.contain('Request contains an invalid argument.');
   });
   after(cleanup);
