@@ -32,7 +32,7 @@ import {
 
 const { spawnSync } = require('child_process');
 
-describe('Test --help for each function', () => {
+describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
     const result = spawnSync(
       CLASP, [command, '--help'], { encoding: 'utf8' },

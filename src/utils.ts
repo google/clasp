@@ -132,6 +132,7 @@ export const LOG = {
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
   CLONE_SCRIPT_QUESTION: 'Clone which script?',
+  CREATE_SCRIPT_QUESTION: 'Create which script?',
   CREATE_DRIVE_FILE_FINISH: (filetype: string, fileid: string) =>
     `Created new ${getFileTypeName(filetype) || '(unknown type)'}: ${URL.DRIVE(fileid)}`,
   CREATE_DRIVE_FILE_START: (filetype: string) =>
@@ -163,6 +164,7 @@ export const LOG = {
   OPEN_WEBAPP: (deploymentId?: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
   PUSH_FAILURE: 'Push failed. Errors:',
+  PUSH_NO_FILES: 'No files to push.',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files...\n',
