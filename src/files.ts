@@ -217,7 +217,7 @@ export function isValidFileName(name: string,
     return false;
   }
   const validType = type && isValidJSONIfJSON;
-  const notIgnored = !ignoreMatches.includes(name);
+  const notIgnored = !(ignoreMatches.includes(name) || ignoreMatches.includes(name.replace(/\//, '\\')));
   valid = !!(valid && validType && notIgnored);
   return valid;
 }
