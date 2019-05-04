@@ -33,7 +33,8 @@ export default async () => {
   }
   const numVersions = data.versions.length;
   console.log(LOG.VERSION_NUM(numVersions));
-  data.versions.reverse().map((version: script_v1.Schema$Version) => {
+  data.versions.reverse();
+  data.versions.forEach((version: script_v1.Schema$Version) => {
     console.log(LOG.VERSION_DESCRIPTION(version));
   });
 };

@@ -49,7 +49,7 @@ export default async (options: { localhost?: boolean; creds?: string }) => {
     ]);
     console.log('');
     console.log(`Authorizing with the following scopes:`);
-    oauthScopes.map((scope) => {
+    oauthScopes.forEach((scope) => {
       console.log(scope);
     });
     console.log('');

@@ -38,7 +38,7 @@ export default async () => {
     return console.log(LOG.FINDING_SCRIPTS_DNE);
   }
   const NAME_PAD_SIZE = 20;
-  files.map((file: drive_v3.Schema$File) => {
+  files.forEach((file: drive_v3.Schema$File) => {
     const fileName = ellipsize(file.name, NAME_PAD_SIZE);
     console.log(`${padEnd(fileName, NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id || '')}`);
   });
