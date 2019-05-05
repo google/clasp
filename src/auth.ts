@@ -11,8 +11,8 @@ import { prompt } from 'inquirer';
 import { ClaspToken, DOTFILE } from './dotfile';
 import { enableExecutionAPI, readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
-import open = require('opn');
-import readline = require('readline');
+import * as open from 'open';
+import * as readline from 'readline';
 
 // Auth is complicated. Consider yourself warned.
 // tslint:disable:max-line-length
@@ -53,14 +53,14 @@ const globalOAuth2Client = new OAuth2Client(globalOauth2ClientSettings);
 let localOAuth2Client: OAuth2Client; // Must be set up after authorize.
 
 // *Global* Google API clients
-export const script = google.script({ version: 'v1', auth: globalOAuth2Client }) as script_v1.Script;
-export const logger = google.logging({ version: 'v2', auth: globalOAuth2Client }) as logging_v2.Logging;
-export const drive = google.drive({ version: 'v3', auth: globalOAuth2Client }) as drive_v3.Drive;
-export const discovery = google.discovery({ version: 'v1' }) as discovery_v1.Discovery;
+export const script = google.script({ version: 'v1', auth: globalOAuth2Client });
+export const logger = google.logging({ version: 'v2', auth: globalOAuth2Client });
+export const drive = google.drive({ version: 'v3', auth: globalOAuth2Client });
+export const discovery = google.discovery({ version: 'v1' });
 export const serviceUsage = google.serviceusage({
   version: 'v1',
   auth: globalOAuth2Client,
-}) as serviceusage_v1.Serviceusage;
+});
 
 /**
  * Gets the local OAuth client for the Google Apps Script API.
@@ -68,7 +68,7 @@ export const serviceUsage = google.serviceusage({
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  */
 export async function getLocalScript(): Promise<script_v1.Script> {
-  return google.script({ version: 'v1', auth: localOAuth2Client }) as script_v1.Script;
+  return google.script({ version: 'v1', auth: localOAuth2Client });
 }
 
 /**
@@ -319,7 +319,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
       .access_token as string);
     const { oauthScopes } = await readManifest();
     const newScopes =
-      oauthScopes && oauthScopes.length ? (oauthScopes as string[]).filter(x => !scopes.includes(x)) : [];
+      oauthScopes && oauthScopes.length ? (oauthScopes).filter(x => !scopes.includes(x)) : [];
     if (!newScopes.length) return;
     console.log('New authoization scopes detected in manifest:\n', newScopes);
 
@@ -327,7 +327,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
       doAuth: boolean; // in sync with prompt
       localhost: boolean; // in sync with prompt
     }
-    await prompt([{
+    await prompt<PromptAnswers>([{
       type: 'confirm',
       name: 'doAuth',
       message: 'Authorize new scopes?',
@@ -338,7 +338,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
       when: (answers: PromptAnswers) => {
         return answers.doAuth;
       },
-    }]).then(async (answers: PromptAnswers) => {
+    }]).then(async (answers) => {
       if (answers.doAuth) {
         if (!rc.isLocalCreds) return logError(null, ERROR.NO_LOCAL_CREDENTIALS);
         await authorize({

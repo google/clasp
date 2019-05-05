@@ -16,12 +16,12 @@ import {
   spinner,
 } from './../utils';
 
-const open = require('opn');
-const inquirer = require('inquirer');
+import * as open from 'open';
 const padEnd = require('string.prototype.padend');
 
 // setup inquirer
-const prompt = inquirer.prompt;
+import * as inquirer from 'inquirer';
+import { prompt } from 'inquirer';
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
@@ -78,7 +78,7 @@ export function printLogs(entries: logging_v2.Schema$LogEntry[] = [],
    */
   const logEntryCache: { [key: string]: boolean } = {};
 
-  entries = entries.reverse(); // print in syslog ascending order
+  entries.reverse(); // print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
     const {
       severity = '',
@@ -137,15 +137,14 @@ export async function setupLogs(): Promise<string> {
     getProjectSettings().then(projectSettings => {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-      prompt([
+      prompt<{ projectId: string}>([
         {
           type: 'input',
           name: 'projectId',
           message: `${LOG.ASK_PROJECT_ID}`,
         },
       ])
-        // tslint:disable-next-line:no-any
-        .then((answers: any) => {
+        .then((answers) => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
           if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
@@ -161,6 +160,7 @@ export async function setupLogs(): Promise<string> {
             });
         })
         .catch((err: Error) => {
+          // TODO: Remove this use of the output from "console.log"; "console.log" doesn't return anything.
           reject(console.log(err));
         });
     });

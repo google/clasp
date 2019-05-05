@@ -1,4 +1,4 @@
-const open = require('opn');
+import * as open from 'open';
 const padEnd = require('string.prototype.padend');
 
 import {GaxiosResponse} from 'gaxios';

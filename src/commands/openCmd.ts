@@ -14,11 +14,11 @@ import {
 } from './../utils';
 
 const ellipsize = require('ellipsize');
-const open = require('opn');
+import * as open from 'open';
 const padEnd = require('string.prototype.padend');
 
 // setup inquirer
-const inquirer = require('inquirer');
+import * as inquirer from 'inquirer';
 const prompt = inquirer.prompt;
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
@@ -67,7 +67,7 @@ export default async (scriptId: string, cmd: {
     logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
   // Order deployments by update time.
-  const orderedDeployments = deployments.sort(
+  const orderedDeployments = deployments.slice().sort(
     (d1: script_v1.Schema$Deployment, d2: script_v1.Schema$Deployment) => {
     if (!d1.updateTime || !d2.updateTime) {
       return 0; // should never happen
@@ -87,13 +87,18 @@ export default async (scriptId: string, cmd: {
       value: deployment,
     };
   });
-  const answers = await prompt([{
+  const answers = await prompt<{ deploymentId: string }>([{
     type: 'list',
     name: 'deploymentId',
     message: 'Open which deployment?',
     choices,
-  }]) as {deploymentId: string};
+  }]);
   const deployment = await script.projects.deployments.get({deploymentId: answers.deploymentId});
   console.log(LOG.OPEN_WEBAPP(answers.deploymentId));
-  open(getWebApplicationURL(deployment.data), { wait: false });
+  const target = getWebApplicationURL(deployment.data);
+  if (target) {
+    open(target, { wait: false });
+  } else {
+    // TODO: handle undefined
+  }
 };
