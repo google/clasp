@@ -1,3 +1,4 @@
+import * as readline from 'readline';
 import chalk from 'chalk';
 import * as pluralize from 'pluralize';
 import {
@@ -122,7 +123,6 @@ https://www.googleapis.com/auth/presentations
           // https://mail.google.com/
           // https://www.googleapis.com/auth/presentations
           // https://www.googleapis.com/auth/spreadsheets
-          const readline = require('readline');
           const scopes: string[] = [];
           const rl = readline.createInterface({
             input: process.stdin,
