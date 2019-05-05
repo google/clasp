@@ -22,9 +22,9 @@ import {
   spinner,
 } from './../utils';
 
-import multimatch = require('multimatch');
-const inquirer = require('inquirer');
-const prompt = inquirer.prompt;
+import * as multimatch from 'multimatch';
+import * as inquirer from 'inquirer';
+import { prompt } from 'inquirer';
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
@@ -75,12 +75,12 @@ export default async (cmd: { watch: boolean, force: boolean }) => {
  * @returns {Promise<boolean>}
  */
 const confirmManifestUpdate = async (): Promise<boolean> => {
-  const answers = await prompt([{
+  const answers = await prompt<{ overwrite: boolean }>([{
     name: 'overwrite',
     type: 'confirm',
     message: 'Manifest file has been updated. Do you want to push and overwrite?',
     default: false,
-  }]) as { overwrite: boolean };
+  }]);
   return answers.overwrite;
 };
 

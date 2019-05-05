@@ -21,7 +21,7 @@ import {
 } from '../utils';
 
 const padEnd = require('string.prototype.padend');
-const prompt = require('inquirer').prompt;
+import { prompt } from 'inquirer';
 
 /**
  * Fetches an Apps Script project.
@@ -72,12 +72,12 @@ const getScriptId = async () => {
       value: file.id,
     };
   });
-  const answers = await prompt([{
+  const answers = await prompt<{scriptId: string}>([{
     type: 'list',
     name: 'scriptId',
     message: LOG.CLONE_SCRIPT_QUESTION,
     choices: fileIds,
     pageSize: 30,
-  }]) as {scriptId: string};
+  }]);
   return answers.scriptId;
 };
