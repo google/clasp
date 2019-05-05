@@ -9,8 +9,10 @@ import { DOT, DOTFILE } from './dotfile';
 import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
 
 const ts2gas = require('ts2gas');
+// TODO: include ts2gas .d.ts in package
+// import * as ts2gas from 'ts2gas';
 const readMultipleFiles = require('read-multiple-files');
-const findParentDir = require('find-parent-dir');
+import * as findParentDir from 'find-parent-dir';
 
 // An Apps Script API File
 interface AppsScriptFile {

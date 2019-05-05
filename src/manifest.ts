@@ -141,8 +141,7 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
     manifest.dependencies.enabledAdvancedServices = [];
   }
   // Copy the list of advanced services:
-  let newEnabledAdvancedServices: EnabledAdvancedService[] =
-    manifest.dependencies.enabledAdvancedServices || [];
+  let newEnabledAdvancedServices: EnabledAdvancedService[];
 
   // Disable the service (even if we may enable it)
   newEnabledAdvancedServices = manifest.dependencies.enabledAdvancedServices || [];
