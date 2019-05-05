@@ -95,6 +95,6 @@
     "prettier": "^1.15.2",
     "tmp": "^0.1.0",
     "tslint": "^5.11.0",
-    "typescript": "^3.1.0"
+    "typescript": "^3.4"
   }
 }
