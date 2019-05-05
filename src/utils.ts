@@ -207,7 +207,7 @@ export const spinner = new Spinner();
  * @param  {string} description The description of the error
  */
 // tslint:disable-next-line:no-any
-export const logError = (err: any, description = '') => {
+export const logError = (err: any, description = ''): never => {
   spinner.stop(true);
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
@@ -233,8 +233,8 @@ export const logError = (err: any, description = '') => {
       console.error(err.error);
     }
     if (description) console.error(description);
-    process.exit(1);
   }
+  return process.exit(1);
 };
 
 /**
@@ -355,12 +355,11 @@ export async function getProjectId(promptUser = true): Promise<string> {
     if (!promptUser) throw new Error('Project ID not found.');
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-    await prompt([{
+    await prompt<{ projectId: string }>([{
       type: 'input',
       name: 'projectId',
       message: `${LOG.ASK_PROJECT_ID}`,
-    // tslint:disable-next-line:no-any
-    }]).then(async (answers: any) => {
+    }]).then(async (answers) => {
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
     });
@@ -400,7 +399,7 @@ function getScriptTypeName(type: string) {
  * Handles error of each command.
  */
 // tslint:disable-next-line:no-any
-export function handleError(command: (...args: any[]) => Promise<void>) {
+export function handleError(command: (...args: any[]) => Promise<any>) {
   // tslint:disable-next-line:no-any
   return async (...args: any[]) => {
     try {
