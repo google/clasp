@@ -1,8 +1,8 @@
 import * as open from 'open';
 const padEnd = require('string.prototype.padend');
 
-import {GaxiosResponse} from 'gaxios';
-import {discovery_v1, serviceusage_v1} from 'googleapis';
+import { GaxiosResponse } from 'gaxios';
+import { serviceusage_v1} from 'googleapis';
 import { PUBLIC_ADVANCED_SERVICES } from '../apis';
 import {
   enableOrDisableAPI,

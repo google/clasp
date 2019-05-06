@@ -6,10 +6,10 @@ import * as url from 'url';
  */
 import { Credentials, OAuth2Client } from 'google-auth-library';
 import { GenerateAuthUrlOpts, OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
-import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 } from 'googleapis';
+import { google, script_v1 } from 'googleapis';
 import { prompt } from 'inquirer';
 import { ClaspToken, DOTFILE } from './dotfile';
-import { enableExecutionAPI, readManifest } from './manifest';
+import { readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
 import * as open from 'open';
 import * as readline from 'readline';
