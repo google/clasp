@@ -2,7 +2,7 @@
 
 This folder contains advanced guides for `clasp`.
 
-- [Develop clasp](docs/develop.md): Build, Run, and Test the CLI.
-- [Run](docs/run.md): Execute Apps Script remotely with `clasp run`.
-- [Settings](docs/settings.md): Set up JSON autocompletion and `.gs` syntax highlighting.
-- [TypeScript](docs/typescript.md): Learn how to develop Apps Script in TypeScript.
+- [Develop clasp](/docs/develop.md): Build, Run, and Test the CLI.
+- [Run](/docs/run.md): Execute Apps Script remotely with `clasp run`.
+- [Settings](/docs/settings.md): Set up JSON autocompletion and `.gs` syntax highlighting.
+- [TypeScript](/docs/typescript.md): Learn how to develop Apps Script in TypeScript.
