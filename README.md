@@ -515,7 +515,7 @@ This requires using the environment variables `HTTP_PROXY` / `HTTPS_PROXY`.
 
 Using clasp for your project? Add a README badge to show it off: [![clasp](https://img.shields.io/badge/built%20with-clasp-4285f4.svg)](https://github.com/google/clasp)
 
-```text
+```md
 [![clasp](https://img.shields.io/badge/built%20with-clasp-4285f4.svg)](https://github.com/google/clasp)
 ```
 
