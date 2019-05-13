@@ -399,7 +399,7 @@ function getScriptTypeName(type: string) {
  * Handles error of each command.
  */
 // tslint:disable-next-line:no-any
-export function handleError(command: (...args: any[]) => Promise<any>) {
+export function handleError(command: (...args: any[]) => Promise<unknown>) {
   // tslint:disable-next-line:no-any
   return async (...args: any[]) => {
     try {
