@@ -97,7 +97,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
 
     // Check if there are files that will conflict if renamed .gs to .js.
     // When pushing to Apps Script, these files will overwrite each other.
-    intersection.map((name: string) => {
+    intersection.forEach((name: string) => {
       const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
       if (
         intersection.indexOf(fileNameWithoutExt + '.js') !== -1 &&
