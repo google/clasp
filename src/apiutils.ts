@@ -5,8 +5,9 @@ import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
 
 // setup inquirer
-const inquirer = require('inquirer');
-const prompt = inquirer.prompt;
+import * as inquirer from 'inquirer';
+import { prompt, Question, Answers } from 'inquirer';
+inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
  * Prompts for the function name.
@@ -29,7 +30,12 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
       return functions.concat(file.functionSet.values);
     }, [])
     .map((func: TypeFunction) => func.name) as string[];
-  const answers = await prompt([{
+
+  interface AutocompleteQuestion<T = Answers> extends Question<T> {
+    source: (answers: T, input?: string) => Promise<string[]>;
+  }
+
+  const question: AutocompleteQuestion<{ functionName: string }> = {
     name: 'functionName',
     message: 'Select a functionName',
     type: 'autocomplete',
@@ -38,14 +44,16 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
       // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
       return new Promise(resolve => {
         // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
-        const filtered = fuzzy.filter(input, functionNames);
-        const original = filtered.map(el => {
-          return el.original;
-        });
+        const original = fuzzy
+          .filter(input, functionNames)
+          .map(el => el.original);
+
         resolve(original);
       });
     },
-  }]);
+  };
+
+  const answers = await prompt<{ functionName: string }>([question]);
   return answers.functionName;
 }
 

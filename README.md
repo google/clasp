@@ -32,6 +32,7 @@ clear
 **🔢 Manage Deployment Versions:** Create, update, and view your multiple deployments of your project.
 
 **📁 Structure Code:** `clasp` automatically converts your flat project on [script.google.com](https://script.google.com) into **folders**. For example:
+
 - _On script.google.com_:
   - `tests/slides.gs`
   - `tests/sheets.gs`
@@ -41,6 +42,7 @@ clear
     - `sheets.js`
 
 **🔷 Write Apps Script in TypeScript:** Write your Apps Script projects using TypeScript features:
+
 - Arrow functions
 - Optional structural typing
 - Classes
@@ -49,6 +51,7 @@ clear
 - [And more...](docs/typescript.md)
 
 **➡️ Run Apps Script:** Execute your Apps Script from the command line. Features:
+
 - _Instant_ deployment.
 - Suggested functions Autocomplete (Fuzzy)
 - Easily add custom Google OAuth scopes
@@ -76,6 +79,7 @@ The following command provide basic Apps Script project management.
 ```sh
 clasp
 ```
+
 - [`clasp login [--no-localhost] [--creds <file>]`](#login)
 - [`clasp logout`](#logout)
 - [`clasp create [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
@@ -197,6 +201,7 @@ Updates local files with Apps Script project.
 Force writes all local files to script.google.com.
 
 Ignores files:
+
 - That start with a `.`
 - That don't have an accepted file extension
 - That are ignored (filename matches a glob pattern in the `.claspignore` file)
@@ -217,6 +222,7 @@ Ignores files:
 Lists files that will be written to the server on `push`.
 
 Ignores files:
+
 - That start with a `.`
 - That don't have an accepted file extension
 - That are ignored (filename matches a glob pattern in the ignore file)
@@ -335,7 +341,7 @@ Prints out most recent the _StackDriver logs_. These are logs from `console.log`
 
 #### Examples
 
-```
+```text
 clasp logs
 ERROR Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      my log error
 INFO  Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      info message
@@ -438,7 +444,7 @@ Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wis
 
 A sample `.claspignore` ignoring everything except the manifest and `build/main.js`:
 
-```
+```text
 **/**
 !build/main.js
 !appsscript.json
@@ -509,7 +515,7 @@ This requires using the environment variables `HTTP_PROXY` / `HTTPS_PROXY`.
 
 Using clasp for your project? Add a README badge to show it off: [![clasp](https://img.shields.io/badge/built%20with-clasp-4285f4.svg)](https://github.com/google/clasp)
 
-```
+```md
 [![clasp](https://img.shields.io/badge/built%20with-clasp-4285f4.svg)](https://github.com/google/clasp)
 ```
 

@@ -19,7 +19,7 @@ import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2cl
 
 const dotf = require('dotf');
 const read = require('read-file');
-const findParentDir = require('find-parent-dir');
+import * as findParentDir from 'find-parent-dir';
 const splitLines = require('split-lines');
 
 // TEMP CIRCULAR DEPS, TODO REMOVE

@@ -32,7 +32,7 @@ export default async () => {
   const numDeployments = deploymentsList.length;
   const deploymentWord = pluralize('Deployment', numDeployments);
   console.log(`${numDeployments} ${deploymentWord}.`);
-  deploymentsList.map(({ deploymentId, deploymentConfig }: script_v1.Schema$Deployment) => {
+  deploymentsList.forEach(({ deploymentId, deploymentConfig }: script_v1.Schema$Deployment) => {
     if (!deploymentId || !deploymentConfig) return; // fix ts errors
     const versionString = !!deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
     const description = deploymentConfig.description ? '- ' + deploymentConfig.description : '';

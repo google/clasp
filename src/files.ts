@@ -8,9 +8,8 @@ import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
 
-const ts2gas = require('ts2gas');
-const readMultipleFiles = require('read-multiple-files');
-const findParentDir = require('find-parent-dir');
+import * as ts2gas from 'ts2gas';
+import * as findParentDir from 'find-parent-dir';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -82,9 +81,9 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     if (err) return callback(err, null, null);
     // Filter files that aren't allowed.
     const ignorePatterns = await DOTFILE.IGNORE();
-    filePaths = filePaths.sort(); // Sort files alphanumerically
+    filePaths.sort(); // Sort files alphanumerically
     let abortPush = false;
-    let nonIgnoredFilePaths: string[] = [];
+    const nonIgnoredFilePaths: string[] = [];
     const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
     let ignoredFilePaths: string[] = [];
     ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
@@ -159,11 +158,11 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     if (filePushOrder) {
       spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
-      filePushOrder.map(file => {
+      filePushOrder.forEach(file => {
         console.log(`└─ ${file}`);
       });
       console.log('');
-      nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1, path2) => {
+      nonIgnoredFilePaths.sort((path1, path2) => {
         // Get the file order index
         let path1Index = filePushOrder.indexOf(path1);
         let path2Index = filePushOrder.indexOf(path2);
@@ -278,8 +277,9 @@ export async function fetchProject(
  */
 export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
   const { fileExtension } = await getProjectSettings();
-  const sortedFiles = files.sort((file1, file2) => file1.name.localeCompare(file2.name));
-  sortedFiles.map((file) => {
+  files.sort((file1, file2) => file1.name.localeCompare(file2.name));
+  const sortedFiles = files;
+  sortedFiles.forEach((file) => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
     mkdirp(path.dirname(truePath), err => {
@@ -331,7 +331,7 @@ export async function pushFiles(silent = false) {
       if (!silent) spinner.stop(true);
       // no error
       if (!silent) {
-        nonIgnoredFilePaths.map((filePath: string) => {
+        nonIgnoredFilePaths.forEach((filePath: string) => {
           console.log(`└─ ${filePath}`);
         });
         console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));

@@ -22,7 +22,7 @@ import {
   saveProject,
   spinner,
 } from '../utils';
-const prompt = require('inquirer').prompt;
+import { prompt } from 'inquirer';
 
 /**
  * Creates a new Apps Script project.
@@ -44,13 +44,13 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   let { parentId } = cmd;
 
   if (!parentId && !type) {
-    const answers = await prompt([{
+    const answers = await prompt<{type: string}>([{
       type: 'list',
       name: 'type',
       message: LOG.CREATE_SCRIPT_QUESTION,
       // tslint:disable-next-line:no-any
       choices: Object.keys(SCRIPT_TYPES).map((key: string) => SCRIPT_TYPES[key as any]),
-    }]) as {type: string};
+    }]);
     type = answers.type;
   }
 

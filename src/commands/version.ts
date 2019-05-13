@@ -1,6 +1,5 @@
 // setup inquirer
-const inquirer = require('inquirer');
-const prompt = inquirer.prompt;
+import { prompt } from 'inquirer';
 
 import {
   loadAPICredentials,
@@ -22,7 +21,7 @@ export default async (description: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!description) {
-    const answers = await prompt([
+    const answers = await prompt<{ description: string }>([
       {
         type: 'input',
         name: 'description',
