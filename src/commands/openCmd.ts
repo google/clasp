@@ -99,6 +99,6 @@ export default async (scriptId: string, cmd: {
   if (target) {
     open(target, { wait: false });
   } else {
-    // TODO: handle undefined
+    return logError(null, `Could not open deployment: ${deployment}`);
   }
 };
