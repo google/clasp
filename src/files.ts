@@ -8,10 +8,7 @@ import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
 
-const ts2gas = require('ts2gas');
-// TODO: include ts2gas .d.ts in package
-// import * as ts2gas from 'ts2gas';
-const readMultipleFiles = require('read-multiple-files');
+import * as ts2gas from 'ts2gas';
 import * as findParentDir from 'find-parent-dir';
 
 // An Apps Script API File
@@ -91,13 +88,20 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     let ignoredFilePaths: string[] = [];
     ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
 
+    // Replace OS specific path separator to common '/' char for console output
+    filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
+
+    // check ignore files
+    const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
+    const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
+
     // Check if there are files that will conflict if renamed .gs to .js.
     // When pushing to Apps Script, these files will overwrite each other.
-    filePaths.forEach((name: string) => {
+    intersection.forEach((name: string) => {
       const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
       if (
-        filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
-        filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1
+        intersection.indexOf(fileNameWithoutExt + '.js') !== -1 &&
+        intersection.indexOf(fileNameWithoutExt + '.gs') !== -1
       ) {
         // Can't rename, conflicting files
         abortPush = true;
@@ -108,13 +112,6 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       }
     });
     if (abortPush) return callback(new Error(), null, null);
-
-    // Replace OS specific path separator to common '/' char for console output
-    filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
-
-    // check ignore files
-    const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
-    const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
 
     // Loop through files that are not ignored
     let files = intersection
