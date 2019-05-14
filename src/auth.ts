@@ -4,8 +4,7 @@ import * as url from 'url';
 /**
  * Authentication with Google's APIs.
  */
-import { Credentials, OAuth2Client } from 'google-auth-library';
-import { GenerateAuthUrlOpts, OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
+import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { google, script_v1 } from 'googleapis';
 import { prompt } from 'inquirer';
 import { ClaspToken, DOTFILE } from './dotfile';
