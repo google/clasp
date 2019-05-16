@@ -7,7 +7,9 @@ import * as recursive from 'recursive-readdir';
 import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner, PROJECT_MANIFEST_FILENAME } from './utils';
+import {
+  ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner, PROJECT_MANIFEST_FILENAME,
+} from './utils';
 
 import * as ts2gas from 'ts2gas';
 import * as findParentDir from 'find-parent-dir';
