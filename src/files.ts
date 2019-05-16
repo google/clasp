@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mkdirp from 'mkdirp';
-import * as glob from 'glob';
 import * as multimatch from 'multimatch';
 import * as recursive from 'recursive-readdir';
 import * as ts from 'typescript';
@@ -92,17 +91,11 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
 
     // Replace OS specific path separator to common '/' char for console output
-    filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
-
-    const matchedFiles: string[] = [];
-
-    filePaths.forEach((e) => matchedFiles.push(...glob.sync(e, { dot: true }).map(a => path.resolve(e))));
+    filePaths = filePaths.map((name) => path.resolve(name.replace(/\\/g, '/')));
 
     // check ignore files
-    // const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
-    // const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
-    const ignoreMatches = multimatch(matchedFiles, ignorePatterns, { dot: true });
-    const intersection: string[] = matchedFiles.filter(file => !ignoreMatches.includes(file));
+    const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
+    const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
 
     // Check if there are files that will conflict if renamed .gs to .js.
     // When pushing to Apps Script, these files will overwrite each other.
