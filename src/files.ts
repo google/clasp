@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as mkdirp from 'mkdirp';
+import * as glob from 'glob';
 import * as multimatch from 'multimatch';
 import * as recursive from 'recursive-readdir';
 import * as ts from 'typescript';
@@ -91,9 +92,22 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     // Replace OS specific path separator to common '/' char for console output
     filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
 
+    const matchedFiles: string[] = [];
+
+    filePaths.forEach((e) => {
+      glob(e, (err, matches) => {
+        if (err) { logError(err); }
+        matchedFiles.push(...matches);
+      });
+    });
+
+    console.log(matchedFiles);
+
     // check ignore files
-    const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
-    const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
+    // const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
+    // const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
+    const ignoreMatches = multimatch(matchedFiles, ignorePatterns, { dot: true });
+    const intersection: string[] = matchedFiles.filter(file => !ignoreMatches.includes(file));
 
     // Check if there are files that will conflict if renamed .gs to .js.
     // When pushing to Apps Script, these files will overwrite each other.
