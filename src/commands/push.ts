@@ -95,5 +95,7 @@ const manifestHasChanges = async (): Promise<boolean> => {
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);
   if (!remoteManifest) throw Error('remote manifest no found');
-  return localManifest !== remoteManifest.source;
+  return localManifest !== remoteManifest.source
+    // if string comparison fail, double check after 'normalization'
+    && JSON.stringify(JSON.parse(localManifest)) !== JSON.stringify(JSON.parse(remoteManifest.source));
 };
