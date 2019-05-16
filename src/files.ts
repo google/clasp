@@ -7,7 +7,7 @@ import * as recursive from 'recursive-readdir';
 import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
+import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner, PROJECT_MANIFEST_FILENAME } from './utils';
 
 import * as ts2gas from 'ts2gas';
 import * as findParentDir from 'find-parent-dir';
@@ -94,14 +94,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
 
     const matchedFiles: string[] = [];
 
-    filePaths.forEach((e) => {
-      glob(e, (err, matches) => {
-        if (err) { logError(err); }
-        matchedFiles.push(...matches);
-      });
-    });
-
-    console.log(matchedFiles);
+    filePaths.forEach((e) => matchedFiles.push(...glob.sync(e, { dot: true }).map(a => path.resolve(e))));
 
     // check ignore files
     // const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
@@ -169,7 +162,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     // It puts the files in the setting's filePushOrder first.
     // This is needed because Apps Script blindly executes files in order of creation time.
     // The Apps Script API updates the creation time of files.
-    if (filePushOrder) {
+    if (filePushOrder && filePushOrder.length > 0) { // skip "filePushOrder": []
       spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
       filePushOrder.forEach(file => {
@@ -216,9 +209,11 @@ export function isValidFileName(name: string,
   let isValidJSONIfJSON = true;
   if (type === 'JSON') {
     if (rootDir) {
-      isValidJSONIfJSON = normalizedName === path.join(rootDir, 'appsscript.json');
+      isValidJSONIfJSON = normalizedName === path.join(rootDir, PROJECT_MANIFEST_FILENAME)
+        // normalizedName is likely a fullname now
+        || normalizedName === path.resolve(path.join(rootDir, PROJECT_MANIFEST_FILENAME));
     } else {
-      isValidJSONIfJSON = name === 'appsscript.json';
+      isValidJSONIfJSON = name === PROJECT_MANIFEST_FILENAME;
     }
   } else {
     // Must be SERVER_JS or HTML.
