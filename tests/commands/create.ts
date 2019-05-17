@@ -45,6 +45,19 @@ describe.skip('Test clasp create <title> function', () => {
   });
 });
 
+describe('Test clasp create --type standalone --title "<title>" function', () => {
+  before(setup);
+  it('should create a new project named <title> correctly', () => {
+    spawnSync('rm', ['.clasp.json']);
+    const result = spawnSync(
+      CLASP, ['create', '--type', 'standalone', '--title', '"myTitle"'], { encoding: 'utf8' },
+    );
+    // expect(result.stdout).to.contain('Created new script: https://script.google.com/d/');
+    expect(result.stdout).to.contain('Created new standalone script: https://script.google.com/d/');
+    expect(result.status).to.equal(0);
+  });
+});
+
 describe('Test clasp create <parentId> function', () => {
   before(setup);
   it('should not prompt for script types with parentId', () => {
