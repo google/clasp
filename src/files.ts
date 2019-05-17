@@ -81,24 +81,32 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
   recursive(rootDir, async (err, filePaths) => {
     if (err) return callback(err, null, null);
+
     // Filter files that aren't allowed.
     const ignorePatterns = await DOTFILE.IGNORE();
-    filePaths.sort(); // Sort files alphanumerically
-    let abortPush = false;
-    const nonIgnoredFilePaths: string[] = [];
-    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
-    let ignoredFilePaths: string[] = [];
-    ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
 
     // Replace OS specific path separator to common '/' char for console output
-    filePaths = filePaths.map((name) => path.resolve(name.replace(/\\/g, '/')));
+    filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
+    filePaths.sort(); // Sort files alphanumerically
 
     // check ignore files
-    const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
-    const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
+    const acc = filePaths.reduce(
+      (acc: { keep: string[], ignore: string[] }, file) => {
+        const relative = path.relative(rootDir, file);
+        if (multimatch(relative, ignorePatterns, { dot: true }).length === 0) {
+          acc.keep.push(file);
+        } else {
+          acc.ignore.push(file);
+        }
+        return acc;
+      }, { keep: [], ignore: [] });
+
+    const ignoreMatches = acc.ignore;
+    const intersection = acc.keep;
 
     // Check if there are files that will conflict if renamed .gs to .js.
     // When pushing to Apps Script, these files will overwrite each other.
+    let abortPush = false;
     intersection.forEach((name: string) => {
       const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
       if (
@@ -115,6 +123,10 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     });
     if (abortPush) return callback(new Error(), null, null);
 
+    const nonIgnoredFilePaths: string[] = [];
+    const ignoredFilePaths = ignoreMatches.slice();
+
+    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
     // Loop through files that are not ignored
     let files = intersection
       .map((name, i) => {
