@@ -102,10 +102,9 @@ describe('Test clasp status function', () => {
     //   '!build/main.js',
     //   '!appsscript.json']);
     expect(resultJson.untrackedFiles).to.have.members([
-      '../build/main.js',
       '../build/should/alsoBeIgnored',
       '../build/shouldBeIgnored']);
-    expect(resultJson.filesToPush).to.have.members(['build/main.js', 'appsscript.json']);
+    expect(resultJson.filesToPush).to.have.members(['../build/main.js', '../build/appsscript.json']);
     // TODO test with a rootDir with a relative directory like "../src"
   });
   after(cleanup);
