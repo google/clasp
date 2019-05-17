@@ -124,7 +124,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     if (abortPush) return callback(new Error(), null, null);
 
     const nonIgnoredFilePaths: string[] = [];
-    const ignoredFilePaths = ignoreMatches.slice();
+    const ignoredFilePaths = [...ignorePatterns, ...ignoreMatches];
 
     const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
     // Loop through files that are not ignored
