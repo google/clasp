@@ -87,7 +87,7 @@ describe('Test clasp status function', () => {
   it('should respect globs and negation rules when relative rootDir given', () => {
     const tmpdir = setupTmpDirectory([
       { file: 'src/.clasp.json', data: '{ "scriptId":"1234", "rootDir":"../build" }' },
-      { file: 'src/.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
+      { file: 'src/.claspignore', data: '**/**\n!main.js\n!appsscript.json' },
       { file: 'build/main.js', data: TEST_CODE_JS },
       { file: 'build/appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
       { file: 'build/shouldBeIgnored', data: TEST_CODE_JS },
