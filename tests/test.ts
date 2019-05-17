@@ -30,7 +30,7 @@ import {
   URL,
 } from './../src/urls';
 
-const { spawnSync } = require('child_process');
+import { spawnSync } from 'child_process';
 
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
