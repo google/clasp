@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
-const { spawnSync } = require('child_process');
+import { spawnSync } from 'child_process';
 
 import {
   CLASP,
@@ -29,7 +29,7 @@ describe('Test clasp push function', () => {
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
     fs.writeFileSync('unexpected_file', TEST_CODE_JS);
     const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf8', stdin: 'y'},
+      CLASP, ['push'], { encoding: 'utf-8' },
     );
     expect(result.stderr).to.contain('Invalid value at');
     expect(result.stderr).to.contain('UNEXPECTED_FILE');
