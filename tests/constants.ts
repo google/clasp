@@ -1,9 +1,7 @@
 import * as os from 'os';
 import * as path from 'path';
 
-import {
-  rndStr,
-} from './functions';
+import { rndStr } from './functions';
 import { ClaspToken } from '../src/dotfile';
 import { OAuth2ClientOptions } from 'google-auth-library';
 
