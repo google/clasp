@@ -6,7 +6,10 @@ import * as recursive from 'recursive-readdir';
 import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
+import {
+  ERROR, LOG, PROJECT_MANIFEST_FILENAME,
+  checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner,
+} from './utils';
 
 import * as ts2gas from 'ts2gas';
 import * as findParentDir from 'find-parent-dir';
@@ -79,29 +82,33 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
   recursive(rootDir, async (err, filePaths) => {
     if (err) return callback(err, null, null);
+
     // Filter files that aren't allowed.
     const ignorePatterns = await DOTFILE.IGNORE();
-    filePaths.sort(); // Sort files alphanumerically
-    let abortPush = false;
-    const nonIgnoredFilePaths: string[] = [];
-    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
-    let ignoredFilePaths: string[] = [];
-    ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
 
     // Replace OS specific path separator to common '/' char for console output
     filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
+    filePaths.sort(); // Sort files alphanumerically
 
-    // check ignore files
-    const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
-    const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
+    // dispatch with patterns from .claspignore
+    const filesToPush: string[] = [];
+    const filesToIgnore: string[] = [];
+    filePaths.forEach(file => {
+      if (multimatch(path.relative(rootDir, file), ignorePatterns, { dot: true }).length === 0) {
+        filesToPush.push(file);
+      } else {
+        filesToIgnore.push(file);
+      }
+    });
 
     // Check if there are files that will conflict if renamed .gs to .js.
     // When pushing to Apps Script, these files will overwrite each other.
-    intersection.forEach((name: string) => {
+    let abortPush = false;
+    filesToPush.forEach((name: string) => {
       const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
       if (
-        intersection.indexOf(fileNameWithoutExt + '.js') !== -1 &&
-        intersection.indexOf(fileNameWithoutExt + '.gs') !== -1
+        filesToPush.indexOf(fileNameWithoutExt + '.js') !== -1 &&
+        filesToPush.indexOf(fileNameWithoutExt + '.gs') !== -1
       ) {
         // Can't rename, conflicting files
         abortPush = true;
@@ -113,8 +120,12 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     });
     if (abortPush) return callback(new Error(), null, null);
 
+    const nonIgnoredFilePaths: string[] = [];
+    const ignoredFilePaths = [...filesToIgnore];
+
+    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
     // Loop through files that are not ignored
-    let files = intersection
+    let files = filesToPush
       .map((name, i) => {
         const normalizedName = path.normalize(name);
 
@@ -135,7 +146,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         const formattedName = getAppsScriptFileName(rootDir, name);
 
         // If the file is valid, return the file in a format suited for the Apps Script API.
-        if (isValidFileName(name, type, rootDir, normalizedName, ignoreMatches)) {
+        if (isValidFileName(name, type, rootDir, normalizedName, filesToIgnore)) {
           nonIgnoredFilePaths.push(name);
           const file: AppsScriptFile = {
             name: formattedName, // the file base name
@@ -155,7 +166,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     // It puts the files in the setting's filePushOrder first.
     // This is needed because Apps Script blindly executes files in order of creation time.
     // The Apps Script API updates the creation time of files.
-    if (filePushOrder) {
+    if (filePushOrder && filePushOrder.length > 0) { // skip "filePushOrder": []
       spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
       filePushOrder.forEach(file => {
@@ -202,9 +213,9 @@ export function isValidFileName(name: string,
   let isValidJSONIfJSON = true;
   if (type === 'JSON') {
     if (rootDir) {
-      isValidJSONIfJSON = normalizedName === path.join(rootDir, 'appsscript.json');
+      isValidJSONIfJSON = normalizedName === path.join(rootDir, PROJECT_MANIFEST_FILENAME);
     } else {
-      isValidJSONIfJSON = name === 'appsscript.json';
+      isValidJSONIfJSON = name === PROJECT_MANIFEST_FILENAME;
     }
   } else {
     // Must be SERVER_JS or HTML.
