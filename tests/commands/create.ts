@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import * as fs from 'fs-extra';
-const { spawnSync } = require('child_process');
+import { spawnSync } from 'child_process';
 
 import {
   CLASP,
