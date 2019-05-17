@@ -64,7 +64,7 @@ describe('Test clasp status function', () => {
   it('should respect globs and negation rules when rootDir given', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.clasp.json', data: '{ "scriptId":"1234", "rootDir":"dist" }' },
-      { file: '.claspignore', data: '**/**\n!dist/build/main.js\n!dist/appsscript.json' },
+      { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
       { file: 'dist/build/main.js', data: TEST_CODE_JS },
       { file: 'dist/appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
       { file: 'dist/shouldBeIgnored', data: TEST_CODE_JS },
@@ -75,11 +75,27 @@ describe('Test clasp status function', () => {
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
-      '**/**',
-      '!dist/build/main.js',
-      '!dist/appsscript.json']);
+      'dist/should/alsoBeIgnored',
+      'dist/shouldBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
-    // TODO test with a rootDir with a relative directory like "../src"
+  });
+  it('should respect globs and negation rules when relative rootDir given', () => {
+    const tmpdir = setupTmpDirectory([
+      { file: 'src/.clasp.json', data: '{ "scriptId":"1234", "rootDir":"../build" }' },
+      { file: 'src/.claspignore', data: '**/**\n!main.js\n!appsscript.json' },
+      { file: 'build/main.js', data: TEST_CODE_JS },
+      { file: 'build/appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
+      { file: 'build/shouldBeIgnored', data: TEST_CODE_JS },
+      { file: 'build/should/alsoBeIgnored', data: TEST_CODE_JS },
+    ]);
+    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir + '/src' });
+    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir + '/src' });
+    expect(result.status).to.equal(0);
+    const resultJson = JSON.parse(result.stdout);
+    expect(resultJson.untrackedFiles).to.have.members([
+      '../build/should/alsoBeIgnored',
+      '../build/shouldBeIgnored']);
+    expect(resultJson.filesToPush).to.have.members(['../build/main.js', '../build/appsscript.json']);
   });
   after(cleanup);
 });
