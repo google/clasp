@@ -74,10 +74,13 @@ describe('Test clasp status function', () => {
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
+    // expect(resultJson.untrackedFiles).to.have.members([
+    //   '**/**',
+    //   '!build/main.js',
+    //   '!appsscript.json']);
     expect(resultJson.untrackedFiles).to.have.members([
-      '**/**',
-      '!build/main.js',
-      '!appsscript.json']);
+      'dist/should/alsoBeIgnored',
+      'dist/shouldBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
     // TODO test with a rootDir with a relative directory like "../src"
   });
@@ -94,10 +97,14 @@ describe('Test clasp status function', () => {
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir + '/src' });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
+    // expect(resultJson.untrackedFiles).to.have.members([
+    //   '**/**',
+    //   '!build/main.js',
+    //   '!appsscript.json']);
     expect(resultJson.untrackedFiles).to.have.members([
-      '**/**',
-      '!build/main.js',
-      '!appsscript.json']);
+      '../build/main.js',
+      '../build/should/alsoBeIgnored',
+      '../build/shouldBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['build/main.js', 'appsscript.json']);
     // TODO test with a rootDir with a relative directory like "../src"
   });
