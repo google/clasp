@@ -440,7 +440,7 @@ If `newValue` is omitted it returns the current setting value.
 Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to not upload on `clasp push`. Steps:
 
 1. Create a file called `.claspignore` in your project's root directory.
-2. Add patterns to be excluded from `clasp push`. _Note_: The `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), which is different from `.gitignore`, especially for directories. To ignore a directory, use syntax like `**/node_modules/**`.
+1. Add patterns to be excluded from `clasp push`. _Note_: The `.claspignore` patterns are applied by [multimatch](https://github.com/sindresorhus/multimatch), which is different from `.gitignore`, especially for directories. To ignore a directory, use syntax like `**/node_modules/**`.
 
 A sample `.claspignore` ignoring everything except the manifest and `build/main.js`:
 
@@ -449,6 +449,8 @@ A sample `.claspignore` ignoring everything except the manifest and `build/main.
 !build/main.js
 !appsscript.json
 ```
+
+_Note_: The `.claspignore` patterns are applied relative from the `rootDir`.
 
 ## Project Settings File (`.clasp.json`)
 
