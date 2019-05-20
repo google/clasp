@@ -6,10 +6,15 @@ import { loadAPICredentials, script } from './../auth';
 import { URL } from './../urls';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from './../utils';
 
-const ellipsize = require('ellipsize');
+const ellipsize: (
+  str: string | undefined,
+  max?: number,
+  opts?: { ellipse?: string; chars?: string[]; truncate?: boolean | 'middle' },
+) => string = require('ellipsize');
 const padEnd = require('string.prototype.padend');
 
 const prompt = inquirer.prompt;
+// TODO: is inquirer-autocomplete-prompt really used here?
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
