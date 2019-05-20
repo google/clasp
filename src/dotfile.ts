@@ -20,7 +20,10 @@ import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2cl
 
 const dotf = require('dotf');
 const read = require('read-file');
-const splitLines = require('split-lines');
+const splitLines: (
+  str :string,
+  options?: { preserveNewLines?: boolean },
+) => string[] = require('split-lines');
 
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';
