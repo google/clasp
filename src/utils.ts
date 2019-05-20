@@ -8,8 +8,9 @@ import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { URL } from './urls';
 
-const ucfirst = require('ucfirst');
-const isOnline = require('is-online');
+// const ucfirst = require('ucfirst');
+const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
+const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
