@@ -41,12 +41,10 @@ export default async (options: { localhost?: boolean; creds?: string }) => {
     oauthScopes.forEach(scope => {
       console.log(scope);
     });
-    console.log('');
-    console.log(
-      `NOTE: The full list of scopes your project may need` + ` can be found at script.google.com under:`,
-    );
-    console.log(`File > Project Properties > Scopes`);
-    console.log('');
+    console.log(`
+NOTE: The full list of scopes your project may need can be found at script.google.com under:
+File > Project Properties > Scopes
+`);
 
     // Read credentials file.
     const credsFile = readFileSync(options.creds, 'utf8');
