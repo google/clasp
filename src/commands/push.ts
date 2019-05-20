@@ -1,18 +1,13 @@
-import { readFileSync } from 'fs';
 import * as path from 'path';
+import { readFileSync } from 'fs-extra';
+import * as inquirer from 'inquirer';
+import { prompt } from 'inquirer';
+import * as multimatch from 'multimatch';
 import { watchTree } from 'watch';
 import { loadAPICredentials } from './../auth';
-import {
-  DOT,
-  DOTFILE,
-} from './../dotfile';
-import {
-  fetchProject,
-  pushFiles,
-} from './../files';
-import {
-  isValidManifest,
-} from './../manifest';
+import { DOT, DOTFILE } from './../dotfile';
+import { fetchProject, pushFiles } from './../files';
+import { isValidManifest } from './../manifest';
 import {
   LOG,
   PROJECT_MANIFEST_BASENAME,
@@ -22,9 +17,7 @@ import {
   spinner,
 } from './../utils';
 
-import * as multimatch from 'multimatch';
-import * as inquirer from 'inquirer';
-import { prompt } from 'inquirer';
+// TODO: is inquirer-autocomplete-prompt really used here?
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
@@ -32,7 +25,7 @@ inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'))
  * TODO: Only push the specific files that changed (rather than all files).
  * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export default async (cmd: { watch: boolean, force: boolean }) => {
+export default async (cmd: { watch: boolean; force: boolean }) => {
   await checkIfOnline();
   await loadAPICredentials();
   await isValidManifest();
@@ -53,7 +46,7 @@ export default async (cmd: { watch: boolean, force: boolean }) => {
           return;
         }
       }
-      if (!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()) {
+      if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
         console.log('Stopping push...');
         return;
       }
@@ -61,7 +54,7 @@ export default async (cmd: { watch: boolean, force: boolean }) => {
       pushFiles();
     });
   } else {
-    if (!cmd.force && await manifestHasChanges() && !await confirmManifestUpdate()) {
+    if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
       console.log('Stopping push...');
       return;
     }
@@ -75,12 +68,14 @@ export default async (cmd: { watch: boolean, force: boolean }) => {
  * @returns {Promise<boolean>}
  */
 const confirmManifestUpdate = async (): Promise<boolean> => {
-  const answers = await prompt<{ overwrite: boolean }>([{
-    name: 'overwrite',
-    type: 'confirm',
-    message: 'Manifest file has been updated. Do you want to push and overwrite?',
-    default: false,
-  }]);
+  const answers = await prompt<{ overwrite: boolean }>([
+    {
+      name: 'overwrite',
+      type: 'confirm',
+      message: 'Manifest file has been updated. Do you want to push and overwrite?',
+      default: false,
+    },
+  ]);
   return answers.overwrite;
 };
 
@@ -93,7 +88,7 @@ const manifestHasChanges = async (): Promise<boolean> => {
   const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(localManifestPath, 'utf8');
   const remoteFiles = await fetchProject(scriptId, undefined, true);
-  const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);
+  const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (!remoteManifest) throw Error('remote manifest no found');
   return localManifest !== remoteManifest.source;
 };

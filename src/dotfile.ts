@@ -11,16 +11,26 @@
  *
  * This should be the only file that uses DOTFILE.
  */
-import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+// TODO: switch to https://github.com/sindresorhus/find-up
+import * as findParentDir from 'find-parent-dir';
+import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 
-const dotf = require('dotf');
+declare type dotf = (dirname: string, name: string) => {
+  exists: () => Promise<boolean>;
+  read: () => Promise<any>; // tslint:disable-line: no-any
+  write: <T>(obj: T) => Promise<T>;
+  delete: () => Promise<void>;
+};
+
+const dotf: dotf = require('dotf');
+// TODO: switch to using https://github.com/sindresorhus/strip-bom on fs.readFileSync result?
 const read = require('read-file');
-import * as findParentDir from 'find-parent-dir';
-const splitLines = require('split-lines');
+const splitLines: (str :string, options?: { preserveNewLines?: boolean })
+  => string[] = require('split-lines');
 
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';

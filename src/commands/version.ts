@@ -1,17 +1,7 @@
 // setup inquirer
 import { prompt } from 'inquirer';
-
-import {
-  loadAPICredentials,
-  script,
-} from './../auth';
-import {
-  LOG,
-  checkIfOnline,
-  getProjectSettings,
-  logError,
-  spinner,
-} from './../utils';
+import { loadAPICredentials, script } from './../auth';
+import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from './../utils';
 
 /**
  * Creates a new version of an Apps Script project.

@@ -1,27 +1,11 @@
-import {drive_v3} from 'googleapis';
-import {
-  drive,
-  loadAPICredentials,
-} from '../auth';
-import {
-  fetchProject,
-  hasProject,
-  writeProjectFiles,
-} from '../files';
-import {
-  extractScriptId,
-} from '../urls';
-import {
-  ERROR,
-  LOG,
-  checkIfOnline,
-  logError,
-  saveProject,
-  spinner,
-} from '../utils';
+import { drive_v3 } from 'googleapis';
+import { prompt } from 'inquirer';
+import { drive, loadAPICredentials } from '../auth';
+import { fetchProject, hasProject, writeProjectFiles } from '../files';
+import { extractScriptId } from '../urls';
+import { ERROR, LOG, checkIfOnline, logError, saveProject, spinner } from '../utils';
 
 const padEnd = require('string.prototype.padend');
-import { prompt } from 'inquirer';
 
 /**
  * Fetches an Apps Script project.
@@ -37,10 +21,7 @@ export default async (scriptId: string, versionNumber: number, cmd: { rootDir: s
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
   const rootDir = cmd.rootDir;
-  saveProject({
-    scriptId,
-    rootDir,
-  }, false);
+  saveProject({ scriptId, rootDir }, false);
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
 };
@@ -72,12 +53,14 @@ const getScriptId = async () => {
       value: file.id,
     };
   });
-  const answers = await prompt<{scriptId: string}>([{
-    type: 'list',
-    name: 'scriptId',
-    message: LOG.CLONE_SCRIPT_QUESTION,
-    choices: fileIds,
-    pageSize: 30,
-  }]);
+  const answers = await prompt<{ scriptId: string }>([
+    {
+      type: 'list',
+      name: 'scriptId',
+      message: LOG.CLONE_SCRIPT_QUESTION,
+      choices: fileIds,
+      pageSize: 30,
+    },
+  ]);
   return answers.scriptId;
 };

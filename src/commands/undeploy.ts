@@ -1,15 +1,5 @@
-import {
-  loadAPICredentials,
-  script,
-} from './../auth';
-import {
-  ERROR,
-  LOG,
-  checkIfOnline,
-  getProjectSettings,
-  logError,
-  spinner,
-} from './../utils';
+import { loadAPICredentials, script } from './../auth';
+import { ERROR, LOG, checkIfOnline, getProjectSettings, logError, spinner } from './../utils';
 
 /**
  * Removes a deployment from the Apps Script project.
