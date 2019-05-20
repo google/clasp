@@ -1,5 +1,4 @@
 import { script_v1 } from 'googleapis';
-// setup inquirer
 import * as inquirer from 'inquirer';
 import * as open from 'open';
 import { loadAPICredentials, script } from './../auth';
@@ -13,6 +12,7 @@ const ellipsize: (
 ) => string = require('ellipsize');
 const padEnd = require('string.prototype.padend');
 
+// setup inquirer
 const prompt = inquirer.prompt;
 // TODO: is inquirer-autocomplete-prompt really used here?
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));

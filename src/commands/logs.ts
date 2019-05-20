@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 import { logging_v2 } from 'googleapis';
-// setup inquirer
 import * as inquirer from 'inquirer';
 import { prompt } from 'inquirer';
 import * as open from 'open';
@@ -19,6 +18,7 @@ import {
 
 const padEnd = require('string.prototype.padend');
 
+// setup inquirer
 // TODO: is inquirer-autocomplete-prompt really used here?
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
