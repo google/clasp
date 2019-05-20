@@ -5,11 +5,12 @@ import { loadAPICredentials, script } from './../auth';
 import { URL } from './../urls';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from './../utils';
 
-const ellipsize: (
-  str: string | undefined,
-  max?: number,
-  opts?: { ellipse?: string; chars?: string[]; truncate?: boolean | 'middle' },
-) => string = require('ellipsize');
+interface EllipizeOptions {
+  ellipse?: string;
+  chars?: string[];
+  truncate?: boolean | 'middle';
+}
+const ellipsize: (str?: string, max?: number, opts?: EllipizeOptions) => string = require('ellipsize');
 const padEnd = require('string.prototype.padend');
 
 // setup inquirer
