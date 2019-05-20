@@ -8,7 +8,6 @@ import { URL } from '../urls';
 import { ERROR, checkIfOnline, getProjectId, logError } from '../utils';
 const padEnd = require('string.prototype.padend');
 
-
 /**
  * Acts as a router to apis subcommands
  * Calls functions for list, enable, or disable
