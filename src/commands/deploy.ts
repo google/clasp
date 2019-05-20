@@ -1,7 +1,4 @@
-import {
-  loadAPICredentials,
-  script,
-} from './../auth';
+import { loadAPICredentials, script } from './../auth';
 import {
   ERROR,
   LOG,

@@ -1,9 +1,10 @@
 import chalk from 'chalk';
-import {logging_v2} from 'googleapis';
-import {
-  loadAPICredentials,
-  logger,
-} from './../auth';
+import { logging_v2 } from 'googleapis';
+// setup inquirer
+import * as inquirer from 'inquirer';
+import { prompt } from 'inquirer';
+import * as open from 'open';
+import { loadAPICredentials, logger } from './../auth';
 import { DOTFILE, ProjectSettings } from './../dotfile';
 import { URL } from './../urls';
 import {
@@ -16,12 +17,8 @@ import {
   spinner,
 } from './../utils';
 
-import * as open from 'open';
 const padEnd = require('string.prototype.padend');
 
-// setup inquirer
-import * as inquirer from 'inquirer';
-import { prompt } from 'inquirer';
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
@@ -66,9 +63,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-export function printLogs(entries: logging_v2.Schema$LogEntry[] = [],
-                   formatJson: boolean) {
-
+export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson: boolean) {
   /**
    * This object holds all log IDs that have been printed to the user.
    * This prevents log entries from being printed multiple times.
@@ -137,14 +132,14 @@ export async function setupLogs(): Promise<string> {
     getProjectSettings().then(projectSettings => {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-      prompt<{ projectId: string}>([
+      prompt<{ projectId: string }>([
         {
           type: 'input',
           name: 'projectId',
           message: `${LOG.ASK_PROJECT_ID}`,
         },
       ])
-        .then((answers) => {
+        .then(answers => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
           if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
@@ -212,10 +207,7 @@ export async function fetchAndPrintLogs(formatJson: boolean, projectId?: string,
       if (logs.status !== 200) {
         switch (logs.status) {
           case 401:
-            logError(
-              null,
-              oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED,
-            );
+            logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
           case 403:
             logError(
               null,

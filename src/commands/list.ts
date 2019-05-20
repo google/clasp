@@ -1,16 +1,7 @@
-import {drive_v3} from 'googleapis';
-import {
-  drive,
-  loadAPICredentials,
-} from '../auth';
+import { drive_v3 } from 'googleapis';
+import { drive, loadAPICredentials } from '../auth';
 import { URL } from '../urls';
-import {
-  ERROR,
-  LOG,
-  checkIfOnline,
-  logError,
-  spinner,
-} from '../utils';
+import { ERROR, LOG, checkIfOnline, logError, spinner } from '../utils';
 
 const ellipsize = require('ellipsize');
 const padEnd = require('string.prototype.padend');

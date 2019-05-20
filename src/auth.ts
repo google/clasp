@@ -1,5 +1,6 @@
 import * as http from 'http';
 import { AddressInfo } from 'net';
+import * as readline from 'readline';
 import * as url from 'url';
 /**
  * Authentication with Google's APIs.
@@ -7,11 +8,10 @@ import * as url from 'url';
 import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { google, script_v1 } from 'googleapis';
 import { prompt } from 'inquirer';
+import * as open from 'open';
 import { ClaspToken, DOTFILE } from './dotfile';
 import { readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
-import * as open from 'open';
-import * as readline from 'readline';
 
 // Auth is complicated. Consider yourself warned.
 // tslint:disable:max-line-length

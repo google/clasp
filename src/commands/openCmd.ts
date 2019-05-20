@@ -1,24 +1,14 @@
 import { script_v1 } from 'googleapis';
-import {
-  loadAPICredentials,
-  script,
-} from './../auth';
-import { URL } from './../urls';
-import {
-  ERROR,
-  LOG,
-  checkIfOnline,
-  getProjectSettings,
-  getWebApplicationURL,
-  logError,
-} from './../utils';
-
-const ellipsize = require('ellipsize');
-import * as open from 'open';
-const padEnd = require('string.prototype.padend');
-
 // setup inquirer
 import * as inquirer from 'inquirer';
+import * as open from 'open';
+import { loadAPICredentials, script } from './../auth';
+import { URL } from './../urls';
+import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from './../utils';
+
+const ellipsize = require('ellipsize');
+const padEnd = require('string.prototype.padend');
+
 const prompt = inquirer.prompt;
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
@@ -28,10 +18,13 @@ inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'))
  * @param cmd.webapp {boolean} If true, the command will open the webapps URL.
  * @param cmd.creds {boolean} If true, the command will open the credentials URL.
  */
-export default async (scriptId: string, cmd: {
-  webapp: boolean,
-  creds: boolean,
-}) => {
+export default async (
+  scriptId: string,
+  cmd: {
+    webapp: boolean;
+    creds: boolean;
+  },
+) => {
   await checkIfOnline();
   const projectSettings = await getProjectSettings();
   if (!scriptId) scriptId = projectSettings.scriptId;
@@ -67,13 +60,14 @@ export default async (scriptId: string, cmd: {
     logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
   // Order deployments by update time.
-  const orderedDeployments = deployments.slice().sort(
-    (d1: script_v1.Schema$Deployment, d2: script_v1.Schema$Deployment) => {
-    if (!d1.updateTime || !d2.updateTime) {
-      return 0; // should never happen
-    }
-    return d1.updateTime.localeCompare(d2.updateTime);
-  });
+  const orderedDeployments = deployments
+    .slice()
+    .sort((d1: script_v1.Schema$Deployment, d2: script_v1.Schema$Deployment) => {
+      if (!d1.updateTime || !d2.updateTime) {
+        return 0; // should never happen
+      }
+      return d1.updateTime.localeCompare(d2.updateTime);
+    });
   const choices = orderedDeployments.map((deployment: script_v1.Schema$Deployment) => {
     const DESC_PAD_SIZE = 30;
     const id = deployment.deploymentId;
@@ -87,13 +81,15 @@ export default async (scriptId: string, cmd: {
       value: deployment,
     };
   });
-  const answers = await prompt<{ deploymentId: string }>([{
-    type: 'list',
-    name: 'deploymentId',
-    message: 'Open which deployment?',
-    choices,
-  }]);
-  const deployment = await script.projects.deployments.get({deploymentId: answers.deploymentId});
+  const answers = await prompt<{ deploymentId: string }>([
+    {
+      type: 'list',
+      name: 'deploymentId',
+      message: 'Open which deployment?',
+      choices,
+    },
+  ]);
+  const deployment = await script.projects.deployments.get({ deploymentId: answers.deploymentId });
   console.log(LOG.OPEN_WEBAPP(answers.deploymentId));
   const target = getWebApplicationURL(deployment.data);
   if (target) {

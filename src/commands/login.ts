@@ -2,21 +2,10 @@
  * Clasp command method bodies.
  */
 import { readFileSync } from 'fs';
-import {
-  enableAppsScriptAPI,
-} from '../apiutils';
-import {
-  authorize,
-} from '../auth';
-import {
-  readManifest,
-} from '../manifest';
-import {
-  ERROR,
-  LOG,
-  checkIfOnline,
-  hasOauthClientSettings,
-} from '../utils';
+import { enableAppsScriptAPI } from '../apiutils';
+import { authorize } from '../auth';
+import { readManifest } from '../manifest';
+import { ERROR, LOG, checkIfOnline, hasOauthClientSettings } from '../utils';
 
 /**
  * Logs the user in. Saves the client credentials to an either local or global rc file.
@@ -49,12 +38,13 @@ export default async (options: { localhost?: boolean; creds?: string }) => {
     ]);
     console.log('');
     console.log(`Authorizing with the following scopes:`);
-    oauthScopes.forEach((scope) => {
+    oauthScopes.forEach(scope => {
       console.log(scope);
     });
     console.log('');
-    console.log(`NOTE: The full list of scopes your project may need` +
-      ` can be found at script.google.com under:`);
+    console.log(
+      `NOTE: The full list of scopes your project may need` + ` can be found at script.google.com under:`,
+    );
     console.log(`File > Project Properties > Scopes`);
     console.log('');
 
