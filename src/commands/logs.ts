@@ -19,6 +19,7 @@ import {
 
 const padEnd = require('string.prototype.padend');
 
+// TODO: is inquirer-autocomplete-prompt really used here?
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**

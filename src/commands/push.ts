@@ -17,6 +17,7 @@ import {
   spinner,
 } from './../utils';
 
+// TODO: is inquirer-autocomplete-prompt really used here?
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
