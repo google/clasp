@@ -1,12 +1,12 @@
 import * as fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
+import * as inquirer from 'inquirer';
+import { Answers, Question, prompt } from 'inquirer';
 import { loadAPICredentials, serviceUsage } from './auth';
 import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
 
 // setup inquirer
-import * as inquirer from 'inquirer';
-import { prompt, Question, Answers } from 'inquirer';
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**

@@ -1,5 +1,5 @@
-import * as fs from 'fs';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
 import { DOT } from './dotfile';

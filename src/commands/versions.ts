@@ -1,15 +1,6 @@
 import { script_v1 } from 'googleapis';
-import {
-  loadAPICredentials,
-  script,
-} from './../auth';
-import {
-  LOG,
-  checkIfOnline,
-  getProjectSettings,
-  logError,
-  spinner,
-} from './../utils';
+import { loadAPICredentials, script } from './../auth';
+import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from './../utils';
 
 /**
  * Lists versions of an Apps Script project.

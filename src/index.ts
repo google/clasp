@@ -20,8 +20,6 @@
  * clasp – The Apps Script CLI
  */
 
-import 'connect';
-
 import * as commander from 'commander';
 import apis from './commands/apis';
 import clone from './commands/clone';
