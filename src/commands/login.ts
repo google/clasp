@@ -1,7 +1,7 @@
 /**
  * Clasp command method bodies.
  */
-import { readFileSync } from 'fs';
+import { readFileSync } from 'fs-extra';
 import { enableAppsScriptAPI } from '../apiutils';
 import { authorize } from '../auth';
 import { readManifest } from '../manifest';

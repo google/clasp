@@ -92,9 +92,7 @@ async function runFunction(functionName: string, params: string[], scriptId: str
           // The 401 is probably due to this error:
           // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
           // This is probably due to the OAuth client not having authorized scopes.
-          console.log(
-            `` +
-              `Hey! It looks like you aren't authenticated for the scopes required by this script.
+          console.log(`Hey! It looks like you aren't authenticated for the scopes required by this script.
 Please enter the scopes by doing the following:
 1. Open Your Script: ${URL.SCRIPT(scriptId)}
 2. File > Project Properties > Scopes
@@ -102,8 +100,7 @@ Please enter the scopes by doing the following:
             ~ Example ~
 https://mail.google.com/
 https://www.googleapis.com/auth/presentations
-----(When you're done, press <Enter> 2x)----`,
-          );
+----(When you're done, press <Enter> 2x)----`);
           // Example scopes:
           // https://mail.google.com/
           // https://www.googleapis.com/auth/presentations

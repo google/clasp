@@ -1,14 +1,13 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
+import * as fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
 import { prompt } from 'inquirer';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { URL } from './urls';
 
-// const ucfirst = require('ucfirst');
 const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
 const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
 
@@ -55,7 +54,7 @@ export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   return RC.read()
     .then((rc: ClaspToken) => rc)
     .catch((err: Error) => {
-      logError(err, ERROR.NO_CREDENTIALS(local));
+      return logError(err, ERROR.NO_CREDENTIALS(local));
     });
 }
 
@@ -274,7 +273,6 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
     const fail = (failSilently?: boolean) => {
       if (!failSilently) {
         logError(null, ERROR.SETTINGS_DNE);
-        reject();
       }
       resolve();
     };
@@ -321,13 +319,10 @@ export function getAPIFileType(filePath: string): string {
 export async function checkIfOnline() {
   // If using a proxy, return true since `isOnline` doesn't work.
   // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
-  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY || (await isOnline())) {
     return true;
   }
-  if (!(await isOnline())) {
-    logError(null, ERROR.OFFLINE);
-    process.exit(1);
-  }
+  return logError(null, ERROR.OFFLINE);
 }
 
 /**

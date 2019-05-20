@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
 import * as path from 'path';
+import { readFileSync } from 'fs-extra';
 import * as inquirer from 'inquirer';
 import { prompt } from 'inquirer';
 import * as multimatch from 'multimatch';

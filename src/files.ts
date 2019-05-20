@@ -1,6 +1,7 @@
-import * as fs from 'fs';
 import * as path from 'path';
+// TODO: switch to https://github.com/sindresorhus/find-up
 import * as findParentDir from 'find-parent-dir';
+import * as fs from 'fs-extra';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
 import * as recursive from 'recursive-readdir';

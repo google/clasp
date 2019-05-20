@@ -21,13 +21,7 @@ export default async (scriptId: string, versionNumber: number, cmd: { rootDir: s
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
   const rootDir = cmd.rootDir;
-  saveProject(
-    {
-      scriptId,
-      rootDir,
-    },
-    false,
-  );
+  saveProject({ scriptId, rootDir }, false);
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
 };
