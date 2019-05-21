@@ -1,6 +1,5 @@
 import * as path from 'path';
-// TODO: switch to https://github.com/sindresorhus/find-up
-import * as findParentDir from 'find-parent-dir';
+import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
@@ -55,7 +54,7 @@ export function hasProject(): boolean {
  * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
  */
 export function getTranspileOptions(): ts.TranspileOptions{
-  const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
+  const projectDirectory = findUp.sync(DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
   const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
   const userConf: ts.TranspileOptions = {};
   if(fs.existsSync(tsconfigPath)){
