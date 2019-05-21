@@ -1,7 +1,7 @@
-import { prompt } from 'inquirer';
 import { SCRIPT_TYPES } from '../apis';
 import { drive, loadAPICredentials, script } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
+import { scriptTypePrompt } from '../inquirer';
 import { manifestExists } from '../manifest';
 import {
   ERROR,
@@ -34,15 +34,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   let { parentId } = cmd;
 
   if (!parentId && !type) {
-    const answers = await prompt<{ type: string }>([
-      {
-        type: 'list',
-        name: 'type',
-        message: LOG.CREATE_SCRIPT_QUESTION,
-        // tslint:disable-next-line:no-any
-        choices: Object.keys(SCRIPT_TYPES).map((key: string) => SCRIPT_TYPES[key as any]),
-      },
-    ]);
+    const answers = await scriptTypePrompt();
     type = answers.type;
   }
 
