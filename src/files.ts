@@ -54,9 +54,8 @@ export function hasProject(): boolean {
  * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
  */
 export function getTranspileOptions(): ts.TranspileOptions{
-  const projectDirectory = findUp.sync(DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-  const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
-  const userConf: ts.TranspileOptions = {};
+  const projectPath = findUp.sync(DOT.PROJECT.PATH);
+  const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
   if(fs.existsSync(tsconfigPath)){
     const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
