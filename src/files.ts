@@ -1,6 +1,5 @@
 import * as path from 'path';
-// TODO: switch to https://github.com/sindresorhus/find-up
-import * as findParentDir from 'find-parent-dir';
+import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
@@ -28,9 +27,8 @@ interface AppsScriptFile {
 }
 
 // Used to receive files tracked by current project
-interface FilesCallback {
-  (error: Error | boolean, result: string[][] | null, files: Array<AppsScriptFile | undefined> | null): void;
-}
+type FilesCallback =
+(error: Error | boolean, result: string[][] | null, files: Array<AppsScriptFile | undefined> | null) => void;
 
 /**
  * Gets the local file type from the API FileType.
@@ -54,11 +52,10 @@ export function hasProject(): boolean {
  * Returns in tsconfig.json.
  * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
  */
-export function getTranspileOptions(): ts.TranspileOptions{
-  const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-  const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
-  const userConf: ts.TranspileOptions = {};
-  if(fs.existsSync(tsconfigPath)){
+export function getTranspileOptions(): ts.TranspileOptions {
+  const projectPath = findUp.sync(DOT.PROJECT.PATH);
+  const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
+  if(fs.existsSync(tsconfigPath)) {
     const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
     return {
@@ -157,7 +154,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
           const file: AppsScriptFile = {
             name: formattedName, // the file base name
             type, // the file extension
-            source, //the file contents
+            source, // the file contents
           };
           file2path.push({ file, path: name });  // allow matching of nonIgnoredFilePaths and files arrays
           return file;
@@ -218,11 +215,9 @@ export function isValidFileName(name: string,
   // Has a type or is appsscript.json
   let isValidJSONIfJSON = true;
   if (type === 'JSON') {
-    if (rootDir) {
-      isValidJSONIfJSON = normalizedName === path.join(rootDir, PROJECT_MANIFEST_FILENAME);
-    } else {
-      isValidJSONIfJSON = name === PROJECT_MANIFEST_FILENAME;
-    }
+    isValidJSONIfJSON = rootDir
+      ? normalizedName === path.join(rootDir, PROJECT_MANIFEST_FILENAME)
+      : name === PROJECT_MANIFEST_FILENAME;
   } else {
     // Must be SERVER_JS or HTML.
     // https://developers.google.com/apps-script/api/reference/rest/v1/File

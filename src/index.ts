@@ -200,7 +200,7 @@ commander
 commander
   .command('deploy')
   .description('Deploy a project')
-  .option('-V, --versionNumber <version>', 'The project version') //we can't use `version` in subcommand
+  .option('-V, --versionNumber <version>', 'The project version') // we can't use `version` in subcommand
   .option('-d, --description <description>', 'The deployment description')
   .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
   .action(handleError(deploy));

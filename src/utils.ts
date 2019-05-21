@@ -3,9 +3,9 @@ import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
 import * as fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
-import { prompt } from 'inquirer';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
+import { projectIdPrompt } from './inquirer';
 import { URL } from './urls';
 
 const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
@@ -351,11 +351,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
     if (!promptUser) throw new Error('Project ID not found.');
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-    await prompt<{ projectId: string }>([{
-      type: 'input',
-      name: 'projectId',
-      message: `${LOG.ASK_PROJECT_ID}`,
-    }]).then(async (answers) => {
+    await projectIdPrompt().then(async (answers) => {
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
     });

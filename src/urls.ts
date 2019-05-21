@@ -1,6 +1,4 @@
-import {
-    SCRIPT_ID_LENGTH,
-} from './apis';
+import { SCRIPT_ID_LENGTH } from './apis';
 
 /**
  * Extracts scriptId from URL if given in URL form.
