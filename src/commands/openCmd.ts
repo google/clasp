@@ -1,4 +1,3 @@
-import { script_v1 } from 'googleapis';
 import * as open from 'open';
 import { loadAPICredentials, script } from './../auth';
 import { URL } from './../urls';
@@ -55,7 +54,7 @@ export default async (
     logError(deploymentsList.statusText);
   }
   const deployments = deploymentsList.data.deployments || [];
-  if (deployments.length > 0) {
+  if (deployments.length === 0) {
     logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
   // Order deployments by update time.
