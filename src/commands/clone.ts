@@ -1,4 +1,3 @@
-import { drive_v3 } from 'googleapis';
 import { drive, loadAPICredentials } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
 import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';

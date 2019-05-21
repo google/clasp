@@ -145,8 +145,8 @@ export async function setupLogs(): Promise<string> {
             });
         })
         .catch((err: Error) => {
-          // TODO: Remove this use of the output from "console.log"; "console.log" doesn't return anything.
-          reject(console.log(err));
+          console.log(err);
+          reject();
         });
     });
   });
