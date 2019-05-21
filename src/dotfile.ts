@@ -13,11 +13,11 @@
  */
 import * as os from 'os';
 import * as path from 'path';
-// TODO: switch to https://github.com/sindresorhus/find-up
-import * as findParentDir from 'find-parent-dir';
+import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
+import stripBom = require('strip-bom');
 
 declare type dotf = (dirname: string, name: string) => {
   exists: () => Promise<boolean>;
@@ -27,8 +27,6 @@ declare type dotf = (dirname: string, name: string) => {
 };
 
 const dotf: dotf = require('dotf');
-// TODO: switch to using https://github.com/sindresorhus/strip-bom on fs.readFileSync result?
-const read = require('read-file');
 const splitLines: (str :string, options?: { preserveNewLines?: boolean })
   => string[] = require('split-lines');
 
@@ -87,10 +85,10 @@ export const DOTFILE = {
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
+    const projectDirectory = findUp.sync(DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
     return new Promise<string[]>((res, rej) => {
       if (fs.existsSync(path.join(projectDirectory, DOT.IGNORE.PATH))) {
-        const buffer = read.sync(DOT.IGNORE.PATH, 'utf8');
+        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, { encoding: 'utf8' }));
         res(splitLines(buffer).filter((name: string) => name));
       } else {
         res([]);
@@ -103,14 +101,14 @@ export const DOTFILE = {
    * @return {dotf} A dotf with that dotfile. Null if there is no file
    */
   PROJECT: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
+    const projectDirectory = findUp.sync(DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
     return dotf(projectDirectory, DOT.PROJECT.NAME);
   },
   // Stores {ClaspCredentials}
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
   RC_LOCAL: () => {
-    const localDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.RC.LOCAL_DIR;
+    const localDirectory = findUp.sync(DOT.PROJECT.PATH) || DOT.RC.LOCAL_DIR;
     return dotf(localDirectory, DOT.RC.NAME);
   },
 };
