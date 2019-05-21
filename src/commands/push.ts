@@ -1,7 +1,5 @@
 import * as path from 'path';
 import { readFileSync } from 'fs-extra';
-import * as inquirer from 'inquirer';
-import { prompt } from 'inquirer';
 import * as multimatch from 'multimatch';
 import { watchTree } from 'watch';
 import { loadAPICredentials } from './../auth';
@@ -16,9 +14,7 @@ import {
   getProjectSettings,
   spinner,
 } from './../utils';
-
-// TODO: is inquirer-autocomplete-prompt really used here?
-inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
+import { overwritePrompt } from '../inquirer';
 
 /**
  * Uploads all files into the script.google.com filesystem.
@@ -68,14 +64,7 @@ export default async (cmd: { watch: boolean; force: boolean }) => {
  * @returns {Promise<boolean>}
  */
 const confirmManifestUpdate = async (): Promise<boolean> => {
-  const answers = await prompt<{ overwrite: boolean }>([
-    {
-      name: 'overwrite',
-      type: 'confirm',
-      message: 'Manifest file has been updated. Do you want to push and overwrite?',
-      default: false,
-    },
-  ]);
+  const answers = await overwritePrompt();
   return answers.overwrite;
 };
 

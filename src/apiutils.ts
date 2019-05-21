@@ -1,13 +1,9 @@
 import * as fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
-import * as inquirer from 'inquirer';
-import { Answers, Question, prompt } from 'inquirer';
 import { loadAPICredentials, serviceUsage } from './auth';
+import { functionNamePrompt, functionNameSource } from './inquirer';
 import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
-
-// setup inquirer
-inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
  * Prompts for the function name.
@@ -31,29 +27,20 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
     }, [])
     .map((func: TypeFunction) => func.name) as string[];
 
-  interface AutocompleteQuestion<T = Answers> extends Question<T> {
-    source: (answers: T, input?: string) => Promise<string[]>;
-  }
+  const source: functionNameSource = (answers: object, input = '') => {
+    // Returns a Promise
+    // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
+    return new Promise(resolve => {
+      // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
+      const original = fuzzy
+        .filter(input, functionNames)
+        .map(el => el.original);
 
-  const question: AutocompleteQuestion<{ functionName: string }> = {
-    name: 'functionName',
-    message: 'Select a functionName',
-    type: 'autocomplete',
-    source: (answers: object, input = '') => {
-      // Returns a Promise
-      // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
-      return new Promise(resolve => {
-        // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
-        const original = fuzzy
-          .filter(input, functionNames)
-          .map(el => el.original);
-
-        resolve(original);
-      });
-    },
+      resolve(original);
+    });
   };
 
-  const answers = await prompt<{ functionName: string }>([question]);
+  const answers = await functionNamePrompt(source);
   return answers.functionName;
 }
 

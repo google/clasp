@@ -1,7 +1,7 @@
 import { drive_v3 } from 'googleapis';
-import { prompt } from 'inquirer';
 import { drive, loadAPICredentials } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
+import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';
 import { extractScriptId } from '../urls';
 import { ERROR, LOG, checkIfOnline, logError, saveProject, spinner } from '../utils';
 
@@ -47,20 +47,10 @@ const getScriptId = async () => {
     logError(null, LOG.FINDING_SCRIPTS_DNE);
     return '';
   }
-  const fileIds = files.map((file: drive_v3.Schema$File) => {
-    return {
-      name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
-      value: file.id,
-    };
-  });
-  const answers = await prompt<{ scriptId: string }>([
-    {
-      type: 'list',
-      name: 'scriptId',
-      message: LOG.CLONE_SCRIPT_QUESTION,
-      choices: fileIds,
-      pageSize: 30,
-    },
-  ]);
+  const fileIds: ScriptIdPrompt[] = files.map(file => ({
+    name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
+    value: file.id || '',
+  }));
+  const answers = await scriptIdPrompt(fileIds);
   return answers.scriptId;
 };
