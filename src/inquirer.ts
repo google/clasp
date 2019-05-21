@@ -120,7 +120,7 @@ export const scriptIdPrompt = (fileIds: ScriptIdPrompt[]) => prompt<{ scriptId: 
  * @returns {Promise<{ type: string }>} A promise for an object with the `type` property.
  */
 export const scriptTypePrompt = () => prompt<{ type: string }>([{
-  choices: Object.keys(SCRIPT_TYPES).map((key) => SCRIPT_TYPES[+key]),
+  choices: Object.keys(SCRIPT_TYPES).map((key) => SCRIPT_TYPES[key as any]), // tslint:disable-line: no-any
   message: LOG.CREATE_SCRIPT_QUESTION,
   name: 'type',
   type: 'list',
