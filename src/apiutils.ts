@@ -27,7 +27,7 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
     }, [])
     .map((func: TypeFunction) => func.name) as string[];
 
-  const source: functionNameSource = (answers: object, input = '') => {
+  const source: functionNameSource = (unused: object, input = '') => {
     // Returns a Promise
     // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
     return new Promise(resolve => {
@@ -93,7 +93,7 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean) {
 /**
  * Enable 'script.googleapis.com' of Google API.
  */
-export async function enableAppsScriptAPI(){
+export async function enableAppsScriptAPI() {
    await loadAPICredentials();
    const projectId = await getProjectIdWithErrors();
    const name = `projects/${projectId}/services/script.googleapis.com`;

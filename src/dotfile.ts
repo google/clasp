@@ -27,7 +27,7 @@ declare type dotf = (dirname: string, name: string) => {
 };
 
 const dotf: dotf = require('dotf');
-const splitLines: (str :string, options?: { preserveNewLines?: boolean })
+const splitLines: (str: string, options?: { preserveNewLines?: boolean })
   => string[] = require('split-lines');
 
 // TEMP CIRCULAR DEPS, TODO REMOVE

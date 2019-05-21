@@ -5,8 +5,8 @@ import { LOG } from './utils';
 
 registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
-export type functionNameSource = (answers: { functionName: string },
-  input?: string | undefined) => Promise<string[]>;
+export type functionNameSource =
+  (answers: { functionName: string }, input?: string | undefined) => Promise<string[]>;
 
 /**
  * Inquirer prompt for a functionName.
