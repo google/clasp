@@ -33,6 +33,7 @@ export default async (cmd: { watch: boolean; force: boolean }) => {
     /**
      * @see https://www.npmjs.com/package/watch
      */
+    // TODO check alternative https://github.com/paulmillr/chokidar
     watchTree(rootDir || '.', async (f, curr, prev) => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {

@@ -47,6 +47,7 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
 /**
  * Gets the project ID from the manifest. If there is no project ID, it returns an error.
  */
+// TODO: unnecessary export
 export async function getProjectIdWithErrors() {
   const projectId = await getProjectId(); // will prompt user to set up if required
   if (!projectId) throw logError(null, ERROR.NO_GCLOUD_PROJECT);
