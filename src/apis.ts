@@ -19,6 +19,7 @@ export enum SCRIPT_TYPES {
 
 // Also see:
 // https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/appsscript.json
+// TODO: unnecessary export
 export interface AdvancedService {
   userSymbol: string;
   serviceId: string;

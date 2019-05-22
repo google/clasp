@@ -52,6 +52,7 @@ export function hasProject(): boolean {
  * Returns in tsconfig.json.
  * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
  */
+// TODO: unnecessary export
 export function getTranspileOptions(): ts.TranspileOptions {
   const projectPath = findUp.sync(DOT.PROJECT.PATH);
   const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');

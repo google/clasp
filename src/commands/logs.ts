@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { GaxiosResponse } from 'gaxios';
 import { logging_v2 } from 'googleapis';
 import * as open from 'open';
 import { loadAPICredentials, logger } from './../auth';
@@ -59,6 +60,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
+// TODO: unnecessary export
 export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson: boolean) {
   /**
    * This object holds all log IDs that have been printed to the user.
@@ -104,8 +106,7 @@ export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson
         payloadData = padEnd(payloadData, 20);
       }
     }
-    // tslint:disable-next-line:no-any
-    const coloredStringMap: any = {
+    const coloredStringMap: { [key: string]: string } = {
       ERROR: chalk.red(severity),
       INFO: chalk.cyan(severity),
       DEBUG: chalk.green(severity), // includes timeEnd
@@ -122,6 +123,7 @@ export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson
   }
 }
 
+// TODO: unnecessary export
 export async function setupLogs(): Promise<string> {
   let projectId: string;
   const promise = new Promise<string>((resolve, reject) => {
@@ -161,6 +163,7 @@ export async function setupLogs(): Promise<string> {
  * Fetches the logs and prints the to the user.
  * @param startDate {Date?} Get logs from this date to now.
  */
+// TODO: unnecessary export
 export async function fetchAndPrintLogs(formatJson: boolean, projectId?: string, startDate?: Date) {
   const oauthSettings = await loadAPICredentials();
   spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
@@ -192,8 +195,7 @@ export async function fetchAndPrintLogs(formatJson: boolean, projectId?: string,
       console.log(filter);
     }
     // Parse response and print logs or print error message.
-    // tslint:disable-next-line:no-any
-    const parseResponse = (response: any) => {
+    const parseResponse = (response: GaxiosResponse<logging_v2.Schema$ListLogEntriesResponse>) => {
       if (logs.status !== 200) {
         switch (logs.status) {
           case 401:
