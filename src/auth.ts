@@ -310,6 +310,7 @@ async function setOauthClientCredentials(rc: ClaspToken) {
  * authorize if new scopes found (local OAuth credentails only).
  * @param {ClaspToken} rc OAuth client settings from rc file.
  */
+// TODO: currently unused. Check relevancy
 export async function checkOauthScopes(rc: ClaspToken) {
   try {
     await checkIfOnline();

@@ -46,7 +46,7 @@ export const hasOauthClientSettings = (local = false): boolean =>
 /**
  * Gets the OAuth client settings from rc file.
  * @param {boolean} local If true, gets the local OAuth settings. Global otherwise.
- * Should be used instead of `DOTFILE.RC?().read()`
+ * ! Should be used instead of `DOTFILE.RC?().read()`
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
 export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
@@ -264,7 +264,7 @@ export function getDefaultProjectName(): string {
 
 /**
  * Gets the project settings from the project dotfile. Logs errors.
- * Should be used instead of `DOTFILE.PROJECT().read()`
+ * ! Should be used instead of `DOTFILE.PROJECT().read()`
  * @param  {boolean} failSilently Don't err when dot file DNE.
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
@@ -335,6 +335,7 @@ export async function saveProject(
   append = true): Promise<ProjectSettings> {
   if (append) {
     const projectSettings: ProjectSettings = await DOTFILE.PROJECT().read();
+    // TODO: const projectSettings: ProjectSettings = await getProjectSettings();
     newProjectSettings = { ...projectSettings, ...newProjectSettings };
   }
   return DOTFILE.PROJECT().write(newProjectSettings);
