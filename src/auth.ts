@@ -7,9 +7,9 @@ import * as url from 'url';
  */
 import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { google, script_v1 } from 'googleapis';
-import { prompt } from 'inquirer';
 import * as open from 'open';
 import { ClaspToken, DOTFILE } from './dotfile';
+import { oauthScopesPrompt } from './inquirer';
 import { readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
 
@@ -322,22 +322,8 @@ export async function checkOauthScopes(rc: ClaspToken) {
     if (!newScopes.length) return;
     console.log('New authoization scopes detected in manifest:\n', newScopes);
 
-    interface PromptAnswers {
-      doAuth: boolean; // in sync with prompt
-      localhost: boolean; // in sync with prompt
-    }
-    await prompt<PromptAnswers>([{
-      type: 'confirm',
-      name: 'doAuth',
-      message: 'Authorize new scopes?',
-    }, {
-      type: 'confirm',
-      name: 'localhost',
-      message: 'Use localhost?',
-      when: (answers: PromptAnswers) => {
-        return answers.doAuth;
-      },
-    }]).then(async (answers) => {
+    await oauthScopesPrompt()
+    .then(async (answers) => {
       if (answers.doAuth) {
         if (!rc.isLocalCreds) return logError(null, ERROR.NO_LOCAL_CREDENTIALS);
         await authorize({

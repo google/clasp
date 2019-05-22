@@ -1,7 +1,5 @@
 import chalk from 'chalk';
 import { logging_v2 } from 'googleapis';
-import * as inquirer from 'inquirer';
-import { prompt } from 'inquirer';
 import * as open from 'open';
 import { loadAPICredentials, logger } from './../auth';
 import { DOTFILE, ProjectSettings } from './../dotfile';
@@ -15,12 +13,9 @@ import {
   logError,
   spinner,
 } from './../utils';
+import { projectIdPrompt } from '../inquirer';
 
 const padEnd = require('string.prototype.padend');
-
-// setup inquirer
-// TODO: is inquirer-autocomplete-prompt really used here?
-inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
 /**
  * Prints StackDriver logs from this Apps Script project.
@@ -133,13 +128,7 @@ export async function setupLogs(): Promise<string> {
     getProjectSettings().then(projectSettings => {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-      prompt<{ projectId: string }>([
-        {
-          type: 'input',
-          name: 'projectId',
-          message: `${LOG.ASK_PROJECT_ID}`,
-        },
-      ])
+      projectIdPrompt()
         .then(answers => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
@@ -148,7 +137,7 @@ export async function setupLogs(): Promise<string> {
             .read()
             .then((settings: ProjectSettings) => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write(Object.assign(settings, { projectId }));
+              dotfile.write({ ...settings, ...{ projectId } });
               resolve(projectId);
             })
             .catch((err: object) => {
@@ -156,8 +145,8 @@ export async function setupLogs(): Promise<string> {
             });
         })
         .catch((err: Error) => {
-          // TODO: Remove this use of the output from "console.log"; "console.log" doesn't return anything.
-          reject(console.log(err));
+          console.log(err);
+          reject();
         });
     });
   });

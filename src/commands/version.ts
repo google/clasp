@@ -1,7 +1,6 @@
-// setup inquirer
-import { prompt } from 'inquirer';
 import { loadAPICredentials, script } from './../auth';
 import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from './../utils';
+import { descriptionPrompt } from '../inquirer';
 
 /**
  * Creates a new version of an Apps Script project.
@@ -11,14 +10,7 @@ export default async (description: string) => {
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
   if (!description) {
-    const answers = await prompt<{ description: string }>([
-      {
-        type: 'input',
-        name: 'description',
-        message: LOG.GIVE_DESCRIPTION,
-        default: '',
-      },
-    ]);
+    const answers = await descriptionPrompt();
     description = answers.description;
   }
   spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
