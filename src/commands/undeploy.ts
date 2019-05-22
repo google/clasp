@@ -1,15 +1,5 @@
-import {
-  loadAPICredentials,
-  script,
-} from './../auth';
-import {
-  ERROR,
-  LOG,
-  checkIfOnline,
-  getProjectSettings,
-  logError,
-  spinner,
-} from './../utils';
+import { loadAPICredentials, script } from './../auth';
+import { ERROR, LOG, checkIfOnline, getProjectSettings, logError, spinner } from './../utils';
 
 /**
  * Removes a deployment from the Apps Script project.
@@ -33,17 +23,17 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
     }
     deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
     for (const deployment of deployments) {
-      const deploymentId = deployment.deploymentId || '';
-      spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
+      const id = deployment.deploymentId || '';
+      spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(id)).start();
       const result = await script.projects.deployments.delete({
         scriptId,
-        deploymentId,
+        deploymentId: id,
       });
       spinner.stop(true);
       if (result.status !== 200) {
         return logError(null, ERROR.READ_ONLY_DELETE);
       }
-      console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
+      console.log(LOG.UNDEPLOYMENT_FINISH(id));
     }
     console.log(LOG.UNDEPLOYMENT_ALL_FINISH);
     return;
@@ -66,12 +56,12 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
     deploymentId = deployments[deployments.length - 1].deploymentId || '';
   }
   spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
-  const deployment = await script.projects.deployments.delete({
+  const response = await script.projects.deployments.delete({
     scriptId,
     deploymentId,
   });
   spinner.stop(true);
-  if (deployment.status !== 200) {
+  if (response.status !== 200) {
     return logError(null, ERROR.READ_ONLY_DELETE);
   } else {
     console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));

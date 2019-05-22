@@ -32,6 +32,7 @@ clear
 **🔢 Manage Deployment Versions:** Create, update, and view your multiple deployments of your project.
 
 **📁 Structure Code:** `clasp` automatically converts your flat project on [script.google.com](https://script.google.com) into **folders**. For example:
+
 - _On script.google.com_:
   - `tests/slides.gs`
   - `tests/sheets.gs`
@@ -41,6 +42,7 @@ clear
     - `sheets.js`
 
 **🔷 Write Apps Script in TypeScript:** Write your Apps Script projects using TypeScript features:
+
 - Arrow functions
 - Optional structural typing
 - Classes
@@ -49,6 +51,7 @@ clear
 - [And more...](docs/typescript.md)
 
 **➡️ Run Apps Script:** Execute your Apps Script from the command line. Features:
+
 - _Instant_ deployment.
 - Suggested functions Autocomplete (Fuzzy)
 - Easily add custom Google OAuth scopes
@@ -60,16 +63,12 @@ First download `clasp`:
 
 ```sh
 sudo npm i @google/clasp -g
+# Alternatively: sudo npm i -g grpc @google/clasp --unsafe-perm
 ```
 
 Then enable the Google Apps Script API: https://script.google.com/home/usersettings
 
 ![Enable Apps Script API](https://user-images.githubusercontent.com/744973/54870967-a9135780-4d6a-11e9-991c-9f57a508bdf0.gif)
-
-(If that fails, run this:)
-```sh
-sudo npm i -g grpc @google/clasp --unsafe-perm
-```
 
 ## Commands
 
@@ -80,6 +79,7 @@ The following command provide basic Apps Script project management.
 ```sh
 clasp
 ```
+
 - [`clasp login [--no-localhost] [--creds <file>]`](#login)
 - [`clasp logout`](#logout)
 - [`clasp create [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
@@ -121,6 +121,11 @@ Logs the user in. Saves the client credentials to a `.clasprc.json` file.
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
 - `--creds <file>`: Use custom credentials used for `clasp run`. Saves a `.clasprc.json` file to current working directory. This file should be private!
+
+#### Examples
+
+- `clasp login --no-localhost`
+- `clasp login --creds creds.json`
 
 ### Logout
 
@@ -168,7 +173,7 @@ Clones the script project from script.google.com.
 #### Options
 
 - `scriptId | scriptURL`: The script ID _or_ script URL to clone.
-- `versionNumber`: The version of the script to clone.
+- `--versionNumber <number>`: The version of the script to clone.
 - `--rootDir <dir>`: Local directory in which clasp will store your project files. If not specified, clasp will default to the current directory.
 
 #### Examples
@@ -184,7 +189,7 @@ Updates local files with Apps Script project.
 
 #### Options
 
-- `--versionNumber`: The version number of the project to retrieve.
+- `--versionNumber <number>`: The version number of the project to retrieve.
 
 #### Examples
 
@@ -196,6 +201,7 @@ Updates local files with Apps Script project.
 Force writes all local files to script.google.com.
 
 Ignores files:
+
 - That start with a `.`
 - That don't have an accepted file extension
 - That are ignored (filename matches a glob pattern in the `.claspignore` file)
@@ -216,6 +222,7 @@ Ignores files:
 Lists files that will be written to the server on `push`.
 
 Ignores files:
+
 - That start with a `.`
 - That don't have an accepted file extension
 - That are ignored (filename matches a glob pattern in the ignore file)
@@ -235,14 +242,14 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 
 #### Options
 
-- `scriptId`: The optional script project to open.
+- `[scriptId]`: The optional script project to open.
 - `--webapp`: open web application in a browser.
 - `--creds`: Open the URL to create credentials.
 
 #### Examples
 
 - `clasp open`
-- `clasp open [scriptId]`
+- `clasp open "15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC"`
 - `clasp open --webapp`
 - `clasp open --creds`
 
@@ -279,7 +286,7 @@ Undeploys a deployment of a script.
 
 #### Options
 
-- `deploymentId`: An optional deployment ID.
+- `[deploymentId]`: An optional deployment ID.
 - `-a` `--all`: Undeploy all deployments.
 
 #### Examples
@@ -315,7 +322,7 @@ Lists your most recent Apps Script projects.
 
 #### Examples
 
-- `clasp list # helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...`
+- `clasp list`: Prints `helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...`
 
 ## Advanced Commands
 
@@ -334,7 +341,7 @@ Prints out most recent the _StackDriver logs_. These are logs from `console.log`
 
 #### Examples
 
-```
+```text
 clasp logs
 ERROR Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      my log error
 INFO  Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      info message
@@ -354,7 +361,7 @@ Below is a short summary:
 1. Log in with your credentials (`clasp login --creds creds.json`), see: [Run - Prerequisites](/docs/run.md#prerequisites)
 1. Deploy the Script as an API executable (Easiest done via GUI at the moment).
 1. Enable any APIs that are used by the script, see: [Run - Function with Scopes](/docs/run.md#run-a-function-that-requires-scopes)
-1. Have the following in your `appsscript.json`:
+1. Have the following in your `appsscript.json`. Be sure it's pushed:
 
 ```json
 "executionApi": {
@@ -364,14 +371,14 @@ Below is a short summary:
 
 #### Options
 
-- `functionName`: The name of the function in the script that you want to run.
-- `nondev`: If true, runs the function in non-devMode.
-- `-p <StringArray>` `--params <StringArray>`: A JSON string array of parameters to pass to the function
+- `<functionName>`: The name of the function in the script that you want to run.
+- `--nondev`: If true, runs the function in non-devMode.
+- `-p <paramString>` `--params <paramString>`: A JSON string array of parameters to pass to the function
 
 #### Examples
 
 - `clasp run 'sendEmail'`
-- `clasp run 'addOptions' '["string", 123, {"test": "for"}, true]'`
+- `clasp run 'addOptions' -p '["string", 123, {"test": "for"}, true]'`
 
 ### List/Enable/Disable Google APIs
 
@@ -405,6 +412,7 @@ Displays the help function.
 
 #### Examples
 
+- `clasp`
 - `clasp help`
 
 ### Setting
@@ -432,15 +440,17 @@ If `newValue` is omitted it returns the current setting value.
 Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to not upload on `clasp push`. Steps:
 
 1. Create a file called `.claspignore` in your project's root directory.
-2. Add patterns to be excluded from `clasp push`. _Note_: The `.claspignore` file is parsed with [Anymatch](https://github.com/micromatch/anymatch), which is different from `.gitignore`, especially for directories. To ignore a directory, use syntax like `**/node_modules/**`.
+1. Add patterns to be excluded from `clasp push`. _Note_: The `.claspignore` patterns are applied by [multimatch](https://github.com/sindresorhus/multimatch), which is different from `.gitignore`, especially for directories. To ignore a directory, use syntax like `**/node_modules/**`.
 
 A sample `.claspignore` ignoring everything except the manifest and `build/main.js`:
 
-```
+```text
 **/**
 !build/main.js
 !appsscript.json
 ```
+
+_Note_: The `.claspignore` patterns are applied relative from the `rootDir`.
 
 ## Project Settings File (`.clasp.json`)
 
@@ -507,7 +517,7 @@ This requires using the environment variables `HTTP_PROXY` / `HTTPS_PROXY`.
 
 Using clasp for your project? Add a README badge to show it off: [![clasp](https://img.shields.io/badge/built%20with-clasp-4285f4.svg)](https://github.com/google/clasp)
 
-```
+```md
 [![clasp](https://img.shields.io/badge/built%20with-clasp-4285f4.svg)](https://github.com/google/clasp)
 ```
 

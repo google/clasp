@@ -11,16 +11,24 @@
  *
  * This should be the only file that uses DOTFILE.
  */
-import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import * as findUp from 'find-up';
+import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
+import stripBom = require('strip-bom');
 
-const dotf = require('dotf');
-const read = require('read-file');
-const findParentDir = require('find-parent-dir');
-const splitLines = require('split-lines');
+declare type dotf = (dirname: string, name: string) => {
+  exists: () => Promise<boolean>;
+  read: () => Promise<any>; // tslint:disable-line: no-any
+  write: <T>(obj: T) => Promise<T>;
+  delete: () => Promise<void>;
+};
+
+const dotf: dotf = require('dotf');
+const splitLines: (str: string, options?: { preserveNewLines?: boolean })
+  => string[] = require('split-lines');
 
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';
@@ -77,10 +85,11 @@ export const DOTFILE = {
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
+    const projectPath = findUp.sync(DOT.PROJECT.PATH);
+    const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
     return new Promise<string[]>((res, rej) => {
-      if (fs.existsSync(path.join(projectDirectory, DOT.IGNORE.PATH))) {
-        const buffer = read.sync(DOT.IGNORE.PATH, 'utf8');
+      if (fs.existsSync(ignoreDirectory)) {
+        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, { encoding: 'utf8' }));
         res(splitLines(buffer).filter((name: string) => name));
       } else {
         res([]);
@@ -93,15 +102,15 @@ export const DOTFILE = {
    * @return {dotf} A dotf with that dotfile. Null if there is no file
    */
   PROJECT: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return dotf(projectDirectory, DOT.PROJECT.NAME);
+    const projectPath = findUp.sync(DOT.PROJECT.PATH);
+    return dotf(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, DOT.PROJECT.NAME);
   },
   // Stores {ClaspCredentials}
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
   RC_LOCAL: () => {
-    const localDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.RC.LOCAL_DIR;
-    return dotf(localDirectory, DOT.RC.NAME);
+    const localPath = findUp.sync(DOT.PROJECT.PATH);
+    return dotf(localPath ? path.dirname(localPath) : DOT.RC.LOCAL_DIR, DOT.RC.NAME);
   },
 };
 

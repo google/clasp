@@ -1,10 +1,9 @@
-import * as fs from 'fs';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
 import { DOT } from './dotfile';
-import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, logError } from './utils';
-import { getValidJSON } from './utils';
+import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -141,8 +140,7 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
     manifest.dependencies.enabledAdvancedServices = [];
   }
   // Copy the list of advanced services:
-  let newEnabledAdvancedServices: EnabledAdvancedService[] =
-    manifest.dependencies.enabledAdvancedServices || [];
+  let newEnabledAdvancedServices: EnabledAdvancedService[];
 
   // Disable the service (even if we may enable it)
   newEnabledAdvancedServices = manifest.dependencies.enabledAdvancedServices || [];
@@ -293,7 +291,7 @@ interface ExecutionApi {
   access: string;
 }
 
-interface Unconditional { }
+interface Unconditional {}
 
 interface ContextualTrigger {
   unconditional: Unconditional;

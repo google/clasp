@@ -1,24 +1,12 @@
-const open = require('opn');
-const padEnd = require('string.prototype.padend');
-
-import {GaxiosResponse} from 'gaxios';
-import {discovery_v1, serviceusage_v1} from 'googleapis';
+import { GaxiosResponse } from 'gaxios';
+import { serviceusage_v1 } from 'googleapis';
+import * as open from 'open';
 import { PUBLIC_ADVANCED_SERVICES } from '../apis';
-import {
-  enableOrDisableAPI,
-} from '../apiutils';
-import {
-  discovery,
-  loadAPICredentials,
-  serviceUsage,
-} from '../auth';
+import { enableOrDisableAPI } from '../apiutils';
+import { discovery, loadAPICredentials, serviceUsage } from '../auth';
 import { URL } from '../urls';
-import {
-  ERROR,
-  checkIfOnline,
-  getProjectId,
-  logError,
-} from '../utils';
+import { ERROR, checkIfOnline, getProjectId, logError } from '../utils';
+const padEnd = require('string.prototype.padend');
 
 /**
  * Acts as a router to apis subcommands
@@ -53,8 +41,9 @@ export default async (options: { open?: string }) => {
       console.log('\n# Currently enabled APIs:');
       const projectId = await getProjectId(); // will prompt user to set up if required
       const MAX_PAGE_SIZE = 200; // This is the max page size according to the docs.
-      const list: GaxiosResponse<serviceusage_v1.Schema$ListServicesResponse> =
-      await serviceUsage.services.list({
+      const list: GaxiosResponse<
+        serviceusage_v1.Schema$ListServicesResponse
+      > = await serviceUsage.services.list({
         parent: `projects/${projectId}`,
         filter: 'state:ENABLED',
         pageSize: MAX_PAGE_SIZE,
@@ -65,10 +54,11 @@ export default async (options: { open?: string }) => {
       }
 
       // Filter out the disabled ones. Print the enabled ones.
-      const enabledAPIs = serviceList.filter((service:
-        serviceusage_v1.Schema$GoogleApiServiceusageV1Service) => {
-        return service.state === 'ENABLED';
-      });
+      const enabledAPIs = serviceList.filter(
+        (service: serviceusage_v1.Schema$GoogleApiServiceusageV1Service) => {
+          return service.state === 'ENABLED';
+        },
+      );
       for (const enabledAPI of enabledAPIs) {
         if (enabledAPI.config && enabledAPI.config.documentation) {
           const name = enabledAPI.config.name || 'Unknown name.';
@@ -92,7 +82,7 @@ export default async (options: { open?: string }) => {
       // Merge discovery data with public services data.
       const publicServices = [];
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
-        const service = services.find((s) => s.name === publicServiceId);
+        const service = services.find(s => s.name === publicServiceId);
         // for some reason 'youtubePartner' is not in the api list.
         if (service && service.id && service.description) {
           publicServices.push(service);

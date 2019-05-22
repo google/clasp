@@ -1,10 +1,5 @@
 import { ProjectSettings } from '../dotfile';
-import {
-  ERROR,
-  getProjectSettings,
-  logError,
-  saveProject,
-} from '../utils';
+import { ERROR, getProjectSettings, logError, saveProject } from '../utils';
 
 /**
  * Gets or sets a setting in .clasp.json
@@ -12,7 +7,7 @@ import {
  * @param {string?} settingValue Optional value to set the key to
  */
 export default async (settingKey?: keyof ProjectSettings, settingValue?: string) => {
-  const currentSettings = await getProjectSettings();
+  let currentSettings = await getProjectSettings();
 
   // Display all settings if ran `clasp setting`.
   if (!settingKey) {
@@ -37,7 +32,7 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
     }
   } else {
     try {
-      const currentSettings = await getProjectSettings();
+      currentSettings = await getProjectSettings();
       const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
       switch (settingKey) {
         case 'scriptId':

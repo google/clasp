@@ -1,16 +1,23 @@
-import * as fs from 'fs';
 import * as path from 'path';
+import * as findUp from 'find-up';
+import * as fs from 'fs-extra';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
 import * as recursive from 'recursive-readdir';
+import * as ts2gas from 'ts2gas';
 import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import { ERROR, LOG, checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner } from './utils';
-
-const ts2gas = require('ts2gas');
-const readMultipleFiles = require('read-multiple-files');
-const findParentDir = require('find-parent-dir');
+import {
+  ERROR,
+  LOG,
+  PROJECT_MANIFEST_FILENAME,
+  checkIfOnline,
+  getAPIFileType,
+  getProjectSettings,
+  logError,
+  spinner,
+} from './utils';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -20,9 +27,8 @@ interface AppsScriptFile {
 }
 
 // Used to receive files tracked by current project
-interface FilesCallback {
-  (error: Error | boolean, result: string[][] | null, files: Array<AppsScriptFile | undefined> | null): void;
-}
+type FilesCallback =
+(error: Error | boolean, result: string[][] | null, files: Array<AppsScriptFile | undefined> | null) => void;
 
 /**
  * Gets the local file type from the API FileType.
@@ -46,11 +52,10 @@ export function hasProject(): boolean {
  * Returns in tsconfig.json.
  * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
  */
-export function getTranspileOptions(): ts.TranspileOptions{
-  const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-  const tsconfigPath = path.join(projectDirectory, 'tsconfig.json');
-  const userConf: ts.TranspileOptions = {};
-  if(fs.existsSync(tsconfigPath)){
+export function getTranspileOptions(): ts.TranspileOptions {
+  const projectPath = findUp.sync(DOT.PROJECT.PATH);
+  const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
+  if(fs.existsSync(tsconfigPath)) {
     const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
     return {
@@ -80,22 +85,33 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
   recursive(rootDir, async (err, filePaths) => {
     if (err) return callback(err, null, null);
+
     // Filter files that aren't allowed.
     const ignorePatterns = await DOTFILE.IGNORE();
-    filePaths = filePaths.sort(); // Sort files alphanumerically
-    let abortPush = false;
-    let nonIgnoredFilePaths: string[] = [];
-    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
-    let ignoredFilePaths: string[] = [];
-    ignoredFilePaths = ignoredFilePaths.concat(ignorePatterns);
+
+    // Replace OS specific path separator to common '/' char for console output
+    filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
+    filePaths.sort(); // Sort files alphanumerically
+
+    // dispatch with patterns from .claspignore
+    const filesToPush: string[] = [];
+    const filesToIgnore: string[] = [];
+    filePaths.forEach(file => {
+      if (multimatch(path.relative(rootDir, file), ignorePatterns, { dot: true }).length === 0) {
+        filesToPush.push(file);
+      } else {
+        filesToIgnore.push(file);
+      }
+    });
 
     // Check if there are files that will conflict if renamed .gs to .js.
     // When pushing to Apps Script, these files will overwrite each other.
-    filePaths.map((name: string) => {
+    let abortPush = false;
+    filesToPush.forEach((name: string) => {
       const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
       if (
-        filePaths.indexOf(fileNameWithoutExt + '.js') !== -1 &&
-        filePaths.indexOf(fileNameWithoutExt + '.gs') !== -1
+        filesToPush.indexOf(fileNameWithoutExt + '.js') !== -1 &&
+        filesToPush.indexOf(fileNameWithoutExt + '.gs') !== -1
       ) {
         // Can't rename, conflicting files
         abortPush = true;
@@ -107,15 +123,12 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     });
     if (abortPush) return callback(new Error(), null, null);
 
-    // Replace OS specific path separator to common '/' char for console output
-    filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
+    const nonIgnoredFilePaths: string[] = [];
+    const ignoredFilePaths = [...filesToIgnore];
 
-    // check ignore files
-    const ignoreMatches = multimatch(filePaths, ignorePatterns, { dot: true });
-    const intersection: string[] = filePaths.filter(file => !ignoreMatches.includes(file));
-
+    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
     // Loop through files that are not ignored
-    let files = intersection
+    let files = filesToPush
       .map((name, i) => {
         const normalizedName = path.normalize(name);
 
@@ -136,12 +149,12 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         const formattedName = getAppsScriptFileName(rootDir, name);
 
         // If the file is valid, return the file in a format suited for the Apps Script API.
-        if (isValidFileName(name, type, rootDir, normalizedName, ignoreMatches)) {
+        if (isValidFileName(name, type, rootDir, normalizedName, filesToIgnore)) {
           nonIgnoredFilePaths.push(name);
           const file: AppsScriptFile = {
             name: formattedName, // the file base name
             type, // the file extension
-            source, //the file contents
+            source, // the file contents
           };
           file2path.push({ file, path: name });  // allow matching of nonIgnoredFilePaths and files arrays
           return file;
@@ -156,14 +169,14 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     // It puts the files in the setting's filePushOrder first.
     // This is needed because Apps Script blindly executes files in order of creation time.
     // The Apps Script API updates the creation time of files.
-    if (filePushOrder) {
+    if (filePushOrder && filePushOrder.length > 0) { // skip "filePushOrder": []
       spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
-      filePushOrder.map(file => {
+      filePushOrder.forEach(file => {
         console.log(`└─ ${file}`);
       });
       console.log('');
-      nonIgnoredFilePaths = nonIgnoredFilePaths.sort((path1, path2) => {
+      nonIgnoredFilePaths.sort((path1, path2) => {
         // Get the file order index
         let path1Index = filePushOrder.indexOf(path1);
         let path2Index = filePushOrder.indexOf(path2);
@@ -202,11 +215,9 @@ export function isValidFileName(name: string,
   // Has a type or is appsscript.json
   let isValidJSONIfJSON = true;
   if (type === 'JSON') {
-    if (rootDir) {
-      isValidJSONIfJSON = normalizedName === path.join(rootDir, 'appsscript.json');
-    } else {
-      isValidJSONIfJSON = name === 'appsscript.json';
-    }
+    isValidJSONIfJSON = rootDir
+      ? normalizedName === path.join(rootDir, PROJECT_MANIFEST_FILENAME)
+      : name === PROJECT_MANIFEST_FILENAME;
   } else {
     // Must be SERVER_JS or HTML.
     // https://developers.google.com/apps-script/api/reference/rest/v1/File
@@ -278,8 +289,9 @@ export async function fetchProject(
  */
 export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
   const { fileExtension } = await getProjectSettings();
-  const sortedFiles = files.sort((file1, file2) => file1.name.localeCompare(file2.name));
-  sortedFiles.map((file) => {
+  files.sort((file1, file2) => file1.name.localeCompare(file2.name));
+  const sortedFiles = files;
+  sortedFiles.forEach((file) => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
     mkdirp(path.dirname(truePath), err => {
@@ -303,33 +315,38 @@ export async function pushFiles(silent = false) {
   if (!scriptId) return;
   // TODO Make getProjectFiles async
   getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
+    // Check for edge cases.
     if (err) {
       logError(err, LOG.PUSH_FAILURE);
-      spinner.stop(true);
-    } else if (projectFiles) {
-      const [nonIgnoredFilePaths] = projectFiles;
-      // tslint:disable-next-line:no-any
-      const filesForAPI = files as AppsScriptFile[];
-      try {
-        await script.projects.updateContent({
+      return spinner.stop(true);
+    }
+    if (!projectFiles) {
+      console.log(LOG.PUSH_NO_FILES);
+      return spinner.stop(true);
+    }
+
+    // Start pushing.
+    const [nonIgnoredFilePaths] = projectFiles;
+    const filesForAPI = files as AppsScriptFile[];
+    try {
+      await script.projects.updateContent({
+        scriptId,
+        requestBody: {
           scriptId,
-          requestBody: {
-            scriptId,
-            files: filesForAPI,
-          },
+          files: filesForAPI,
+        },
+      });
+    } catch (e) {
+      console.error(LOG.PUSH_FAILURE);
+      console.log(e);
+    } finally {
+      if (!silent) spinner.stop(true);
+      // no error
+      if (!silent) {
+        nonIgnoredFilePaths.forEach((filePath: string) => {
+          console.log(`└─ ${filePath}`);
         });
-      } catch (e) {
-        console.error(LOG.PUSH_FAILURE);
-        console.log(e);
-      } finally {
-        if (!silent) spinner.stop(true);
-        // no error
-        if (!silent) {
-          nonIgnoredFilePaths.map((filePath: string) => {
-            console.log(`└─ ${filePath}`);
-          });
-          console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-        }
+        console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
       }
     }
   });

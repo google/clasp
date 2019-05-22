@@ -1,18 +1,14 @@
-import {drive_v3} from 'googleapis';
-import {
-  drive,
-  loadAPICredentials,
-} from '../auth';
+import { drive_v3 } from 'googleapis';
+import { drive, loadAPICredentials } from '../auth';
 import { URL } from '../urls';
-import {
-  ERROR,
-  LOG,
-  checkIfOnline,
-  logError,
-  spinner,
-} from '../utils';
+import { ERROR, LOG, checkIfOnline, logError, spinner } from '../utils';
 
-const ellipsize = require('ellipsize');
+interface EllipizeOptions {
+  ellipse?: string;
+  chars?: string[];
+  truncate?: boolean | 'middle';
+}
+const ellipsize: (str?: string, max?: number, opts?: EllipizeOptions) => string = require('ellipsize');
 const padEnd = require('string.prototype.padend');
 
 /**
@@ -38,7 +34,7 @@ export default async () => {
     return console.log(LOG.FINDING_SCRIPTS_DNE);
   }
   const NAME_PAD_SIZE = 20;
-  files.map((file: drive_v3.Schema$File) => {
+  files.forEach((file: drive_v3.Schema$File) => {
     const fileName = ellipsize(file.name, NAME_PAD_SIZE);
     console.log(`${padEnd(fileName, NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id || '')}`);
   });

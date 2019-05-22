@@ -1,17 +1,8 @@
 import { SCRIPT_TYPES } from '../apis';
-import {
-  drive,
-  loadAPICredentials,
-  script,
-} from '../auth';
-import {
-  fetchProject,
-  hasProject,
-  writeProjectFiles,
-} from '../files';
-import {
-  manifestExists,
-} from '../manifest';
+import { drive, loadAPICredentials, script } from '../auth';
+import { fetchProject, hasProject, writeProjectFiles } from '../files';
+import { scriptTypePrompt } from '../inquirer';
+import { manifestExists } from '../manifest';
 import {
   ERROR,
   LOG,
@@ -22,7 +13,6 @@ import {
   saveProject,
   spinner,
 } from '../utils';
-const prompt = require('inquirer').prompt;
 
 /**
  * Creates a new Apps Script project.
@@ -44,13 +34,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   let { parentId } = cmd;
 
   if (!parentId && !type) {
-    const answers = await prompt([{
-      type: 'list',
-      name: 'type',
-      message: LOG.CLONE_SCRIPT_QUESTION,
-      // tslint:disable-next-line:no-any
-      choices: Object.keys(SCRIPT_TYPES).map((key: string) => SCRIPT_TYPES[key as any]),
-    }]) as {type: string};
+    const answers = await scriptTypePrompt();
     type = answers.type;
   }
 
@@ -106,10 +90,13 @@ export default async (cmd: { type: string; title: string; parentId: string; root
     const createdScriptId = res.data.scriptId || '';
     console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
     const rootDir = cmd.rootDir;
-    saveProject({
-      scriptId: createdScriptId,
-      rootDir,
-    }, false);
+    saveProject(
+      {
+        scriptId: createdScriptId,
+        rootDir,
+      },
+      false,
+    );
     if (!manifestExists()) {
       const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
       writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks

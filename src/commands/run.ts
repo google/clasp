@@ -1,26 +1,11 @@
+import * as readline from 'readline';
 import chalk from 'chalk';
 import * as pluralize from 'pluralize';
-import {
-  getFunctionNames,
-} from '../apiutils';
-import {
-  getLocalScript,
-  loadAPICredentials,
-  script,
-} from '../auth';
-import {
-  addScopeToManifest,
-  isValidRunManifest,
-} from '../manifest';
+import { getFunctionNames } from '../apiutils';
+import { getLocalScript, loadAPICredentials, script } from '../auth';
+import { addScopeToManifest, isValidRunManifest } from '../manifest';
 import { URL } from '../urls';
-import {
-  ERROR,
-  checkIfOnline,
-  getProjectSettings,
-  getValidJSON,
-  logError,
-  spinner,
-} from '../utils';
+import { ERROR, checkIfOnline, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
  * @param functionName {string} The function name within the Apps Script project.
@@ -30,7 +15,6 @@ import {
  * @requires `clasp login --creds` to be run beforehand.
  */
 export default async (functionName: string, cmd: { nondev: boolean; params: string }) => {
-
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings(true);
@@ -108,8 +92,7 @@ async function runFunction(functionName: string, params: string[], scriptId: str
           // The 401 is probably due to this error:
           // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
           // This is probably due to the OAuth client not having authorized scopes.
-          console.log(`` +
-            `Hey! It looks like you aren't authenticated for the scopes required by this script.
+          console.log(`Hey! It looks like you aren't authenticated for the scopes required by this script.
 Please enter the scopes by doing the following:
 1. Open Your Script: ${URL.SCRIPT(scriptId)}
 2. File > Project Properties > Scopes
@@ -122,7 +105,6 @@ https://www.googleapis.com/auth/presentations
           // https://mail.google.com/
           // https://www.googleapis.com/auth/presentations
           // https://www.googleapis.com/auth/spreadsheets
-          const readline = require('readline');
           const scopes: string[] = [];
           const rl = readline.createInterface({
             input: process.stdin,
@@ -140,8 +122,9 @@ https://www.googleapis.com/auth/presentations
           rl.on('close', async () => {
             await addScopeToManifest(scopes);
             const numScopes = scopes.length;
-            console.log(`Added ${numScopes} ` +
-              `${pluralize('scope', numScopes)} to your appsscript.json' oauthScopes`);
+            console.log(
+              `Added ${numScopes} ` + `${pluralize('scope', numScopes)} to your appsscript.json' oauthScopes`,
+            );
             console.log('Please `clasp login --creds <file>` to log in with these new scopes.');
           });
           // We probably don't need to show the unauth error

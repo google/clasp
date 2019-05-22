@@ -1,12 +1,9 @@
 import * as fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
 import { loadAPICredentials, serviceUsage } from './auth';
+import { functionNamePrompt, functionNameSource } from './inquirer';
 import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
-
-// setup inquirer
-const inquirer = require('inquirer');
-const prompt = inquirer.prompt;
 
 /**
  * Prompts for the function name.
@@ -29,23 +26,21 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
       return functions.concat(file.functionSet.values);
     }, [])
     .map((func: TypeFunction) => func.name) as string[];
-  const answers = await prompt([{
-    name: 'functionName',
-    message: 'Select a functionName',
-    type: 'autocomplete',
-    source: (answers: object, input = '') => {
-      // Returns a Promise
-      // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
-      return new Promise(resolve => {
-        // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
-        const filtered = fuzzy.filter(input, functionNames);
-        const original = filtered.map(el => {
-          return el.original;
-        });
-        resolve(original);
-      });
-    },
-  }]);
+
+  const source: functionNameSource = (unused: object, input = '') => {
+    // Returns a Promise
+    // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
+    return new Promise(resolve => {
+      // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
+      const original = fuzzy
+        .filter(input, functionNames)
+        .map(el => el.original);
+
+      resolve(original);
+    });
+  };
+
+  const answers = await functionNamePrompt(source);
   return answers.functionName;
 }
 
@@ -98,7 +93,7 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean) {
 /**
  * Enable 'script.googleapis.com' of Google API.
  */
-export async function enableAppsScriptAPI(){
+export async function enableAppsScriptAPI() {
    await loadAPICredentials();
    const projectId = await getProjectIdWithErrors();
    const name = `projects/${projectId}/services/script.googleapis.com`;

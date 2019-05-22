@@ -1,15 +1,15 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
+import * as fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
-import { prompt } from 'inquirer';
 import * as pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
+import { projectIdPrompt } from './inquirer';
 import { URL } from './urls';
 
-const ucfirst = require('ucfirst');
-const isOnline = require('is-online');
+const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
+const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
@@ -54,7 +54,7 @@ export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   return RC.read()
     .then((rc: ClaspToken) => rc)
     .catch((err: Error) => {
-      logError(err, ERROR.NO_CREDENTIALS(local));
+      return logError(err, ERROR.NO_CREDENTIALS(local));
     });
 }
 
@@ -132,6 +132,7 @@ export const LOG = {
   CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
   CLONE_SCRIPT_QUESTION: 'Clone which script?',
+  CREATE_SCRIPT_QUESTION: 'Create which script?',
   CREATE_DRIVE_FILE_FINISH: (filetype: string, fileid: string) =>
     `Created new ${getFileTypeName(filetype) || '(unknown type)'}: ${URL.DRIVE(fileid)}`,
   CREATE_DRIVE_FILE_START: (filetype: string) =>
@@ -163,6 +164,7 @@ export const LOG = {
   OPEN_WEBAPP: (deploymentId?: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
   PUSH_FAILURE: 'Push failed. Errors:',
+  PUSH_NO_FILES: 'No files to push.',
   PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files...\n',
@@ -205,7 +207,7 @@ export const spinner = new Spinner();
  * @param  {string} description The description of the error
  */
 // tslint:disable-next-line:no-any
-export const logError = (err: any, description = '') => {
+export const logError = (err: any, description = ''): never => {
   spinner.stop(true);
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
@@ -231,8 +233,8 @@ export const logError = (err: any, description = '') => {
       console.error(err.error);
     }
     if (description) console.error(description);
-    process.exit(1);
   }
+  return process.exit(1);
 };
 
 /**
@@ -271,7 +273,6 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
     const fail = (failSilently?: boolean) => {
       if (!failSilently) {
         logError(null, ERROR.SETTINGS_DNE);
-        reject();
       }
       resolve();
     };
@@ -318,13 +319,10 @@ export function getAPIFileType(filePath: string): string {
 export async function checkIfOnline() {
   // If using a proxy, return true since `isOnline` doesn't work.
   // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
-  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY || (await isOnline())) {
     return true;
   }
-  if (!(await isOnline())) {
-    logError(null, ERROR.OFFLINE);
-    process.exit(1);
-  }
+  return logError(null, ERROR.OFFLINE);
 }
 
 /**
@@ -353,12 +351,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
     if (!promptUser) throw new Error('Project ID not found.');
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-    await prompt([{
-      type: 'input',
-      name: 'projectId',
-      message: `${LOG.ASK_PROJECT_ID}`,
-    // tslint:disable-next-line:no-any
-    }]).then(async (answers: any) => {
+    await projectIdPrompt().then(async (answers) => {
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
     });
@@ -398,7 +391,7 @@ function getScriptTypeName(type: string) {
  * Handles error of each command.
  */
 // tslint:disable-next-line:no-any
-export function handleError(command: (...args: any[]) => Promise<void>) {
+export function handleError(command: (...args: any[]) => Promise<unknown>) {
   // tslint:disable-next-line:no-any
   return async (...args: any[]) => {
     try {
