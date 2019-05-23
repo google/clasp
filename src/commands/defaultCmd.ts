@@ -1,4 +1,4 @@
-import { ERROR, logError } from './../utils';
+import { ERROR, logError } from '../utils';
 
 /**
  * Displays a default message when an unknown command is typed.
