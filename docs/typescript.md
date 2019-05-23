@@ -201,7 +201,7 @@ In most cases, the inferred type is sufficient for Apps Script autocompletion.
 
 Enabling advanced services modifies the `appsscript.json` file on script.google.com. After enabling an advanced service in the UI, copy the `appsscript.json` file from script.google.com into your editor to use the advanced services in your project.
 
-Advanced Service currently do not have TypeScript autocompletion.
+Advanced Service should have TypeScript autocompletion.
 
 ### TypeScript Support
 
