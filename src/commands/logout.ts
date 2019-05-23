@@ -1,6 +1,6 @@
 import * as del from 'del';
-import { DOT } from './../dotfile';
-import { hasOauthClientSettings } from './../utils';
+import { DOT } from '../dotfile';
+import { hasOauthClientSettings } from '../utils';
 
 /**
  * Logs out the user by deleting credentials.

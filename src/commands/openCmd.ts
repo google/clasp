@@ -1,8 +1,8 @@
 import * as open from 'open';
-import { loadAPICredentials, script } from './../auth';
-import { URL } from './../urls';
-import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from './../utils';
+import { loadAPICredentials, script } from '../auth';
 import { deploymentIdPrompt } from '../inquirer';
+import { URL } from '../urls';
+import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from '../utils';
 
 interface EllipizeOptions {
   ellipse?: string;
@@ -58,14 +58,6 @@ export default async (
     logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
   // Order deployments by update time.
-  // const orderedDeployments = deployments
-  //   .slice()
-  //   .sort((d1, d2) => {
-  //     if (d1.updateTime && d2.updateTime) {
-  //       return d1.updateTime.localeCompare(d2.updateTime);
-  //     }
-  //     return 0; // should never happen
-  //   });
   const choices = deployments
     .slice()
     .sort((d1, d2) => {
