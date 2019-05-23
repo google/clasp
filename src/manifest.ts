@@ -33,6 +33,7 @@ export async function readManifest(): Promise<Manifest> {
  * Writes the appsscript.json manifest file.
  * @param {Manifest} manifest The new manifest to write.
  */
+// TODO: unnecessary export
 export async function writeManifest(manifest: Manifest) {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
@@ -99,6 +100,7 @@ export async function addScopeToManifest(scopes: string[]) {
  * Enables the Execution API in the Manifest.
  * The Execution API requires the manifest to have the "executionApi.access" field set.
  */
+// TODO: currently unused. Check relevancy
 export async function enableExecutionAPI() {
   console.log('Writing manifest');
   const manifest = await readManifest();
@@ -344,6 +346,7 @@ interface Gmail {
   sheets: Sheets;
 }
 
+// TODO: unnecessary export
 export interface Manifest {
   timeZone?: string;
   oauthScopes?: string[];
