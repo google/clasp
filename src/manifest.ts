@@ -22,7 +22,7 @@ export async function readManifest(): Promise<Manifest> {
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
-    return JSON.parse(fs.readFileSync(manifest, 'utf8'));
+    return fs.readJsonSync(manifest, { encoding: 'utf-8' });
   } catch (err) {
     logError(null, ERROR.NO_MANIFEST(manifest));
     throw Error('Could not read the manifest file.'); // TODO standardize errors.
@@ -39,7 +39,7 @@ export async function writeManifest(manifest: Manifest) {
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
-    fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, 2));
+    fs.writeJsonSync(manifestFilePath, manifest, { encoding: 'utf-8', spaces: 2 });
   } catch (err) {
     logError(null, ERROR.FS_FILE_WRITE);
   }

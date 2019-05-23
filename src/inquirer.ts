@@ -1,5 +1,5 @@
 import { script_v1 } from 'googleapis';
-import { prompt, registerPrompt } from 'inquirer';
+import { Question, prompt, registerPrompt } from 'inquirer';
 import { SCRIPT_TYPES } from './apis';
 import { LOG } from './utils';
 
@@ -18,8 +18,8 @@ export const functionNamePrompt = (source: functionNameSource) => {
     message: 'Select a functionName',
     type: 'autocomplete',
     source,
-  };
-  return prompt<{ functionName: string }>([question]);
+  } as unknown as Question;
+  return prompt<{ functionName: string }>(question);
 };
 
 interface DeploymentIdPrompt {
@@ -124,4 +124,4 @@ export const scriptTypePrompt = () => prompt<{ type: string }>([{
   message: LOG.CREATE_SCRIPT_QUESTION,
   name: 'type',
   type: 'list',
-  }]);
+}]);
