@@ -87,12 +87,15 @@ export const DOTFILE = {
   IGNORE: () => {
     const projectPath = findUp.sync(DOT.PROJECT.PATH);
     const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
-    return new Promise<string[]>((res, rej) => {
-      if (fs.existsSync(ignoreDirectory)) {
+    return new Promise<string[]>((resolve, reject) => {
+      if (
+        fs.existsSync(ignoreDirectory)
+        && fs.existsSync(DOT.IGNORE.PATH)
+      ) {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, { encoding: 'utf8' }));
-        res(splitLines(buffer).filter((name: string) => name));
+        resolve(splitLines(buffer).filter((name: string) => name));
       } else {
-        res([]);
+        resolve(['**/**', '!appsscript.json', '!*.js', '!*.ts']);
       }
     });
   },
