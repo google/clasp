@@ -1,6 +1,6 @@
-import { getProjectFiles } from './../files';
-import { isValidManifest } from './../manifest';
-import { LOG, checkIfOnline, getProjectSettings } from './../utils';
+import { getProjectFiles } from '../files';
+import { isValidManifest } from '../manifest';
+import { LOG, checkIfOnline, getProjectSettings } from '../utils';
 
 /**
  * Displays the status of which Apps Script files are ignored from .claspignore

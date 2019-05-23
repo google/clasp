@@ -19,14 +19,14 @@ import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 import stripBom = require('strip-bom');
 
-declare type dotf = (dirname: string, name: string) => {
+export declare type Dotf = (dirname: string, name: string) => {
   exists: () => Promise<boolean>;
   read: () => Promise<any>; // tslint:disable-line: no-any
   write: <T>(obj: T) => Promise<T>;
   delete: () => Promise<void>;
 };
 
-const dotf: dotf = require('dotf');
+const dotf: Dotf = require('dotf');
 const splitLines: (str: string, options?: { preserveNewLines?: boolean })
   => string[] = require('split-lines');
 
@@ -102,7 +102,7 @@ export const DOTFILE = {
   /**
    * Gets the closest DOT.PROJECT.NAME in the parent directory of the directory
    * that the command was run in.
-   * @return {dotf} A dotf with that dotfile. Null if there is no file
+   * @return {Dotf} A dotf with that dotfile. Null if there is no file
    */
   PROJECT: () => {
     const projectPath = findUp.sync(DOT.PROJECT.PATH);
