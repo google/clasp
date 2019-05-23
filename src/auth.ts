@@ -167,7 +167,6 @@ export async function authorize(options: {
         },
         isLocalCreds: true,
       };
-      // await DOTFILE.RC_LOCAL().write(claspToken);
     } else {
       dotfile = DOTFILE.RC;
       // Save global ClaspCredentials.
@@ -176,7 +175,6 @@ export async function authorize(options: {
         oauth2ClientSettings: globalOauth2ClientSettings,
         isLocalCreds: false,
       };
-      // await DOTFILE.RC.write(claspToken);
     }
     await dotfile.write(claspToken);
     console.log(LOG.SAVED_CREDS(!!options.creds));
