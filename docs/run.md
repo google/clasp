@@ -21,10 +21,15 @@ To use `clasp run`, you need to complete 4 steps:
 1. Ensure you have upgraded to the latest version
     - `clasp -v`
 1. Add a `projectId` to your `.clasp.json`. You can find your Project ID via:
+    - [Create GCP project and get ProjectId](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
+    - get `Project ID` and `Project number`. Example: `my-sample-project-191923.` and `314053285323`.
+    - Paste `Project ID` in `projectId` in your `.clasp.json`.
+1. Apply a `projectId` to your GAS project
+    - Open `https://console.developers.google.com/apis/credentials/consent?project=[projectId]`
+    - Enter `Application name` (example: `clasp run oauth`) and click `save`
     - `clasp open`
     - In the menu, click `Resources > Cloud Platform project...`
-    - Copy the project ID. Example: `project-id-7006438181792679938`.
-    - Paste this in `projectId` in your `.clasp.json`.
+    - Paste `Project number` in `Change Project` and click `Set Project`
 1. Use your own OAuth 2 client. Create one by following these instructions:
     - `clasp open --creds`
     - Press **Create credentials** > **OAuth client ID**
