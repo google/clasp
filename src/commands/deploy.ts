@@ -1,4 +1,4 @@
-import { loadAPICredentials, script } from './../auth';
+import { loadAPICredentials, script } from '../auth';
 import {
   ERROR,
   LOG,
@@ -7,7 +7,7 @@ import {
   getProjectSettings,
   logError,
   spinner,
-} from './../utils';
+} from '../utils';
 
 /**
  * Deploys an Apps Script project.

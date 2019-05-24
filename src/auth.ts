@@ -8,7 +8,7 @@ import * as url from 'url';
 import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { google, script_v1 } from 'googleapis';
 import * as open from 'open';
-import { ClaspToken, DOTFILE } from './dotfile';
+import { ClaspToken, DOTFILE, Dotf } from './dotfile';
 import { oauthScopesPrompt } from './inquirer';
 import { readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
@@ -154,7 +154,9 @@ export async function authorize(options: {
 
     // Save the token and own creds together.
     let claspToken: ClaspToken;
+    let dotfile: ReturnType<Dotf>;
     if (options.creds) {
+      dotfile = DOTFILE.RC_LOCAL();
       // Save local ClaspCredentials.
       claspToken = {
         token,
@@ -165,16 +167,16 @@ export async function authorize(options: {
         },
         isLocalCreds: true,
       };
-      await DOTFILE.RC_LOCAL().write(claspToken);
     } else {
+      dotfile = DOTFILE.RC;
       // Save global ClaspCredentials.
       claspToken = {
         token,
         oauth2ClientSettings: globalOauth2ClientSettings,
         isLocalCreds: false,
       };
-      await DOTFILE.RC.write(claspToken);
     }
+    await dotfile.write(claspToken);
     console.log(LOG.SAVED_CREDS(!!options.creds));
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);

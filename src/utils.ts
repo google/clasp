@@ -334,8 +334,7 @@ export async function saveProject(
   newProjectSettings: ProjectSettings,
   append = true): Promise<ProjectSettings> {
   if (append) {
-    const projectSettings: ProjectSettings = await DOTFILE.PROJECT().read();
-    // TODO: const projectSettings: ProjectSettings = await getProjectSettings();
+    const projectSettings: ProjectSettings = await getProjectSettings();
     newProjectSettings = { ...projectSettings, ...newProjectSettings };
   }
   return DOTFILE.PROJECT().write(newProjectSettings);

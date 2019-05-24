@@ -1,7 +1,7 @@
 /**
  * Clasp command method bodies.
  */
-import { readFileSync } from 'fs-extra';
+import { readJsonSync } from 'fs-extra';
 import { enableAppsScriptAPI } from '../apiutils';
 import { authorize } from '../auth';
 import { readManifest } from '../manifest';
@@ -47,8 +47,7 @@ File > Project Properties > Scopes
 `);
 
     // Read credentials file.
-    const credsFile = readFileSync(options.creds, 'utf8');
-    const credentials = JSON.parse(credsFile);
+    const credentials = readJsonSync(options.creds, { encoding: 'utf-8' });
     await authorize({
       useLocalhost,
       creds: credentials,
