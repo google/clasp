@@ -19,12 +19,18 @@ import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 import stripBom = require('strip-bom');
 
+// Getting ready to switch to `dotf` embedded types
+// import { default as dotf } from 'dotf';
+// export { Dotfile } from 'dotf';
+
+// When switching, comment-out the following two exports
 export declare type Dotf = (dirname: string, name: string) => {
   exists: () => Promise<boolean>;
-  read: () => Promise<any>; // tslint:disable-line: no-any
+  read: <T>() => Promise<T>;
   write: <T>(obj: T) => Promise<T>;
   delete: () => Promise<void>;
 };
+export type Dotfile = ReturnType<Dotf>;
 
 const dotf: Dotf = require('dotf');
 const splitLines: (str: string, options?: { preserveNewLines?: boolean })
