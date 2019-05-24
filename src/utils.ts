@@ -51,7 +51,7 @@ export const hasOauthClientSettings = (local = false): boolean =>
  */
 export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC.read()
+  return RC.read<ClaspToken>()
     .then((rc: ClaspToken) => rc)
     .catch((err: Error) => {
       return logError(err, ERROR.NO_CREDENTIALS(local));
@@ -280,7 +280,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
       dotfile
-        .read()
+        .read<ProjectSettings>()
         .then((settings: ProjectSettings) => {
           // Settings must have the script ID. Otherwise we err.
           if (settings.scriptId) {

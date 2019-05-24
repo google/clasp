@@ -17,6 +17,8 @@ import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
+import { Dotfile, default as dotf } from 'pop-dotf';
+import * as popDotf from 'pop-dotf';
 import stripBom = require('strip-bom');
 
 export declare type Dotf = (dirname: string, name: string) => {
@@ -25,8 +27,7 @@ export declare type Dotf = (dirname: string, name: string) => {
   write: <T>(obj: T) => Promise<T>;
   delete: () => Promise<void>;
 };
-
-const dotf: Dotf = require('dotf');
+// const dotf: Dotf = require('pop-dotf');
 const splitLines: (str: string, options?: { preserveNewLines?: boolean })
   => string[] = require('split-lines');
 
