@@ -1,8 +1,10 @@
+import { spawnSync } from 'child_process';
 import * as path from 'path';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
-import { getAppsScriptFileName, getFileType } from './../src/files';
+import { getAppsScriptFileName, getFileType } from '../src/files';
+import { URL, extractScriptId } from '../src/urls';
 import {
   ERROR,
   LOG,
@@ -10,27 +12,15 @@ import {
   getDefaultProjectName,
   getWebApplicationURL,
   saveProject,
-} from './../src/utils';
-
-import {
-  cleanup,
-  setup,
-} from './functions';
-
+} from '../src/utils';
 import {
   CLASP,
-  CLASP_USAGE,
   CLASP_PATHS,
+  CLASP_USAGE,
   IS_PR,
   SCRIPT_ID,
 } from './constants';
-
-import {
-  extractScriptId,
-  URL,
-} from './../src/urls';
-
-import { spawnSync } from 'child_process';
+import { cleanup, setup } from './functions';
 
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
@@ -275,7 +265,7 @@ describe('Test variations of clasp --version', () => {
       CLASP, [variation], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.include(require('./../package.json').version);
+    expect(result.stdout).to.include(require('../package.json').version);
   };
   it('should show version for clasp --version', () => expectVersion('--version'));
   it('should show version for clasp -v', () => expectVersion('-v'));
