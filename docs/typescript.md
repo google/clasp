@@ -258,7 +258,7 @@ namespace Module {
 ```
 
 ```ts
-// anyFilests
+// anyFiles.ts
 Module.foo();  // address a namespace's exported content directly
 
 const nameIWantForMyImports = Module.foo;  // to simulate `import` with renaming
