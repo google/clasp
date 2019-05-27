@@ -2,14 +2,16 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
+import { PROJECT_MANIFEST_FILENAME } from './config';
 import { DOT } from './dotfile';
-import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
-
+import { ERROR, getProjectSettings, getValidJSON, logError } from './utils';
 /**
  * Checks if the rootDir appears to be a valid project.
  * @return {boolean} True if valid project, false otherwise
  */
 export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
+  // TODO WIP notes: <rootDir defaults to PROJECT directory>
+  // TODO WIP notes: lookup MANIFEST file in <rootDir>
   fs.existsSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME));
 
 /**
@@ -19,6 +21,7 @@ export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
  */
 export async function readManifest(): Promise<Manifest> {
   let { rootDir } = await getProjectSettings();
+  // TODO WIP notes: <rootDir defaults to PROJECT directory>
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
@@ -36,6 +39,7 @@ export async function readManifest(): Promise<Manifest> {
 // TODO: unnecessary export
 export async function writeManifest(manifest: Manifest) {
   let { rootDir } = await getProjectSettings();
+  // TODO WIP notes: <rootDir defaults to PROJECT directory>
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
@@ -78,6 +82,7 @@ export async function isValidRunManifest(): Promise<boolean> {
 // tslint:disable-next-line:no-any
 export async function getManifest(): Promise<any> {
   let { rootDir } = await getProjectSettings();
+  // <rootDir defaults to PROJECT directory>
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifestString =  fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
   return getValidJSON(manifestString);

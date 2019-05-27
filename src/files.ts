@@ -7,11 +7,11 @@ import * as recursive from 'recursive-readdir';
 import * as ts2gas from 'ts2gas';
 import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
+import { PROJECT_MANIFEST_FILENAME } from './config';
 import { DOT, DOTFILE } from './dotfile';
 import {
   ERROR,
   LOG,
-  PROJECT_MANIFEST_FILENAME,
   checkIfOnline,
   getAPIFileType,
   getProjectSettings,
@@ -45,6 +45,7 @@ export function getFileType(type: string, fileExtension?: string): string {
  * @returns {boolean} If .clasp.json exists.
  */
 export function hasProject(): boolean {
+  // TODO WIP notes: if PROJECT file exists (in cwd)
   return fs.existsSync(DOT.PROJECT.PATH);
 }
 
@@ -54,7 +55,9 @@ export function hasProject(): boolean {
  */
 // TODO: unnecessary export
 export function getTranspileOptions(): ts.TranspileOptions {
+  // TODO WIP notes: lookup PROJECT file in directories
   const projectPath = findUp.sync(DOT.PROJECT.PATH);
+  // TODO WIP notes: lookup TSCONFIG in smae directory as found PROJECT file
   const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
   if(fs.existsSync(tsconfigPath)) {
     const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');

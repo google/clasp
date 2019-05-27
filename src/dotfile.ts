@@ -17,22 +17,25 @@ import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
+import { PROJECT_NAME } from './config';
 import stripBom = require('strip-bom');
 
+// Getting ready to switch to `dotf` embedded types
+// import { default as dotf } from 'dotf';
+// export { Dotfile } from 'dotf';
+
+// When switching, comment-out the following two exports
 export declare type Dotf = (dirname: string, name: string) => {
   exists: () => Promise<boolean>;
-  read: () => Promise<any>; // tslint:disable-line: no-any
+  read: <T>() => Promise<T>;
   write: <T>(obj: T) => Promise<T>;
   delete: () => Promise<void>;
 };
+export type Dotfile = ReturnType<Dotf>;
 
 const dotf: Dotf = require('dotf');
 const splitLines: (str: string, options?: { preserveNewLines?: boolean })
   => string[] = require('split-lines');
-
-// TEMP CIRCULAR DEPS, TODO REMOVE
-// import { PROJECT_NAME } from './utils';
-const PROJECT_NAME = 'clasp';
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
@@ -48,8 +51,8 @@ export const DOT = {
    * This dotfile stores information about ignoring files on `push`. Like .gitignore.
    */
   IGNORE: {
-    DIR: '~',
-    NAME: `${PROJECT_NAME}ignore`,
+    // DIR: '~',
+    // NAME: `${PROJECT_NAME}ignore`,
     PATH: `.${PROJECT_NAME}ignore`,
   },
   /**
@@ -71,7 +74,7 @@ export const DOT = {
     DIR: '~',
     LOCAL_DIR: './',
     NAME: `${PROJECT_NAME}rc.json`,
-    LOCAL_PATH: `.${PROJECT_NAME}rc.json`,
+    // LOCAL_PATH: `.${PROJECT_NAME}rc.json`,
     PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
     ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`),
     ABSOLUTE_LOCAL_PATH: path.join('.', `.${PROJECT_NAME}rc.json`),
@@ -85,10 +88,12 @@ export const DOTFILE = {
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: () => {
+    // TODO: there seems to be a logic error in how `.claspignore` is resolved
     const projectPath = findUp.sync(DOT.PROJECT.PATH);
     const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
     return new Promise<string[]>((resolve, reject) => {
       if (
+        // TODO: is ignoreDirectory really needed?
         fs.existsSync(ignoreDirectory)
         && fs.existsSync(DOT.IGNORE.PATH)
       ) {

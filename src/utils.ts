@@ -4,17 +4,13 @@ import { Spinner } from 'cli-spinner';
 import * as fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
+import { PROJECT_MANIFEST_FILENAME, PROJECT_NAME } from './config';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { projectIdPrompt } from './inquirer';
 import { URL } from './urls';
 
 const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
 const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
-
-// Names / Paths
-export const PROJECT_NAME = 'clasp';
-export const PROJECT_MANIFEST_BASENAME = 'appsscript';
-export const PROJECT_MANIFEST_FILENAME = PROJECT_MANIFEST_BASENAME + '.json';
 
 /**
  * The installed credentials. This is a file downloaded from console.developers.google.com
@@ -43,6 +39,8 @@ export interface ClaspCredentials {
 export const hasOauthClientSettings = (local = false): boolean =>
   local ? fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH) : fs.existsSync(DOT.RC.ABSOLUTE_PATH);
 
+  // TODO: local ? DOTFILE.RC_LOCAL().exists() : DOTFILE.RC().exists();
+
 /**
  * Gets the OAuth client settings from rc file.
  * @param {boolean} local If true, gets the local OAuth settings. Global otherwise.
@@ -51,8 +49,7 @@ export const hasOauthClientSettings = (local = false): boolean =>
  */
 export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC.read()
-    .then((rc: ClaspToken) => rc)
+  return RC.read<ClaspToken>()
     .catch((err: Error) => {
       return logError(err, ERROR.NO_CREDENTIALS(local));
     });
@@ -280,8 +277,8 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
       dotfile
-        .read()
-        .then((settings: ProjectSettings) => {
+        .read<ProjectSettings>()
+        .then((settings) => {
           // Settings must have the script ID. Otherwise we err.
           if (settings.scriptId) {
             resolve(settings);
