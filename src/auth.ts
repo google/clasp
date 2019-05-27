@@ -8,7 +8,7 @@ import * as url from 'url';
 import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { google, script_v1 } from 'googleapis';
 import * as open from 'open';
-import { ClaspToken, DOTFILE, Dotf } from './dotfile';
+import { ClaspToken, DOTFILE, Dotfile } from './dotfile';
 import { oauthScopesPrompt } from './inquirer';
 import { readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
@@ -154,7 +154,8 @@ export async function authorize(options: {
 
     // Save the token and own creds together.
     let claspToken: ClaspToken;
-    let dotfile: ReturnType<Dotf>;
+    let dotfile: Dotfile;
+    // TODO: deprecate `--creds` option
     if (options.creds) {
       dotfile = DOTFILE.RC_LOCAL();
       // Save local ClaspCredentials.
@@ -278,10 +279,11 @@ async function setOauthClientCredentials(rc: ClaspToken) {
    * Refreshes the credentials and saves them.
    */
   async function refreshCredentials(oAuthClient: OAuth2Client) {
-    const oldExpiry = (oAuthClient.credentials.expiry_date as number) || 0;
+    const oldExpiry = oAuthClient.credentials.expiry_date || 0;
     await oAuthClient.getAccessToken(); // refreshes expiry date if required
-    if (oAuthClient.credentials.expiry_date === oldExpiry) return;
-    rc.token = oAuthClient.credentials;
+    if (oAuthClient.credentials.expiry_date !== oldExpiry) {
+      rc.token = oAuthClient.credentials;
+    }
   }
 
   // Set credentials and refresh them.
@@ -301,7 +303,8 @@ async function setOauthClientCredentials(rc: ClaspToken) {
     await refreshCredentials(globalOAuth2Client);
 
     // Save the credentials.
-    await (rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC).write(rc);
+    const dotfile = rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
+    await dotfile.write(rc);
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
   }
