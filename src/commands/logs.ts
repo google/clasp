@@ -116,6 +116,7 @@ export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson
 }
 
 // TODO: unnecessary export
+// TODO: would benefit from refactoring
 export async function setupLogs(): Promise<string> {
   let projectId: string;
   const promise = new Promise<string>((resolve, reject) => {
@@ -125,11 +126,12 @@ export async function setupLogs(): Promise<string> {
       projectIdPrompt()
         .then(answers => {
           projectId = answers.projectId;
+          // TODO WIP notes: update PROJECT with projectId
           const dotfile = DOTFILE.PROJECT();
           if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
           dotfile
-            .read()
-            .then((settings: ProjectSettings) => {
+            .read<ProjectSettings>()
+            .then(settings => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
               dotfile.write({ ...settings, ...{ projectId } });
               resolve(projectId);
@@ -145,8 +147,8 @@ export async function setupLogs(): Promise<string> {
     });
   });
   promise.catch(err => {
-    logError(err);
     spinner.stop(true);
+    throw logError(err);
   });
   return promise;
 }
