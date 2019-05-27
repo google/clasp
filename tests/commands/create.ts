@@ -1,18 +1,10 @@
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
-import * as fs from 'fs-extra';
 import { spawnSync } from 'child_process';
-
-import {
-  CLASP,
-} from '../constants';
-
-import {
-  cleanup,
-  setup,
-} from '../functions';
-
+import { expect } from 'chai';
+import * as fs from 'fs-extra';
+import { describe, it } from 'mocha';
 import { LOG } from '../../src/utils';
+import { CLASP } from '../constants';
+import { cleanup, setup } from '../functions';
 
 describe('Test clasp create function', () => {
   before(setup);
@@ -33,6 +25,7 @@ describe('Test clasp create function', () => {
   after(cleanup);
 });
 
+// TODO: this test needs to be updated
 describe.skip('Test clasp create <title> function', () => {
   before(setup);
   it('should create a new project named <title> correctly', () => {

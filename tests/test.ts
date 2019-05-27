@@ -108,6 +108,7 @@ describe('Test clasp version and versions function', () => {
       Number(result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2));
     expect(versionNumber).to.be.greaterThan(0);
   });
+  // TODO: this test needs to be updated
   it.skip('should list versions correctly', () => {
     const result = spawnSync(
       CLASP, ['versions'], { encoding: 'utf8' },

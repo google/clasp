@@ -1,27 +1,10 @@
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
-import * as fs from 'fs-extra';
 import { spawnSync } from 'child_process';
-
-import {
-  CLASP,
-  CLASP_PATHS,
-  CLIENT_CREDS,
-  FAKE_CLASPRC,
-} from '../constants';
-
-import {
-  backupSettings,
-  cleanup,
-  restoreSettings,
-  rndStr,
-  setup,
-} from '../functions';
-
-import {
-  LOG,
-  ERROR,
-} from '../../src/utils';
+import { expect } from 'chai';
+import * as fs from 'fs-extra';
+import { describe, it } from 'mocha';
+import { ERROR, LOG } from '../../src/utils';
+import { CLASP, CLASP_PATHS, CLIENT_CREDS, FAKE_CLASPRC } from '../constants';
+import { backupSettings, cleanup, restoreSettings, rndStr, setup } from '../functions';
 
 describe('Test clasp login function', () => {
   before(setup);
@@ -54,6 +37,7 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_LOCAL);
     expect(result.status).to.equal(1);
   });
+  // TODO: this test needs to be updated
   it.skip('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {
     if (fs.existsSync(CLASP_PATHS.clientCredsLocal)) fs.removeSync(CLASP_PATHS.clientCredsLocal);
     const result = spawnSync(
@@ -62,6 +46,7 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.CREDENTIALS_DNE(CLASP_PATHS.clientCredsLocal));
     expect(result.status).to.equal(1);
   });
+  // TODO: this test needs to be updated
   it.skip('should exit(1) with ERROR.BAD_CREDENTIALS_FILE if --creds file invalid', () => {
     fs.writeFileSync(CLASP_PATHS.clientCredsLocal, CLIENT_CREDS.invalid);
     const result = spawnSync(
@@ -71,6 +56,7 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.BAD_CREDENTIALS_FILE);
     expect(result.status).to.equal(1);
   });
+  // TODO: this test needs to be updated
   it.skip('should exit(0) with ERROR.BAD_CREDENTIALS_FILE if --creds file corrupt json', () => {
     fs.writeFileSync(CLASP_PATHS.clientCredsLocal, rndStr());
     const result = spawnSync(

@@ -1,20 +1,10 @@
+import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
-import { spawnSync } from 'child_process';
-
-import {
-  CLASP,
-  CLASP_PATHS,
-  CLASP_SETTINGS,
-} from '../constants';
-
-import {
-  cleanup,
-  setup,
-} from '../functions';
-
 import { LOG } from '../../src/utils';
+import { CLASP, CLASP_PATHS, CLASP_SETTINGS } from '../constants';
+import { cleanup, setup } from '../functions';
 
 describe('Test clasp run function', () => {
   before(setup);
@@ -44,12 +34,14 @@ describe('Test clasp run function', () => {
   });
 
   // These tests will remain skipped until they can be fixed.
+  // TODO: this test needs to be updated
   it.skip('should prompt for project ID', () => {
     const result = spawnSync(
       CLASP, ['run', 'myFunction'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain(LOG.ASK_PROJECT_ID);
   });
+  // TODO: this test needs to be updated
   it.skip('should prompt to set up new OAuth client', () => {
     fs.writeFileSync(CLASP_PATHS.settingsLocal, CLASP_SETTINGS.invalid);
     const result = spawnSync(

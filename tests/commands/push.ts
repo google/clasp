@@ -2,14 +2,8 @@ import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
-import {
-  CLASP,
-  TEST_CODE_JS,
-} from '../constants';
-import {
-  cleanup,
-  setup,
-} from '../functions';
+import { CLASP, TEST_CODE_JS } from '../constants';
+import { cleanup, setup } from '../functions';
 
 describe('Test clasp push function', () => {
   before(setup);
@@ -23,6 +17,7 @@ describe('Test clasp push function', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
   });
+  // TODO: this test needs to be updated
   it.skip('should return non-0 exit code when push failed', () => {
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
     fs.writeFileSync('unexpected_file', TEST_CODE_JS);
@@ -48,6 +43,7 @@ describe('Test clasp push with no `.claspignore`', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
   });
+  // TODO: this test needs to be updated
   it.skip('should return non-0 exit code when push failed', () => {
     fs.writeFileSync('unexpected_file', TEST_CODE_JS);
     const result = spawnSync(
