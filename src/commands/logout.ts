@@ -1,12 +1,13 @@
-import * as del from 'del';
-import { DOT } from '../dotfile';
+import { DOTFILE } from '../dotfile';
 import { hasOauthClientSettings } from '../utils';
 
 /**
  * Logs out the user by deleting credentials.
+ * ? @grant should logout allow 'local only' logout?
  */
 export default async () => {
-  if (hasOauthClientSettings(true)) del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
+  if (hasOauthClientSettings(true)) DOTFILE.RC_LOCAL().delete();
+
   // del doesn't work with a relative path (~)
-  if (hasOauthClientSettings()) del(DOT.RC.ABSOLUTE_PATH, { force: true });
+  if (hasOauthClientSettings()) DOTFILE.RC.delete();
 };
