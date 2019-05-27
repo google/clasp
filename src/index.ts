@@ -42,9 +42,14 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
-import { PROJECT_NAME, handleError } from './utils';
+import { Config, PROJECT_NAME } from './config';
+import { handleError } from './utils';
 
 // CLI
+
+// instantiate the Config singleton
+// (and loads environment variables as a side effect)
+const config = Config.getInstance();
 
 /**
  * Set global CLI configurations
@@ -53,6 +58,46 @@ commander
   .name(PROJECT_NAME)
   .usage(`<command> [options]`)
   .description(`${PROJECT_NAME} - The Apps Script CLI`);
+
+/**
+ * Path to an auth file, or to a folder with a '.clasprc'.
+ */
+commander.option(
+  '-A, --auth',
+  `path to an auth file or a folder with a '.clasprc' file.`,
+).on('option:auth', () => {
+  config.auth.path = commander['auth'];
+});
+
+/**
+ * Path to an ignore file, or to a folder with a '.claspignore'.
+ */
+commander.option(
+  '-I, --ignore',
+  `path to an ignore file or a folder with a '.claspignore' file.`,
+).on('option:ignore', () => {
+  config.ignore.path = commander['ignore'];
+});
+
+/**
+ * Path to an manifest file, or to a folder with a 'appsscript.json'.
+ */
+commander.option(
+  '-M, --manifest',
+  `path to an manifest file or a folder with a 'appsscript.json' file.`,
+).on('option:manifest', () => {
+  config.manifest.path = commander['manifest'];
+});
+
+/**
+ * Path to a project file, or to a folder with a '.clasp.json'.
+ */
+commander.option(
+  '-P, --project',
+  `path to a project file or to a folder with a '.clasp.json' file.`,
+).on('option:project', () => {
+  config.project.path = commander['project'];
+});
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -100,7 +145,7 @@ commander
   .description('Create a script')
   .option(
     '--type <type>',
-    'Creates a new add-on attached to a new Document, Spreadsheet, Presentation, or Form.',
+    'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, or Form.',
   )
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
