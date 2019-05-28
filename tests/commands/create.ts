@@ -26,14 +26,14 @@ describe('Test clasp create function', () => {
 });
 
 // TODO: this test needs to be updated
-describe.skip('Test clasp create <title> function', () => {
+describe('Test clasp create <title> function', () => {
   before(setup);
   it('should create a new project named <title> correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
-      CLASP, ['create', 'myTitle'], { encoding: 'utf8' },
+      CLASP, ['create', '--type', 'Standalone', '--title', 'myTitle'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('Created new script: https://script.google.com/d/');
+    expect(result.stdout).to.contain('Created new Standalone script: https://script.google.com/d/');
     expect(result.status).to.equal(0);
   });
 });
