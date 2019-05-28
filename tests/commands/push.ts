@@ -22,7 +22,7 @@ describe('Test clasp push function', () => {
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
     fs.writeFileSync('unexpected_file', TEST_CODE_JS);
     const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf-8' },
+      CLASP, ['push'], { encoding: 'utf8' },
     );
     expect(result.stderr).to.contain('Invalid value at');
     expect(result.stderr).to.contain('UNEXPECTED_FILE');
@@ -47,7 +47,7 @@ describe('Test clasp push with no `.claspignore`', () => {
   it.skip('should return non-0 exit code when push failed', () => {
     fs.writeFileSync('unexpected_file', TEST_CODE_JS);
     const result = spawnSync(
-      CLASP, ['push'], { encoding: 'utf-8' },
+      CLASP, ['push'], { encoding: 'utf8' },
     );
     expect(result.stderr).to.contain('Invalid value at');
     expect(result.stderr).to.contain('UNEXPECTED_FILE');
