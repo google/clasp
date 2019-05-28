@@ -1,5 +1,5 @@
 import { loadAPICredentials, script } from '../auth';
-import { PROJECT_MANIFEST_BASENAME } from '../config';
+import { PROJECT_MANIFEST_BASENAME } from '../conf';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../utils';
 
 /**
