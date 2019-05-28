@@ -72,7 +72,7 @@ const manifestHasChanges = async (): Promise<boolean> => {
   // const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
   const localManifestDir = rootDir || Conf.get().project.resolvedDir;
   const localManifestPath = path.join(localManifestDir, PROJECT_MANIFEST_FILENAME);
-  const localManifest = readFileSync(localManifestPath, 'utf8');
+  const localManifest = readFileSync(localManifestPath, { encoding: 'utf8' });
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (!remoteManifest) throw Error('remote manifest no found');

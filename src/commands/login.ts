@@ -52,7 +52,7 @@ File > Project Properties > Scopes
 `);
 
     // Read credentials file.
-    const credentials = readJsonSync(options.creds, { encoding: 'utf-8' });
+    const credentials = readJsonSync(options.creds, { encoding: 'utf8' });
     await authorize({
       useLocalhost,
       creds: credentials,

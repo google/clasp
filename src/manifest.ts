@@ -28,7 +28,7 @@ export async function readManifest(): Promise<Manifest> {
   if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
-    return fs.readJsonSync(manifest, { encoding: 'utf-8' });
+    return fs.readJsonSync(manifest, { encoding: 'utf8' });
   } catch (err) {
     logError(null, ERROR.NO_MANIFEST(manifest));
     throw Error('Could not read the manifest file.'); // TODO standardize errors.
@@ -47,7 +47,7 @@ export async function writeManifest(manifest: Manifest) {
   if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
-    fs.writeJsonSync(manifestFilePath, manifest, { encoding: 'utf-8', spaces: 2 });
+    fs.writeJsonSync(manifestFilePath, manifest, { encoding: 'utf8', spaces: 2 });
   } catch (err) {
     logError(null, ERROR.FS_FILE_WRITE);
   }
@@ -89,7 +89,10 @@ export async function getManifest(): Promise<any> {
   // <rootDir defaults to PROJECT directory>
   // if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
-  const manifestString =  fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
+  const manifestString =  fs.readFileSync(
+    path.join(rootDir, PROJECT_MANIFEST_FILENAME),
+    { encoding: 'utf8' },
+  );
   return getValidJSON(manifestString);
 }
 
