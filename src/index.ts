@@ -42,14 +42,14 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
-import { Config, PROJECT_NAME } from './config';
+import { Conf, PROJECT_NAME } from './conf';
 import { handleError } from './utils';
 
 // CLI
 
 // instantiate the Config singleton
 // (and loads environment variables as a side effect)
-const config = Config.getInstance();
+const config = Conf.get();
 
 /**
  * Set global CLI configurations
@@ -63,9 +63,10 @@ commander
  * Path to an auth file, or to a folder with a '.clasprc'.
  */
 commander.option(
-  '-A, --auth',
+  '-A, --auth <file>',
   `path to an auth file or a folder with a '.clasprc' file.`,
 ).on('option:auth', () => {
+  // console.log('auth', commander['auth']);
   config.auth.path = commander['auth'];
 });
 
@@ -73,9 +74,10 @@ commander.option(
  * Path to an ignore file, or to a folder with a '.claspignore'.
  */
 commander.option(
-  '-I, --ignore',
+  '-I, --ignore <file>',
   `path to an ignore file or a folder with a '.claspignore' file.`,
 ).on('option:ignore', () => {
+  // console.log('ignore', commander['ignore']);
   config.ignore.path = commander['ignore'];
 });
 
@@ -83,9 +85,10 @@ commander.option(
  * Path to an manifest file, or to a folder with a 'appsscript.json'.
  */
 commander.option(
-  '-M, --manifest',
+  '-M, --manifest <file>',
   `path to an manifest file or a folder with a 'appsscript.json' file.`,
 ).on('option:manifest', () => {
+  // console.log('manifest', commander['manifest']);
   config.manifest.path = commander['manifest'];
 });
 
@@ -93,9 +96,10 @@ commander.option(
  * Path to a project file, or to a folder with a '.clasp.json'.
  */
 commander.option(
-  '-P, --project',
+  '-P, --project <file>',
   `path to a project file or to a folder with a '.clasp.json' file.`,
 ).on('option:project', () => {
+  // console.log('project', commander['project']);
   config.project.path = commander['project'];
 });
 
@@ -394,6 +398,21 @@ commander
 commander.option('-v, --version').on('option:version', () => {
   console.log(require('../package.json').version);
 });
+
+commander
+  .command('paths')
+  .description('List current config files path')
+  .action(() => {
+    const conf = Conf.get();
+    const project = conf.project;
+    const ignore = conf.ignore;
+    const auth = conf.auth;
+    const manifest = conf.manifest;
+    console.log('project', project.path, project.isDefault(), project.resolve());
+    console.log('ignore', ignore.path, ignore.isDefault(), ignore.resolve());
+    console.log('auth', auth.path, auth.isDefault(), auth.resolve());
+    console.log('manifest', manifest.path, manifest.isDefault(), manifest.resolve());
+  });
 
 // defaults to help if commands are not provided
 if (!process.argv.slice(2).length) {
