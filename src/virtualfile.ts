@@ -34,6 +34,10 @@ export class VirtualFile {
     this.userDefinedPath = userDefinedPath;
   }
 
+  get resolvedDir() {
+    return path.dirname(this.resolve());
+  }
+
   /**
    * Returns true if current path is the default path
    */
@@ -63,7 +67,7 @@ export class VirtualFile {
  * @param pathToResolve the path to resolve
  * @param base the default base filename
  */
-export const resolvePath = (pathToResolve: string, base: string) => {
+const resolvePath = (pathToResolve: string, base: string) => {
   if (fs.existsSync(pathToResolve)) {
     return appendBaseIfDirectory(pathToResolve, base);
   }
@@ -73,6 +77,7 @@ export const resolvePath = (pathToResolve: string, base: string) => {
       return pathToResolve; // assume fullpath to missing file
     }
   }
+  // TODO: improve support for unresolved paths
   throw new Error(`Unrecognized path ${pathToResolve}`);
 };
 
