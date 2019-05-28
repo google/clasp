@@ -418,7 +418,7 @@ export function isValidProjectId(projectId: string) {
  * Gets valid JSON obj or throws error.
  * @param str JSON string.
  */
-export function getValidJSON(str: string): string[] {
+export function getValidJSON<T>(str: string): T {
   try {
     return JSON.parse(str);
   } catch (error) {

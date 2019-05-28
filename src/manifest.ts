@@ -9,7 +9,6 @@ import { ERROR, getProjectSettings, getValidJSON, logError } from './utils';
  * @return {boolean} True if valid project, false otherwise
  */
 export const manifestExists = (
-  // rootDir: string = DOT.PROJECT.DIR,
   rootDir: string = Conf.get().project.resolvedDir,
 ): boolean =>
   // TODO WIP notes: <rootDir defaults to PROJECT directory>
@@ -24,7 +23,6 @@ export const manifestExists = (
 export async function readManifest(): Promise<Manifest> {
   let { rootDir } = await getProjectSettings();
   // TODO WIP notes: <rootDir defaults to PROJECT directory>
-  // if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
@@ -43,7 +41,6 @@ export async function readManifest(): Promise<Manifest> {
 export async function writeManifest(manifest: Manifest) {
   let { rootDir } = await getProjectSettings();
   // TODO WIP notes: <rootDir defaults to PROJECT directory>
-  // if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
@@ -83,17 +80,15 @@ export async function isValidRunManifest(): Promise<boolean> {
  * - It exists in the project root.
  * - Is valid JSON.
  */
-// tslint:disable-next-line:no-any
-export async function getManifest(): Promise<any> {
+export async function getManifest(): Promise<Manifest> {
   let { rootDir } = await getProjectSettings();
   // <rootDir defaults to PROJECT directory>
-  // if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
   const manifestString =  fs.readFileSync(
     path.join(rootDir, PROJECT_MANIFEST_FILENAME),
     { encoding: 'utf8' },
   );
-  return getValidJSON(manifestString);
+  return getValidJSON<Manifest>(manifestString);
 }
 
 /**
