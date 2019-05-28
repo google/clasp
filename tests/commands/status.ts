@@ -41,6 +41,7 @@ describe('Test clasp status function', () => {
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
+      '.clasp.json',
       '.claspignore', // TODO Should these be untracked?
       'should/alsoBeIgnored',
       'shouldBeIgnored',
@@ -62,6 +63,7 @@ describe('Test clasp status function', () => {
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
+      '.clasp.json',
       '.claspignore', // TODO Should these be untracked?
       'node_modules/fsevents/build/Release/.deps/Release/.node.d',
     ]);
@@ -76,7 +78,12 @@ describe('Test clasp status function', () => {
       { file: 'dist/shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'dist/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
-    // spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
+    // TODO: following `clasp create` serves no purpose
+    // spawnSync(
+    //   CLASP,
+    //   ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
+    //   { encoding: 'utf8', cwd: tmpdir },
+    // );
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
@@ -94,7 +101,12 @@ describe('Test clasp status function', () => {
       { file: 'build/shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'build/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
-    // spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir + '/src' });
+    // TODO: following `clasp create` serves no purpose
+    // spawnSync(
+    //   CLASP,
+    //   ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
+    //   { encoding: 'utf8', cwd: tmpdir },
+    // );
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir + '/src' });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
