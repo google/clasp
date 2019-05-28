@@ -17,7 +17,7 @@ import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
-import { PROJECT_NAME } from './config';
+import { Conf, PROJECT_NAME } from './conf';
 import stripBom = require('strip-bom');
 
 // Getting ready to switch to `dotf` embedded types
@@ -88,16 +88,10 @@ export const DOTFILE = {
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: () => {
-    // TODO: there seems to be a logic error in how `.claspignore` is resolved
-    const projectPath = findUp.sync(DOT.PROJECT.PATH);
-    const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
+    const ignorePath = Conf.get().ignore.resolve();
     return new Promise<string[]>((resolve, reject) => {
-      if (
-        // TODO: is ignoreDirectory really needed?
-        fs.existsSync(ignoreDirectory)
-        && fs.existsSync(DOT.IGNORE.PATH)
-      ) {
-        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, { encoding: 'utf8' }));
+      if (fs.existsSync(ignorePath)) {
+        const buffer = stripBom(fs.readFileSync(ignorePath, { encoding: 'utf8' }));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
         resolve(['**/**', '!appsscript.json', '!*.js', '!*.ts']);
@@ -110,14 +104,20 @@ export const DOTFILE = {
    * @return {Dotf} A dotf with that dotfile. Null if there is no file
    */
   PROJECT: () => {
-    const projectPath = findUp.sync(DOT.PROJECT.PATH);
-    return dotf(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, DOT.PROJECT.NAME);
+    // ! TODO: currently limited if filename doesn't start with a dot '.'
+    const { dir, base } = path.parse(Conf.get().project.resolve());
+    if (base[0] === '.') {
+      return dotf(dir, base.slice(1));
+    }
+    throw new Error('Project file must start with a dot (i.e. .clasp.json)');
   },
   // Stores {ClaspCredentials}
-  RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
+    // ! TODO: currently limited if filename doesn't start with a dot '.'
+    RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
   RC_LOCAL: () => {
     const localPath = findUp.sync(DOT.PROJECT.PATH);
+    // ! TODO: currently broken with project files named other than `.clasprc.json`
     return dotf(localPath ? path.dirname(localPath) : DOT.RC.LOCAL_DIR, DOT.RC.NAME);
   },
 };
