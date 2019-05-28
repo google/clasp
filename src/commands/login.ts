@@ -4,6 +4,7 @@
 import { readJsonSync } from 'fs-extra';
 import { enableAppsScriptAPI } from '../apiutils';
 import { authorize } from '../auth';
+import { Conf } from '../conf';
 import { readManifest } from '../manifest';
 import { ERROR, LOG, checkIfOnline, hasOauthClientSettings } from '../utils';
 
@@ -27,6 +28,10 @@ export default async (options: { localhost?: boolean; creds?: string }) => {
   const useLocalhost = !!options.localhost;
 
   // Using own credentials.
+  const auth = Conf.get().auth;
+  if (!auth.isDefault()) {
+    // local auth
+  }
   if (options.creds) {
     let oauthScopes: string[] = [];
     // First read the manifest to detect any additional scopes in "oauthScopes" fields.
