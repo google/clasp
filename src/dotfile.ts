@@ -107,7 +107,7 @@ export const DOTFILE = {
     // ! TODO: currently limited if filename doesn't start with a dot '.'
     const { dir, base } = path.parse(Conf.get().project.resolve());
     if (base[0] === '.') {
-      return dotf(dir, base.slice(1));
+      return dotf(dir || '.', base.slice(1));
     }
     throw new Error('Project file must start with a dot (i.e. .clasp.json)');
   },
