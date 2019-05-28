@@ -50,19 +50,19 @@ export const DOT = {
   /**
    * This dotfile stores information about ignoring files on `push`. Like .gitignore.
    */
-  IGNORE: {
-    // DIR: '~',
-    // NAME: `${PROJECT_NAME}ignore`,
-    PATH: `.${PROJECT_NAME}ignore`,
-  },
+  // IGNORE: {
+  //   DIR: '~',
+  //   NAME: `${PROJECT_NAME}ignore`,
+  //   PATH: `.${PROJECT_NAME}ignore`,
+  // },
   /**
    * This dotfile saves clasp project information, local to project directory.
    */
-  PROJECT: {
-    DIR: path.join('.', '/'), // Relative to where the command is run. See DOTFILE.PROJECT()
-    NAME: `${PROJECT_NAME}.json`,
-    PATH: `.${PROJECT_NAME}.json`,
-  },
+  // PROJECT: {
+  //   DIR: path.join('.', '/'), // Relative to where the command is run. See DOTFILE.PROJECT()
+  //   NAME: `${PROJECT_NAME}.json`,
+  //   PATH: `.${PROJECT_NAME}.json`,
+  // },
   /**
    * This dotfile saves auth information. Should never be committed.
    * There are 2 types: personal & global:
@@ -116,7 +116,8 @@ export const DOTFILE = {
     RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
   RC_LOCAL: () => {
-    const localPath = findUp.sync(DOT.PROJECT.PATH);
+    // const localPath = findUp.sync(DOT.PROJECT.PATH);
+    const localPath = path.dirname(Conf.get().project.resolve());
     // ! TODO: currently broken with project files named other than `.clasprc.json`
     return dotf(localPath ? path.dirname(localPath) : DOT.RC.LOCAL_DIR, DOT.RC.NAME);
   },

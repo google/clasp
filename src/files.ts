@@ -45,7 +45,6 @@ export function getFileType(type: string, fileExtension?: string): string {
  * @returns {boolean} If .clasp.json exists.
  */
 export function hasProject(): boolean {
-  // return fs.existsSync(DOT.PROJECT.PATH);
   return fs.existsSync(Conf.get().project.resolve());
 }
 
@@ -55,9 +54,6 @@ export function hasProject(): boolean {
  */
 // TODO: unnecessary export
 export function getTranspileOptions(): ts.TranspileOptions {
-  // const projectPath = findUp.sync(DOT.PROJECT.PATH);
-  // tslint:disable-next-line: max-line-length
-  // const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
   const projectPath = Conf.get().project.resolvedDir;
   const tsconfigPath = path.join(projectPath, 'tsconfig.json');
   if(fs.existsSync(tsconfigPath)) {

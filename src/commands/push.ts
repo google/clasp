@@ -69,7 +69,6 @@ const confirmManifestUpdate = async (): Promise<boolean> => {
  */
 const manifestHasChanges = async (): Promise<boolean> => {
   const { scriptId, rootDir } = await getProjectSettings();
-  // const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
   const localManifestDir = rootDir || Conf.get().project.resolvedDir;
   const localManifestPath = path.join(localManifestDir, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(localManifestPath, { encoding: 'utf8' });
