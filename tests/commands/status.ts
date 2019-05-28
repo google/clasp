@@ -1,16 +1,14 @@
+import { spawnSync } from 'child_process';
+import * as path from 'path';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
-import { spawnSync } from 'child_process';
 import * as tmp from 'tmp';
-import * as path from 'path';
-
 import {
   CLASP,
   TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
   TEST_CODE_JS,
 } from '../constants';
-
 import {
   cleanup,
   setup,
@@ -34,7 +32,11 @@ describe('Test clasp status function', () => {
       { file: 'shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
+    spawnSync(
+      CLASP,
+      ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
+      { encoding: 'utf8', cwd: tmpdir },
+    );
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
@@ -51,7 +53,11 @@ describe('Test clasp status function', () => {
       { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
       { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: TEST_CODE_JS },
     ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
+    spawnSync(
+      CLASP,
+      ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
+      { encoding: 'utf8', cwd: tmpdir },
+    );
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
@@ -70,7 +76,7 @@ describe('Test clasp status function', () => {
       { file: 'dist/shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'dist/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
+    // spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir });
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
@@ -88,7 +94,7 @@ describe('Test clasp status function', () => {
       { file: 'build/shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'build/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
-    spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir + '/src' });
+    // spawnSync(CLASP, ['create', '[TEST] clasp status'], { encoding: 'utf8', cwd: tmpdir + '/src' });
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir + '/src' });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
