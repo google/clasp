@@ -26,17 +26,18 @@ describe('Test clasp status function', () => {
   }
   it('should respect globs and negation rules', () => {
     const tmpdir = setupTmpDirectory([
+      { file: '.clasp.json', data: '{ "scriptId":"1234" }' },
       { file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json' },
       { file: 'build/main.js', data: TEST_CODE_JS },
       { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
       { file: 'shouldBeIgnored', data: TEST_CODE_JS },
       { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
-    spawnSync(
-      CLASP,
-      ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
-      { encoding: 'utf8', cwd: tmpdir },
-    );
+    // spawnSync(
+    //   CLASP,
+    //   ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
+    //   { encoding: 'utf8', cwd: tmpdir },
+    // );
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
@@ -50,15 +51,16 @@ describe('Test clasp status function', () => {
   });
   it('should ignore dotfiles if the parent folder is ignored', () => {
     const tmpdir = setupTmpDirectory([
+      { file: '.clasp.json', data: '{ "scriptId":"1234" }' },
       { file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json' },
       { file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API },
       { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: TEST_CODE_JS },
     ]);
-    spawnSync(
-      CLASP,
-      ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
-      { encoding: 'utf8', cwd: tmpdir },
-    );
+    // spawnSync(
+    //   CLASP,
+    //   ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
+    //   { encoding: 'utf8', cwd: tmpdir },
+    // );
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
