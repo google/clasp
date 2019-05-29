@@ -28,8 +28,8 @@ export const PROJECT_MANIFEST_FILENAME = `${PROJECT_MANIFEST_BASENAME}.json`;
 export class Conf {
   private static _instance: Conf;
   readonly project: VirtualFile;
-  readonly ignore: VirtualFile;
-  readonly auth: VirtualFile;
+  readonly ignore: IgnoreFile;
+  readonly auth: AuthFile;
   // readonly manifest: VirtualFile;
 
   /**
