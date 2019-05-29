@@ -84,13 +84,13 @@ commander.option(
 /**
  * Path to an manifest file, or to a folder with a 'appsscript.json'.
  */
-commander.option(
-  '-M, --manifest <file>',
-  `path to an manifest file or a folder with a 'appsscript.json' file.`,
-).on('option:manifest', () => {
-  // console.log('manifest', commander['manifest']);
-  config.manifest.path = commander['manifest'];
-});
+// commander.option(
+//   '-M, --manifest <file>',
+//   `path to an manifest file or a folder with a 'appsscript.json' file.`,
+// ).on('option:manifest', () => {
+//   // console.log('manifest', commander['manifest']);
+//   config.manifest.path = commander['manifest'];
+// });
 
 /**
  * Path to a project file, or to a folder with a '.clasp.json'.
@@ -399,20 +399,20 @@ commander.option('-v, --version').on('option:version', () => {
   console.log(require('../package.json').version);
 });
 
-commander
-  .command('paths')
-  .description('List current config files path')
-  .action(() => {
-    const conf = Conf.get();
-    const project = conf.project;
-    const ignore = conf.ignore;
-    const auth = conf.auth;
-    const manifest = conf.manifest;
-    console.log('project', project.path, project.isDefault(), project.resolve());
-    console.log('ignore', ignore.path, ignore.isDefault(), ignore.resolve());
-    console.log('auth', auth.path, auth.isDefault(), auth.resolve());
-    console.log('manifest', manifest.path, manifest.isDefault(), manifest.resolve());
-  });
+// commander
+//   .command('paths')
+//   .description('List current config files path')
+//   .action(() => {
+//     const conf = Conf.get();
+//     const project = conf.project;
+//     const ignore = conf.ignore;
+//     const auth = conf.auth;
+//     const manifest = conf.manifest;
+//     console.log('project', project.path, project.isDefault(), project.resolve());
+//     console.log('ignore', ignore.path, ignore.isDefault(), ignore.resolve());
+//     console.log('auth', auth.path, auth.isDefault(), auth.resolve());
+//     console.log('manifest', manifest.path, manifest.isDefault(), manifest.resolve());
+//   });
 
 // defaults to help if commands are not provided
 if (!process.argv.slice(2).length) {

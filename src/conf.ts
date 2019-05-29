@@ -9,7 +9,7 @@ enum ENV {
   DOT_CLASP_AUTH = 'clasp_config_auth',
   DOT_CLASP_IGNORE = 'clasp_config_ignore',
   DOT_CLASP_PROJECT = 'clasp_config_project',
-  MANIFEST = 'clasp_config_manifest',
+  // MANIFEST = 'clasp_config_manifest',
   // TSCONFIG = 'clasp_config_tsconfig',
 }
 
@@ -54,13 +54,13 @@ export class Conf {
     this.ignore = new IgnoreFile({ dir: os.homedir(), base: `.${PROJECT_NAME}ignore` });
     // Default Auth is global. Any other implies local auth
     this.auth = new AuthFile({ dir: os.homedir(), base: `.${PROJECT_NAME}rc.json` });
-    this.manifest = new VirtualFile({ dir: '.', base: PROJECT_MANIFEST_FILENAME });
+    // this.manifest = new VirtualFile({ dir: '.', base: PROJECT_MANIFEST_FILENAME });
 
     // resolve environment variables
     setPathWithEnvVar(ENV.DOT_CLASP_PROJECT, this.project);
     setPathWithEnvVar(ENV.DOT_CLASP_IGNORE, this.ignore);
     setPathWithEnvVar(ENV.DOT_CLASP_AUTH, this.auth);
-    setPathWithEnvVar(ENV.MANIFEST, this.manifest);
+    // setPathWithEnvVar(ENV.MANIFEST, this.manifest);
   }
 
   /**
