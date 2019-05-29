@@ -37,10 +37,10 @@ export interface ClaspCredentials {
  * @return {boolean}
  */
 export const hasOauthClientSettings = (local = false): boolean => {
-  // const auth = Conf.get().auth;
-  // const authIsLocal = !auth.isDefault();
-  // auth.resolve
-  return local ? fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH) : fs.existsSync(DOT.RC.ABSOLUTE_PATH);
+  const auth = Conf.get().auth;
+  return local
+    ? !auth.isDefault() && fs.existsSync(auth.resolve())
+    : auth.isDefault() && fs.existsSync(auth.resolve());
 };
 
   // TODO: local ? DOTFILE.RC_LOCAL().exists() : DOTFILE.RC().exists();
@@ -51,12 +51,10 @@ export const hasOauthClientSettings = (local = false): boolean => {
  * ! Should be used instead of `DOTFILE.RC?().read()`
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
-export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
-  const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC.read<ClaspToken>()
-    .catch((err: Error) => {
-      return logError(err, ERROR.NO_CREDENTIALS(local));
-    });
+export function getOAuthSettings(/*local: boolean*/): Promise<ClaspToken> {
+  return DOTFILE.AUTH()
+    .read<ClaspToken>()
+    .catch(err => logError(err, ERROR.NO_CREDENTIALS(!Conf.get().auth.isDefault())));
 }
 
 // Error messages (some errors take required params)
@@ -175,7 +173,7 @@ export const LOG = {
     isLocalCreds
       ? `Local credentials saved to: ${Conf.get().auth.resolve()}.\n` +
       `*Be sure to never commit this file!* It's basically a password.`
-      : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
+      : `Default credentials saved to: ${Conf.get().auth.resolve()}.`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',

@@ -49,8 +49,9 @@ export default async (functionName: string, cmd: { nondev: boolean; params: stri
  */
 async function runFunction(functionName: string, params: string[], scriptId: string, devMode: boolean) {
   try {
+    // TODO: @grant what are the issues/risks of using global auth?
     // Load local credentials.
-    await loadAPICredentials(true);
+    await loadAPICredentials(/*true*/);
     const localScript = await getLocalScript();
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
     const res = await localScript.scripts.run({
