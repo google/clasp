@@ -37,10 +37,17 @@ export interface ClaspCredentials {
  * @return {boolean}
  */
 export const hasOauthClientSettings = (local = false): boolean => {
+  let result: boolean;
   const auth = Conf.get().auth;
-  return local
+  const uglyStateMgmt = auth.path;
+  if (local && auth.isDefault()) {
+    auth.path = '.';
+  }
+  result = local
     ? !auth.isDefault() && fs.existsSync(auth.resolve())
     : auth.isDefault() && fs.existsSync(auth.resolve());
+  auth.path = uglyStateMgmt;
+  return result;
 };
 
   // TODO: local ? DOTFILE.RC_LOCAL().exists() : DOTFILE.RC().exists();
