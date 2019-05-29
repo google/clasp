@@ -6,7 +6,7 @@ import { VirtualFile } from './virtualfile';
  * supported environment variables
  */
 enum ENV {
-  DOT_CLASP_AUTH = 'clasp_config_project',
+  DOT_CLASP_AUTH = 'clasp_config_auth',
   DOT_CLASP_IGNORE = 'clasp_config_ignore',
   DOT_CLASP_PROJECT = 'clasp_config_project',
   MANIFEST = 'clasp_config_manifest',
