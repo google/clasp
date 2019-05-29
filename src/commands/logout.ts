@@ -1,15 +1,22 @@
+import { Conf } from '../conf';
 import { DOTFILE } from '../dotfile';
+import { hasOauthClientSettings } from '../utils';
 // import { hasOauthClientSettings } from '../utils';
 
 /**
  * Logs out the user by deleting credentials.
- * ? @grant should logout allow 'local only' logout?
  */
 export default async () => {
-  DOTFILE.AUTH().delete();
+  if (hasOauthClientSettings(true)) {
+    const auth = Conf.get().auth;
+    const uglyStateMgmt = auth.path;
+    if (auth.isDefault()) {
+      auth.path = '.';
+    }
+    DOTFILE.AUTH().delete();
+    auth.path = uglyStateMgmt;
+  }
 
-  // if (hasOauthClientSettings(true)) DOTFILE.RC_LOCAL().delete();
-
-  // // del doesn't work with a relative path (~)
-  // if (hasOauthClientSettings()) DOTFILE.RC.delete();
+  // del doesn't work with a relative path (~)
+  if (hasOauthClientSettings()) DOTFILE.AUTH().delete();
 };
