@@ -30,7 +30,7 @@ export class Conf {
   readonly project: VirtualFile;
   readonly ignore: VirtualFile;
   readonly auth: VirtualFile;
-  readonly manifest: VirtualFile;
+  // readonly manifest: VirtualFile;
 
   /**
    * Private to prevent direct construction calls with the `new` operator.
