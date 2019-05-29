@@ -1,4 +1,5 @@
 import { spawnSync } from 'child_process';
+import * as path from 'path';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
@@ -19,7 +20,7 @@ describe('Test clasp logout function', () => {
   before(setup);
   beforeEach(backupSettings);
   // TODO: review this test since `hasOauthClientSettings()` has changed
-  it.skip('should remove global AND local credentails', () => {
+  it('should remove global AND local credentails', () => {
     fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
     fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(
@@ -32,7 +33,7 @@ describe('Test clasp logout function', () => {
     expect(result.status).to.equal(0);
   });
   // TODO: review this test since `hasOauthClientSettings()` has changed
-  it.skip('should still work with no clasprc file', () => {
+  it('should still work with no clasprc file', () => {
     const result = spawnSync(
       CLASP, ['logout'], { encoding: 'utf8' },
     );

@@ -28,8 +28,7 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_GLOBAL);
     expect(result.status).to.equal(0);
   });
-  // TODO: review this test since `hasOauthClientSettings()` has changed
-  it.skip('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
+  it('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
     fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(
       CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
