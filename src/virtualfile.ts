@@ -36,7 +36,9 @@ export class VirtualFile {
    * *Note: passing an empty string restores the default path*
    */
   set path(userDefinedPath: string ) {
-    this.userDefinedPath = userDefinedPath;
+    this.userDefinedPath = userDefinedPath === path.join(this._defaultPath.dir, this._defaultPath.base)
+      ? undefined
+      : userDefinedPath;
   }
 
   /**
@@ -56,7 +58,8 @@ export class VirtualFile {
    * @returns {boolean}
    */
   isDefault() {
-    return !this.userDefinedPath;
+    return !this.userDefinedPath
+      || this.userDefinedPath === path.join(this._defaultPath.dir, this._defaultPath.base);
   }
 
   /**
