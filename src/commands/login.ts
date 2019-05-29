@@ -28,10 +28,6 @@ export default async (options: { localhost?: boolean; creds?: string }) => {
   const useLocalhost = !!options.localhost;
 
   // Using own credentials.
-  const auth = Conf.get().auth;
-  if (!auth.isDefault()) {
-    // local auth
-  }
   if (options.creds) {
     let oauthScopes: string[] = [];
     // First read the manifest to detect any additional scopes in "oauthScopes" fields.
