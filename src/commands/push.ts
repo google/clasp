@@ -3,18 +3,12 @@ import { readFileSync } from 'fs-extra';
 import * as multimatch from 'multimatch';
 import { watchTree } from 'watch';
 import { loadAPICredentials } from '../auth';
-import { DOT, DOTFILE } from '../dotfile';
+import { Conf, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME } from '../conf';
+import { DOTFILE } from '../dotfile';
 import { fetchProject, pushFiles } from '../files';
 import { overwritePrompt } from '../inquirer';
 import { isValidManifest } from '../manifest';
-import {
-  LOG,
-  PROJECT_MANIFEST_BASENAME,
-  PROJECT_MANIFEST_FILENAME,
-  checkIfOnline,
-  getProjectSettings,
-  spinner,
-} from '../utils';
+import { LOG, checkIfOnline, getProjectSettings, spinner } from '../utils';
 
 /**
  * Uploads all files into the script.google.com filesystem.
@@ -75,8 +69,9 @@ const confirmManifestUpdate = async (): Promise<boolean> => {
  */
 const manifestHasChanges = async (): Promise<boolean> => {
   const { scriptId, rootDir } = await getProjectSettings();
-  const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
-  const localManifest = readFileSync(localManifestPath, 'utf8');
+  const localManifestDir = rootDir || Conf.get().project.resolvedDir;
+  const localManifestPath = path.join(localManifestDir, PROJECT_MANIFEST_FILENAME);
+  const localManifest = readFileSync(localManifestPath, { encoding: 'utf8' });
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (!remoteManifest) throw Error('remote manifest no found');

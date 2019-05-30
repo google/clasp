@@ -2,14 +2,15 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
-import { DOT } from './dotfile';
-import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
-
+import { Conf, PROJECT_MANIFEST_FILENAME } from './conf';
+import { ERROR, getProjectSettings, getValidJSON, logError } from './utils';
 /**
  * Checks if the rootDir appears to be a valid project.
  * @return {boolean} True if valid project, false otherwise
  */
-export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
+export const manifestExists = (
+  rootDir: string = Conf.get().project.resolvedDir,
+): boolean =>
   fs.existsSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME));
 
 /**
@@ -19,7 +20,7 @@ export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
  */
 export async function readManifest(): Promise<Manifest> {
   let { rootDir } = await getProjectSettings();
-  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
+  if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
     return fs.readJsonSync(manifest, { encoding: 'utf8' });
@@ -36,7 +37,7 @@ export async function readManifest(): Promise<Manifest> {
 // TODO: unnecessary export
 export async function writeManifest(manifest: Manifest) {
   let { rootDir } = await getProjectSettings();
-  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
+  if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
     fs.writeJsonSync(manifestFilePath, manifest, { encoding: 'utf8', spaces: 2 });
@@ -77,8 +78,12 @@ export async function isValidRunManifest(): Promise<boolean> {
  */
 export async function getManifest(): Promise<Manifest> {
   let { rootDir } = await getProjectSettings();
-  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifestString =  fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
+  // <rootDir defaults to PROJECT directory>
+  if (typeof rootDir === 'undefined') rootDir = Conf.get().project.resolvedDir;
+  const manifestString =  fs.readFileSync(
+    path.join(rootDir, PROJECT_MANIFEST_FILENAME),
+    { encoding: 'utf8' },
+  );
   return getValidJSON<Manifest>(manifestString);
 }
 

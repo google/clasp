@@ -4,17 +4,13 @@ import { Spinner } from 'cli-spinner';
 import * as fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
 import * as pluralize from 'pluralize';
+import { Conf, PROJECT_MANIFEST_FILENAME, PROJECT_NAME } from './conf';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { projectIdPrompt } from './inquirer';
 import { URL } from './urls';
 
 const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
 const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
-
-// Names / Paths
-export const PROJECT_NAME = 'clasp';
-export const PROJECT_MANIFEST_BASENAME = 'appsscript';
-export const PROJECT_MANIFEST_FILENAME = PROJECT_MANIFEST_BASENAME + '.json';
 
 /**
  * The installed credentials. This is a file downloaded from console.developers.google.com
@@ -40,8 +36,19 @@ export interface ClaspCredentials {
  * @param  {boolean} local check ./clasprc.json instead of ~/.clasprc.json
  * @return {boolean}
  */
-export const hasOauthClientSettings = (local = false): boolean =>
-  local ? fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH) : fs.existsSync(DOT.RC.ABSOLUTE_PATH);
+export const hasOauthClientSettings = (local = false): boolean => {
+  let result: boolean;
+  const auth = Conf.get().auth;
+  const uglyStateMgmt = auth.path;
+  if (local && auth.isDefault()) {
+    auth.path = '.';
+  }
+  result = local
+    ? !auth.isDefault() && fs.existsSync(auth.resolve())
+    : auth.isDefault() && fs.existsSync(auth.resolve());
+  auth.path = uglyStateMgmt;
+  return result;
+};
 
 /**
  * Gets the OAuth client settings from rc file.
@@ -49,12 +56,10 @@ export const hasOauthClientSettings = (local = false): boolean =>
  * ! Should be used instead of `DOTFILE.RC?().read()`
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
-export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
-  const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC.read<ClaspToken>()
-    .catch((err: Error) => {
-      return logError(err, ERROR.NO_CREDENTIALS(local));
-    });
+export function getOAuthSettings(/*local: boolean*/): Promise<ClaspToken> {
+  return DOTFILE.AUTH()
+    .read<ClaspToken>()
+    .catch(err => logError(err, ERROR.NO_CREDENTIALS(!Conf.get().auth.isDefault())));
 }
 
 // Error messages (some errors take required params)
@@ -74,7 +79,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DRIVE: `Something went wrong with the Google Drive API`,
   EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
   // FOLDER_EXISTS: `Project file already exists.`, // TEMP!
-  FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
+  FOLDER_EXISTS: `Project file (${Conf.get().project.resolve()}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   INVALID_JSON: `Input params not Valid JSON string. Please fix and try again`,
@@ -88,7 +93,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   NO_CREDENTIALS: (local: boolean) => `Could not read API credentials. ` +
     `Are you logged in ${local ? 'locall' : 'globall'}y?`,
   NO_FUNCTION_NAME: 'N/A',
-  NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
+  NO_GCLOUD_PROJECT: `No projectId found in your ${Conf.get().project.resolve()} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
   NO_MANIFEST: (filename: string) =>
     `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
@@ -106,14 +111,15 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   RUN_NODATA: 'Script execution API returned no data.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
-  SCRIPT_ID_DNE: `No scriptId found in your ${DOT.PROJECT.PATH} file.`,
+  SCRIPT_ID_DNE: `No scriptId found in your ${Conf.get().project.resolve()} file.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
   SCRIPT_ID: `Could not find script.
 Did you provide the correct scriptId?
 Are you logged in to the correct account with the script?`,
-SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
-UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
+  SETTINGS_DNE: `
+No ${Conf.get().project.resolve()} settings found. \`create\` or \`clone\` a project first.`,
+  UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
   PROJECT_ID_INCORRECT: (projectId: string) => `The projectId "${projectId}" looks incorrect.
@@ -153,7 +159,7 @@ export const LOG = {
   GET_PROJECT_ID_INSTRUCTIONS: `Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")`,
   GIVE_DESCRIPTION: 'Give a description: ',
-  LOCAL_CREDS: `Using local credentials: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME} 🔐 `,
+  LOCAL_CREDS: `Using local credentials: ${Conf.get().auth.resolve()} 🔐 `,
   LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}...`,
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
@@ -170,10 +176,10 @@ export const LOG = {
   PUSHING: 'Pushing files...',
   SAVED_CREDS: (isLocalCreds: boolean) =>
     isLocalCreds
-    ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
-    `*Be sure to never commit this file!* It's basically a password.`
-    : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
-SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
+      ? `Local credentials saved to: ${Conf.get().auth.resolve()}.\n` +
+      `*Be sure to never commit this file!* It's basically a password.`
+      : `Default credentials saved to: ${Conf.get().auth.resolve()}.`,
+  SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
   STATUS_IGNORE: 'Ignored files:',

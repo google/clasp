@@ -1,5 +1,4 @@
 import * as path from 'path';
-import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import * as mkdirp from 'mkdirp';
 import * as multimatch from 'multimatch';
@@ -7,11 +6,11 @@ import * as recursive from 'recursive-readdir';
 import * as ts2gas from 'ts2gas';
 import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
-import { DOT, DOTFILE } from './dotfile';
+import { Conf, PROJECT_MANIFEST_FILENAME } from './conf';
+import { DOTFILE } from './dotfile';
 import {
   ERROR,
   LOG,
-  PROJECT_MANIFEST_FILENAME,
   checkIfOnline,
   getAPIFileType,
   getProjectSettings,
@@ -45,7 +44,7 @@ export function getFileType(type: string, fileExtension?: string): string {
  * @returns {boolean} If .clasp.json exists.
  */
 export function hasProject(): boolean {
-  return fs.existsSync(DOT.PROJECT.PATH);
+  return fs.existsSync(Conf.get().project.resolve());
 }
 
 /**
@@ -54,8 +53,8 @@ export function hasProject(): boolean {
  */
 // TODO: unnecessary export
 export function getTranspileOptions(): ts.TranspileOptions {
-  const projectPath = findUp.sync(DOT.PROJECT.PATH);
-  const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
+  const projectPath = Conf.get().project.resolvedDir;
+  const tsconfigPath = path.join(projectPath, 'tsconfig.json');
   if(fs.existsSync(tsconfigPath)) {
     const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);

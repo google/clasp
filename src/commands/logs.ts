@@ -116,6 +116,7 @@ export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson
 }
 
 // TODO: unnecessary export
+// TODO: would benefit from refactoring
 export async function setupLogs(): Promise<string> {
   let projectId: string;
   const promise = new Promise<string>((resolve, reject) => {

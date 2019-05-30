@@ -1,12 +1,21 @@
-import * as del from 'del';
-import { DOT } from '../dotfile';
+import { Conf } from '../conf';
+import { DOTFILE } from '../dotfile';
 import { hasOauthClientSettings } from '../utils';
 
 /**
  * Logs out the user by deleting credentials.
  */
 export default async () => {
-  if (hasOauthClientSettings(true)) del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
+  if (hasOauthClientSettings(true)) {
+    const auth = Conf.get().auth;
+    const uglyStateMgmt = auth.path;
+    if (auth.isDefault()) {
+      auth.path = '.';
+    }
+    DOTFILE.AUTH().delete();
+    auth.path = uglyStateMgmt;
+  }
+
   // del doesn't work with a relative path (~)
-  if (hasOauthClientSettings()) del(DOT.RC.ABSOLUTE_PATH, { force: true });
+  if (hasOauthClientSettings()) DOTFILE.AUTH().delete();
 };
