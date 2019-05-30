@@ -13,7 +13,6 @@
  */
 import * as os from 'os';
 import * as path from 'path';
-import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
