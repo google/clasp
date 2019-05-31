@@ -100,7 +100,7 @@ commander
   .description('Create a script')
   .option(
     '--type <type>',
-    'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, or Form.',
+    'Creates a new add-on attached to a new Document, Spreadsheet, Presentation, or Form.',
   )
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
