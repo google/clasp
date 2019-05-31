@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { UTF8 } from '../../src/globals';
 import { LOG } from '../../src/utils';
 import { CLASP } from '../constants';
 import {
@@ -14,14 +13,14 @@ describe('Test clasp logs setup', () => {
   before(setupWithoutGCPProject);
   it('should prompt for logs setup', () => {
     const result = spawnSync(
-      CLASP, ['logs'], { encoding: UTF8 },
+      CLASP, ['logs'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
   });
   it('should prompt for logs setup', () => {
     const result = spawnSync(
-      CLASP, ['logs', '--setup'], { encoding: UTF8 },
+      CLASP, ['logs', '--setup'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
@@ -33,7 +32,7 @@ describe('Test clasp logs function', () => {
   before(setup);
   it('should get some logs', () => {
     const result = spawnSync(
-      CLASP, ['logs'], { encoding: UTF8 },
+      CLASP, ['logs'], { encoding: 'utf8' },
     );
     expect(result.status).to.equal(0);
      // Example log line:

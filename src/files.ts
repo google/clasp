@@ -8,7 +8,6 @@ import * as ts2gas from 'ts2gas';
 import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
-import { UTF8 } from './globals';
 import {
   ERROR,
   LOG,
@@ -19,6 +18,9 @@ import {
   logError,
   spinner,
 } from './utils';
+
+// @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
+export const FS_OPTIONS = { encoding: 'utf8' };
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -58,7 +60,7 @@ export function getTranspileOptions(): ts.TranspileOptions {
   const projectPath = findUp.sync(DOT.PROJECT.PATH);
   const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
   if(fs.existsSync(tsconfigPath)) {
-    const tsconfigContent = fs.readFileSync(tsconfigPath, UTF8);
+    const tsconfigContent = fs.readFileSync(tsconfigPath, FS_OPTIONS);
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
     return {
       compilerOptions: parsedConfigResult.config.compilerOptions,

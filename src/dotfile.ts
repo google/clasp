@@ -17,7 +17,7 @@ import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
-import { UTF8 } from './globals';
+import { FS_OPTIONS } from './files';
 import stripBom = require('strip-bom');
 
 // Getting ready to switch to `dotf` embedded types
@@ -99,7 +99,7 @@ export const DOTFILE = {
         fs.existsSync(ignoreDirectory)
         && fs.existsSync(DOT.IGNORE.PATH)
       ) {
-        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, { encoding: UTF8 }));
+        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
         resolve(['**/**', '!appsscript.json', '!*.js', '!*.ts']);

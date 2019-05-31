@@ -2,7 +2,6 @@ import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
-import { UTF8 } from '../../src/globals';
 import { hasOauthClientSettings } from '../../src/utils';
 import { CLASP, CLASP_PATHS, FAKE_CLASPRC } from '../constants';
 import {
@@ -19,7 +18,7 @@ describe('Test clasp logout function', () => {
     fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
     fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(
-      CLASP, ['logout'], { encoding: UTF8 },
+      CLASP, ['logout'], { encoding: 'utf8' },
     );
     expect(fs.existsSync(CLASP_PATHS.rcGlobal)).to.equal(false);
     expect(hasOauthClientSettings()).to.equal(false);
@@ -29,7 +28,7 @@ describe('Test clasp logout function', () => {
   });
   it('should still work with no clasprc file', () => {
     const result = spawnSync(
-      CLASP, ['logout'], { encoding: UTF8 },
+      CLASP, ['logout'], { encoding: 'utf8' },
     );
     expect(fs.existsSync(CLASP_PATHS.rcGlobal)).to.equal(false);
     expect(hasOauthClientSettings()).to.equal(false);

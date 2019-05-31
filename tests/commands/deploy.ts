@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { UTF8 } from '../../src/globals';
 import { CLASP } from '../constants';
 import { cleanup, setup } from '../functions';
 
@@ -11,7 +10,7 @@ describe('Test clasp deploy function', () => {
   // TODO: skip test if at maximum
   it('should deploy correctly', () => {
     const result = spawnSync(
-      CLASP, ['deploy'], { encoding: UTF8 },
+      CLASP, ['deploy'], { encoding: 'utf8' },
     );
     if (result.stderr) {
       const err1 = 'Scripts may only have up to 20 versioned deployments at a time';
