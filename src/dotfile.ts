@@ -17,7 +17,6 @@ import * as findUp from 'find-up';
 import * as fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
-import { FS_OPTIONS } from './files';
 import stripBom = require('strip-bom');
 
 // Getting ready to switch to `dotf` embedded types
@@ -40,6 +39,10 @@ const splitLines: (str: string, options?: { preserveNewLines?: boolean })
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';
 const PROJECT_NAME = 'clasp';
+
+// TODO: workaround the circular dependency with `files.ts`
+// @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
+const FS_OPTIONS = { encoding: 'utf8' };
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
