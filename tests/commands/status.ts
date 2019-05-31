@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import * as tmp from 'tmp';
+import { UTF8 } from '../../src/globals';
 import {
   CLASP,
   TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
@@ -34,9 +35,9 @@ describe('Test clasp status function', () => {
     // spawnSync(
     //   CLASP,
     //   ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
-    //   { encoding: 'utf8', cwd: tmpdir },
+    //   { encoding: UTF8, cwd: tmpdir },
     // );
-    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
+    const result = spawnSync(CLASP, ['status', '--json'], { encoding: UTF8, cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
@@ -58,9 +59,9 @@ describe('Test clasp status function', () => {
     // spawnSync(
     //   CLASP,
     //   ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
-    //   { encoding: 'utf8', cwd: tmpdir },
+    //   { encoding: UTF8, cwd: tmpdir },
     // );
-    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
+    const result = spawnSync(CLASP, ['status', '--json'], { encoding: UTF8, cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
@@ -83,9 +84,9 @@ describe('Test clasp status function', () => {
     // spawnSync(
     //   CLASP,
     //   ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
-    //   { encoding: 'utf8', cwd: tmpdir },
+    //   { encoding: UTF8, cwd: tmpdir },
     // );
-    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
+    const result = spawnSync(CLASP, ['status', '--json'], { encoding: UTF8, cwd: tmpdir });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
@@ -106,9 +107,9 @@ describe('Test clasp status function', () => {
     // spawnSync(
     //   CLASP,
     //   ['create', '--type', 'Standalone', '--title', '"[TEST] clasp status"'],
-    //   { encoding: 'utf8', cwd: tmpdir },
+    //   { encoding: UTF8, cwd: tmpdir },
     // );
-    const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir + '/src' });
+    const result = spawnSync(CLASP, ['status', '--json'], { encoding: UTF8, cwd: tmpdir + '/src' });
     expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([

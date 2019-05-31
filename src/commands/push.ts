@@ -5,6 +5,7 @@ import { watchTree } from 'watch';
 import { loadAPICredentials } from '../auth';
 import { DOT, DOTFILE } from '../dotfile';
 import { fetchProject, pushFiles } from '../files';
+import { UTF8 } from '../globals';
 import { overwritePrompt } from '../inquirer';
 import { isValidManifest } from '../manifest';
 import {
@@ -76,7 +77,7 @@ const confirmManifestUpdate = async (): Promise<boolean> => {
 const manifestHasChanges = async (): Promise<boolean> => {
   const { scriptId, rootDir } = await getProjectSettings();
   const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
-  const localManifest = readFileSync(localManifestPath, 'utf8');
+  const localManifest = readFileSync(localManifestPath, UTF8);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (!remoteManifest) throw Error('remote manifest no found');

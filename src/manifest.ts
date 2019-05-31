@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
 import { DOT } from './dotfile';
+import { UTF8 } from './globals';
 import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
 
 /**
@@ -22,7 +23,7 @@ export async function readManifest(): Promise<Manifest> {
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
-    return fs.readJsonSync(manifest, { encoding: 'utf8' });
+    return fs.readJsonSync(manifest, { encoding: UTF8 });
   } catch (err) {
     logError(null, ERROR.NO_MANIFEST(manifest));
     throw Error('Could not read the manifest file.'); // TODO standardize errors.
@@ -39,7 +40,7 @@ export async function writeManifest(manifest: Manifest) {
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
-    fs.writeJsonSync(manifestFilePath, manifest, { encoding: 'utf8', spaces: 2 });
+    fs.writeJsonSync(manifestFilePath, manifest, { encoding: UTF8, spaces: 2 });
   } catch (err) {
     logError(null, ERROR.FS_FILE_WRITE);
   }
@@ -78,7 +79,7 @@ export async function isValidRunManifest(): Promise<boolean> {
 export async function getManifest(): Promise<Manifest> {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifestString =  fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), 'utf8');
+  const manifestString =  fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), UTF8);
   return getValidJSON<Manifest>(manifestString);
 }
 

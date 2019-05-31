@@ -8,6 +8,7 @@ import * as ts2gas from 'ts2gas';
 import * as ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
+import { UTF8 } from './globals';
 import {
   ERROR,
   LOG,
@@ -57,7 +58,7 @@ export function getTranspileOptions(): ts.TranspileOptions {
   const projectPath = findUp.sync(DOT.PROJECT.PATH);
   const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
   if(fs.existsSync(tsconfigPath)) {
-    const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
+    const tsconfigContent = fs.readFileSync(tsconfigPath, UTF8);
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
     return {
       compilerOptions: parsedConfigResult.config.compilerOptions,

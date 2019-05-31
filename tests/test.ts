@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import * as fs from 'fs-extra';
 import { describe, it } from 'mocha';
 import { getAppsScriptFileName, getFileType } from '../src/files';
+import { UTF8 } from '../src/globals';
 import { URL, extractScriptId } from '../src/urls';
 import {
   ERROR,
@@ -25,7 +26,7 @@ import { cleanup, setup } from './functions';
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
     const result = spawnSync(
-      CLASP, [command, '--help'], { encoding: 'utf8' },
+      CLASP, [command, '--help'], { encoding: UTF8 },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(expected);
@@ -65,7 +66,7 @@ describe('Test clasp pull function', () => {
   });
   it('should pull an existing project correctly', () => {
     const result = spawnSync(
-      CLASP, ['pull'], { encoding: 'utf8' },
+      CLASP, ['pull'], { encoding: UTF8 },
     );
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
@@ -95,14 +96,14 @@ describe('Test clasp version and versions function', () => {
   let versionNumber = 0;
   it('should prompt for version description', () => {
     const result = spawnSync(
-      CLASP, ['version'], { encoding: 'utf8' },
+      CLASP, ['version'], { encoding: UTF8 },
     );
     expect(result.stdout).to.contain(LOG.GIVE_DESCRIPTION);
     expect(result.status).to.equal(0);
   });
   it('should create a new version correctly', () => {
     const result = spawnSync(
-      CLASP, ['version', 'xxx'], { encoding: 'utf8' },
+      CLASP, ['version', 'xxx'], { encoding: UTF8 },
     );
     versionNumber =
       Number(result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2));
@@ -111,7 +112,7 @@ describe('Test clasp version and versions function', () => {
   // TODO: this test needs to be updated
   it.skip('should list versions correctly', () => {
     const result = spawnSync(
-      CLASP, ['versions'], { encoding: 'utf8' },
+      CLASP, ['versions'], { encoding: UTF8 },
     );
     expect(result.stdout).to.contain('Versions');
     if (versionNumber) expect(result.stdout).to.contain(versionNumber + ' - ');
@@ -129,16 +130,16 @@ describe('Test setting function', () => {
   });
   it('should return current setting value', () => {
     const result = spawnSync(
-      CLASP, ['setting', 'scriptId'], { encoding: 'utf8' },
+      CLASP, ['setting', 'scriptId'], { encoding: UTF8 },
     );
 
     expect(result.stdout).to.equal(process.env.SCRIPT_ID);
   });
   it('should update .clasp.json with provided value', () => {
     const result = spawnSync(
-      CLASP, ['setting', 'scriptId', 'test'], { encoding: 'utf8' },
+      CLASP, ['setting', 'scriptId', 'test'], { encoding: UTF8 },
     );
-    const fileContents = fs.readFileSync('.clasp.json', 'utf8');
+    const fileContents = fs.readFileSync('.clasp.json', UTF8);
     expect(result.stdout).to.contain('Updated "scriptId":');
     expect(result.stdout).to.contain('→ "test"');
     expect(fileContents).to.contain('"test"');
@@ -146,14 +147,14 @@ describe('Test setting function', () => {
   it('should error on unknown keys', () => {
     // Test getting
     let result = spawnSync(
-      CLASP, ['setting', 'foo'], { encoding: 'utf8' },
+      CLASP, ['setting', 'foo'], { encoding: UTF8 },
     );
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain(ERROR.UNKNOWN_KEY('foo'));
 
     // Test setting
     result = spawnSync(
-      CLASP, ['setting', 'bar', 'foo'], { encoding: 'utf8' },
+      CLASP, ['setting', 'bar', 'foo'], { encoding: UTF8 },
     );
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain(ERROR.UNKNOWN_KEY('bar'));
@@ -230,7 +231,7 @@ describe('Test saveProject function from utils', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
       await saveProject({scriptId: '12345'});
-      const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
+      const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), UTF8);
       expect(id).to.equal('{"scriptId":"12345"}');
     };
     expect(isSaved).to.not.equal(null);
@@ -240,7 +241,7 @@ describe('Test saveProject function from utils', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
       await saveProject({scriptId: '12345', rootDir: './dist'});
-      const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
+      const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), UTF8);
       expect(id).to.equal('{"scriptId":"12345","rootDir":"./dist"}');
     };
     expect(isSaved).to.not.equal(null);
@@ -250,7 +251,7 @@ describe('Test saveProject function from utils', () => {
 describe('Test variations of clasp help', () => {
   const expectHelp = (variation: string) => {
     const result = spawnSync(
-      CLASP, [variation], { encoding: 'utf8' },
+      CLASP, [variation], { encoding: UTF8 },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(CLASP_USAGE);
@@ -263,7 +264,7 @@ describe('Test variations of clasp help', () => {
 describe('Test variations of clasp --version', () => {
   const expectVersion = (variation: string) => {
     const result = spawnSync(
-      CLASP, [variation], { encoding: 'utf8' },
+      CLASP, [variation], { encoding: UTF8 },
     );
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(require('../package.json').version);
@@ -275,7 +276,7 @@ describe('Test variations of clasp --version', () => {
 describe('Test unknown functions', () => {
   it('should show version correctly', () => {
     const result = spawnSync(
-      CLASP, ['unknown'], { encoding: 'utf8' },
+      CLASP, ['unknown'], { encoding: UTF8 },
     );
     expect(result.stderr).to.contain(`Unknown command`);
     expect(result.status).to.equal(1);
@@ -289,7 +290,7 @@ describe('Test all functions while logged out', () => {
   });
   const expectNoCredentials = (command: string) => {
     const result = spawnSync(
-      CLASP, [command], { encoding: 'utf8' },
+      CLASP, [command], { encoding: UTF8 },
     );
     expect(result.status).to.equal(1);
     // expect(result.stderr).to.include(ERROR.NO_CREDENTIALS);
@@ -306,7 +307,7 @@ describe('Test all functions while logged out', () => {
   // and should all return ERROR.NO_CREDENTIALS
   it('should fail to pull (no .clasp.json file)', () => {
     const result = spawnSync(
-      CLASP, ['pull'], { encoding: 'utf8' },
+      CLASP, ['pull'], { encoding: UTF8 },
     );
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
@@ -315,7 +316,7 @@ describe('Test all functions while logged out', () => {
   });
   it('should fail to open (no .clasp.json file)', () => {
     const result = spawnSync(
-      CLASP, ['open'], { encoding: 'utf8' },
+      CLASP, ['open'], { encoding: UTF8 },
     );
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
@@ -324,7 +325,7 @@ describe('Test all functions while logged out', () => {
   });
   it('should fail to show logs (no .clasp.json file)', () => {
     const result = spawnSync(
-      CLASP, ['logs'], { encoding: 'utf8' },
+      CLASP, ['logs'], { encoding: UTF8 },
     );
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS

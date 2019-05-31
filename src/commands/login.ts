@@ -4,6 +4,7 @@
 import { readJsonSync } from 'fs-extra';
 import { enableAppsScriptAPI } from '../apiutils';
 import { authorize } from '../auth';
+import { UTF8 } from '../globals';
 import { readManifest } from '../manifest';
 import { ERROR, LOG, checkIfOnline, hasOauthClientSettings } from '../utils';
 
@@ -47,7 +48,7 @@ File > Project Properties > Scopes
 `);
 
     // Read credentials file.
-    const credentials = readJsonSync(options.creds, { encoding: 'utf8' });
+    const credentials = readJsonSync(options.creds, { encoding: UTF8 });
     await authorize({
       useLocalhost,
       creds: credentials,
