@@ -128,8 +128,8 @@ export async function setupLogs(): Promise<string> {
           const dotfile = DOTFILE.PROJECT();
           if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
           dotfile
-            .read()
-            .then((settings: ProjectSettings) => {
+            .read<ProjectSettings>()
+            .then(settings => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
               dotfile.write({ ...settings, ...{ projectId } });
               resolve(projectId);
