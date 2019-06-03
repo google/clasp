@@ -8,7 +8,7 @@ import * as url from 'url';
 import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { google, script_v1 } from 'googleapis';
 import * as open from 'open';
-import { ClaspToken, DOTFILE, Dotf } from './dotfile';
+import { ClaspToken, DOTFILE, Dotfile } from './dotfile';
 import { oauthScopesPrompt } from './inquirer';
 import { readManifest } from './manifest';
 import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
@@ -154,7 +154,7 @@ export async function authorize(options: {
 
     // Save the token and own creds together.
     let claspToken: ClaspToken;
-    let dotfile: ReturnType<Dotf>;
+    let dotfile: Dotfile;
     if (options.creds) {
       dotfile = DOTFILE.RC_LOCAL();
       // Save local ClaspCredentials.

@@ -209,7 +209,7 @@ Currently, `clasp` supports [`typescript@3.3.3`](https://www.npmjs.com/package/t
 
 ### Modules, exports and imports
 
-Currently, Google Apps Script does not support ES modules. Hence the typical `export`/`import` patern cannot be used and the example below will fail:
+Currently, Google Apps Script does not support ES modules. Hence the typical `export`/`import` pattern cannot be used and the example below will fail:
 
 ```ts
 // module.ts
@@ -258,7 +258,7 @@ namespace Module {
 ```
 
 ```ts
-// anyFilests
+// anyFiles.ts
 Module.foo();  // address a namespace's exported content directly
 
 const nameIWantForMyImports = Module.foo;  // to simulate `import` with renaming

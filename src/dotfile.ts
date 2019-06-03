@@ -19,12 +19,18 @@ import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 import stripBom = require('strip-bom');
 
+// Getting ready to switch to `dotf` embedded types
+// import { default as dotf } from 'dotf';
+// export { Dotfile } from 'dotf';
+
+// When switching, comment-out the following two exports
 export declare type Dotf = (dirname: string, name: string) => {
   exists: () => Promise<boolean>;
-  read: () => Promise<any>; // tslint:disable-line: no-any
+  read: <T>() => Promise<T>;
   write: <T>(obj: T) => Promise<T>;
   delete: () => Promise<void>;
 };
+export type Dotfile = ReturnType<Dotf>;
 
 const dotf: Dotf = require('dotf');
 const splitLines: (str: string, options?: { preserveNewLines?: boolean })
@@ -33,6 +39,10 @@ const splitLines: (str: string, options?: { preserveNewLines?: boolean })
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';
 const PROJECT_NAME = 'clasp';
+
+// TODO: workaround the circular dependency with `files.ts`
+// @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
+const FS_OPTIONS = { encoding: 'utf8' };
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
@@ -92,7 +102,7 @@ export const DOTFILE = {
         fs.existsSync(ignoreDirectory)
         && fs.existsSync(DOT.IGNORE.PATH)
       ) {
-        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, { encoding: 'utf8' }));
+        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
         resolve(['**/**', '!appsscript.json', '!*.js', '!*.ts']);
