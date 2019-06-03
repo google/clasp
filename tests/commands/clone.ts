@@ -1,20 +1,11 @@
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
-import * as fs from 'fs-extra';
 import { spawnSync } from 'child_process';
-
-import {
-  CLASP,
-  SCRIPT_ID,
-} from '../constants';
-
-import {
-  cleanup,
-  setup,
-} from '../functions';
-
+import { expect } from 'chai';
+import * as fs from 'fs-extra';
+import { describe, it } from 'mocha';
 import { URL } from '../../src/urls';
 import { ERROR } from '../../src/utils';
+import { CLASP, SCRIPT_ID } from '../constants';
+import { cleanup, setup } from '../functions';
 
 describe('Test clasp clone <scriptId> function', () => {
   before(setup);

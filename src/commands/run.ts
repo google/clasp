@@ -20,7 +20,7 @@ export default async (functionName: string, cmd: { nondev: boolean; params: stri
   const { scriptId } = await getProjectSettings(true);
   const devMode = !cmd.nondev; // defaults to true
   const { params: paramString = '[]' } = cmd;
-  const params = getValidJSON(paramString);
+  const params = getValidJSON<string[]>(paramString);
 
   await isValidRunManifest();
 

@@ -145,8 +145,8 @@ export async function setupLogs(): Promise<string> {
     });
   });
   promise.catch(err => {
-    logError(err);
     spinner.stop(true);
+    throw logError(err);
   });
   return promise;
 }

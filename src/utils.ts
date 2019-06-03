@@ -112,8 +112,8 @@ Did you provide the correct scriptId?`,
   SCRIPT_ID: `Could not find script.
 Did you provide the correct scriptId?
 Are you logged in to the correct account with the script?`,
-  SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
-  UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
+SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
+UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
   PROJECT_ID_INCORRECT: (projectId: string) => `The projectId "${projectId}" looks incorrect.
@@ -170,10 +170,10 @@ export const LOG = {
   PUSHING: 'Pushing files...',
   SAVED_CREDS: (isLocalCreds: boolean) =>
     isLocalCreds
-      ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
-      `*Be sure to never commit this file!* It's basically a password.`
-      : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
-  SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
+    ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
+    `*Be sure to never commit this file!* It's basically a password.`
+    : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
+SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
   STATUS_IGNORE: 'Ignored files:',
@@ -415,7 +415,7 @@ export function isValidProjectId(projectId: string) {
  * Gets valid JSON obj or throws error.
  * @param str JSON string.
  */
-export function getValidJSON(str: string): string[] {
+export function getValidJSON<T>(str: string): T {
   try {
     return JSON.parse(str);
   } catch (error) {

@@ -1,16 +1,13 @@
+import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { spawnSync } from 'child_process';
-
+import { LOG } from '../../src/utils';
 import { CLASP } from '../constants';
-
 import {
   cleanup,
   setup,
   setupWithoutGCPProject,
 } from '../functions';
-
-import { LOG } from '../../src/utils';
 
 describe('Test clasp logs setup', () => {
   before(setupWithoutGCPProject);

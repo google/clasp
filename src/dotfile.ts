@@ -40,6 +40,10 @@ const splitLines: (str: string, options?: { preserveNewLines?: boolean })
 // import { PROJECT_NAME } from './utils';
 const PROJECT_NAME = 'clasp';
 
+// TODO: workaround the circular dependency with `files.ts`
+// @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
+const FS_OPTIONS = { encoding: 'utf8' };
+
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
   scriptId: string;
@@ -98,7 +102,7 @@ export const DOTFILE = {
         fs.existsSync(ignoreDirectory)
         && fs.existsSync(DOT.IGNORE.PATH)
       ) {
-        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, { encoding: 'utf8' }));
+        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
         resolve(['**/**', '!appsscript.json', '!*.js', '!*.ts']);

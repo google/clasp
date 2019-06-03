@@ -19,6 +19,9 @@ import {
   spinner,
 } from './utils';
 
+// @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
+export const FS_OPTIONS = { encoding: 'utf8' };
+
 // An Apps Script API File
 interface AppsScriptFile {
   name: string;
@@ -57,7 +60,7 @@ export function getTranspileOptions(): ts.TranspileOptions {
   const projectPath = findUp.sync(DOT.PROJECT.PATH);
   const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
   if(fs.existsSync(tsconfigPath)) {
-    const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
+    const tsconfigContent = fs.readFileSync(tsconfigPath, FS_OPTIONS);
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
     return {
       compilerOptions: parsedConfigResult.config.compilerOptions,

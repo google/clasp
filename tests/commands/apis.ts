@@ -1,17 +1,9 @@
+import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { spawnSync } from 'child_process';
-
-import {
-  CLASP, PROJECT_ID,
-} from '../constants';
-
-import {
-  cleanup,
-  setup,
-} from '../functions';
-
 import { URL } from '../../src/urls';
+import { CLASP, PROJECT_ID } from '../constants';
+import { cleanup, setup } from '../functions';
 
 describe('Test clasp apis functions', () => {
   before(setup);
