@@ -1,12 +1,14 @@
-import * as path from 'path';
-import chalk from 'chalk';
-import { Spinner } from 'cli-spinner';
 import * as fs from 'fs-extra';
-import { script_v1 } from 'googleapis';
+import * as path from 'path';
 import * as pluralize from 'pluralize';
+
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
-import { projectIdPrompt } from './inquirer';
+
+import { Spinner } from 'cli-spinner';
 import { URL } from './urls';
+import chalk from 'chalk';
+import { projectIdPrompt } from './inquirer';
+import { script_v1 } from 'googleapis';
 
 const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
 const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
@@ -112,8 +114,9 @@ Did you provide the correct scriptId?`,
   SCRIPT_ID: `Could not find script.
 Did you provide the correct scriptId?
 Are you logged in to the correct account with the script?`,
-SETTINGS_DNE: `\nNo ${DOT.PROJECT.PATH} settings found. \`create\` or \`clone\` a project first.`,
-UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
+  SETTINGS_DNE: `
+No valid ${DOT.PROJECT.PATH} project file. You may need to \`create\` or \`clone\` a project first.`,
+  UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
   PROJECT_ID_INCORRECT: (projectId: string) => `The projectId "${projectId}" looks incorrect.
