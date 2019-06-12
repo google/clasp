@@ -207,6 +207,29 @@ Advanced Service should have TypeScript autocompletion.
 
 Currently, `clasp` supports [`typescript@3.3.3`](https://www.npmjs.com/package/typescript/v/3.3.3). If there is a feature in a newer TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please open an issue.
 
+#### TypeScript configuration
+
+TypeScript configuration support is currently limited as below:
+
+- The configuration file must be named `tsconfig.json` and located in the same folder as the `.clasp.json` project files.
+- Only the `"compilerOptions"` section is considered. Anything else is ignored.
+
+By default `"compilerOptions"` uses these options:
+
+```json
+{
+  "isolatedModules": true,
+  "noLib": true,
+  "noResolve": true,
+  "target": "ES3",
+  "module": "None",
+  "noImplicitUseStrict": true,
+  "experimentalDecorators": true,
+}
+```
+
+> Note that the options `isolatedModules`, `noLib`, `noResolve`, `target` and `module` cannot be changed.
+
 ### Modules, exports and imports
 
 Currently, Google Apps Script does not support ES modules. Hence the typical `export`/`import` pattern cannot be used and the example below will fail:
@@ -288,10 +311,10 @@ If you see outdated TypeScript types, you can help update them by contributing t
 ### How to Generate Types
 
 1. Fork [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped)
-1. Run the types generator by following the instructions at [motemen/dts-google-apps-script](https://github.com/motemen/dts-google-apps-script)
-1. Copy the type files to your fork of `DefinitelyTyped/DefinitelyTyped`.
-1. View the diff (`git diff`), and make sure that the types look OK.
-1. Make a PR and ask [@grant](https://github.com/grant) for review.
+2. Run the types generator by following the instructions at [motemen/dts-google-apps-script](https://github.com/motemen/dts-google-apps-script)
+3. Copy the type files to your fork of `DefinitelyTyped/DefinitelyTyped`.
+4. View the diff (`git diff`), and make sure that the types look OK.
+5. Make a PR and ask [@grant](https://github.com/grant) for review.
 
 > (Eventually I'll configure a system to auto-update these types.)
 
