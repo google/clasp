@@ -1,8 +1,3 @@
-import { SCRIPT_TYPES } from '../apis';
-import { drive, loadAPICredentials, script } from '../auth';
-import { fetchProject, hasProject, writeProjectFiles } from '../files';
-import { scriptTypePrompt } from '../inquirer';
-import { manifestExists } from '../manifest';
 import {
   ERROR,
   LOG,
@@ -13,6 +8,12 @@ import {
   saveProject,
   spinner,
 } from '../utils';
+import { drive, loadAPICredentials, script } from '../auth';
+import { fetchProject, hasProject, writeProjectFiles } from '../files';
+
+import { SCRIPT_TYPES } from '../apis';
+import { manifestExists } from '../manifest';
+import { scriptTypePrompt } from '../inquirer';
 
 /**
  * Creates a new Apps Script project.
@@ -97,7 +98,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
       },
       false,
     );
-    if (!manifestExists()) {
+    if (!manifestExists(rootDir)) {
       const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
       writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
     }
