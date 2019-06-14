@@ -207,6 +207,27 @@ Advanced Service should have TypeScript autocompletion.
 
 Currently, `clasp` supports [`typescript@3.3.3`](https://www.npmjs.com/package/typescript/v/3.3.3). If there is a feature in a newer TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please open an issue.
 
+#### TypeScript configuration
+
+- You can create a TypeScript configuration file by creating a `tsconfig.json` file in the same folder as your `.clasp.json` file.
+- Only the `"compilerOptions"` section is considered. Anything else is ignored.
+
+By default `"compilerOptions"` uses these options:
+
+```json
+{
+  "isolatedModules": true,
+  "noLib": true,
+  "noResolve": true,
+  "target": "ES3",
+  "module": "None",
+  "noImplicitUseStrict": true,
+  "experimentalDecorators": true,
+}
+```
+
+> Note that the options `isolatedModules`, `noLib`, `noResolve`, `target` and `module` cannot be changed.
+
 ### Modules, exports and imports
 
 Currently, Google Apps Script does not support ES modules. Hence the typical `export`/`import` pattern cannot be used and the example below will fail:
