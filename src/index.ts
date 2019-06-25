@@ -269,6 +269,7 @@ commander
   .option('--open', 'Open the StackDriver logs in the browser')
   .option('--setup', 'Setup StackDriver logs')
   .option('--watch', 'Watch and print new logs')
+  .option('--detailed', 'Show timestamps with logs')
   .action(handleError(logs));
 
 /**

@@ -16,8 +16,9 @@ const padEnd = require('string.prototype.padend');
  * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
  * @param cmd.setup {boolean} If true, the command will help you setup logs.
  * @param cmd.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
+ * @param cmd.detailed {boolean} If true, the command will add timestamps to the logs.
  */
-export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch: boolean }) => {
+export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch: boolean; detailed: boolean; }) => {
   await checkIfOnline();
 
   // Get project settings.
@@ -41,10 +42,10 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
     setInterval(() => {
       const startDate = new Date();
       startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
-      fetchAndPrintLogs(cmd.json, projectId, startDate);
+      fetchAndPrintLogs(cmd.json, cmd.detailed, projectId, startDate);
     }, POLL_INTERVAL);
   } else {
-    fetchAndPrintLogs(cmd.json, projectId);
+    fetchAndPrintLogs(cmd.json, cmd.detailed, projectId);
   }
 };
 
@@ -53,7 +54,7 @@ export default async (cmd: { json: boolean; open: boolean; setup: boolean; watch
  * @param entries {any[]} StackDriver log entries.
  */
 // TODO: unnecessary export
-export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson: boolean) {
+export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson: boolean, detailed: boolean) {
   /**
    * This object holds all log IDs that have been printed to the user.
    * This prevents log entries from being printed multiple times.
@@ -109,7 +110,11 @@ export function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson
     coloredSeverity = padEnd(String(coloredSeverity), 20);
     // If we haven't logged this entry before, log it and mark the cache.
     if (!logEntryCache[insertId]) {
-      console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
+        if(detailed){
+          console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
+        }else{
+          console.log(`${coloredSeverity} ${functionName} ${payloadData}`)
+        }
       logEntryCache[insertId] = true;
     }
   }
@@ -156,7 +161,7 @@ export async function setupLogs(): Promise<string> {
  * @param startDate {Date?} Get logs from this date to now.
  */
 // TODO: unnecessary export
-export async function fetchAndPrintLogs(formatJson: boolean, projectId?: string, startDate?: Date) {
+export async function fetchAndPrintLogs(formatJson: boolean, timestamps: boolean, projectId?: string, startDate?: Date) {
   const oauthSettings = await loadAPICredentials();
   spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
@@ -201,7 +206,7 @@ export async function fetchAndPrintLogs(formatJson: boolean, projectId?: string,
             logError(null, `(${logs.status}) Error: ${logs.statusText}`);
         }
       } else {
-        printLogs(logs.data.entries, formatJson);
+        printLogs(logs.data.entries, formatJson, timestamps);
       }
     };
     parseResponse(logs);
