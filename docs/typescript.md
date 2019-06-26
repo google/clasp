@@ -314,8 +314,6 @@ If you see outdated TypeScript types, you can help update them by contributing t
 1. View the diff (`git diff`), and make sure that the types look OK.
 1. Make a PR and ask [@grant](https://github.com/grant) for review.
 
-> (Eventually I'll configure a system to auto-update these types.)
-
 ## Further Reading
 
 - Consider using a linter like [`tslint`](https://github.com/palantir/tslint) to increase the quality of your TypeScript projects.
