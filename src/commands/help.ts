@@ -1,4 +1,4 @@
-import * as commander from 'commander';
+import commander from 'commander';
 
 /**
  * Outputs the help command.

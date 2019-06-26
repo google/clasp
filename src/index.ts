@@ -21,9 +21,11 @@
  * clasp – The Apps Script CLI
  */
 
-import * as commander from 'commander';
+import { PROJECT_NAME, handleError } from './utils';
+
 import apis from './commands/apis';
 import clone from './commands/clone';
+import commander from 'commander';
 import create from './commands/create';
 import defaultCmd from './commands/defaultCmd';
 import deploy from './commands/deploy';
@@ -42,7 +44,6 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
-import { PROJECT_NAME, handleError } from './utils';
 
 // CLI
 

@@ -1,10 +1,11 @@
-import * as fs from 'fs-extra';
 import {
   CLASP_PATHS,
   CLASP_SETTINGS,
   TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
   TEST_APPSSCRIPT_JSON_WITH_RUN_API,
 } from './constants';
+
+import fs from 'fs-extra';
 
 export const cleanup = () => {
   fs.removeSync('.clasp.json');
