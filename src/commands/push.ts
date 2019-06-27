@@ -1,12 +1,5 @@
-import * as path from 'path';
-import { readFileSync } from 'fs-extra';
-import * as multimatch from 'multimatch';
-import { watchTree } from 'watch';
-import { loadAPICredentials } from '../auth';
 import { DOT, DOTFILE } from '../dotfile';
 import { FS_OPTIONS, fetchProject, pushFiles } from '../files';
-import { overwritePrompt } from '../inquirer';
-import { isValidManifest } from '../manifest';
 import {
   LOG,
   PROJECT_MANIFEST_BASENAME,
@@ -15,6 +8,14 @@ import {
   getProjectSettings,
   spinner,
 } from '../utils';
+
+import { isValidManifest } from '../manifest';
+import { loadAPICredentials } from '../auth';
+import multimatch from 'multimatch';
+import { overwritePrompt } from '../inquirer';
+import path from 'path';
+import { readFileSync } from 'fs-extra';
+import { watchTree } from 'watch';
 
 /**
  * Uploads all files into the script.google.com filesystem.

@@ -1,8 +1,9 @@
-import * as open from 'open';
-import { loadAPICredentials, script } from '../auth';
-import { deploymentIdPrompt } from '../inquirer';
-import { URL } from '../urls';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from '../utils';
+import { loadAPICredentials, script } from '../auth';
+
+import { URL } from '../urls';
+import { deploymentIdPrompt } from '../inquirer';
+import open from 'open';
 
 interface EllipizeOptions {
   ellipse?: string;

@@ -1,10 +1,10 @@
-import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import * as path from 'path';
 
+import { expect } from 'chai';
 import {
   isValidFileName,
 } from '../src/files';
+import path from 'path';
 
 describe('Test files isValidFileName function', () => {
   const validFileName = 'testFile';

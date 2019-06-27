@@ -1,17 +1,19 @@
-import * as http from 'http';
-import { AddressInfo } from 'net';
-import * as readline from 'readline';
-import * as url from 'url';
+import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
+import { ClaspToken, DOTFILE, Dotfile } from './dotfile';
 /**
  * Authentication with Google's APIs.
  */
 import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { google, script_v1 } from 'googleapis';
-import * as open from 'open';
-import { ClaspToken, DOTFILE, Dotfile } from './dotfile';
+
+// TODO: AddressInfo is not defined in @types/node version 8 => check if any impact
+import { AddressInfo } from 'net';
+import http from 'http';
 import { oauthScopesPrompt } from './inquirer';
+import open from 'open';
 import { readManifest } from './manifest';
-import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
+import readline from 'readline';
+import url from 'url';
 
 // Auth is complicated. Consider yourself warned.
 // tslint:disable:max-line-length

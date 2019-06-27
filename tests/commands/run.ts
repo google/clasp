@@ -1,10 +1,11 @@
-import { spawnSync } from 'child_process';
-import { expect } from 'chai';
-import * as fs from 'fs-extra';
-import { describe, it } from 'mocha';
-import { LOG } from '../../src/utils';
 import { CLASP, CLASP_PATHS, CLASP_SETTINGS } from '../constants';
 import { cleanup, setup } from '../functions';
+import { describe, it } from 'mocha';
+
+import { LOG } from '../../src/utils';
+import { expect } from 'chai';
+import fs from 'fs-extra';
+import { spawnSync } from 'child_process';
 
 describe('Test clasp run function', () => {
   before(setup);

@@ -1,11 +1,12 @@
-import { GaxiosResponse } from 'gaxios';
-import { serviceusage_v1 } from 'googleapis';
-import * as open from 'open';
-import { PUBLIC_ADVANCED_SERVICES } from '../apis';
-import { enableOrDisableAPI } from '../apiutils';
-import { discovery, loadAPICredentials, serviceUsage } from '../auth';
-import { URL } from '../urls';
 import { ERROR, checkIfOnline, getProjectId, logError } from '../utils';
+import { discovery, loadAPICredentials, serviceUsage } from '../auth';
+
+import { GaxiosResponse } from 'gaxios';
+import { PUBLIC_ADVANCED_SERVICES } from '../apis';
+import { URL } from '../urls';
+import { enableOrDisableAPI } from '../apiutils';
+import open from 'open';
+import { serviceusage_v1 } from 'googleapis';
 const padEnd = require('string.prototype.padend');
 
 /**

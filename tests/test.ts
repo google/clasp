@@ -1,10 +1,4 @@
-import { spawnSync } from 'child_process';
-import * as path from 'path';
-import { expect } from 'chai';
-import * as fs from 'fs-extra';
-import { describe, it } from 'mocha';
-import { getAppsScriptFileName, getFileType } from '../src/files';
-import { URL, extractScriptId } from '../src/urls';
+import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
 import {
   ERROR,
   LOG,
@@ -13,14 +7,15 @@ import {
   getWebApplicationURL,
   saveProject,
 } from '../src/utils';
-import {
-  CLASP,
-  CLASP_PATHS,
-  CLASP_USAGE,
-  IS_PR,
-  SCRIPT_ID,
-} from './constants';
+import { URL, extractScriptId } from '../src/urls';
 import { cleanup, setup } from './functions';
+import { describe, it } from 'mocha';
+import { getAppsScriptFileName, getFileType } from '../src/files';
+
+import { expect } from 'chai';
+import fs from 'fs-extra';
+import path from 'path';
+import { spawnSync } from 'child_process';
 
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {

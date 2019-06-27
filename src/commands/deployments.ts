@@ -1,7 +1,8 @@
-import { script_v1 } from 'googleapis';
-import * as pluralize from 'pluralize';
-import { loadAPICredentials, script } from '../auth';
 import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../utils';
+import { loadAPICredentials, script } from '../auth';
+
+import pluralize from 'pluralize';
+import { script_v1 } from 'googleapis';
 
 /**
  * Lists a script's deployments.

@@ -1,5 +1,5 @@
-import * as del from 'del';
 import { DOT } from '../dotfile';
+import del from 'del';
 import { hasOauthClientSettings } from '../utils';
 
 /**

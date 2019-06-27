@@ -1,12 +1,11 @@
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as pluralize from 'pluralize';
-
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 
 import { Spinner } from 'cli-spinner';
 import { URL } from './urls';
 import chalk from 'chalk';
+import fs from 'fs-extra';
+import path from 'path';
+import pluralize from 'pluralize';
 import { projectIdPrompt } from './inquirer';
 import { script_v1 } from 'googleapis';
 

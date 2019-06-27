@@ -1,9 +1,10 @@
-import * as fuzzy from 'fuzzy';
-import { script_v1 } from 'googleapis';
-import { loadAPICredentials, serviceUsage } from './auth';
-import { functionNamePrompt, functionNameSource } from './inquirer';
-import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
+import { functionNamePrompt, functionNameSource } from './inquirer';
+import { loadAPICredentials, serviceUsage } from './auth';
+
+import { enableOrDisableAdvanceServiceInManifest } from './manifest';
+import fuzzy from 'fuzzy';
+import { script_v1 } from 'googleapis';
 
 /**
  * Prompts for the function name.

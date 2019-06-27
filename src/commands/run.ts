@@ -1,11 +1,12 @@
-import * as readline from 'readline';
-import chalk from 'chalk';
-import * as pluralize from 'pluralize';
-import { getFunctionNames } from '../apiutils';
-import { getLocalScript, loadAPICredentials, script } from '../auth';
-import { addScopeToManifest, isValidRunManifest } from '../manifest';
-import { URL } from '../urls';
 import { ERROR, checkIfOnline, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
+import { addScopeToManifest, isValidRunManifest } from '../manifest';
+import { getLocalScript, loadAPICredentials, script } from '../auth';
+
+import { URL } from '../urls';
+import chalk from 'chalk';
+import { getFunctionNames } from '../apiutils';
+import pluralize from 'pluralize';
+import readline from 'readline';
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
  * @param functionName {string} The function name within the Apps Script project.
