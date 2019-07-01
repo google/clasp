@@ -1,12 +1,13 @@
-import chalk from 'chalk';
-import { GaxiosResponse } from 'gaxios';
-import { logging_v2 } from 'googleapis';
-import * as open from 'open';
-import { loadAPICredentials, logger } from '../auth';
 import { DOTFILE, ProjectSettings } from '../dotfile';
-import { projectIdPrompt } from '../inquirer';
-import { URL } from '../urls';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner } from '../utils';
+import { loadAPICredentials, logger } from '../auth';
+
+import { GaxiosResponse } from 'gaxios';
+import { URL } from '../urls';
+import chalk from 'chalk';
+import { logging_v2 } from 'googleapis';
+import open from 'open';
+import { projectIdPrompt } from '../inquirer';
 
 const padEnd = require('string.prototype.padend');
 

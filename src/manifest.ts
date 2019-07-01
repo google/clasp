@@ -1,10 +1,11 @@
-import * as path from 'path';
-import * as fs from 'fs-extra';
-import { PUBLIC_ADVANCED_SERVICES } from './apis';
+import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
+
 import { DOT } from './dotfile';
 import { FS_OPTIONS } from './files';
-import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
+import { PUBLIC_ADVANCED_SERVICES } from './apis';
+import fs from 'fs-extra';
+import path from 'path';
 
 /**
  * Checks if the rootDir appears to be a valid project.

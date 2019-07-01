@@ -1,12 +1,3 @@
-import * as path from 'path';
-import * as findUp from 'find-up';
-import * as fs from 'fs-extra';
-import * as mkdirp from 'mkdirp';
-import * as multimatch from 'multimatch';
-import * as recursive from 'recursive-readdir';
-import * as ts2gas from 'ts2gas';
-import * as ts from 'typescript';
-import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import {
   ERROR,
@@ -18,6 +9,16 @@ import {
   logError,
   spinner,
 } from './utils';
+import { loadAPICredentials, script } from './auth';
+
+import findUp from 'find-up';
+import fs from 'fs-extra';
+import mkdirp from 'mkdirp';
+import multimatch from 'multimatch';
+import path from 'path';
+import recursive from 'recursive-readdir';
+import ts from 'typescript';
+import ts2gas from 'ts2gas';
 
 // @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
 export const FS_OPTIONS = { encoding: 'utf8' };

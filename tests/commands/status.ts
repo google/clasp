@@ -1,15 +1,12 @@
-import { spawnSync } from 'child_process';
-import * as path from 'path';
-import { expect } from 'chai';
-import * as fs from 'fs-extra';
-import { describe, it } from 'mocha';
-import * as tmp from 'tmp';
-import {
-  CLASP,
-  TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
-  TEST_CODE_JS,
-} from '../constants';
+import {CLASP, TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API, TEST_CODE_JS} from '../constants';
 import { cleanup, setup } from '../functions';
+import { describe, it } from 'mocha';
+
+import { expect } from 'chai';
+import fs from 'fs-extra';
+import path from 'path';
+import { spawnSync } from 'child_process';
+import tmp from 'tmp';
 
 describe('Test clasp status function', () => {
   before(setup);
