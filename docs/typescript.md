@@ -205,7 +205,7 @@ Advanced Service should have TypeScript autocompletion.
 
 ### TypeScript Support
 
-Currently, `clasp` supports [`typescript@3.3.3`](https://www.npmjs.com/package/typescript/v/3.3.3). If there is a feature in a newer TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please open an issue.
+Currently, `clasp` supports [`typescript@3.5.2`](https://www.npmjs.com/package/typescript/v/3.5.2). If there is a feature in a newer TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please open an issue.
 
 #### TypeScript configuration
 
@@ -230,7 +230,7 @@ By default `"compilerOptions"` uses these options:
 
 ### Modules, exports and imports
 
-Currently, Google Apps Script does not support ES modules. Hence the typical `export`/`import` pattern cannot be used and the example below will fail:
+Currently, Google Apps Script does **not** support ES modules. Hence the typical `export`/`import` pattern cannot be used and the example below will fail:
 
 ```ts
 // module.ts
@@ -251,7 +251,7 @@ There are some possible workaround though:
 
 #### The `exports` declaration workaround
 
-This workaround makes TypeScript aware of the `exports` object and its imported content.
+This workaround makes TypeScript aware of the `exports` object and its "imported" content. Please be aware that this approach does not even remotely offer proper code isolation one would assume from using modules and can cause issues that will be very hard to debug.
 
 ```ts
 import { foo } from './module';
@@ -266,7 +266,7 @@ exports.foo;  // address important content as it will be visible when transpiled
 
 #### The `namespace` statement workaround
 
-This workaround takes advantage of TypeScript "namespaces" (formerly known as "internal module") to achieve code isolation.
+This workaround takes advantage of TypeScript "namespaces" (formerly known as "internal module") and achieves proper code isolation.
 
 Namespace definition can be nested, spread over multiple files and do not need any `import`/`require` statement to be used.
 
@@ -285,6 +285,20 @@ Module.foo();  // address a namespace's exported content directly
 const nameIWantForMyImports = Module.foo;  // to simulate `import` with renaming
 nameIWantForMyImports();
 ```
+
+For a more detailed example on how `namespace`s can be used in a project you can visit [ts-gas-project-starter](https://github.com/PopGoesTheWza/ts-gas-project-starter)
+
+#### The third party build-chain workaround
+
+Here the idea is to use third party tools ([webpack](https://webpack.js.org/), [rollup.js](https://rollupjs.org/), [gulp](https://gulpjs.com/), etc.) to do the following:
+
+1. parse your code and indentify module used (`export`and `import`)
+1. *(optional)* do some tree shaking in order to remove unused code
+1. pack the result into a single javascript package
+
+> At one of the steps above, transpilling TypeScript into JavaScript must occur (either by using TypeScript or [Babel](https://babeljs.io/)) but which precise step will be defined by the set of third party tools you choose and how you define your build chain.
+
+Documenting in detail any solution with third party tools is currently beyond the scope of this document. If you happen to setup such a build chain and want to share it with the community, please open an issue so that it can be reviewed and evaluated for completing the documentation.
 
 ### Apps Script Libraries and TypeScript
 
@@ -309,10 +323,10 @@ If you see outdated TypeScript types, you can help update them by contributing t
 ### How to Generate Types
 
 1. Fork [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped)
-1. Run the types generator by following the instructions at [motemen/dts-google-apps-script](https://github.com/motemen/dts-google-apps-script)
-1. Copy the type files to your fork of `DefinitelyTyped/DefinitelyTyped`.
-1. View the diff (`git diff`), and make sure that the types look OK.
-1. Make a PR and ask [@grant](https://github.com/grant) for review.
+2. Run the types generator by following the instructions at [motemen/dts-google-apps-script](https://github.com/motemen/dts-google-apps-script)
+3. Copy the type files to your fork of `DefinitelyTyped/DefinitelyTyped`.
+4. View the diff (`git diff`), and make sure that the types look OK.
+5. Make a PR and ask [@grant](https://github.com/grant) for review.
 
 ## Further Reading
 
