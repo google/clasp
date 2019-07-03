@@ -254,14 +254,9 @@ There are some possible workaround though:
 This workaround makes TypeScript aware of the `exports` object and its "imported" content. Please be aware that this approach does not even remotely offer proper code isolation one would assume from using modules and can cause issues that will be very hard to debug.
 
 ```ts
-import { foo } from './module';
+declare const exports: typeof import('./module');
 
-type _i_foo = typeof foo;  // add a type definition for imported content
-declare namespace exports {
-  const foo: _i_foo;  // declare typed imported content to the proper namespcae
-}
-
-exports.foo;  // address important content as it will be visible when transpiled
+exports.foo;  // address "imported" content as it will be visible when transpiled
 ```
 
 #### The `namespace` statement workaround
