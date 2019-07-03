@@ -23,6 +23,7 @@ clasp <command>
 If you're seeing build errors, try deleting `node_modules` and building `clasp` from scratch:
 
 ```sh
+sudo rm package-lock.json
 sudo rm -rf node_modules/
 sudo npm run build-fresh
 ```
