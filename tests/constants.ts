@@ -1,11 +1,12 @@
-import { ClaspToken } from '../src/dotfile';
-import { OAuth2ClientOptions } from 'google-auth-library';
 import os from 'os';
 import path from 'path';
+import { OAuth2ClientOptions } from 'google-auth-library';
+import { ClaspToken } from '../src/dotfile';
 import { rndStr } from './functions';
 
 // Sample files
 export const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
+export const TEST_PAGE_HTML = '<html><body><p>hello there</p></body</html>';
 
 export const TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API = JSON.stringify({
   timeZone: 'America/Los_Angeles',

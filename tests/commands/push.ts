@@ -2,10 +2,9 @@ import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import fs from 'fs-extra';
 import { describe, it } from 'mocha';
-import { CLASP, TEST_CODE_JS } from '../constants';
+import { CLASP, TEST_CODE_JS, TEST_PAGE_HTML } from '../constants';
 import { cleanup, setup } from '../functions';
 
-// TODO: add some `.html` files to tests
 describe('Test clasp push function', () => {
   before(setup);
   it('should push local project correctly', () => {
@@ -37,10 +36,13 @@ describe('Test clasp push with no `.claspignore`', () => {
   before(setup);
   it('should push local project correctly', () => {
     fs.writeFileSync('Code.js', TEST_CODE_JS);
+    fs.writeFileSync('page.html', TEST_PAGE_HTML);
     const result = spawnSync(
       CLASP, ['push'], { encoding: 'utf8', input: 'y' },
     );
     expect(result.stdout).to.contain('Pushed');
+    expect(result.stdout).to.contain('Code.js');
+    expect(result.stdout).to.contain('page.html');
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
   });
