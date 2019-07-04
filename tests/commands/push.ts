@@ -1,11 +1,11 @@
-import { CLASP, TEST_CODE_JS } from '../constants';
-import { cleanup, setup } from '../functions';
-import { describe, it } from 'mocha';
-
+import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import fs from 'fs-extra';
-import { spawnSync } from 'child_process';
+import { describe, it } from 'mocha';
+import { CLASP, TEST_CODE_JS } from '../constants';
+import { cleanup, setup } from '../functions';
 
+// TODO: add some `.html` files to tests
 describe('Test clasp push function', () => {
   before(setup);
   it('should push local project correctly', () => {
