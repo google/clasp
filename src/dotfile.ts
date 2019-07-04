@@ -106,7 +106,7 @@ export const DOTFILE = {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
-        resolve(['**/**', '!appsscript.json', '!*.js', '!*.ts', '!*.html']);
+        resolve(['**/**', '!appsscript.json', '!*.gs', '!*.js', '!*.ts', '!*.html']);
       }
     });
   },
