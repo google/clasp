@@ -459,6 +459,7 @@ If no `.claspignore` is specified, a default set of patterns is applied. The def
 !appsscript.json
 !*.js
 !*.ts
+!*.html
 ```
 
 ## Project Settings File (`.clasp.json`)

@@ -12,12 +12,12 @@
  * This should be the only file that uses DOTFILE.
  */
 
-import { Credentials } from 'google-auth-library';
-import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
-import findUp from 'find-up';
-import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
+import findUp from 'find-up';
+import fs from 'fs-extra';
+import { Credentials } from 'google-auth-library';
+import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
 import stripBom = require('strip-bom');
 
 // Getting ready to switch to `dotf` embedded types
@@ -106,7 +106,7 @@ export const DOTFILE = {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
-        resolve(['**/**', '!appsscript.json', '!*.js', '!*.ts']);
+        resolve(['**/**', '!appsscript.json', '!*.js', '!*.ts', '!*.html']);
       }
     });
   },
