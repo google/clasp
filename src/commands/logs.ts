@@ -16,7 +16,7 @@ const padEnd = require('string.prototype.padend');
  * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
  * @param cmd.setup {boolean} If true, the command will help you setup logs.
  * @param cmd.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
- * @param cmd.detailed {boolean} If true, the command will add timestamps to the logs.
+ * @param cmd.simplified {boolean} If true, the command will add timestamps to the logs.
  */
 export default async (
   cmd: {
@@ -24,11 +24,10 @@ export default async (
     open: boolean;
     setup: boolean;
     watch: boolean;
-    detailed: boolean;
+    simplified: boolean;
   },
 ) => {
   await checkIfOnline();
-
   // Get project settings.
   let { projectId } = await getProjectSettings();
   projectId = cmd.setup ? await setupLogs() : projectId;
@@ -50,10 +49,10 @@ export default async (
     setInterval(() => {
       const startDate = new Date();
       startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
-      fetchAndPrintLogs(cmd.json, cmd.detailed, projectId, startDate);
+      fetchAndPrintLogs(cmd.json, cmd.simplified, projectId, startDate);
     }, POLL_INTERVAL);
   } else {
-    fetchAndPrintLogs(cmd.json, cmd.detailed, projectId);
+    fetchAndPrintLogs(cmd.json, cmd.simplified, projectId);
   }
 };
 
@@ -65,7 +64,7 @@ export default async (
 export function printLogs(
   entries: logging_v2.Schema$LogEntry[] = [],
   formatJson: boolean,
-  detailed: boolean,
+  simplified: boolean,
 ) {
   /**
    * This object holds all log IDs that have been printed to the user.
@@ -122,10 +121,10 @@ export function printLogs(
     coloredSeverity = padEnd(String(coloredSeverity), 20);
     // If we haven't logged this entry before, log it and mark the cache.
     if (!logEntryCache[insertId]) {
-      if (detailed) {
-        console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
-      } else {
+      if (simplified) {
         console.log(`${coloredSeverity} ${functionName} ${payloadData}`);
+      } else {
+        console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
       logEntryCache[insertId] = true;
     }
@@ -175,7 +174,7 @@ export async function setupLogs(): Promise<string> {
 // TODO: unnecessary export
 export async function fetchAndPrintLogs(
   formatJson: boolean,
-  detailed: boolean,
+  simplified: boolean,
   projectId?: string,
   startDate?: Date,
 ) {
@@ -223,7 +222,7 @@ export async function fetchAndPrintLogs(
             logError(null, `(${logs.status}) Error: ${logs.statusText}`);
         }
       } else {
-        printLogs(logs.data.entries, formatJson, detailed);
+        printLogs(logs.data.entries, formatJson, simplified);
       }
     };
     parseResponse(logs);
