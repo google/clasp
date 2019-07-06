@@ -99,7 +99,7 @@ clasp
 
 > **NOTE**: These commands require you to add your [Project ID](#projectid-optional).
 
-- [`clasp logs [--json] [--open] [--setup] [--watch] [--detailed]`](#logs)
+- [`clasp logs [--json] [--open] [--setup] [--watch] [--simplified]`](#logs)
 - [`clasp apis list`](#apis)
 - [`clasp apis enable <api>`](#apis)
 - [`clasp apis disable <api>`](#apis)
@@ -338,7 +338,7 @@ Prints out most recent the _StackDriver logs_. These are logs from `console.log`
 - `--open`: Open StackDriver logs in a browser.
 - `--setup`: Setup StackDriver logs.
 - `--watch`: Retrieves the newest logs every 5 seconds.
-- `--detailed`: Adds timestamps to the logs.
+- `--simplified`: Removes timestamps to the logs.
 
 #### Examples
 
@@ -351,7 +351,7 @@ ERROR      myFunction      error message
 - `clasp logs --json`
 - `clasp logs --open`
 - `clasp logs --watch`
-- `clasp logs --detailed`
+- `clasp logs --simplified`
 
 ### Run
 
