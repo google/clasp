@@ -457,8 +457,10 @@ If no `.claspignore` is specified, a default set of patterns is applied. The def
 ```text
 **/**
 !appsscript.json
+!*.gs
 !*.js
 !*.ts
+!*.html
 ```
 
 ## Project Settings File (`.clasp.json`)
