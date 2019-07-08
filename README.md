@@ -338,7 +338,7 @@ Prints out most recent the _StackDriver logs_. These are logs from `console.log`
 - `--open`: Open StackDriver logs in a browser.
 - `--setup`: Setup StackDriver logs.
 - `--watch`: Retrieves the newest logs every 5 seconds.
-- `--simplified`: Removes timestamps to the logs.
+- `--simplified`: Removes timestamps from the logs.
 
 #### Examples
 
