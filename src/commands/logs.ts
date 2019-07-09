@@ -16,7 +16,7 @@ const padEnd = require('string.prototype.padend');
  * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
  * @param cmd.setup {boolean} If true, the command will help you setup logs.
  * @param cmd.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
- * @param cmd.simplified {boolean} If true, the command will add timestamps to the logs.
+ * @param cmd.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
 export default async (
   cmd: {

@@ -344,8 +344,8 @@ Prints out most recent the _StackDriver logs_. These are logs from `console.log`
 
 ```text
 clasp logs
-DEBUG      myFunction      my debug message
-ERROR      myFunction      error message
+ERROR Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      my log error
+INFO  Sat Apr 07 2019 10:58:31 GMT-0700 (PDT) myFunction      info message
 ```
 
 - `clasp logs --json`
