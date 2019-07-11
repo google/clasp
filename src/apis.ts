@@ -55,7 +55,7 @@ export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
   {
     userSymbol: 'DoubleClickCampaigns',
     serviceId: 'dfareporting',
-    version: 'v3.2',
+    version: 'v3.3',
   },
   {
     userSymbol: 'YouTube',
@@ -66,6 +66,11 @@ export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
     userSymbol: 'FusionTables',
     serviceId: 'fusiontables',
     version: 'v2',
+  },
+  {
+    userSymbol: 'Docs',
+    serviceId: 'docs',
+    version: 'v1',
   },
   {
     userSymbol: 'Drive',
@@ -133,6 +138,11 @@ export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
     version: 'v2',
   },
   {
+    userSymbol: 'DriveActivity',
+    serviceId: 'driveactivity',
+    version: 'v2',
+  },
+  {
     userSymbol: 'Calendar',
     serviceId: 'calendar',
     version: 'v3',
@@ -145,11 +155,11 @@ export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
   {
     userSymbol: 'YouTubeAnalytics',
     serviceId: 'youtubeAnalytics',
-    version: 'v1',
+    version: 'v2',
   },
   {
-    userSymbol: 'UrlShortener',
-    serviceId: 'urlshortener',
+    userSymbol: 'People',
+    serviceId: 'peopleapi',
     version: 'v1',
   },
   {
