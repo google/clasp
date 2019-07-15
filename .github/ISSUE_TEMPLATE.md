@@ -1,6 +1,4 @@
-> Please search [existing issues](https://github.com/google/clasp/issues) before creating a new one.
->
-> DON'T DELETE THIS! FILL THESE SECTIONS OUT!
+> (Note: Non-breaking issues are likely not to be prioritized. Please consider a PR in addition to your issue)
 
 ## Expected Behavior
 
