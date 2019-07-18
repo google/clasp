@@ -1,5 +1,12 @@
+import path from 'path';
+import { readFileSync } from 'fs-extra';
+import multimatch from 'multimatch';
+import { watchTree } from 'watch';
+import { loadAPICredentials } from '../auth';
 import { DOT, DOTFILE } from '../dotfile';
 import { FS_OPTIONS, fetchProject, pushFiles } from '../files';
+import { overwritePrompt } from '../inquirer';
+import { isValidManifest } from '../manifest';
 import {
   LOG,
   PROJECT_MANIFEST_BASENAME,
@@ -9,13 +16,7 @@ import {
   spinner,
 } from '../utils';
 
-import { isValidManifest } from '../manifest';
-import { loadAPICredentials } from '../auth';
-import multimatch from 'multimatch';
-import { overwritePrompt } from '../inquirer';
-import path from 'path';
-import { readFileSync } from 'fs-extra';
-import { watchTree } from 'watch';
+const normalizeNewline = require('normalize-newline');
 
 /**
  * Uploads all files into the script.google.com filesystem.
@@ -81,5 +82,5 @@ const manifestHasChanges = async (): Promise<boolean> => {
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (!remoteManifest) throw Error('remote manifest no found');
-  return localManifest !== remoteManifest.source;
+  return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);
 };
