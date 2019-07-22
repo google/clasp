@@ -129,8 +129,10 @@ export const LOG = {
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page. `, // HTML Redirect Page
   AUTH_SUCCESSFUL: `Authorization successful.`,
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
-  CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.
-Warning: files in subfolder are not accounted for unless you set a '${DOT.IGNORE.PATH}' file.`,
+  CLONE_SUCCESS: (fileNum: number) => `Warning: files in subfolder are not accounted for unless you set a '${
+    DOT.IGNORE.PATH
+  }' file.
+Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
   CLONE_SCRIPT_QUESTION: 'Clone which script?',
   CREATE_SCRIPT_QUESTION: 'Create which script?',
