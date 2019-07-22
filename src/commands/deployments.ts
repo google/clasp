@@ -1,8 +1,7 @@
-import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../utils';
-import { loadAPICredentials, script } from '../auth';
-
-import pluralize from 'pluralize';
 import { script_v1 } from 'googleapis';
+import pluralize from 'pluralize';
+import { loadAPICredentials, script } from '../auth';
+import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../utils';
 
 /**
  * Lists a script's deployments.
@@ -17,9 +16,7 @@ export default async () => {
     scriptId,
   });
   spinner.stop(true);
-  if (deployments.status !== 200) {
-    return logError(deployments.statusText);
-  }
+  if (deployments.status !== 200) logError(deployments.statusText);
   const deploymentsList = deployments.data.deployments || [];
   const numDeployments = deploymentsList.length;
   const deploymentWord = pluralize('Deployment', numDeployments);

@@ -21,8 +21,9 @@ export default async (description: string) => {
     },
   });
   spinner.stop(true);
-  if (versions.status !== 200) {
-    return logError(versions.statusText);
+  if (versions.status === 200) {
+    console.log(LOG.VERSION_CREATED(versions.data.versionNumber || -1));
+  } else {
+    logError(versions.statusText);
   }
-  console.log(LOG.VERSION_CREATED(versions.data.versionNumber || -1));
 };

@@ -1,3 +1,8 @@
+import { SCRIPT_TYPES } from '../apis';
+import { drive, loadAPICredentials, script } from '../auth';
+import { fetchProject, hasProject, writeProjectFiles } from '../files';
+import { scriptTypePrompt } from '../inquirer';
+import { manifestExists } from '../manifest';
 import {
   ERROR,
   LOG,
@@ -8,12 +13,6 @@ import {
   saveProject,
   spinner,
 } from '../utils';
-import { drive, loadAPICredentials, script } from '../auth';
-import { fetchProject, hasProject, writeProjectFiles } from '../files';
-
-import { SCRIPT_TYPES } from '../apis';
-import { manifestExists } from '../manifest';
-import { scriptTypePrompt } from '../inquirer';
 
 /**
  * Creates a new Apps Script project.
@@ -26,7 +25,7 @@ import { scriptTypePrompt } from '../inquirer';
 export default async (cmd: { type: string; title: string; parentId: string; rootDir: string }) => {
   // Handle common errors.
   await checkIfOnline();
-  if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
+  if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
   await loadAPICredentials();
 
   // Create defaults.
@@ -65,10 +64,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
   try {
     const { scriptId } = await getProjectSettings(true);
-    if (scriptId) {
-      logError(null, ERROR.NO_NESTED_PROJECTS);
-      process.exit(1);
-    }
+    if (scriptId) logError(null, ERROR.NO_NESTED_PROJECTS);
   } catch (err) {
     // no scriptId (because project doesn't exist)
     // console.log(err);
@@ -83,24 +79,21 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   });
   spinner.stop(true);
   if (res.status !== 200) {
-    if (parentId) {
-      console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
-    }
+    if (parentId) console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
     logError(res.statusText, ERROR.CREATE);
-  } else {
-    const createdScriptId = res.data.scriptId || '';
-    console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
-    const rootDir = cmd.rootDir;
-    saveProject(
-      {
-        scriptId: createdScriptId,
-        rootDir,
-      },
-      false,
-    );
-    if (!manifestExists(rootDir)) {
-      const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
-      writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
-    }
+  }
+  const createdScriptId = res.data.scriptId || '';
+  console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
+  const rootDir = cmd.rootDir;
+  saveProject(
+    {
+      scriptId: createdScriptId,
+      rootDir,
+    },
+    false,
+  );
+  if (!manifestExists(rootDir)) {
+    const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
+    writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
   }
 };

@@ -1,19 +1,18 @@
-import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
-import { ClaspToken, DOTFILE, Dotfile } from './dotfile';
+import http from 'http';
+// TODO: AddressInfo is not defined in @types/node version 8 => check if any impact
+import { AddressInfo } from 'net';
+import readline from 'readline';
+import url from 'url';
 /**
  * Authentication with Google's APIs.
  */
 import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import { google, script_v1 } from 'googleapis';
-
-// TODO: AddressInfo is not defined in @types/node version 8 => check if any impact
-import { AddressInfo } from 'net';
-import http from 'http';
-import { oauthScopesPrompt } from './inquirer';
 import open from 'open';
+import { ClaspToken, DOTFILE, Dotfile } from './dotfile';
+import { oauthScopesPrompt } from './inquirer';
 import { readManifest } from './manifest';
-import readline from 'readline';
-import url from 'url';
+import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
 
 // Auth is complicated. Consider yourself warned.
 // tslint:disable:max-line-length
@@ -137,7 +136,7 @@ export async function authorize(options: {
         'https://www.googleapis.com/auth/cloud-platform',
       ];
       // TODO formal error
-      // return logError(null, 'You need to specify scopes in the manifest.' +
+      // logError(null, 'You need to specify scopes in the manifest.' +
       // 'View appsscript.json. Add a list of scopes in "oauthScopes"' +
       // 'Tip:' +
       // '1. clasp open' +
@@ -330,7 +329,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
     await oauthScopesPrompt()
     .then(async (answers) => {
       if (answers.doAuth) {
-        if (!rc.isLocalCreds) return logError(null, ERROR.NO_LOCAL_CREDENTIALS);
+        if (!rc.isLocalCreds) logError(null, ERROR.NO_LOCAL_CREDENTIALS);
         await authorize({
           useLocalhost: answers.localhost,
           scopes: newScopes,
