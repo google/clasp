@@ -6,7 +6,7 @@ import { LOG, checkIfOnline, getProjectSettings } from '../utils';
  * Displays the status of which Apps Script files are ignored from .claspignore
  * @param cmd.json {boolean} Displays the status in json format.
  */
-export default async (cmd: { json: boolean }) => {
+export default async (cmd: { json: boolean } = { json: false }) => {
   await checkIfOnline();
   await isValidManifest();
   const { scriptId, rootDir } = await getProjectSettings();

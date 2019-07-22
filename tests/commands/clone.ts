@@ -1,12 +1,11 @@
-import { CLASP, SCRIPT_ID } from '../constants';
-import { cleanup, setup } from '../functions';
-import { describe, it } from 'mocha';
-
-import { ERROR } from '../../src/utils';
-import { URL } from '../../src/urls';
+import { spawnSync } from 'child_process';
 import { expect } from 'chai';
 import fs from 'fs-extra';
-import { spawnSync } from 'child_process';
+import { describe, it } from 'mocha';
+import { URL } from '../../src/urls';
+import { ERROR, LOG } from '../../src/utils';
+import { CLASP, SCRIPT_ID } from '../constants';
+import { cleanup, setup } from '../functions';
 
 describe('Test clasp clone <scriptId> function', () => {
   before(setup);
@@ -17,6 +16,8 @@ describe('Test clasp clone <scriptId> function', () => {
     );
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
+    expect(result.stdout).to.contain(LOG.STATUS_PUSH);
+    expect(result.stdout).to.contain(LOG.STATUS_IGNORE);
     expect(result.status).to.equal(0);
   });
   it('should clone a project with scriptURL correctly', () => {
@@ -26,6 +27,8 @@ describe('Test clasp clone <scriptId> function', () => {
     );
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
+    expect(result.stdout).to.contain(LOG.STATUS_PUSH);
+    expect(result.stdout).to.contain(LOG.STATUS_IGNORE);
     expect(result.status).to.equal(0);
   });
   it('should give an error on a non-existing project', () => {
@@ -46,16 +49,18 @@ describe('Test clasp clone function', () => {
     const result = spawnSync(
       CLASP, ['clone'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain('Clone which script?');
+    expect(result.stdout).to.contain(LOG.CLONE_SCRIPT_QUESTION);
   });
   it('should prompt which project to clone and clone it', () => {
     cleanup();
     const result = spawnSync(
       CLASP, ['clone'], { encoding: 'utf8', input: '\n'},
     );
-    expect(result.stdout).to.contain('Clone which script?');
+    expect(result.stdout).to.contain(LOG.CLONE_SCRIPT_QUESTION);
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
+    expect(result.stdout).to.contain(LOG.STATUS_PUSH);
+    expect(result.stdout).to.contain(LOG.STATUS_IGNORE);
     expect(result.status).to.equal(0);
   });
   it('should give an error if .clasp.json already exists', () => {
