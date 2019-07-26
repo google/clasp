@@ -9,12 +9,29 @@
     "watch": "tsc --project tsconfig.json --watch",
     "publish": "npm publish --access public",
     "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
-    "test": "nyc ./node_modules/.bin/mocha --cache false --timeout 100000 'tests/**/*.js'",
+    "test": "nyc ./node_modules/.bin/mocha -r ts-node/register --cache false --timeout 100000 'tests/**/*.ts'",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "./node_modules/prettier/bin-prettier.js --parser typescript --single-quote --bracket-spacing --print-width 110 --trailing-comma all src/**/*.ts --write"
   },
   "bin": {
     "clasp": "./src/index.js"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "sourceMap": true,
+    "instrument": true
   },
   "repository": {
     "type": "git",
@@ -87,6 +104,7 @@
     "nyc": "^14.1.1",
     "prettier": "^1.18.2",
     "tmp": "^0.1.0",
+    "ts-node": "^8.3.0",
     "tslint": "^5.18.0"
   }
 }
