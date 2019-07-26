@@ -1,4 +1,4 @@
-import { getProjectFiles } from '../files';
+import { getProjectFiles, listFilesHelper } from '../files';
 import { isValidManifest } from '../manifest';
 import { LOG, checkIfOnline, getProjectSettings } from '../utils';
 
@@ -19,10 +19,10 @@ export default async (cmd: { json: boolean } = { json: false }) => {
         console.log(JSON.stringify({ filesToPush, untrackedFiles }));
       } else {
         console.log(LOG.STATUS_PUSH);
-        filesToPush.forEach(file => console.log(`└─ ${file}`));
+        console.log(listFilesHelper(filesToPush));
         console.log(); // Separate Ignored files list.
         console.log(LOG.STATUS_IGNORE);
-        untrackedFiles.forEach(file => console.log(`└─ ${file}`));
+        console.log(listFilesHelper(untrackedFiles));
       }
     }
   });
