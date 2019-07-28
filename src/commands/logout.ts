@@ -7,6 +7,6 @@ import { hasOauthClientSettings } from '../utils';
  */
 export default async () => {
   if (hasOauthClientSettings(true)) fs.unlinkSync(DOT.RC.ABSOLUTE_LOCAL_PATH);
-  // del doesn't work with a relative path (~)
+  
   if (hasOauthClientSettings()) fs.unlinkSync(DOT.RC.ABSOLUTE_PATH);
 };
