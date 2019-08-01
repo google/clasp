@@ -454,7 +454,7 @@ A sample `.claspignore` ignoring everything except the manifest and `build/main.
 
 _Note_: The `.claspignore` patterns are applied relative from the `rootDir`.
 
-If no `.claspignore` is specified, a default set of patterns is applied. The default will only consider the `appsscript.json` manifest and any JavaScript and TypeScript source files in the `rootDir` folder
+If no `.claspignore` is specified, a default set of patterns is applied. This default set will only consider the `appsscript.json` manifest and any JavaScript, TypeScript and `.html` source files within the `rootDir` folder. Child folders are not processed.
 
 ```text
 **/**
