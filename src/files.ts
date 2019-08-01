@@ -131,7 +131,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     const nonIgnoredFilePaths: string[] = [];
     const ignoredFilePaths = [...filesToIgnore];
 
-    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
+    const file2path: Array<{ path: string; file: AppsScriptFile }> = []; // used by `filePushOrder`
     // Loop through files that are not ignored
     let files = filesToPush
       .map((name, i) => {
@@ -177,9 +177,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     if (filePushOrder && filePushOrder.length > 0) { // skip "filePushOrder": []
       spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
-      filePushOrder.forEach(file => {
-        console.log(`└─ ${file}`);
-      });
+      logFileList(filePushOrder);
       console.log('');
       nonIgnoredFilePaths.sort((path1, path2) => {
         // Get the file order index
@@ -348,11 +346,11 @@ export async function pushFiles(silent = false) {
       if (!silent) spinner.stop(true);
       // no error
       if (!silent) {
-        nonIgnoredFilePaths.forEach((filePath: string) => {
-          console.log(`└─ ${filePath}`);
-        });
+        logFileList(nonIgnoredFilePaths);
         console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
       }
     }
   });
 }
+
+export const logFileList = (files: string[]) => console.log(files.map(file => `└─ ${file}`).join(`\n`));

@@ -19,15 +19,13 @@ const padEnd = require('string.prototype.padend');
  * @param cmd.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
  * @param cmd.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
-export default async (
-  cmd: {
-    json: boolean;
-    open: boolean;
-    setup: boolean;
-    watch: boolean;
-    simplified: boolean;
-  },
-) => {
+export default async (cmd: {
+  json: boolean;
+  open: boolean;
+  setup: boolean;
+  watch: boolean;
+  simplified: boolean;
+}) => {
   await checkIfOnline();
   // Get project settings.
   let { projectId } = await getProjectSettings();

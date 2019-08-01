@@ -3,6 +3,7 @@ import { fetchProject, hasProject, writeProjectFiles } from '../files';
 import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';
 import { extractScriptId } from '../urls';
 import { ERROR, LOG, checkIfOnline, logError, saveProject, spinner } from '../utils';
+import status from './status';
 
 const padEnd = require('string.prototype.padend');
 
@@ -23,6 +24,7 @@ export default async (scriptId: string, versionNumber: number, cmd: { rootDir: s
   saveProject({ scriptId, rootDir }, false);
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
+  await status();
 };
 
 /**

@@ -39,7 +39,7 @@ export default async (cmd: { watch: boolean; force: boolean }) => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
-        if (multimatch([f], patterns).length) {
+        if (multimatch([f], patterns, { dot: true }).length) {
           // The file matches the ignored files patterns so we do nothing
           return;
         }
