@@ -1,6 +1,7 @@
-import { getProjectFiles, listFilesHelper } from '../files';
-import { isValidManifest } from '../manifest';
 import { LOG, checkIfOnline, getProjectSettings } from '../utils';
+import { getProjectFiles, logFileList } from '../files';
+
+import { isValidManifest } from '../manifest';
 
 /**
  * Displays the status of which Apps Script files are ignored from .claspignore
@@ -19,10 +20,10 @@ export default async (cmd: { json: boolean } = { json: false }) => {
         console.log(JSON.stringify({ filesToPush, untrackedFiles }));
       } else {
         console.log(LOG.STATUS_PUSH);
-        console.log(listFilesHelper(filesToPush));
+        logFileList(filesToPush);
         console.log(); // Separate Ignored files list.
         console.log(LOG.STATUS_IGNORE);
-        console.log(listFilesHelper(untrackedFiles));
+        logFileList(untrackedFiles);
       }
     }
   });

@@ -1,12 +1,3 @@
-import path from 'path';
-import findUp from 'find-up';
-import fs from 'fs-extra';
-import mkdirp from 'mkdirp';
-import multimatch from 'multimatch';
-import recursive from 'recursive-readdir';
-import ts2gas from 'ts2gas';
-import ts from 'typescript';
-import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import {
   ERROR,
@@ -18,6 +9,16 @@ import {
   logError,
   spinner,
 } from './utils';
+import { loadAPICredentials, script } from './auth';
+
+import findUp from 'find-up';
+import fs from 'fs-extra';
+import mkdirp from 'mkdirp';
+import multimatch from 'multimatch';
+import path from 'path';
+import recursive from 'recursive-readdir';
+import ts from 'typescript';
+import ts2gas from 'ts2gas';
 
 // @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
 export const FS_OPTIONS = { encoding: 'utf8' };
@@ -130,7 +131,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     const nonIgnoredFilePaths: string[] = [];
     const ignoredFilePaths = [...filesToIgnore];
 
-    const file2path: Array<{ path: string; file: AppsScriptFile }> = [];  // used by `filePushOrder`
+    const file2path: Array<{ path: string; file: AppsScriptFile }> = []; // used by `filePushOrder`
     // Loop through files that are not ignored
     let files = filesToPush
       .map((name, i) => {
@@ -176,7 +177,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     if (filePushOrder && filePushOrder.length > 0) { // skip "filePushOrder": []
       spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
-      console.log(listFilesHelper(filePushOrder));
+      logFileList(filePushOrder);
       console.log('');
       nonIgnoredFilePaths.sort((path1, path2) => {
         // Get the file order index
@@ -345,11 +346,11 @@ export async function pushFiles(silent = false) {
       if (!silent) spinner.stop(true);
       // no error
       if (!silent) {
-        console.log(listFilesHelper(nonIgnoredFilePaths));
+        logFileList(nonIgnoredFilePaths);
         console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
       }
     }
   });
 }
 
-export const listFilesHelper = (files: string[]) => files.map(file => `└─ ${file}`).join(`\n`);
+export const logFileList = (files: string[]) => console.log(files.map(file => `└─ ${file}`).join(`\n`));
