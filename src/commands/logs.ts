@@ -56,6 +56,15 @@ export default async (cmd: {
 };
 
 /**
+ * This object holds all log IDs that have been printed to the user.
+ * This prevents log entries from being printed multiple times.
+ * StackDriver isn't super reliable, so it's easier to get generous chunk of logs and filter them
+ * rather than filter server-side.
+ * @see logs.data.entries[0].insertId
+ */
+const logEntryCache: { [key: string]: boolean } = {};
+
+/**
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
@@ -65,15 +74,6 @@ export function printLogs(
   formatJson: boolean,
   simplified: boolean,
 ) {
-  /**
-   * This object holds all log IDs that have been printed to the user.
-   * This prevents log entries from being printed multiple times.
-   * StackDriver isn't super reliable, so it's easier to get generous chunk of logs and filter them
-   * rather than filter server-side.
-   * @see logs.data.entries[0].insertId
-   */
-  const logEntryCache: { [key: string]: boolean } = {};
-
   entries.reverse(); // print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
     const {
