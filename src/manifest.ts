@@ -1,11 +1,10 @@
-import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
+import path from 'path';
+import fs from 'fs-extra';
+import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
-
 import { DOT } from './dotfile';
 import { FS_OPTIONS } from './files';
-import { PUBLIC_ADVANCED_SERVICES } from './apis';
-import fs from 'fs-extra';
-import path from 'path';
+import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -26,8 +25,8 @@ export async function readManifest(): Promise<Manifest> {
   try {
     return fs.readJsonSync(manifest, FS_OPTIONS);
   } catch (err) {
-    logError(null, ERROR.NO_MANIFEST(manifest));
-    throw Error('Could not read the manifest file.'); // TODO standardize errors.
+    return logError(null, ERROR.NO_MANIFEST(manifest));
+    // throw Error('Could not read the manifest file.'); // TODO standardize errors.
   }
 }
 

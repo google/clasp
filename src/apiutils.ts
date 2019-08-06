@@ -1,10 +1,9 @@
-import { ERROR, getProjectId, logError, spinner } from './utils';
-import { functionNamePrompt, functionNameSource } from './inquirer';
-import { loadAPICredentials, serviceUsage } from './auth';
-
-import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import fuzzy from 'fuzzy';
 import { script_v1 } from 'googleapis';
+import { loadAPICredentials, serviceUsage } from './auth';
+import { functionNamePrompt, functionNameSource } from './inquirer';
+import { enableOrDisableAdvanceServiceInManifest } from './manifest';
+import { ERROR, getProjectId, logError, spinner } from './utils';
 
 /**
  * Prompts for the function name.
@@ -15,10 +14,7 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
     scriptId,
   });
   spinner.stop(true);
-  if (content.status !== 200) {
-    logError(content.statusText);
-    throw Error();
-  }
+  if (content.status !== 200) logError(content.statusText);
   const files = content.data.files || [];
   type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
   const functionNames: string[] = files
@@ -51,7 +47,7 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
 // TODO: unnecessary export
 export async function getProjectIdWithErrors() {
   const projectId = await getProjectId(); // will prompt user to set up if required
-  if (!projectId) throw logError(null, ERROR.NO_GCLOUD_PROJECT);
+  if (!projectId) logError(null, ERROR.NO_GCLOUD_PROJECT);
   return projectId;
 }
 
@@ -71,9 +67,7 @@ export async function isEnabled(serviceName: string) {
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
 export async function enableOrDisableAPI(serviceName: string, enable: boolean) {
-  if (!serviceName) {
-    logError(null, 'An API name is required. Try sheets');
-  }
+  if (!serviceName) logError(null, 'An API name is required. Try sheets');
   const projectId = await getProjectIdWithErrors();
   const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
   try {

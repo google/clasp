@@ -1,9 +1,8 @@
-import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from '../utils';
-import { loadAPICredentials, script } from '../auth';
-
-import { URL } from '../urls';
-import { deploymentIdPrompt } from '../inquirer';
 import open from 'open';
+import { loadAPICredentials, script } from '../auth';
+import { deploymentIdPrompt } from '../inquirer';
+import { URL } from '../urls';
+import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from '../utils';
 
 interface EllipizeOptions {
   ellipse?: string;
@@ -29,17 +28,15 @@ export default async (
   await checkIfOnline();
   const projectSettings = await getProjectSettings();
   if (!scriptId) scriptId = projectSettings.scriptId;
-  if (scriptId.length < 30) {
-    return logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  }
+  if (scriptId.length < 30) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // We've specified to open creds.
   if (cmd.creds) {
     const projectId = projectSettings.projectId;
-    if (!projectId) {
-      return logError(null, ERROR.NO_GCLOUD_PROJECT);
+    if (projectId) {
+      console.log(LOG.OPEN_CREDS(projectId));
+      return open(URL.CREDS(projectId), { wait: false });
     }
-    console.log(LOG.OPEN_CREDS(projectId));
-    return open(URL.CREDS(projectId), { wait: false });
+    logError(null, ERROR.NO_GCLOUD_PROJECT);
   }
 
   // If we're not a web app, open the script URL.
@@ -51,13 +48,9 @@ export default async (
   // Web app: Otherwise, open the latest deployment.
   await loadAPICredentials();
   const deploymentsList = await script.projects.deployments.list({ scriptId });
-  if (deploymentsList.status !== 200) {
-    logError(deploymentsList.statusText);
-  }
+  if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
   const deployments = deploymentsList.data.deployments || [];
-  if (deployments.length === 0) {
-    logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  }
+  if (deployments.length === 0) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // Order deployments by update time.
   const choices = deployments
     .slice()
@@ -84,8 +77,8 @@ export default async (
   console.log(LOG.OPEN_WEBAPP(answers.deploymentId));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
-    open(target, { wait: false });
+    return open(target, { wait: false });
   } else {
-    return logError(null, `Could not open deployment: ${deployment}`);
+    logError(null, `Could not open deployment: ${deployment}`);
   }
 };
