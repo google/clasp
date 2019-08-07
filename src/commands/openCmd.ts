@@ -25,7 +25,6 @@ export default async (
     creds: boolean;
   },
 ) => {
-  await checkIfOnline();
   const projectSettings = await getProjectSettings();
   if (!scriptId) scriptId = projectSettings.scriptId;
   if (scriptId.length < 30) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
@@ -65,15 +64,17 @@ export default async (
       const config = e.deploymentConfig;
       const version = config && config.versionNumber;
       return {
-        name:
-          padEnd(ellipsize(config && config.description, DESC_PAD_SIZE), DESC_PAD_SIZE) +
+        name: padEnd(ellipsize(config && config.description, DESC_PAD_SIZE), DESC_PAD_SIZE) +
           `@${padEnd(typeof version === 'number' ? version : 'HEAD', 4)} - ${e.deploymentId}`,
         value: e,
       };
     });
 
-  const answers = await deploymentIdPrompt(choices);
-  const deployment = await script.projects.deployments.get({ deploymentId: answers.deploymentId });
+  const answers = (await deploymentIdPrompt(choices)).deploymentId as any;
+  const deployment = await script.projects.deployments.get({
+    scriptId,
+    deploymentId: answers.deploymentId
+  });
   console.log(LOG.OPEN_WEBAPP(answers.deploymentId));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
