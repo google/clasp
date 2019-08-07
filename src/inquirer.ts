@@ -18,8 +18,8 @@ export const functionNamePrompt = (source: functionNameSource) => {
     message: 'Select a functionName',
     type: 'autocomplete',
     source,
-  } as unknown as Question;
-  return prompt<{ functionName: string }>(question);
+  };
+  return prompt<{ functionName: string }>([question]);
 };
 
 interface DeploymentIdPrompt {
