@@ -18,8 +18,8 @@ export const functionNamePrompt = (source: functionNameSource) => {
     message: 'Select a functionName',
     type: 'autocomplete',
     source,
-  } as unknown as Question;
-  return prompt<{ functionName: string }>(question);
+  };
+  return prompt<{ functionName: string }>([question]);
 };
 
 interface DeploymentIdPrompt {
@@ -32,14 +32,12 @@ interface DeploymentIdPrompt {
  * @param {DeploymentIdPrompt[]} choices An array of `DeploymentIdPrompt` objects.
  * @returns {Promise<{ deploymentId: string }>} A promise for an object with the `deploymentId` property.
  */
-export const deploymentIdPrompt = (choices: DeploymentIdPrompt[]) => prompt<{ deploymentId: string }>([
-  {
-    choices,
-    message: 'Open which deployment?',
-    name: 'deploymentId',
-    type: 'list',
-  },
-]);
+export const deploymentIdPrompt = (choices: DeploymentIdPrompt[]) => prompt<{ deploymentId: string }>([{
+  choices,
+  message: 'Open which deployment?',
+  name: 'deploymentId',
+  type: 'list',
+}]);
 
 /**
  * Inquirer prompt for a project description.

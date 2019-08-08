@@ -1,3 +1,13 @@
+import path from 'path';
+import findUp from 'find-up';
+import fs from 'fs-extra';
+import mkdirp from 'mkdirp';
+import multimatch from 'multimatch';
+import recursive from 'recursive-readdir';
+import { async } from 'rxjs/internal/scheduler/async';
+import ts2gas from 'ts2gas';
+import ts from 'typescript';
+import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import {
   ERROR,
@@ -9,16 +19,6 @@ import {
   logError,
   spinner,
 } from './utils';
-import { loadAPICredentials, script } from './auth';
-
-import findUp from 'find-up';
-import fs from 'fs-extra';
-import mkdirp from 'mkdirp';
-import multimatch from 'multimatch';
-import path from 'path';
-import recursive from 'recursive-readdir';
-import ts from 'typescript';
-import ts2gas from 'ts2gas';
 
 // @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
 export const FS_OPTIONS = { encoding: 'utf8' };
@@ -120,8 +120,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       ) {
         // Can't rename, conflicting files
         abortPush = true;
+        // only print error once (for .gs)
         if (path.extname(name) === '.gs') {
-          // only print error once (for .gs)
           logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
         }
       }
@@ -292,16 +292,17 @@ export async function fetchProject(
  */
 export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
   const { fileExtension } = await getProjectSettings();
+  // ? following statement mutates variable `files`. Is that desirable?
   files.sort((file1, file2) => file1.name.localeCompare(file2.name));
   const sortedFiles = files;
   sortedFiles.forEach((file) => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
     mkdirp(path.dirname(truePath), err => {
-      if (err) return logError(err, ERROR.FS_DIR_WRITE);
+      if (err) logError(err, ERROR.FS_DIR_WRITE);
       if (!file.source) return; // disallow empty files
       fs.writeFile(truePath, file.source, err => {
-        if (err) return logError(err, ERROR.FS_FILE_WRITE);
+        if (err) logError(err, ERROR.FS_FILE_WRITE);
       });
       // Log only filename if pulling to root (Code.gs vs ./Code.gs)
       console.log(`└─ ${rootDir ? truePath : filePath}`);
@@ -320,8 +321,8 @@ export async function pushFiles(silent = false) {
   getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     // Check for edge cases.
     if (err) {
+      spinner.stop(true);
       logError(err, LOG.PUSH_FAILURE);
-      return spinner.stop(true);
     }
     if (!projectFiles) {
       console.log(LOG.PUSH_NO_FILES);

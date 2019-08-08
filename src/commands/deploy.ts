@@ -33,9 +33,7 @@ export default async (cmd: { versionNumber: number; description: string; deploym
       },
     });
     spinner.stop(true);
-    if (version.status !== 200) {
-      return logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
-    }
+    if (version.status !== 200) logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
     versionNumber = version.data.versionNumber || 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
   }
@@ -67,9 +65,6 @@ export default async (cmd: { versionNumber: number; description: string; deploym
     });
   }
   spinner.stop(true);
-  if (deployments.status !== 200) {
-    logError(null, ERROR.DEPLOYMENT_COUNT);
-  } else {
-    console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
-  }
+  if (deployments.status !== 200) logError(null, ERROR.DEPLOYMENT_COUNT);
+  console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
 };

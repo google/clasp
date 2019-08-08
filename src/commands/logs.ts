@@ -1,13 +1,12 @@
-import { DOTFILE, ProjectSettings } from '../dotfile';
-import { ERROR, LOG, checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner } from '../utils';
-import { loadAPICredentials, logger } from '../auth';
-
-import { GaxiosResponse } from 'gaxios';
-import { URL } from '../urls';
 import chalk from 'chalk';
+import { GaxiosResponse } from 'gaxios';
 import { logging_v2 } from 'googleapis';
 import open from 'open';
+import { loadAPICredentials, logger } from '../auth';
+import { DOTFILE, ProjectSettings } from '../dotfile';
 import { projectIdPrompt } from '../inquirer';
+import { URL } from '../urls';
+import { ERROR, LOG, checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner } from '../utils';
 
 const padEnd = require('string.prototype.padend');
 
@@ -56,6 +55,15 @@ export default async (cmd: {
 };
 
 /**
+ * This object holds all log IDs that have been printed to the user.
+ * This prevents log entries from being printed multiple times.
+ * StackDriver isn't super reliable, so it's easier to get generous chunk of logs and filter them
+ * rather than filter server-side.
+ * @see logs.data.entries[0].insertId
+ */
+const logEntryCache: { [key: string]: boolean } = {};
+
+/**
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
@@ -65,15 +73,6 @@ export function printLogs(
   formatJson: boolean,
   simplified: boolean,
 ) {
-  /**
-   * This object holds all log IDs that have been printed to the user.
-   * This prevents log entries from being printed multiple times.
-   * StackDriver isn't super reliable, so it's easier to get generous chunk of logs and filter them
-   * rather than filter server-side.
-   * @see logs.data.entries[0].insertId
-   */
-  const logEntryCache: { [key: string]: boolean } = {};
-
   entries.reverse(); // print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
     const {
@@ -133,7 +132,7 @@ export function printLogs(
 // TODO: unnecessary export
 export async function setupLogs(): Promise<string> {
   let projectId: string;
-  const promise = new Promise<string>((resolve, reject) => {
+  return new Promise<string>((resolve, reject) => {
     getProjectSettings().then(projectSettings => {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
@@ -141,7 +140,7 @@ export async function setupLogs(): Promise<string> {
         .then(answers => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
-          if (!dotfile) return reject(logError(null, ERROR.SETTINGS_DNE));
+          if (!dotfile) logError(null, ERROR.SETTINGS_DNE);
           dotfile
             .read<ProjectSettings>()
             .then(settings => {
@@ -149,21 +148,17 @@ export async function setupLogs(): Promise<string> {
               dotfile.write({ ...settings, ...{ projectId } });
               resolve(projectId);
             })
-            .catch((err: object) => {
-              reject(logError(err));
-            });
+            .catch((err: object) => logError(err));
         })
         .catch((err: Error) => {
           console.log(err);
           reject();
         });
     });
-  });
-  promise.catch(err => {
+  }).catch(err => {
     spinner.stop(true);
-    throw logError(err);
+    return logError(err);
   });
-  return promise;
 }
 
 /**
@@ -190,7 +185,7 @@ export async function fetchAndPrintLogs(
     return logError(null, ERROR.NO_GCLOUD_PROJECT);
   }
   if (!isValidProjectId(projectId)) {
-    return logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
+    logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
   }
   try {
     const logs = await logger.entries.list({

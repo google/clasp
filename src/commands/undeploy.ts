@@ -14,13 +14,9 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
     const deploymentsList = await script.projects.deployments.list({
       scriptId,
     });
-    if (deploymentsList.status !== 200) {
-      return logError(deploymentsList.statusText);
-    }
+    if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
     const deployments = deploymentsList.data.deployments || [];
-    if (!deployments.length) {
-      logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-    }
+    if (!deployments.length) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
     for (const deployment of deployments) {
       const id = deployment.deploymentId || '';
@@ -30,9 +26,7 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
         deploymentId: id,
       });
       spinner.stop(true);
-      if (result.status !== 200) {
-        return logError(null, ERROR.READ_ONLY_DELETE);
-      }
+      if (result.status !== 200) logError(null, ERROR.READ_ONLY_DELETE);
       console.log(LOG.UNDEPLOYMENT_FINISH(id));
     }
     console.log(LOG.UNDEPLOYMENT_ALL_FINISH);
@@ -42,17 +36,11 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
     const deploymentsList = await script.projects.deployments.list({
       scriptId,
     });
-    if (deploymentsList.status !== 200) {
-      return logError(deploymentsList.statusText);
-    }
+    if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
     const deployments = deploymentsList.data.deployments || [];
-    if (!deployments.length) {
-      logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
-    }
-    if (deployments.length <= 1) {
-      // @HEAD (Read-only deployments) may not be deleted.
-      logError(null, ERROR.NO_VERSIONED_DEPLOYMENTS);
-    }
+    if (!deployments.length) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    // @HEAD (Read-only deployments) may not be deleted.
+    if (deployments.length <= 1) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     deploymentId = deployments[deployments.length - 1].deploymentId || '';
   }
   spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
@@ -61,9 +49,9 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
     deploymentId,
   });
   spinner.stop(true);
-  if (response.status !== 200) {
-    return logError(null, ERROR.READ_ONLY_DELETE);
-  } else {
+  if (response.status === 200) {
     console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
+  } else {
+    logError(null, ERROR.READ_ONLY_DELETE);
   }
 };

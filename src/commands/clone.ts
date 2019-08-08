@@ -1,3 +1,4 @@
+import { async } from 'rxjs/internal/scheduler/async';
 import { drive, loadAPICredentials } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
 import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';
@@ -17,7 +18,7 @@ const padEnd = require('string.prototype.padend');
  */
 export default async (scriptId: string, versionNumber: number, cmd: { rootDir: string }) => {
   await checkIfOnline();
-  if (hasProject()) return logError(null, ERROR.FOLDER_EXISTS);
+  if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
   const rootDir = cmd.rootDir;
@@ -39,19 +40,15 @@ const getScriptId = async () => {
     q: 'mimeType="application/vnd.google-apps.script"',
   });
   const data = list.data;
-  if (!data) {
-    logError(list.statusText, 'Unable to use the Drive API.');
-    return '';
-  }
+  if (!data) logError(list.statusText, 'Unable to use the Drive API.');
   const files = data.files;
-  if (!files || !files.length) {
-    logError(null, LOG.FINDING_SCRIPTS_DNE);
-    return '';
+  if (files && files.length) {
+    const fileIds: ScriptIdPrompt[] = files.map(file => ({
+      name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
+      value: file.id || '',
+    }));
+    const answers = await scriptIdPrompt(fileIds);
+    return answers.scriptId;
   }
-  const fileIds: ScriptIdPrompt[] = files.map(file => ({
-    name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
-    value: file.id || '',
-  }));
-  const answers = await scriptIdPrompt(fileIds);
-  return answers.scriptId;
+  return logError(null, LOG.FINDING_SCRIPTS_DNE);
 };
