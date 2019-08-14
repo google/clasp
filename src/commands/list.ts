@@ -26,9 +26,7 @@ export default async () => {
     q: 'mimeType="application/vnd.google-apps.script"',
   });
   spinner.stop(true);
-  if (filesList.status !== 200) {
-    return logError(null, ERROR.DRIVE);
-  }
+  if (filesList.status !== 200) logError(null, ERROR.DRIVE);
   const files = filesList.data.files || [];
   if (!files.length) {
     return console.log(LOG.FINDING_SCRIPTS_DNE);

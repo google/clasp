@@ -1,12 +1,12 @@
-import { ERROR, checkIfOnline, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
-import { addScopeToManifest, isValidRunManifest } from '../manifest';
-import { getLocalScript, loadAPICredentials, script } from '../auth';
-
-import { URL } from '../urls';
-import chalk from 'chalk';
-import { getFunctionNames } from '../apiutils';
-import pluralize from 'pluralize';
 import readline from 'readline';
+import chalk from 'chalk';
+import pluralize from 'pluralize';
+import { getFunctionNames } from '../apiutils';
+import { getLocalScript, loadAPICredentials, script } from '../auth';
+import { addScopeToManifest, isValidRunManifest } from '../manifest';
+import { URL } from '../urls';
+import { ERROR, checkIfOnline, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
+
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
  * @param functionName {string} The function name within the Apps Script project.
@@ -64,8 +64,7 @@ async function runFunction(functionName: string, params: string[], scriptId: str
     });
     spinner.stop(true);
     if (!res || !res.data.done) {
-      logError(null, ERROR.RUN_NODATA);
-      process.exit(0); // exit gracefully in case localhost server spun up for authorize
+      logError(null, ERROR.RUN_NODATA, 0); // exit gracefully in case localhost server spun up for authorize
     }
     const data = res.data;
     // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body

@@ -72,6 +72,7 @@
     "is-online": "^8.2.0",
     "mkdirp": "^0.5.1",
     "multimatch": "^4.0.0",
+    "normalize-newline": "3.0.0",
     "open": "^6.4.0",
     "path": "^0.12.7",
     "pluralize": "^8.0.0",

@@ -1,13 +1,12 @@
-import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
-
-import { Spinner } from 'cli-spinner';
-import { URL } from './urls';
-import chalk from 'chalk';
-import fs from 'fs-extra';
 import path from 'path';
-import pluralize from 'pluralize';
-import { projectIdPrompt } from './inquirer';
+import chalk from 'chalk';
+import { Spinner } from 'cli-spinner';
+import fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
+import pluralize from 'pluralize';
+import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
+import { projectIdPrompt } from './inquirer';
+import { URL } from './urls';
 
 const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
 const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
@@ -52,10 +51,9 @@ export const hasOauthClientSettings = (local = false): boolean =>
  */
 export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC.read<ClaspToken>()
-    .catch((err: Error) => {
-      return logError(err, ERROR.NO_CREDENTIALS(local));
-    });
+  return RC
+    .read<ClaspToken>()
+    .catch((err: Error) => logError(err, ERROR.NO_CREDENTIALS(local)));
 }
 
 // Error messages (some errors take required params)
@@ -130,7 +128,10 @@ export const LOG = {
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page. `, // HTML Redirect Page
   AUTH_SUCCESSFUL: `Authorization successful.`,
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
-  CLONE_SUCCESS: (fileNum: number) => `Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
+  CLONE_SUCCESS: (fileNum: number) => `Warning: files in subfolder are not accounted for unless you set a '${
+    DOT.IGNORE.PATH
+  }' file.
+Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
   CLONE_SCRIPT_QUESTION: 'Clone which script?',
   CREATE_SCRIPT_QUESTION: 'Create which script?',
@@ -203,39 +204,43 @@ SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit
 export const spinner = new Spinner();
 
 /**
- * Logs errors to the user such as unauthenticated or permission denied
+ * Logs errors to the user such as unauthenticated or permission denied and exits Node.
+ *
+ * > This function **`never`** returns
+ *
  * @param  {object} err         The object from the request's error
  * @param  {string} description The description of the error
+ * @param  {number} code        (*optional*) The process exit code. default value is `1`
  */
 // tslint:disable-next-line:no-any
-export const logError = (err: any, description = ''): never => {
+export const logError = (err: any, description = '', code = 1): never => {
   spinner.stop(true);
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
   // change error model. Don't review this method now.
   if (err && typeof err.error === 'string') {
-    logError(null, JSON.parse(err.error).error);
+    description = JSON.parse(err.error).error;
   } else if (
     (err && err.statusCode === 401) ||
     (err && err.error && err.error.error && err.error.error.code === 401)
   ) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
-    logError(null, ERROR.UNAUTHENTICATED);
+    description = ERROR.UNAUTHENTICATED;
   } else if (err && ((err.error && err.error.code === 403) || err.code === 403)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.PERMISSION_DENIED : ERROR.PERMISSION_DENIED_LOCAL
-    logError(null, ERROR.PERMISSION_DENIED);
+    description = ERROR.PERMISSION_DENIED;
   } else if (err && err.code === 429) {
-    logError(null, ERROR.RATE_LIMIT);
+    description = ERROR.RATE_LIMIT;
   } else {
     if (err && err.error) {
       console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
       console.error(err.error);
     }
-    if (description) console.error(description);
   }
-  return process.exit(1);
+  if (description) console.error(description);
+  return process.exit(code);
 };
 
 /**
@@ -249,10 +254,8 @@ export function getWebApplicationURL(deployment: script_v1.Schema$Deployment) {
   const entryPoints = deployment.entryPoints || [];
   const webEntryPoint = entryPoints.find((entryPoint: script_v1.Schema$EntryPoint) =>
     entryPoint.entryPointType === 'WEB_APP');
-  if (!webEntryPoint) {
-    logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
-  }
-  return webEntryPoint && webEntryPoint.webApp && webEntryPoint.webApp.url;
+  if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
+  logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
 }
 
 /**
@@ -270,13 +273,10 @@ export function getDefaultProjectName(): string {
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
 export async function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
-  const promise = new Promise<ProjectSettings>((resolve, reject) => {
-    const fail = (failSilently?: boolean) => {
-      if (!failSilently) {
-        logError(null, ERROR.SETTINGS_DNE);
-      }
-      resolve();
-    };
+  return new Promise<ProjectSettings>((resolve, reject) => {
+    const fail = (silent?: boolean) => silent
+      ? resolve()
+      : logError(null, ERROR.SETTINGS_DNE);
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
@@ -297,11 +297,8 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
     } else {
       fail(); // Never found a dotfile
     }
-  });
-  promise.catch(err => {
-    logError(err);
-  });
-  return promise;
+  })
+  .catch(err => logError(err));
 }
 
 /**

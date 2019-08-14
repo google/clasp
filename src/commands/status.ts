@@ -1,12 +1,13 @@
-import { getProjectFiles } from '../files';
-import { isValidManifest } from '../manifest';
 import { LOG, checkIfOnline, getProjectSettings } from '../utils';
+import { getProjectFiles, logFileList } from '../files';
+
+import { isValidManifest } from '../manifest';
 
 /**
  * Displays the status of which Apps Script files are ignored from .claspignore
  * @param cmd.json {boolean} Displays the status in json format.
  */
-export default async (cmd: { json: boolean }) => {
+export default async (cmd: { json: boolean } = { json: false }) => {
   await checkIfOnline();
   await isValidManifest();
   const { scriptId, rootDir } = await getProjectSettings();
@@ -19,10 +20,10 @@ export default async (cmd: { json: boolean }) => {
         console.log(JSON.stringify({ filesToPush, untrackedFiles }));
       } else {
         console.log(LOG.STATUS_PUSH);
-        filesToPush.forEach(file => console.log(`└─ ${file}`));
+        logFileList(filesToPush);
         console.log(); // Separate Ignored files list.
         console.log(LOG.STATUS_IGNORE);
-        untrackedFiles.forEach(file => console.log(`└─ ${file}`));
+        logFileList(untrackedFiles);
       }
     }
   });
