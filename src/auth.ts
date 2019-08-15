@@ -184,6 +184,14 @@ export async function authorize(options: {
   }
 }
 
+export async function getLoggedInEmail() {
+  await loadAPICredentials();
+  const response = await google.oauth2('v2').userinfo.get({
+    auth: globalOAuth2Client,
+  });
+  return response.data.email;
+}
+
 /**
  * Loads the Apps Script API credentials for the CLI.
  * Required before every API call.
@@ -324,7 +332,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
     const newScopes =
       oauthScopes && oauthScopes.length ? (oauthScopes).filter(x => !scopes.includes(x)) : [];
     if (!newScopes.length) return;
-    console.log('New authoization scopes detected in manifest:\n', newScopes);
+    console.log('New authorization scopes detected in manifest:\n', newScopes);
 
     await oauthScopesPrompt()
     .then(async (answers) => {
