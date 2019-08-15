@@ -69,6 +69,7 @@ commander
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
   .option('--creds <file>', 'Relative path to credentials (from GCP).')
+  .option('--status', 'Print who is logged in')
   .action(handleError(login));
 
 /**
