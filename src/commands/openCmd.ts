@@ -70,10 +70,11 @@ export default async (
       };
     });
 
+  // tslint:disable-next-line:no-any
   const answers = (await deploymentIdPrompt(choices)).deploymentId as any;
   const deployment = await script.projects.deployments.get({
     scriptId,
-    deploymentId: answers.deploymentId
+    deploymentId: answers.deploymentId,
   });
   console.log(LOG.OPEN_WEBAPP(answers.deploymentId));
   const target = getWebApplicationURL(deployment.data);
