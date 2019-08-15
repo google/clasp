@@ -71,7 +71,6 @@ export default async (
     });
 
   const answers = await deploymentIdPrompt(choices);
-  console.log(JSON.stringify(answers));
   const deployment = await script.projects.deployments.get({
     scriptId,
     deploymentId: answers.deployment.deploymentId,
