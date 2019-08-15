@@ -70,13 +70,13 @@ export default async (
       };
     });
 
-  // tslint:disable-next-line:no-any
-  const answers = (await deploymentIdPrompt(choices)).deploymentId as any;
+  const answers = await deploymentIdPrompt(choices);
+  console.log(JSON.stringify(answers));
   const deployment = await script.projects.deployments.get({
     scriptId,
-    deploymentId: answers.deploymentId,
+    deploymentId: answers.deployment.deploymentId,
   });
-  console.log(LOG.OPEN_WEBAPP(answers.deploymentId));
+  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
     return open(target, { wait: false });
