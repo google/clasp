@@ -190,10 +190,14 @@ export async function authorize(options: {
 
 export async function getLoggedInEmail() {
   await loadAPICredentials();
-  const response = await google.oauth2('v2').userinfo.get({
-    auth: globalOAuth2Client,
-  });
-  return response.data.email;
+  try {
+    const response = await google.oauth2('v2').userinfo.get({
+      auth: globalOAuth2Client,
+    });
+    return response.data.email;
+  } catch (e) {
+    return undefined;
+  }
 }
 
 /**

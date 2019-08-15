@@ -19,7 +19,7 @@ import { google } from 'googleapis';
 export default async (options: { localhost?: boolean; creds?: string, status?: boolean }) => {
   if (options.status) {
     if (hasOauthClientSettings()) {
-      const email = (await safeIsOnline) ? (await getLoggedInEmail()) : undefined;
+      const email = (await safeIsOnline()) ? (await getLoggedInEmail()) : undefined;
 
       if (!!email) {
         console.log(LOG.LOGGED_IN_AS(email));
