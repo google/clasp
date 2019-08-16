@@ -123,6 +123,9 @@ Did you provide the correct projectID?`,
 // Log messages (some logs take required params)
 export const LOG = {
   ASK_PROJECT_ID: `What is your GCP projectId?`,
+  NOT_LOGGED_IN: 'You are not logged in.',
+  LOGGED_IN_UNKNOWN: 'You are logged in as an unknown user.',
+  LOGGED_IN_AS: (email: string) => `You are logged in as ${email}.`,
   AUTH_CODE: 'Enter the code from that page here: ',
   // TODO: Make AUTH_PAGE_SUCCESSFUL show an HTML page with something useful!
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page. `, // HTML Redirect Page
@@ -314,10 +317,21 @@ export function getAPIFileType(filePath: string): string {
 /**
  * Checks if the network is available. Gracefully exits if not.
  */
-export async function checkIfOnline() {
+export async function safeIsOnline() {
   // If using a proxy, return true since `isOnline` doesn't work.
   // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
-  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY || (await isOnline())) {
+  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+    return true;
+  } else {
+    return await isOnline();
+  }
+}
+
+/**
+ * Checks if the network is available. Gracefully exits if not.
+ */
+export async function checkIfOnline() {
+  if (await safeIsOnline()) {
     return true;
   }
   return logError(null, ERROR.OFFLINE);

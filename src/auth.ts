@@ -117,6 +117,8 @@ export async function authorize(options: {
         'https://www.googleapis.com/auth/drive.file', // Create Drive files
         'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
         'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+        'https://www.googleapis.com/auth/userinfo.email', // User email address
+        'https://www.googleapis.com/auth/userinfo.profile',
 
         // Extra scope since service.management doesn't work alone
         'https://www.googleapis.com/auth/cloud-platform',
@@ -131,6 +133,8 @@ export async function authorize(options: {
         'https://www.googleapis.com/auth/drive.file', // Create Drive files
         'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
         'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+        'https://www.googleapis.com/auth/userinfo.email', // User email address
+        'https://www.googleapis.com/auth/userinfo.profile',
 
         // Extra scope since service.management doesn't work alone
         'https://www.googleapis.com/auth/cloud-platform',
@@ -181,6 +185,18 @@ export async function authorize(options: {
     console.log(LOG.SAVED_CREDS(!!options.creds));
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
+  }
+}
+
+export async function getLoggedInEmail() {
+  await loadAPICredentials();
+  try {
+    const response = await google.oauth2('v2').userinfo.get({
+      auth: globalOAuth2Client,
+    });
+    return response.data.email;
+  } catch (e) {
+    return undefined;
   }
 }
 
@@ -324,7 +340,7 @@ export async function checkOauthScopes(rc: ClaspToken) {
     const newScopes =
       oauthScopes && oauthScopes.length ? (oauthScopes).filter(x => !scopes.includes(x)) : [];
     if (!newScopes.length) return;
-    console.log('New authoization scopes detected in manifest:\n', newScopes);
+    console.log('New authorization scopes detected in manifest:\n', newScopes);
 
     await oauthScopesPrompt()
     .then(async (answers) => {
