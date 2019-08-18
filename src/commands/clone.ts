@@ -1,11 +1,10 @@
-import { async } from 'rxjs/internal/scheduler/async';
 import { drive, loadAPICredentials } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
 import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';
 import { extractScriptId } from '../urls';
 import { ERROR, LOG, checkIfOnline, logError, saveProject, spinner } from '../utils';
 import status from './status';
-
+// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
 const padEnd = require('string.prototype.padend');
 
 /**

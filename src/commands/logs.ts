@@ -7,7 +7,7 @@ import { DOTFILE, ProjectSettings } from '../dotfile';
 import { projectIdPrompt } from '../inquirer';
 import { URL } from '../urls';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner } from '../utils';
-
+// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
 const padEnd = require('string.prototype.padend');
 
 /**

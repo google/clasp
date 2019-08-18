@@ -7,6 +7,7 @@ import { URL } from '../urls';
 import { enableOrDisableAPI } from '../apiutils';
 import open from 'open';
 import { serviceusage_v1 } from 'googleapis';
+// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
 const padEnd = require('string.prototype.padend');
 
 /**
