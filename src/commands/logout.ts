@@ -1,12 +1,39 @@
-import { DOT } from '../dotfile';
-import del from 'del';
+import { Conf } from '../conf';
+import { DOTFILE } from '../dotfile';
 import { hasOauthClientSettings } from '../utils';
+
+const auth = Conf.get().auth;
 
 /**
  * Logs out the user by deleting credentials.
  */
 export default async () => {
-  if (hasOauthClientSettings(true)) del(DOT.RC.ABSOLUTE_LOCAL_PATH, { force: true });
-  // del doesn't work with a relative path (~)
-  if (hasOauthClientSettings()) del(DOT.RC.ABSOLUTE_PATH, { force: true });
+  let previousPath: string | undefined = undefined;
+  if (hasOauthClientSettings(true)) {
+    if (auth.isDefault()) {
+      // if no local auth defined, try current directory
+      previousPath = auth.path;
+      auth.path = '.';
+    }
+
+    await DOTFILE.AUTH().delete();
+
+    if (previousPath) {
+      auth.path = previousPath;
+    }
+  }
+
+  if (hasOauthClientSettings()) {
+    if (!auth.isDefault()) {
+      // if local auth defined, try with default (global)
+      previousPath = auth.path;
+      auth.path = '';
+    }
+
+    await DOTFILE.AUTH().delete();
+
+    if (previousPath) {
+      auth.path = previousPath;
+    }
+  }
 };

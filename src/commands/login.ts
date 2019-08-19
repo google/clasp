@@ -15,10 +15,10 @@ import { ERROR, LOG, checkIfOnline, hasOauthClientSettings, safeIsOnline } from 
  * @param {string?} options.creds The location of credentials file.
  * @param {boolean?} options.status If true, prints who is logged in instead of doing login.
  */
-export default async (options: { localhost?: boolean; creds?: string, status?: boolean }) => {
+export default async (options: { localhost?: boolean; creds?: string; status?: boolean }) => {
   if (options.status) {
     if (hasOauthClientSettings()) {
-      const email = (await safeIsOnline()) ? (await getLoggedInEmail()) : undefined;
+      const email = (await safeIsOnline()) ? await getLoggedInEmail() : undefined;
 
       if (!!email) {
         console.log(LOG.LOGGED_IN_AS(email));
