@@ -50,6 +50,7 @@ export default async (functionName: string, cmd: { nondev: boolean; params: stri
  */
 async function runFunction(functionName: string, params: string[], scriptId: string, devMode: boolean) {
   try {
+    // TODO: @grant what are the issues/risks of not using local auth?
     // Load local credentials.
     await loadAPICredentials(true);
     const localScript = await getLocalScript();
