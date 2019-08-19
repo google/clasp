@@ -12,13 +12,17 @@
  * This should be the only file that uses DOTFILE.
  */
 
-import os from 'os';
 import path from 'path';
-import findUp from 'find-up';
 import fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
-import stripBom = require('strip-bom');
+import stripBom from 'strip-bom';
+import { Conf } from './conf';
+
+const conf = Conf.get();
+const auth = conf.auth;
+const ignore = conf.ignore;
+const project = conf.project;
 
 // Getting ready to switch to `dotf` embedded types
 // import { default as dotf } from 'dotf';
@@ -37,10 +41,6 @@ const dotf: Dotf = require('dotf');
 const splitLines: (str: string, options?: { preserveNewLines?: boolean })
   => string[] = require('split-lines');
 
-// TEMP CIRCULAR DEPS, TODO REMOVE
-// import { PROJECT_NAME } from './utils';
-const PROJECT_NAME = 'clasp';
-
 // TODO: workaround the circular dependency with `files.ts`
 // @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
 const FS_OPTIONS = { encoding: 'utf8' };
@@ -53,57 +53,21 @@ export interface ProjectSettings {
   fileExtension?: string;
   filePushOrder?: string[];
 }
+
 // Dotfile names
-export const DOT = {
-  /**
-   * This dotfile stores information about ignoring files on `push`. Like .gitignore.
-   */
-  IGNORE: {
-    DIR: '~',
-    NAME: `${PROJECT_NAME}ignore`,
-    PATH: `.${PROJECT_NAME}ignore`,
-  },
-  /**
-   * This dotfile saves clasp project information, local to project directory.
-   */
-  PROJECT: {
-    DIR: path.join('.', '/'), // Relative to where the command is run. See DOTFILE.PROJECT()
-    NAME: `${PROJECT_NAME}.json`,
-    PATH: `.${PROJECT_NAME}.json`,
-  },
-  /**
-   * This dotfile saves auth information. Should never be committed.
-   * There are 2 types: personal & global:
-   * - Global: In the $HOME directory.
-   * - Personal: In the local directory.
-   * @see {ClaspToken}
-   */
-  RC: {
-    DIR: '~',
-    LOCAL_DIR: './',
-    NAME: `${PROJECT_NAME}rc.json`,
-    LOCAL_PATH: `.${PROJECT_NAME}rc.json`,
-    PATH: path.join('~', `.${PROJECT_NAME}rc.json`),
-    ABSOLUTE_PATH: path.join(os.homedir(), `.${PROJECT_NAME}rc.json`),
-    ABSOLUTE_LOCAL_PATH: path.join('.', `.${PROJECT_NAME}rc.json`),
-  },
-};
+// @grant the `DOT` object has been replaced with the `Conf` singleton
 
 // Methods for retrieving dotfiles.
 export const DOTFILE = {
   /**
-   * Reads DOT.IGNORE.PATH to get a glob pattern of ignored paths.
+   * Reads ignore.resolve() to get a glob pattern of ignored paths.
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: () => {
-    const projectPath = findUp.sync(DOT.PROJECT.PATH);
-    const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
+    const ignorePath = ignore.resolve();
     return new Promise<string[]>((resolve, reject) => {
-      if (
-        fs.existsSync(ignoreDirectory)
-        && fs.existsSync(DOT.IGNORE.PATH)
-      ) {
-        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
+      if (fs.existsSync(ignorePath)) {
+        const buffer = stripBom(fs.readFileSync(ignorePath, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
         resolve(['**/**', '!appsscript.json', '!*.gs', '!*.js', '!*.ts', '!*.html']);
@@ -116,15 +80,21 @@ export const DOTFILE = {
    * @return {Dotf} A dotf with that dotfile. Null if there is no file
    */
   PROJECT: () => {
-    const projectPath = findUp.sync(DOT.PROJECT.PATH);
-    return dotf(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, DOT.PROJECT.NAME);
+    // ! TODO: currently limited if filename doesn't start with a dot '.'
+    const { dir, base } = path.parse(project.resolve());
+    if (base[0] === '.') {
+      return dotf(dir || '.', base.slice(1));
+    }
+    throw new Error('Project file must start with a dot (i.e. .clasp.json)');
   },
   // Stores {ClaspCredentials}
-  RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
-  // Stores {ClaspCredentials}
-  RC_LOCAL: () => {
-    const localPath = findUp.sync(DOT.PROJECT.PATH);
-    return dotf(localPath ? path.dirname(localPath) : DOT.RC.LOCAL_DIR, DOT.RC.NAME);
+  AUTH: () => {
+    // ! TODO: currently limited if filename doesn't start with a dot '.'
+    const { dir, base } = path.parse(auth.resolve());
+    if (base[0] === '.') {
+      return dotf(dir || '.', base.slice(1));
+    }
+    throw new Error('Auth file must start with a dot (i.e. .clasp.json)');
   },
 };
 
