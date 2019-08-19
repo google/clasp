@@ -1,5 +1,4 @@
 import path from 'path';
-import findUp from 'find-up';
 import fs from 'fs-extra';
 import mkdirp from 'mkdirp';
 import multimatch from 'multimatch';
@@ -7,17 +6,19 @@ import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
 import ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
-import { DOT, DOTFILE } from './dotfile';
+import { Conf, PROJECT_MANIFEST_FILENAME } from './conf';
+import { DOTFILE } from './dotfile';
 import {
   ERROR,
   LOG,
-  PROJECT_MANIFEST_FILENAME,
   checkIfOnline,
   getAPIFileType,
   getProjectSettings,
   logError,
   spinner,
 } from './utils';
+
+const project = Conf.get().project;
 
 // @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
 export const FS_OPTIONS = { encoding: 'utf8' };
@@ -48,7 +49,7 @@ export function getFileType(type: string, fileExtension?: string): string {
  * @returns {boolean} If .clasp.json exists.
  */
 export function hasProject(): boolean {
-  return fs.existsSync(DOT.PROJECT.PATH);
+  return fs.existsSync(project.resolve());
 }
 
 /**
@@ -119,7 +120,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         // Can't rename, conflicting files
         abortPush = true;
         // only print error once (for .gs)
-        if (path.extname(name) === '.gs') {
+          if (path.extname(name) === '.gs') {
           logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
         }
       }
