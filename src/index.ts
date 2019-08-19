@@ -21,8 +21,6 @@
  * clasp – The Apps Script CLI
  */
 
-import { PROJECT_NAME, handleError } from './utils';
-
 import apis from './commands/apis';
 import clone from './commands/clone';
 import commander from 'commander';
@@ -44,6 +42,11 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
+import { Conf, PROJECT_NAME } from './conf';
+import { handleError } from './utils';
+
+// instantiate the config singleton (and loads environment variables as a side effect)
+const config = Conf.get();
 
 // CLI
 
@@ -54,6 +57,46 @@ commander
   .name(PROJECT_NAME)
   .usage(`<command> [options]`)
   .description(`${PROJECT_NAME} - The Apps Script CLI`);
+
+/**
+ * Path to an auth file, or to a folder with a '.clasprc.json' file.
+ */
+commander.option(
+  '-A, --auth <file>',
+  `path to an auth file or a folder with a '.clasprc.json' file.`,
+).on('option:auth', () => {
+  config.auth.path = commander['auth'];
+});
+
+/**
+ * Path to an ignore file, or to a folder with a '.claspignore'.
+ */
+commander.option(
+  '-I, --ignore <file>',
+  `path to an ignore file or a folder with a '.claspignore' file.`,
+).on('option:ignore', () => {
+  config.ignore.path = commander['ignore'];
+});
+
+/**
+ * Path to an manifest file, or to a folder with a 'appsscript.json' file.
+ */
+// commander.option(
+//   '-M, --manifest <file>',
+//   `path to an manifest file or a folder with a 'appsscript.json' file.`,
+// ).on('option:manifest', () => {
+//   config.manifest.path = commander['manifest'];
+// });
+
+/**
+ * Path to a project file, or to a folder with a '.clasp.json'.
+ */
+commander.option(
+  '-P, --project <file>',
+  `path to a project file or to a folder with a '.clasp.json' file.`,
+).on('option:project', () => {
+  config.project.path = commander['project'];
+});
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -353,6 +396,23 @@ commander
 commander.option('-v, --version').on('option:version', () => {
   console.log(require('../package.json').version);
 });
+
+/**
+ * TEMPORARY FOR DEBUG
+ * Displays clasp version
+ */
+commander
+  .command('paths')
+  .description('List current config files path')
+  .action(() => {
+    const conf = Conf.get();
+    const project = conf.project;
+    const ignore = conf.ignore;
+    const auth = conf.auth;
+    console.log('project', project.path, project.isDefault(), project.resolve());
+    console.log('ignore', ignore.path, ignore.isDefault(), ignore.resolve());
+    console.log('auth', auth.path, auth.isDefault(), auth.resolve());
+  });
 
 // defaults to help if commands are not provided
 if (!process.argv.slice(2).length) {
