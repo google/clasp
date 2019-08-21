@@ -6,8 +6,6 @@ import { extractScriptId } from '../urls';
 import { ERROR, LOG, checkIfOnline, logError, saveProject, spinner } from '../utils';
 import status from './status';
 
-const padEnd = require('string.prototype.padend');
-
 /**
  * Fetches an Apps Script project.
  * Prompts the user if no script ID is provided.
@@ -44,7 +42,7 @@ const getScriptId = async () => {
   const files = data.files;
   if (files && files.length) {
     const fileIds: ScriptIdPrompt[] = files.map(file => ({
-      name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
+      name: `${file.name!.padEnd(20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
       value: file.id || '',
     }));
     const answers = await scriptIdPrompt(fileIds);
