@@ -7,8 +7,7 @@ const auth = Conf.get().auth;
 /**
  * Logs out the user by deleting credentials.
  */
-export default async () => {
-  let previousPath: string | undefined = undefined;
+export default async () => {  let previousPath: string | undefined = undefined;
   if (hasOauthClientSettings(true)) {
     if (auth.isDefault()) {
       // if no local auth defined, try current directory
@@ -36,4 +35,5 @@ export default async () => {
       auth.path = previousPath;
     }
   }
+
 };
