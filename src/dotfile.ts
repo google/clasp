@@ -18,7 +18,7 @@ import findUp from 'find-up';
 import fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
-import stripBom = require('strip-bom');
+import stripBom from 'strip-bom';
 
 // Getting ready to switch to `dotf` embedded types
 // import { default as dotf } from 'dotf';
