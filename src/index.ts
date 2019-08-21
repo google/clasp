@@ -386,7 +386,7 @@ commander
  * @example random
  */
 commander
-  .command('*', undefined, { isDefault: true })
+  .command('*', { isDefault: true })
   .description('Any other command is not supported')
   .action(handleError(defaultCmd));
 
