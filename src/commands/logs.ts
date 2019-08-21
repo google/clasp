@@ -8,8 +8,6 @@ import { projectIdPrompt } from '../inquirer';
 import { URL } from '../urls';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner } from '../utils';
 
-const padEnd = require('string.prototype.padend');
-
 /**
  * Prints StackDriver logs from this Apps Script project.
  * @param cmd.json {boolean} If true, the command will output logs as json.
@@ -86,7 +84,7 @@ export function printLogs(
     } = entries[i];
     if (!resource || !resource.labels) return;
     let functionName = resource.labels.function_name;
-    functionName = functionName ? padEnd(functionName, 15) : ERROR.NO_FUNCTION_NAME;
+    functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
     // tslint:disable-next-line:no-any
     let payloadData: any = '';
     if (formatJson) {
@@ -102,10 +100,10 @@ export function printLogs(
       payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
       if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
         payloadData = LOG.STACKDRIVER_SETUP;
-        functionName = padEnd(protoPayload.methodName, 15);
+        functionName = protoPayload.methodName.padEnd(15);
       }
       if (payloadData && typeof payloadData === 'string') {
-        payloadData = padEnd(payloadData, 20);
+        payloadData = payloadData.padEnd(20);
       }
     }
     const coloredStringMap: { [key: string]: string } = {
@@ -116,7 +114,7 @@ export function printLogs(
       WARNING: chalk.yellow(severity),
     };
     let coloredSeverity: string = coloredStringMap[severity] || severity;
-    coloredSeverity = padEnd(String(coloredSeverity), 20);
+    coloredSeverity = String(coloredSeverity).padEnd(20);
     // If we haven't logged this entry before, log it and mark the cache.
     if (!logEntryCache[insertId]) {
       if (simplified) {

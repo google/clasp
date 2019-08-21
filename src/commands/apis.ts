@@ -7,7 +7,6 @@ import { URL } from '../urls';
 import { enableOrDisableAPI } from '../apiutils';
 import open from 'open';
 import { serviceusage_v1 } from 'googleapis';
-const padEnd = require('string.prototype.padend');
 
 /**
  * Acts as a router to apis subcommands
@@ -100,7 +99,7 @@ export default async (options: { open?: string }) => {
 
       // Format the list
       for (const api of publicServices) {
-        console.log(`${padEnd(api.name, 25)} - ${padEnd(api.description, 60)}`);
+        console.log(`${api.name!.padEnd(25)} - ${api.description!.padEnd(60)}`);
       }
     },
     undefined: () => {
