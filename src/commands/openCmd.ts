@@ -64,9 +64,9 @@ export default async (
       const version = config && config.versionNumber;
       return {
         name:
-        ellipsize(config && config.description, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
-        `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
-      value: e,
+          ellipsize(config && config.description, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
+          `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
+        value: e,
       };
     });
 

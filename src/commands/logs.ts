@@ -65,11 +65,7 @@ const logEntryCache: { [key: string]: boolean } = {};
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-function printLogs(
-  entries: logging_v2.Schema$LogEntry[] = [],
-  formatJson: boolean,
-  simplified: boolean,
-) {
+function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson: boolean, simplified: boolean) {
   entries.reverse(); // print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
     const {
