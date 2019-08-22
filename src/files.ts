@@ -119,7 +119,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         // Can't rename, conflicting files
         abortPush = true;
         // only print error once (for .gs)
-          if (path.extname(name) === '.gs') {
+        if (path.extname(name) === '.gs') {
           logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
         }
       }

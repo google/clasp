@@ -111,7 +111,7 @@ Did you provide the correct scriptId?`,
 Did you provide the correct scriptId?
 Are you logged in to the correct account with the script?`,
   SETTINGS_DNE: `
-  No valid ${DOT.PROJECT.PATH} project file. You may need to \`create\` or \`clone\` a project first.`,
+No valid ${DOT.PROJECT.PATH} project file. You may need to \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
