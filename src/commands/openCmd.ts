@@ -2,7 +2,7 @@ import open from 'open';
 import { loadAPICredentials, script } from '../auth';
 import { deploymentIdPrompt } from '../inquirer';
 import { URL } from '../urls';
-import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from '../utils';
+import { ERROR, LOG, getProjectSettings, getWebApplicationURL, logError } from '../utils';
 
 interface EllipizeOptions {
   ellipse?: string;
@@ -64,9 +64,9 @@ export default async (
       const version = config && config.versionNumber;
       return {
         name:
-          ellipsize(config && config.description, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
-          `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
-        value: e,
+        ellipsize(config && config.description, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
+        `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
+      value: e,
       };
     });
 

@@ -72,7 +72,6 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
   DRIVE: `Something went wrong with the Google Drive API`,
   EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
-  // FOLDER_EXISTS: `Project file already exists.`, // TEMP!
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
@@ -112,7 +111,7 @@ Did you provide the correct scriptId?`,
 Did you provide the correct scriptId?
 Are you logged in to the correct account with the script?`,
   SETTINGS_DNE: `
-No valid ${DOT.PROJECT.PATH} project file. You may need to \`create\` or \`clone\` a project first.`,
+  No valid ${DOT.PROJECT.PATH} project file. You may need to \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
@@ -179,7 +178,8 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
     ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
     `*Be sure to never commit this file!* It's basically a password.`
     : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
-SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
+  SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
+  // TODO: `SCRIPT_RUN` is never used
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
   STATUS_IGNORE: 'Ignored files:',
@@ -192,6 +192,7 @@ SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit
   VERSION_DESCRIPTION: ({ versionNumber, description }: script_v1.Schema$Version) =>
     `${versionNumber} - ` + (description || '(no description)'),
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
+  // TODO: `SETUP_LOCAL_OAUTH` is never used
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
     Open this link: ${chalk.blue(URL.CREDS(projectId))}
     Click ${chalk.cyan('Create credentials')}, then select ${chalk.yellow('OAuth client ID')}.
@@ -257,9 +258,9 @@ export function getWebApplicationURL(deployment: script_v1.Schema$Deployment) {
   const entryPoints = deployment.entryPoints || [];
   const webEntryPoint = entryPoints.find((entryPoint: script_v1.Schema$EntryPoint) =>
     entryPoint.entryPointType === 'WEB_APP');
-  if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
-  logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
-}
+    if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
+    logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
+  }
 
 /**
  * Gets default project name.

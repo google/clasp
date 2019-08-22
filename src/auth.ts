@@ -1,5 +1,4 @@
 import http from 'http';
-// TODO: AddressInfo is not defined in @types/node version 8 => check if any impact
 import { AddressInfo } from 'net';
 import readline from 'readline';
 import url from 'url';

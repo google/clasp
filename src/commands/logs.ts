@@ -65,8 +65,7 @@ const logEntryCache: { [key: string]: boolean } = {};
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-// TODO: unnecessary export
-export function printLogs(
+function printLogs(
   entries: logging_v2.Schema$LogEntry[] = [],
   formatJson: boolean,
   simplified: boolean,
@@ -127,8 +126,7 @@ export function printLogs(
   }
 }
 
-// TODO: unnecessary export
-export async function setupLogs(): Promise<string> {
+async function setupLogs(): Promise<string> {
   let projectId: string;
   return new Promise<string>((resolve, reject) => {
     getProjectSettings().then(projectSettings => {
@@ -163,8 +161,7 @@ export async function setupLogs(): Promise<string> {
  * Fetches the logs and prints the to the user.
  * @param startDate {Date?} Get logs from this date to now.
  */
-// TODO: unnecessary export
-export async function fetchAndPrintLogs(
+async function fetchAndPrintLogs(
   formatJson: boolean,
   simplified: boolean,
   projectId?: string,

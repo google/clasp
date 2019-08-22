@@ -1,4 +1,3 @@
-import { async } from 'rxjs/internal/scheduler/async';
 import { drive, loadAPICredentials } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
 import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';

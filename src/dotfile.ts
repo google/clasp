@@ -53,6 +53,7 @@ export interface ProjectSettings {
   fileExtension?: string;
   filePushOrder?: string[];
 }
+
 // Dotfile names
 export const DOT = {
   /**

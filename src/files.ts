@@ -4,7 +4,6 @@ import fs from 'fs-extra';
 import mkdirp from 'mkdirp';
 import multimatch from 'multimatch';
 import recursive from 'recursive-readdir';
-import { async } from 'rxjs/internal/scheduler/async';
 import ts2gas from 'ts2gas';
 import ts from 'typescript';
 import { loadAPICredentials, script } from './auth';
@@ -56,8 +55,7 @@ export function hasProject(): boolean {
  * Returns in tsconfig.json.
  * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
  */
-// TODO: unnecessary export
-export function getTranspileOptions(): ts.TranspileOptions {
+function getTranspileOptions(): ts.TranspileOptions {
   const projectPath = findUp.sync(DOT.PROJECT.PATH);
   const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
   if(fs.existsSync(tsconfigPath)) {
@@ -121,7 +119,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         // Can't rename, conflicting files
         abortPush = true;
         // only print error once (for .gs)
-        if (path.extname(name) === '.gs') {
+          if (path.extname(name) === '.gs') {
           logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
         }
       }
