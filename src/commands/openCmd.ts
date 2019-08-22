@@ -2,7 +2,7 @@ import open from 'open';
 import { loadAPICredentials, script } from '../auth';
 import { deploymentIdPrompt } from '../inquirer';
 import { URL } from '../urls';
-import { ERROR, LOG, checkIfOnline, getProjectSettings, getWebApplicationURL, logError } from '../utils';
+import { ERROR, LOG, getProjectSettings, getWebApplicationURL, logError } from '../utils';
 
 interface EllipizeOptions {
   ellipse?: string;

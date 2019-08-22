@@ -7,7 +7,6 @@ import { authorize, getLoggedInEmail } from '../auth';
 import { FS_OPTIONS } from '../files';
 import { readManifest } from '../manifest';
 import { ERROR, LOG, checkIfOnline, hasOauthClientSettings, safeIsOnline } from '../utils';
-import { google } from 'googleapis';
 
 /**
  * Logs the user in. Saves the client credentials to an either local or global rc file.
