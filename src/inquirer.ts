@@ -1,5 +1,5 @@
 import { script_v1 } from 'googleapis';
-import { Question, prompt, registerPrompt } from 'inquirer';
+import { prompt, registerPrompt } from 'inquirer';
 import { SCRIPT_TYPES } from './apis';
 import { LOG } from './utils';
 

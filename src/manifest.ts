@@ -8,6 +8,9 @@ import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, log
 
 /**
  * Checks if the rootDir appears to be a valid project.
+ *
+ * @param {string} rootDir dir to check.
+ *
  * @return {boolean} True if valid project, false otherwise
  */
 export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
@@ -34,8 +37,7 @@ export async function readManifest(): Promise<Manifest> {
  * Writes the appsscript.json manifest file.
  * @param {Manifest} manifest The new manifest to write.
  */
-// TODO: unnecessary export
-export async function writeManifest(manifest: Manifest) {
+async function writeManifest(manifest: Manifest) {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
@@ -346,8 +348,7 @@ interface Gmail {
   sheets: Sheets;
 }
 
-// TODO: unnecessary export
-export interface Manifest {
+interface Manifest {
   timeZone?: string;
   oauthScopes?: string[];
   dependencies?: Dependencies;
