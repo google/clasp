@@ -456,15 +456,22 @@ A sample `.claspignore` ignoring everything except the manifest and `build/main.
 
 _Note_: The `.claspignore` patterns are applied relative from the `rootDir`.
 
-If no `.claspignore` is specified, a default set of patterns is applied. This default set will only consider the `appsscript.json` manifest and any JavaScript, TypeScript and `.html` source files within the `rootDir` folder. Child folders are not processed.
+If no `.claspignore` is specified, a default set of patterns is applied. This default set will only consider the `appsscript.json` manifest and any JavaScript, TypeScript and `.html` source files within the `rootDir` folder. Child folders other than `.git` and `node_modules` are processed.
 
 ```text
+#ignore all files...
 **/**
+
+#except the extensions...
 !appsscript.json
-!*.gs
-!*.js
-!*.ts
-!*.html
+!**/*.gs
+!**/*.js
+!**/*.ts
+!**/*.html
+
+#ignore even valid files if in...
+.git/**
+node_modules/**
 ```
 
 ## Project Settings File (`.clasp.json`)
@@ -497,8 +504,8 @@ Specifies the id of the Google Cloud Platform project that clasp will target.
 You must [associate Google Script project with Google Cloud Platform](https://github.com/google/clasp/blob/master/docs/run.md#setup-instructions) beforehand.
 
 1. Run `clasp open`.
-1. Click `Resources > Cloud Platform project...`.
-1. Specify the project ID `project-id-xxxxxxxxxxxxxxxxxxx`.
+2. Click `Resources > Cloud Platform project...`.
+3. Specify the project ID `project-id-xxxxxxxxxxxxxxxxxxx`.
 
 Even if you do not set this manually, clasp will ask this via a prompt to you at the required time.
 
