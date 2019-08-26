@@ -107,7 +107,7 @@ export const DOTFILE = {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
-        resolve(['node_modules']);
+        resolve(['/node_modules/**']);
       }
     });
   },

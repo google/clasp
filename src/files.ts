@@ -224,6 +224,7 @@ export function isValidFileName(name: string,
     // https://developers.google.com/apps-script/api/reference/rest/v1/File
     valid = type === 'SERVER_JS' || type === 'HTML';
   }
+  // TODO: is this relevant?should it be extended to ALL node_modules content?
   // Prevent node_modules/@types/
   if (name.includes('node_modules/@types')) {
     return false;
