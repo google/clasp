@@ -108,17 +108,17 @@ export const DOTFILE = {
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
         resolve([
-          '#ignore all files...',
+          '# ignore all files...',
           '**/**',
           '',
-          '#except the extensions...',
+          '# except the extensions...',
           '!appsscript.json',
           '!**/*.gs',
           '!**/*.js',
           '!**/*.ts',
           'x!**/*.html',
           '',
-          '#ignore even valid files if in...',
+          '# ignore even valid files if in...',
           '.git/**',
           'node_modules/**',
         ]);
