@@ -107,7 +107,7 @@ export const DOTFILE = {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
-        resolve([
+        const defaultClaspignore = [
           '# ignore all files...',
           '**/**',
           '',
@@ -121,7 +121,10 @@ export const DOTFILE = {
           '# ignore even valid files if in...',
           '.git/**',
           'node_modules/**',
-        ]);
+        ];
+        console.log('Using default .claspignore');
+        console.log(defaultClaspignore.join('\n'));
+        resolve(defaultClaspignore);
       }
     });
   },
