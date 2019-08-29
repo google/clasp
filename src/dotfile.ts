@@ -122,8 +122,6 @@ export const DOTFILE = {
           '.git/**',
           'node_modules/**',
         ];
-        console.log('Using default .claspignore');
-        console.log(defaultClaspignore.join('\n'));
         resolve(defaultClaspignore);
       }
     });

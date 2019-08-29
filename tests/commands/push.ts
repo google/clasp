@@ -47,22 +47,16 @@ describe('Test clasp push with no `.claspignore`', () => {
       { file: 'Code.js', data: TEST_CODE_JS },
       { file: 'page.html', data: TEST_PAGE_HTML },
     ]);
-    // fs.writeFileSync('Code.js', TEST_CODE_JS);
-    // fs.writeFileSync('page.html', TEST_PAGE_HTML);
     const result = spawnSync(CLASP, ['push'], {
       encoding: 'utf8',
       cwd: tmpdir,
       input: 'y',
     });
-    // const result = spawnSync(
-    //   CLASP, ['push'], { encoding: 'utf8', input: 'y' },
-    // );
     expect(result.stdout).to.contain('Pushed');
     expect(result.stdout).to.contain('Code.js');
     expect(result.stdout).to.contain('page.html');
     expect(result.stdout).to.contain('files.');
     expect(result.stderr).to.equal('');
-    // expect(result.status).to.be.oneOf([null, 0]); // TODO: investigate why nodejs 12 exit code is null
     expect(result.status).to.equal(0);
   });
   // TODO: this test needs to be updated
