@@ -40,7 +40,6 @@ describe('Test clasp push function', () => {
 });
 
 describe('Test clasp push with no `.claspignore`', () => {
-  // before(setup);
   it('should push local project correctly', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.clasp.json', data: CLASP_SETTINGS.valid },
@@ -59,7 +58,9 @@ describe('Test clasp push with no `.claspignore`', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
+    // TODO: cleanup by del/rimraf tmpdir
   });
+  before(setup);
   // TODO: this test needs to be updated
   it.skip('should return non-0 exit code when push failed', () => {
     fs.writeFileSync('unexpected_file', TEST_CODE_JS);
@@ -71,5 +72,5 @@ describe('Test clasp push with no `.claspignore`', () => {
     expect(result.stderr).to.contain('Files to push were:');
     expect(result.status).to.equal(1);
   });
-  // after(cleanup);
+  after(cleanup);
 });
