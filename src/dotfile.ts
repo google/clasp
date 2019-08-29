@@ -116,7 +116,7 @@ export const DOTFILE = {
           '!**/*.gs',
           '!**/*.js',
           '!**/*.ts',
-          'x!**/*.html',
+          '!**/*.html',
           '',
           '# ignore even valid files if in...',
           '.git/**',
