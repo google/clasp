@@ -320,6 +320,7 @@ export async function pushFiles(silent = false) {
     // Check for edge cases.
     if (err) {
       spinner.stop(true);
+      console.error('[', err, ']');
       logError(err, LOG.PUSH_FAILURE);
     }
     if (!projectFiles) {
