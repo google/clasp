@@ -47,12 +47,6 @@ describe('Test clasp push with no `.claspignore`', () => {
       { file: 'Code.js', data: TEST_CODE_JS },
       { file: 'page.html', data: TEST_PAGE_HTML },
     ]);
-    const testDir = spawnSync('ls', {
-      encoding: 'utf8',
-      cwd: tmpdir,
-    });
-    expect(testDir.stdout).to.contain('Code.js');
-    expect(testDir.stdout).to.contain('page.html');
     // fs.writeFileSync('Code.js', TEST_CODE_JS);
     // fs.writeFileSync('page.html', TEST_PAGE_HTML);
     const result = spawnSync(CLASP, ['push'], {
