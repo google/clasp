@@ -1,23 +1,23 @@
 import {CLASP, TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API, TEST_CODE_JS} from '../constants';
-import { cleanup, setup } from '../functions';
+import { cleanup, setup, setupTmpDirectory } from '../functions';
 import { describe, it } from 'mocha';
 
 import { expect } from 'chai';
-import fs from 'fs-extra';
-import path from 'path';
+// import fs from 'fs-extra';
+// import path from 'path';
 import { spawnSync } from 'child_process';
-import tmp from 'tmp';
+// import tmp from 'tmp';
 
 describe('Test clasp status function', () => {
   before(setup);
-  function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
-    fs.ensureDirSync('tmp');
-    const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
-    filepathsAndContents.forEach(({ file, data }) => {
-      fs.outputFileSync(path.join(tmpdir, file), data);
-    });
-    return tmpdir;
-  }
+  // function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
+  //   fs.ensureDirSync('tmp');
+  //   const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
+  //   filepathsAndContents.forEach(({ file, data }) => {
+  //     fs.outputFileSync(path.join(tmpdir, file), data);
+  //   });
+  //   return tmpdir;
+  // }
   it('should respect globs and negation rules', () => {
     const tmpdir = setupTmpDirectory([
       { file: '.clasp.json', data: '{ "scriptId":"1234" }' },

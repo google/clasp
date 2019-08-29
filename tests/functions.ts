@@ -6,6 +6,8 @@ import {
 } from './constants';
 
 import fs from 'fs-extra';
+import path from 'path';
+import tmp from 'tmp';
 
 export const cleanup = () => {
   fs.removeSync('.clasp.json');
@@ -54,3 +56,12 @@ export const restoreSettings = () => {
     fs.renameSync(`${CLASP_PATHS.settingsLocal}~`, CLASP_PATHS.settingsLocal);
   }
 };
+
+export function setupTmpDirectory(filepathsAndContents: Array<{ file: string, data: string }>) {
+  fs.ensureDirSync('tmp');
+  const tmpdir = tmp.dirSync({ unsafeCleanup: true, dir: 'tmp/', keep: false }).name;
+  filepathsAndContents.forEach(({ file, data }) => {
+    fs.outputFileSync(path.join(tmpdir, file), data);
+  });
+  return tmpdir;
+}
