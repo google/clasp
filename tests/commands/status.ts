@@ -27,6 +27,7 @@ describe('Test clasp status function', () => {
     expect(resultJson.filesToPush).to.have.members(['build/main.js', 'appsscript.json']);
     expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
+    // TODO: cleanup by del/rimraf tmpdir
   });
   it('should ignore dotfiles if the parent folder is ignored', () => {
     const tmpdir = setupTmpDirectory([
@@ -45,6 +46,7 @@ describe('Test clasp status function', () => {
     expect(resultJson.filesToPush).to.have.members(['appsscript.json']);
     expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
+    // TODO: cleanup by del/rimraf tmpdir
   });
   it('should respect globs and negation rules when rootDir given', () => {
     const tmpdir = setupTmpDirectory([
@@ -63,6 +65,7 @@ describe('Test clasp status function', () => {
     expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
     expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
+    // TODO: cleanup by del/rimraf tmpdir
   });
   it('should respect globs and negation rules when relative rootDir given', () => {
     const tmpdir = setupTmpDirectory([
@@ -81,6 +84,7 @@ describe('Test clasp status function', () => {
     expect(resultJson.filesToPush).to.have.members(['../build/main.js', '../build/appsscript.json']);
     expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
+    // TODO: cleanup by del/rimraf tmpdir
   });
   after(cleanup);
 });
