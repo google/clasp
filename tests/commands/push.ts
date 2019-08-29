@@ -44,6 +44,7 @@ describe('Test clasp push with no `.claspignore`', () => {
     expect(result.stdout).to.contain('Code.js');
     expect(result.stdout).to.contain('page.html');
     expect(result.stdout).to.contain('files.');
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   // TODO: this test needs to be updated
