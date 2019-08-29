@@ -15,6 +15,7 @@ describe('Test clasp create function', () => {
       CLASP, ['create'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain(LOG.CREATE_SCRIPT_QUESTION);
+    expect(result.stderr).to.equal('');
   });
   it('should not prompt for project name', () => {
     fs.writeFileSync('.clasp.json', '');
@@ -34,6 +35,7 @@ describe('Test clasp create <title> function', () => {
       CLASP, ['create', '--type', 'Standalone', '--title', 'myTitle'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain('Created new Standalone script: https://script.google.com/d/');
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
 });

@@ -17,7 +17,6 @@ describe('Test clasp status function', () => {
       { file: 'should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
-    expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
       '.clasp.json',
@@ -26,6 +25,8 @@ describe('Test clasp status function', () => {
       'shouldBeIgnored',
     ]);
     expect(resultJson.filesToPush).to.have.members(['build/main.js', 'appsscript.json']);
+    expect(result.stderr).to.equal('');
+    expect(result.status).to.equal(0);
   });
   it('should ignore dotfiles if the parent folder is ignored', () => {
     const tmpdir = setupTmpDirectory([
@@ -35,7 +36,6 @@ describe('Test clasp status function', () => {
       { file: 'node_modules/fsevents/build/Release/.deps/Release/.node.d', data: TEST_CODE_JS },
     ]);
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
-    expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
       '.clasp.json',
@@ -43,6 +43,8 @@ describe('Test clasp status function', () => {
       'node_modules/fsevents/build/Release/.deps/Release/.node.d',
     ]);
     expect(resultJson.filesToPush).to.have.members(['appsscript.json']);
+    expect(result.stderr).to.equal('');
+    expect(result.status).to.equal(0);
   });
   it('should respect globs and negation rules when rootDir given', () => {
     const tmpdir = setupTmpDirectory([
@@ -54,12 +56,13 @@ describe('Test clasp status function', () => {
       { file: 'dist/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir });
-    expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
       'dist/should/alsoBeIgnored',
       'dist/shouldBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
+    expect(result.stderr).to.equal('');
+    expect(result.status).to.equal(0);
   });
   it('should respect globs and negation rules when relative rootDir given', () => {
     const tmpdir = setupTmpDirectory([
@@ -71,12 +74,13 @@ describe('Test clasp status function', () => {
       { file: 'build/should/alsoBeIgnored', data: TEST_CODE_JS },
     ]);
     const result = spawnSync(CLASP, ['status', '--json'], { encoding: 'utf8', cwd: tmpdir + '/src' });
-    expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members([
       '../build/should/alsoBeIgnored',
       '../build/shouldBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['../build/main.js', '../build/appsscript.json']);
+    expect(result.stderr).to.equal('');
+    expect(result.status).to.equal(0);
   });
   after(cleanup);
 });

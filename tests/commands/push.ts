@@ -21,6 +21,7 @@ describe('Test clasp push function', () => {
     );
     expect(result.stdout).to.contain('Pushed');
     expect(result.stdout).to.contain('files.');
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   // TODO: this test needs to be updated
