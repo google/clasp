@@ -341,8 +341,7 @@ export async function pushFiles(silent = false) {
       });
     } catch (e) {
       console.error(LOG.PUSH_FAILURE);
-      // console.log(e);
-      console.error('[', e, ']');
+      console.error(e);
     } finally {
       if (!silent) spinner.stop(true);
       // no error
