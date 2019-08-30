@@ -58,7 +58,7 @@
   "dependencies": {
     "chalk": "^2.4.2",
     "cli-spinner": "^0.2.10",
-    "commander": "^3.0.1",
+    "commander": "^3.0.0",
     "dotf": "^1.2.0",
     "ellipsize": "^0.1.0",
     "find-up": "^4.1.0",
@@ -67,7 +67,7 @@
     "gaxios": "^2.0.1",
     "google-auth-library": "^5.2.0",
     "googleapis": "^42.0.0",
-    "inquirer": "^6.5.2",
+    "inquirer": "^6.5.1",
     "inquirer-autocomplete-prompt": "1.0.1",
     "is-online": "^8.2.0",
     "mkdirp": "^0.5.1",
@@ -79,7 +79,7 @@
     "split-lines": "^2.0.0",
     "strip-bom": "^4.0.0",
     "ts2gas": "^3.4.4",
-    "typescript": "^3.6.2",
+    "typescript": "^3.5.3",
     "watch": "^1.0.2"
   },
   "devDependencies": {
