@@ -18,9 +18,10 @@ describe('Test clasp login function', () => {
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain(LOG.LOGIN(false));
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
-  it('should ERROR.LOGGED_IN if global rc and no --creds option but continue to login', () => {
+  it('should exit(0) ERROR.LOGGED_IN if global rc and no --creds option but continue to login', () => {
     fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
     const result = spawnSync(
       CLASP, ['login', '--no-localhost'], { encoding: 'utf8' },
@@ -29,14 +30,14 @@ describe('Test clasp login function', () => {
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_GLOBAL);
     expect(result.status).to.equal(0);
   });
-  it('should exit(0) with ERROR.LOGGED_IN if local rc and --creds option', () => {
+  it('should exit(1) with ERROR.LOGGED_IN if local rc and --creds option', () => {
     fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(
       CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], { encoding: 'utf8' },
     );
     fs.removeSync(CLASP_PATHS.rcLocal);
-    expect(result.status).to.equal(1);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN_LOCAL);
+    expect(result.status).to.equal(1);
   });
   // TODO: this test needs to be updated
   it.skip('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {

@@ -107,7 +107,22 @@ export const DOTFILE = {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve(splitLines(buffer).filter((name: string) => name));
       } else {
-        resolve(['**/**', '!appsscript.json', '!*.gs', '!*.js', '!*.ts', '!*.html']);
+        const defaultClaspignore = [
+          '# ignore all files...',
+          '**/**',
+          '',
+          '# except the extensions...',
+          '!appsscript.json',
+          '!**/*.gs',
+          '!**/*.js',
+          '!**/*.ts',
+          '!**/*.html',
+          '',
+          '# ignore even valid files if in...',
+          '.git/**',
+          'node_modules/**',
+        ];
+        resolve(defaultClaspignore);
       }
     });
   },

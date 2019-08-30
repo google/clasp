@@ -18,6 +18,7 @@ describe('Test clasp clone <scriptId> function', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.stdout).to.contain(LOG.STATUS_PUSH);
     expect(result.stdout).to.contain(LOG.STATUS_IGNORE);
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   it('should clone a project with scriptURL correctly', () => {
@@ -29,6 +30,7 @@ describe('Test clasp clone <scriptId> function', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.stdout).to.contain(LOG.STATUS_PUSH);
     expect(result.stdout).to.contain(LOG.STATUS_IGNORE);
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   it('should give an error on a non-existing project', () => {
@@ -50,6 +52,7 @@ describe('Test clasp clone function', () => {
       CLASP, ['clone'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain(LOG.CLONE_SCRIPT_QUESTION);
+    expect(result.stderr).to.equal('');
   });
   it('should prompt which project to clone and clone it', () => {
     cleanup();
@@ -61,6 +64,7 @@ describe('Test clasp clone function', () => {
     expect(result.stdout).to.contain('files.');
     expect(result.stdout).to.contain(LOG.STATUS_PUSH);
     expect(result.stdout).to.contain(LOG.STATUS_IGNORE);
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   it('should give an error if .clasp.json already exists', () => {

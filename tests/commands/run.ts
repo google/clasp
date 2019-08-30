@@ -51,7 +51,8 @@ describe('Test clasp run function', () => {
     fs.removeSync(CLASP_PATHS.settingsLocal);
     expect(result.stdout)
       .to.contain('https://console.developers.google.com/apis/credentials?project=');
-    expect(result.status).to.equal(0);
+      expect(result.stderr).to.equal('');
+      expect(result.status).to.equal(0);
   });
   after(cleanup);
 });
