@@ -67,7 +67,7 @@
     "gaxios": "^2.0.1",
     "google-auth-library": "^5.2.0",
     "googleapis": "^42.0.0",
-    "inquirer": "^7.0.0",
+    "inquirer": "^6.5.2",
     "inquirer-autocomplete-prompt": "1.0.1",
     "is-online": "^8.2.0",
     "mkdirp": "^0.5.1",
