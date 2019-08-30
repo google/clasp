@@ -456,15 +456,22 @@ A sample `.claspignore` ignoring everything except the manifest and `build/main.
 
 _Note_: The `.claspignore` patterns are applied relative from the `rootDir`.
 
-If no `.claspignore` is specified, a default set of patterns is applied. This default set will only consider the `appsscript.json` manifest and any JavaScript, TypeScript and `.html` source files within the `rootDir` folder. Child folders are not processed.
+If no `.claspignore` is specified, a default set of patterns is applied. This default set will only consider the `appsscript.json` manifest and any JavaScript, TypeScript and `.html` source files within the `rootDir` folder. Child folders other than `.git` and `node_modules` are processed.
 
 ```text
+# ignore all files...
 **/**
+
+# except the extensions...
 !appsscript.json
-!*.gs
-!*.js
-!*.ts
-!*.html
+!**/*.gs
+!**/*.js
+!**/*.ts
+!**/*.html
+
+# ignore even valid files if in...
+.git/**
+node_modules/**
 ```
 
 ## Project Settings File (`.clasp.json`)

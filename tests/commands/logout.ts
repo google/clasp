@@ -20,6 +20,7 @@ describe('Test clasp logout function', () => {
     expect(hasOauthClientSettings()).to.equal(false);
     expect(fs.existsSync(CLASP_PATHS.rcLocal)).to.equal(false);
     expect(hasOauthClientSettings(true)).to.equal(false);
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   it('should still work with no clasprc file', () => {
@@ -30,6 +31,7 @@ describe('Test clasp logout function', () => {
     expect(hasOauthClientSettings()).to.equal(false);
     expect(fs.existsSync(CLASP_PATHS.rcLocal)).to.equal(false);
     expect(hasOauthClientSettings(true)).to.equal(false);
+    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   after(() => {
