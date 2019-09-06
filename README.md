@@ -63,7 +63,7 @@ First download `clasp`:
 
 ```sh
 npm install -g @google/clasp
-# Alternatively: sudo npm i -g grpc @google/clasp --unsafe-perm
+# Alternatively: sudo npm install -g grpc @google/clasp --unsafe-perm
 ```
 
 Then enable the Google Apps Script API: https://script.google.com/home/usersettings
@@ -517,14 +517,53 @@ Specifies the file extension for **local** script files in your Apps Script proj
 
 Specifies the files that should be pushed first, useful for scripts that rely on order of execution. All other files are pushed after this list of files.
 
-## Troubleshooting
+## Using clasp as a local dependency
 
-### Node Version
+Typically `clasp` is installed as a global package for convinience when using the command line.
 
-The library requires **Node version >= 8.2.1**. Use this script to check your version and **upgrade Node if necessary**:
+Still there may be occassions when you want a project to use a specific version of `clasp` (i.e. to prevent potential breaking changes in future version)
+
+This can be achieved by simply adding clasp as a local dependency and a fixed version
 
 ```sh
-node -v # Check Node version
+npm install --save-exact @google/clasp
+```
+
+Optionally, you can specify an older version.
+
+```sh
+npm install --save-exact @google/clasp@1.7.0
+```
+
+After this, any npm scripts using `clasp`will use the **local** version
+
+```json
+  "scripts": {
+    "push-project1": "cd src/GasProject1 && clasp push",
+  },
+```
+
+From the command line, within your project, use the `npx` tool in order to use the **local** version of `clasp` rather than any global one.
+
+```sh
+npx clasp --version
+```
+
+## Troubleshooting
+
+### NodeJS Version
+
+The library requires **NodeJS version >= 8.2.1**.
+
+You can check your version of NodeJS with this command.
+
+```sh
+node -v
+```
+
+You can use these commands to upgrade NodeJS if necessary (**not on Windows**):
+
+```sh
 npm install -g npm # Update npm and npx
 npx n latest # use the n package to update node
 ```
