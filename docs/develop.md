@@ -7,14 +7,14 @@ You can develop and test `clasp` on your computer by following these steps.
 ### Setup
 
 - Install `tsc`: `npm install -g typescript`
-- Remove your local version of `clasp`: `sudo npm uninstall -g @google/clasp`
+- Remove your local version of `clasp`: `npm uninstall -g @google/clasp`
   - This will prevent errors when updating `node_modules`.
-- Install dependencies: `npm i`
+- Install dependencies: `npm install`
 
 ### After Making a Change
 
 ```sh
-sudo npm run build;
+npm run build;
 clasp <command>
 ```
 
@@ -23,9 +23,9 @@ clasp <command>
 If you're seeing build errors, try deleting `node_modules` and building `clasp` from scratch:
 
 ```sh
-sudo rm package-lock.json
-sudo rm -rf node_modules/
-sudo npm run build-fresh
+rm package-lock.json
+rm -rf node_modules/
+npm run build-fresh
 ```
 
 This is what @grant's terminal looks like:
@@ -55,7 +55,7 @@ After seeing that message, you're ready to test out `clasp`!
 `clasp` has some unit tests that help detect errors. Build and run tests with these commands:
 
 ```sh
-sudo npm run build;
+npm run build;
 npm run test
 ```
 
