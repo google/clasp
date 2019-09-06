@@ -62,7 +62,7 @@ clear
 First download `clasp`:
 
 ```sh
-sudo npm i @google/clasp -g
+npm install -g @google/clasp
 # Alternatively: sudo npm i -g grpc @google/clasp --unsafe-perm
 ```
 
@@ -521,12 +521,12 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ### Node Version
 
-The library requires **Node version >= 6.3.0**. Use this script to check your version and **upgrade Node if necessary**:
+The library requires **Node version >= 8.2.1**. Use this script to check your version and **upgrade Node if necessary**:
 
 ```sh
 node -v # Check Node version
-sudo npm install n -g
-sudo n latest
+npm install -g npm # Update npm and npx
+npx n latest # use the n package to update node
 ```
 
 ### Using a Proxy
