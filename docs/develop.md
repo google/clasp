@@ -14,13 +14,13 @@ You can develop and test `clasp` on your computer by following these steps.
 ### After Making a Change
 
 ```sh
-npm run build;
+npm run build
 clasp <command>
 ```
 
 #### Build Errors?
 
-If you're seeing build errors, try deleting `node_modules` and building `clasp` from scratch:
+If you're seeing build errors, try deleting the local `node_modules` and re-building `clasp` from scratch:
 
 ```sh
 rm package-lock.json
