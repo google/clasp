@@ -1,4 +1,4 @@
-sudo: required
+sudo: enabled
 os:
 - linux
 # - osx
