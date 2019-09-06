@@ -15,7 +15,7 @@
 ## How to Run Tests
 
 1. Log in: `clasp login`
-1. Rebuild: `sudo npm run build`
+1. Rebuild: `npm run build`
 1. Set environmental variables:
     - `export TRAVIS_PULL_REQUEST=false`
     - `export SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL`
