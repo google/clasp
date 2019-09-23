@@ -299,23 +299,24 @@ Documenting in detail any solution with third party tools is currently beyond th
 
 If your project contains libraries referenced in `appsscript.json`, TypeScript will throw errors for the library names or types it cannot resolve, e.g. `[ts] Cannot find name 'OAuth2'. [2304]`. Libraries have their own types and are not part of `@types/google-apps-script`. These libraries are only resolved once the script is deployed upstream with `clasp push`.
 
-One workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
+If the @types npm package exists for a GAS library, you can install it as so:
+
+```
+npm install -D @types/google-apps-script-oauth2
+```
+
+If names are still not resolving (in this example, for `OAuth2`), add an `index.d.ts` file to your main source folder containing the types reference as so:
 
 ```ts
-function getOAuthService() {
-    // Ignore OAuth2 library resolution when working locally with clasp and TypeScript
-    // @ts-ignore
-    return OAuth2.createService('Auth0');
-}
+/* index.d.ts */
+/// <reference types="google-apps-script-oauth2" />
 ```
 
-### Apps Script Libraries and TypeScript
+Not all libraries will have type definitions, so you may have to create your own. Refer to the [Outdated Types](##Outdated-Types) section below for more details.
 
-If your project contains libraries referenced in `appsscript.json`, TypeScript will throw errors for the library names or types it cannot resolve, e.g. `[ts] Cannot find name 'OAuth2'. [2304]`. Libraries have their own types and are not part of `@types/google-apps-script`. These libraries are only resolved once the script is deployed upstream with `clasp push`.
+Another (lazier) workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
 
-One workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
-
-```
+```ts
 function getOAuthService() {
     // Ignore OAuth2 library resolution when working locally with clasp and TypeScript
     // @ts-ignore
