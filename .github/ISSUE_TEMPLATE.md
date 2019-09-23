@@ -1,6 +1,4 @@
-> Please search [existing issues](https://github.com/google/clasp/issues) before creating a new one.
->
-> Ideally, after filing the issue, try to fix the issue with a PR!
+> (Note: Non-breaking issues are likely not to be prioritized. Please consider a PR in addition to your issue)
 
 ## Expected Behavior
 
@@ -10,12 +8,11 @@
 
 ## Steps to Reproduce the Problem
 
-  1.
-  1.
-  1.
+1.
+1.
 
 ## Specifications
 
-  - Node version (`node -v`):
-  - Version (`clasp -v`):
-  - OS (Mac/Linux/Windows):
+- Node version (`node -v`):
+- Version (`clasp -v`):
+- OS (Mac/Linux/Windows):

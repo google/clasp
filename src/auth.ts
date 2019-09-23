@@ -1,31 +1,17 @@
+import http from 'http';
+import { AddressInfo } from 'net';
+import readline from 'readline';
+import url from 'url';
 /**
  * Authentication with Google's APIs.
  */
-import * as http from 'http';
-import { AddressInfo } from 'net';
-import * as url from 'url';
-import { Credentials, OAuth2Client } from 'google-auth-library';
-import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
-import { discovery_v1, drive_v3, google, logging_v2, script_v1, serviceusage_v1 } from 'googleapis';
-import { prompt } from 'inquirer';
-import {
-  ClaspToken,
-  DOTFILE,
-} from './dotfile';
-import { ClaspCredentials } from './utils';
-import {
-  ERROR,
-  LOG,
-  URL,
-  checkIfOnline,
-  getOAuthSettings,
-  getProjectId,
-  hasOauthClientSettings,
-  loadManifest,
-  logError,
-} from './utils';
-import open = require('opn');
-import readline = require('readline');
+import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
+import { google, script_v1 } from 'googleapis';
+import open from 'open';
+import { ClaspToken, DOTFILE, Dotfile } from './dotfile';
+import { oauthScopesPrompt } from './inquirer';
+import { readManifest } from './manifest';
+import { ClaspCredentials, ERROR, LOG, checkIfOnline, getOAuthSettings, logError } from './utils';
 
 // Auth is complicated. Consider yourself warned.
 // tslint:disable:max-line-length
@@ -57,22 +43,6 @@ import readline = require('readline');
 // API settings
 // @see https://developers.google.com/oauthplayground/
 const REDIRECT_URI_OOB = 'urn:ietf:wg:oauth:2.0:oob';
-const oauth2ClientAuthUrlOpts = {
-  access_type: 'offline',
-  scope: [
-    'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
-    'https://www.googleapis.com/auth/script.projects', // Apps Script management
-    'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
-    'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
-    'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
-    'https://www.googleapis.com/auth/logging.read', // StackDriver logs
-
-    'https://www.googleapis.com/auth/script.send_mail', // temp
-
-    // Extra scope since service.management doesn't work alone
-    'https://www.googleapis.com/auth/cloud-platform',
-  ],
-};
 const globalOauth2ClientSettings: OAuth2ClientOptions = {
   clientId: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
   clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
@@ -82,14 +52,14 @@ const globalOAuth2Client = new OAuth2Client(globalOauth2ClientSettings);
 let localOAuth2Client: OAuth2Client; // Must be set up after authorize.
 
 // *Global* Google API clients
-export const script = google.script({ version: 'v1', auth: globalOAuth2Client }) as script_v1.Script;
-export const logger = google.logging({ version: 'v2', auth: globalOAuth2Client }) as logging_v2.Logging;
-export const drive = google.drive({ version: 'v3', auth: globalOAuth2Client }) as drive_v3.Drive;
-export const discovery = google.discovery({ version: 'v1' }) as discovery_v1.Discovery;
+export const script = google.script({ version: 'v1', auth: globalOAuth2Client });
+export const logger = google.logging({ version: 'v2', auth: globalOAuth2Client });
+export const drive = google.drive({ version: 'v3', auth: globalOAuth2Client });
+export const discovery = google.discovery({ version: 'v1' });
 export const serviceUsage = google.serviceusage({
   version: 'v1',
   auth: globalOAuth2Client,
-}) as serviceusage_v1.Serviceusage;
+});
 
 /**
  * Gets the local OAuth client for the Google Apps Script API.
@@ -97,31 +67,27 @@ export const serviceUsage = google.serviceusage({
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  */
 export async function getLocalScript(): Promise<script_v1.Script> {
-  return google.script({ version: 'v1', auth: localOAuth2Client }) as script_v1.Script;
+  return google.script({ version: 'v1', auth: localOAuth2Client });
 }
 
 /**
  * Requests authorization to manage Apps Script projects.
  * @param {boolean} useLocalhost Uses a local HTTP server if true. Manual entry o.w.
  * @param {ClaspCredentials?} creds An optional credentials object.
- * @param {string[]} [additionalScopes=[]] authorize additional OAuth scopes.
+ * @param {string[]} [scopes=[]] List of OAuth scopes to authorize.
  */
 export async function authorize(options: {
-  useLocalhost: boolean,
-  creds?: ClaspCredentials,
-  additionalScopes?: string[],
+  useLocalhost: boolean;
+  creds?: ClaspCredentials;
+  scopes: string[]; // only used with custom creds.
 }) {
-  const creds = options.creds;
   try {
-    // Add custom scopes when authing.
-    oauth2ClientAuthUrlOpts.scope = [...oauth2ClientAuthUrlOpts.scope, ...options.additionalScopes || []];
-
+    // Set OAuth2 Client Options
     let oAuth2ClientOptions: OAuth2ClientOptions;
-    if (options.creds) { // if we passed our own creds
+    if (options.creds) {
+      // if we passed our own creds
       // Use local credentials
-      console.log('Creds from this project:');
-      console.log(URL.CREDS(options.creds.installed.project_id));
-      console.log();
+      console.log(LOG.CREDS_FROM_PROJECT(options.creds.installed.project_id));
       const localOAuth2ClientOptions: OAuth2ClientOptions = {
         clientId: options.creds.installed.client_id,
         clientSecret: options.creds.installed.client_secret,
@@ -138,38 +104,98 @@ export async function authorize(options: {
       oAuth2ClientOptions = globalOauth2ClientOptions;
     }
 
+    // Set scopes
+    let scope = (options.creds) ?
+      // Set scopes to custom scopes
+      options.scopes : [
+        // Default to clasp scopes
+        'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+        'https://www.googleapis.com/auth/script.projects', // Apps Script management
+        'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+        'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+        'https://www.googleapis.com/auth/drive.file', // Create Drive files
+        'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+        'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+        'https://www.googleapis.com/auth/userinfo.email', // User email address
+        'https://www.googleapis.com/auth/userinfo.profile',
+
+        // Extra scope since service.management doesn't work alone
+        'https://www.googleapis.com/auth/cloud-platform',
+      ];
+    if (options.creds && scope.length === 0) {
+      scope = [
+        // Default to clasp scopes
+        'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+        'https://www.googleapis.com/auth/script.projects', // Apps Script management
+        'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+        'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+        'https://www.googleapis.com/auth/drive.file', // Create Drive files
+        'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+        'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+        'https://www.googleapis.com/auth/userinfo.email', // User email address
+        'https://www.googleapis.com/auth/userinfo.profile',
+
+        // Extra scope since service.management doesn't work alone
+        'https://www.googleapis.com/auth/cloud-platform',
+      ];
+      // TODO formal error
+      // logError(null, 'You need to specify scopes in the manifest.' +
+      // 'View appsscript.json. Add a list of scopes in "oauthScopes"' +
+      // 'Tip:' +
+      // '1. clasp open' +
+      // '2. File > Project Properties > Scopes');
+    }
+    const oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts = {
+      access_type: 'offline',
+      scope,
+    };
+
     // Grab a token from the credentials.
-    const token = await (options.useLocalhost ?
-      authorizeWithLocalhost(oAuth2ClientOptions) :
-      authorizeWithoutLocalhost(oAuth2ClientOptions));
+    const token = await (options.useLocalhost
+      ? authorizeWithLocalhost(oAuth2ClientOptions, oAuth2ClientAuthUrlOpts)
+      : authorizeWithoutLocalhost(oAuth2ClientOptions, oAuth2ClientAuthUrlOpts));
     console.log(LOG.AUTH_SUCCESSFUL + '\n');
 
     // Save the token and own creds together.
     let claspToken: ClaspToken;
-    if (creds) {
+    let dotfile: Dotfile;
+    if (options.creds) {
+      dotfile = DOTFILE.RC_LOCAL();
       // Save local ClaspCredentials.
       claspToken = {
         token,
         oauth2ClientSettings: {
-          clientId: creds.installed.client_id,
-          clientSecret: creds.installed.client_secret,
-          redirectUri: creds.installed.redirect_uris[0],
+          clientId: options.creds.installed.client_id,
+          clientSecret: options.creds.installed.client_secret,
+          redirectUri: options.creds.installed.redirect_uris[0],
         },
         isLocalCreds: true,
       };
-      await DOTFILE.RC_LOCAL().write(claspToken);
     } else {
+      dotfile = DOTFILE.RC;
       // Save global ClaspCredentials.
       claspToken = {
         token,
         oauth2ClientSettings: globalOauth2ClientSettings,
         isLocalCreds: false,
       };
-      await DOTFILE.RC.write(claspToken);
     }
-    console.log(LOG.SAVED_CREDS(!!creds));
+    await dotfile.write(claspToken);
+    console.log(LOG.SAVED_CREDS(!!options.creds));
   } catch (err) {
     logError(null, ERROR.ACCESS_TOKEN + err);
+  }
+}
+
+export async function getLoggedInEmail() {
+  await loadAPICredentials();
+  try {
+    const response = await google.oauth2('v2').userinfo.get({
+      auth: globalOAuth2Client,
+    });
+    return response.data.email;
+  } catch (e) {
+    return undefined;
   }
 }
 
@@ -177,10 +203,10 @@ export async function authorize(options: {
  * Loads the Apps Script API credentials for the CLI.
  * Required before every API call.
  */
-export async function loadAPICredentials(): Promise<ClaspToken> {
+export async function loadAPICredentials(local = false): Promise<ClaspToken> {
   // Gets the OAuth settings. May be local or global.
-  const rc: ClaspToken = await getOAuthSettings();
-  await setOauthCredentials(rc);
+  const rc: ClaspToken = await getOAuthSettings(local);
+  await setOauthClientCredentials(rc);
   return rc;
 }
 
@@ -188,22 +214,26 @@ export async function loadAPICredentials(): Promise<ClaspToken> {
  * Requests authorization to manage Apps Script projects. Spins up
  * a temporary HTTP server to handle the auth redirect.
  * @param {OAuth2ClientOptions} oAuth2ClientOptions The required client options for auth
+ * @param {GenerateAuthUrlOpts} oAuth2ClientAuthUrlOpts Auth URL options
  * Used for local/global testing.
  */
-async function authorizeWithLocalhost(oAuth2ClientOptions: OAuth2ClientOptions): Promise<Credentials> {
+async function authorizeWithLocalhost(
+  oAuth2ClientOptions: OAuth2ClientOptions,
+  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts): Promise<Credentials> {
   // Wait until the server is listening, otherwise we don't have
   // the server port needed to set up the Oauth2Client.
   const server = await new Promise<http.Server>((resolve, _) => {
     const s = http.createServer();
     s.listen(0, () => resolve(s));
   });
-  const port = (server.address() as AddressInfo).port; // (Cast from <string | AddressInfo>)
+  const port = (server.address() as AddressInfo).port;
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: `http://localhost:${port}`,
   });
+  // TODO Add spinner
   const authCode = await new Promise<string>((res, rej) => {
-    server.on('request', (req: http.ServerRequest, resp: http.ServerResponse) => {
+    server.on('request', (req: http.IncomingMessage, resp: http.ServerResponse) => {
       const urlParts = url.parse(req.url || '', true);
       if (urlParts.query.code) {
         res(urlParts.query.code as string);
@@ -212,7 +242,7 @@ async function authorizeWithLocalhost(oAuth2ClientOptions: OAuth2ClientOptions):
       }
       resp.end(LOG.AUTH_PAGE_SUCCESSFUL);
     });
-    const authUrl = client.generateAuthUrl(oauth2ClientAuthUrlOpts);
+    const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOpts);
     console.log(LOG.AUTHORIZE(authUrl));
     open(authUrl);
   });
@@ -224,14 +254,18 @@ async function authorizeWithLocalhost(oAuth2ClientOptions: OAuth2ClientOptions):
  * Requests authorization to manage Apps Script projects. Requires the user to
  * manually copy/paste the authorization code. No HTTP server is used.
  * @param {OAuth2ClientOptions} oAuth2ClientOptions The required client options for auth.
+ * @param {GenerateAuthUrlOpts} oAuth2ClientAuthUrlOpts Auth URL options
  */
-async function authorizeWithoutLocalhost(oAuth2ClientOptions: OAuth2ClientOptions): Promise<Credentials> {
+async function authorizeWithoutLocalhost(
+  oAuth2ClientOptions: OAuth2ClientOptions,
+  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts): Promise<Credentials> {
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: REDIRECT_URI_OOB,
   });
-  const authUrl = client.generateAuthUrl(oauth2ClientAuthUrlOpts);
+  const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOpts);
   console.log(LOG.AUTHORIZE(authUrl));
+  // TODO Add spinner
   const authCode = await new Promise<string>((res, rej) => {
     const rl = readline.createInterface({
       input: process.stdin,
@@ -250,15 +284,17 @@ async function authorizeWithoutLocalhost(oAuth2ClientOptions: OAuth2ClientOption
 }
 
 /**
- * Set global OAuth client credentails from rc, save new if access token refreshed.
+ * Set OAuth client credentails from rc.
+ * Can be global or local.
+ * Saves new credentials if access token refreshed.
  * @param {ClaspToken} rc OAuth client settings from rc file.
  */
-async function setOauthCredentials(rc: ClaspToken) {
+async function setOauthClientCredentials(rc: ClaspToken) {
   /**
    * Refreshes the credentials and saves them.
    */
   async function refreshCredentials(oAuthClient: OAuth2Client) {
-    const oldExpiry = oAuthClient.credentials.expiry_date as number || 0;
+    const oldExpiry = (oAuthClient.credentials.expiry_date as number) || 0;
     await oAuthClient.getAccessToken(); // refreshes expiry date if required
     if (oAuthClient.credentials.expiry_date === oldExpiry) return;
     rc.token = oAuthClient.credentials;
@@ -292,34 +328,26 @@ async function setOauthCredentials(rc: ClaspToken) {
  * authorize if new scopes found (local OAuth credentails only).
  * @param {ClaspToken} rc OAuth client settings from rc file.
  */
+// TODO: currently unused. Check relevancy
 export async function checkOauthScopes(rc: ClaspToken) {
   try {
     await checkIfOnline();
-    await setOauthCredentials(rc);
-    const { scopes } = await globalOAuth2Client.getTokenInfo(
-      globalOAuth2Client.credentials.access_token as string);
-    const { oauthScopes } = await loadManifest();
-    const newScopes = oauthScopes &&
-      oauthScopes.length ? (oauthScopes as string[]).filter(x => !scopes.includes(x)) : [];
+    await setOauthClientCredentials(rc);
+    const { scopes } = await globalOAuth2Client.getTokenInfo(globalOAuth2Client.credentials
+      .access_token as string);
+    const { oauthScopes } = await readManifest();
+    const newScopes =
+      oauthScopes && oauthScopes.length ? (oauthScopes).filter(x => !scopes.includes(x)) : [];
     if (!newScopes.length) return;
-    console.log('New authoization scopes detected in manifest:\n', newScopes);
-    await prompt([{
-      type: 'confirm',
-      name: 'doAuth',
-      message: 'Authorize new scopes?',
-    }, {
-      type: 'confirm',
-      name: 'localhost',
-      message: 'Use localhost?',
-      when: (answers: any) => {
-        return answers.doAuth;
-      },
-    }]).then(async (answers: any) => {
+    console.log('New authorization scopes detected in manifest:\n', newScopes);
+
+    await oauthScopesPrompt()
+    .then(async (answers) => {
       if (answers.doAuth) {
-        if (!rc.isLocalCreds) return logError(null, ERROR.NO_LOCAL_CREDENTIALS);
+        if (!rc.isLocalCreds) logError(null, ERROR.NO_LOCAL_CREDENTIALS);
         await authorize({
           useLocalhost: answers.localhost,
-          additionalScopes: newScopes,
+          scopes: newScopes,
         });
       }
     });

@@ -8,9 +8,9 @@
 - Load API Credentials (`~/.clasp.json`)
 - Login with or without localhost
 
-## [commands.ts](commands.ts)
+## [commands/](commands/)
 
-- Each clasp command is exported as a function.
+- Each clasp command is exported as a function in their respective files.
 
 ## [docs.ts](docs.ts)
 
@@ -31,3 +31,7 @@
 ## [utils.ts](utils.ts)
 
 - Dotfiles, errors, logging, other utils
+
+---
+
+Note: There are other files that are not documented here.

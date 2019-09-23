@@ -1,29 +1,26 @@
-sudo: required
+sudo: enabled
 os:
 - linux
-- osx
+# - osx
 language: node_js
 node_js:
 - node
-- '9'
+- '10'
 - '8'
-- '7'
-- '6'
 env:
   global:
-  - SCRIPT_ID=1Q3zCVgK53kEiacR0qvBYFr-A4d720UgZh3cdfDF2oFVJE5SgFiXO0AVZ
-  - PROJECT_ID=project-id-2758325992214167277
+  - SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL
+  - PROJECT_ID=project-id-3961473932623644264
 cache:
   directories:
   - "$HOME/.npm"
 before_install:
-- openssl aes-256-cbc -K $encrypted_078ec85b282a_key -iv $encrypted_078ec85b282a_iv
-  -in ./tests/.clasprc.json.enc -out .clasprc.json -d || true
 - npm install -g npm@latest
 install:
 - npm ci
 before_script:
 - npm run build
+- echo -ne $CREDS | sed 's@\\@@g' > $HOME/.clasprc.json
 script:
 - npm run lint
 - npm run test

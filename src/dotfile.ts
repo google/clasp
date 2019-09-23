@@ -11,20 +11,39 @@
  *
  * This should be the only file that uses DOTFILE.
  */
-import * as fs from 'fs';
-import * as os from 'os';
+
+import os from 'os';
+import path from 'path';
+import findUp from 'find-up';
+import fs from 'fs-extra';
 import { Credentials } from 'google-auth-library';
 import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
+import stripBom from 'strip-bom';
 
-const dotf = require('dotf');
-const read = require('read-file');
-const path = require('path');
-const findParentDir = require('find-parent-dir');
-const splitLines = require('split-lines');
+// Getting ready to switch to `dotf` embedded types
+// import { default as dotf } from 'dotf';
+// export { Dotfile } from 'dotf';
+
+// When switching, comment-out the following two exports
+export declare type Dotf = (dirname: string, name: string) => {
+  exists: () => Promise<boolean>;
+  read: <T>() => Promise<T>;
+  write: <T>(obj: T) => Promise<T>;
+  delete: () => Promise<void>;
+};
+export type Dotfile = ReturnType<Dotf>;
+
+const dotf: Dotf = require('dotf');
+const splitLines: (str: string, options?: { preserveNewLines?: boolean })
+  => string[] = require('split-lines');
 
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';
 const PROJECT_NAME = 'clasp';
+
+// TODO: workaround the circular dependency with `files.ts`
+// @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
+const FS_OPTIONS = { encoding: 'utf8' };
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
@@ -34,6 +53,7 @@ export interface ProjectSettings {
   fileExtension?: string;
   filePushOrder?: string[];
 }
+
 // Dotfile names
 export const DOT = {
   /**
@@ -77,31 +97,50 @@ export const DOTFILE = {
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return new Promise<string[]>((res, rej) => {
-      if (fs.existsSync(path.join(projectDirectory, DOT.IGNORE.PATH))) {
-        const buffer = read.sync(DOT.IGNORE.PATH, 'utf8');
-        res(splitLines(buffer).filter((name: string) => name));
+    const projectPath = findUp.sync(DOT.PROJECT.PATH);
+    const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
+    return new Promise<string[]>((resolve, reject) => {
+      if (
+        fs.existsSync(ignoreDirectory)
+        && fs.existsSync(DOT.IGNORE.PATH)
+      ) {
+        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
+        resolve(splitLines(buffer).filter((name: string) => name));
       } else {
-        res([]);
+        const defaultClaspignore = [
+          '# ignore all files...',
+          '**/**',
+          '',
+          '# except the extensions...',
+          '!appsscript.json',
+          '!**/*.gs',
+          '!**/*.js',
+          '!**/*.ts',
+          '!**/*.html',
+          '',
+          '# ignore even valid files if in...',
+          '.git/**',
+          'node_modules/**',
+        ];
+        resolve(defaultClaspignore);
       }
     });
   },
   /**
    * Gets the closest DOT.PROJECT.NAME in the parent directory of the directory
    * that the command was run in.
-   * @return {dotf} A dotf with that dotfile. Null if there is no file
+   * @return {Dotf} A dotf with that dotfile. Null if there is no file
    */
   PROJECT: () => {
-    const projectDirectory: string = findParentDir.sync(process.cwd(), DOT.PROJECT.PATH) || DOT.PROJECT.DIR;
-    return dotf(projectDirectory, DOT.PROJECT.NAME);
+    const projectPath = findUp.sync(DOT.PROJECT.PATH);
+    return dotf(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, DOT.PROJECT.NAME);
   },
   // Stores {ClaspCredentials}
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
   RC_LOCAL: () => {
-    const localDirectory: string = findParentDir.sync(process.cwd(), DOT.RC.LOCAL_PATH) || DOT.RC.LOCAL_DIR;
-    return dotf(localDirectory, DOT.RC.NAME);
+    const localPath = findUp.sync(DOT.PROJECT.PATH);
+    return dotf(localPath ? path.dirname(localPath) : DOT.RC.LOCAL_DIR, DOT.RC.NAME);
   },
 };
 

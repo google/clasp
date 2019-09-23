@@ -7,14 +7,14 @@ You can develop and test `clasp` on your computer by following these steps.
 ### Setup
 
 - Install `tsc`: `npm install -g typescript`
-- Remove your local version of `clasp`: `sudo npm uninstall -g @google/clasp`
+- Remove your local version of `clasp`: `npm uninstall -g @google/clasp`
   - This will prevent errors when updating `node_modules`.
-- Install dependencies: `npm i`
+- Install dependencies: `npm install`
 
 ### After Making a Change
 
 ```sh
-sudo npm run build;
+npm run build;
 clasp <command>
 ```
 
@@ -23,8 +23,9 @@ clasp <command>
 If you're seeing build errors, try deleting `node_modules` and building `clasp` from scratch:
 
 ```sh
-sudo rm -rf node_modules/
-sudo npm run build-fresh
+rm package-lock.json
+rm -rf node_modules/
+npm run build-fresh
 ```
 
 This is what @grant's terminal looks like:
@@ -54,7 +55,7 @@ After seeing that message, you're ready to test out `clasp`!
 `clasp` has some unit tests that help detect errors. Build and run tests with these commands:
 
 ```sh
-sudo npm run build;
+npm run build;
 npm run test
 ```
 
@@ -64,11 +65,7 @@ See [/tests/](/tests/) for more information.
 
 - Use `npm run lint` to find common style errors. TravisCI will autodetect these errors too.
 - Download [sort-imports](https://marketplace.visualstudio.com/items?itemName=amatiasq.sort-imports) for VSC to automatically sort imports.
-
-### Generate Docs
-
-The core "How To" section of the docs is generated from JSDoc comments from `index.ts`.
-Run `npm run docs` to build the "How To" section. Copy/paste that section into the README.md.
+- Use `npm run prettier` to make the code pretty.
 
 ### Publishing `clasp` to npm (admin)
 

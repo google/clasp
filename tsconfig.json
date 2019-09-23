@@ -1,6 +1,7 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
+    "esModuleInterop": true,
     "target": "es5",
     "lib": [
       "es2015",
@@ -9,10 +10,11 @@
       "es2017"
     ],
     "strict": true,
+    "inlineSourceMap": true,
   },
   "moduleResolution": "node",
-  "files": [
-    "src/index.ts",
-    "tests/test.ts"
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts"
   ]
 }

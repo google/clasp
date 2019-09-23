@@ -1,7 +1,8 @@
 # TypeScript
 
 [TypeScript](https://www.typescriptlang.org/) is a typed superset of JavaScript that can compile to plain Apps Script.
-Using TypeScript with your `clasp` project can allow you to use TypeScript features such as:
+Using TypeScript with your `clasp` project allows you to use features such as:
+
 - Arrow functions
 - Optional structural typing
 - Classes
@@ -9,11 +10,11 @@ Using TypeScript with your `clasp` project can allow you to use TypeScript featu
 - Interfaces
 - And more...
 
-Clasp `1.5.0` allows **new** and **existing** Apps Script projects to use TypeScript.
+Starting with version  `1.5.0`, Clasp allows **new** and **existing** Apps Script projects to use TypeScript.
 
 > Note: Once you use TypeScript, you cannot develop on script.google.com (the [transpiled](https://en.wikipedia.org/wiki/Source-to-source_compiler) code).
 
-> Warning: Apps Script's runtime/execution is different than Node or web browers. In particular, you cannot use the terms `export` or `require` in the same way you would with Node. You cannot use `window` like in web browsers.
+> Warning: Apps Script's runtime/execution is different than Node or web browsers. In particular, you cannot use the terms `export` or `require` in the same way you would with Node. You cannot use `window` like in web browsers.
 
 ## Quickstart
 
@@ -21,29 +22,32 @@ This quickstart guide describes how to create a TypeScript project from scratch.
 
 ### Prerequisites
 
-1. Ensure you have upgrade to clasp >= 1.5.0
+1. Ensure you have upgraded to clasp's version >= 1.5.0
     - `clasp -v`
+
 1. Install TypeScript definitions for Apps Script in your project's folder.
     - `npm i -S @types/google-apps-script`
-1. Create a file called `jsconfig.json` to prevent non AS features:
+
+1. Create a file called `tsconfig.json` to enable TypeScript features:
+
 ```json
 {
   "compilerOptions": {
-    "noLib": true
+    "lib": ["esnext"],
+    "experimentalDecorators": true
   }
 }
 ```
-(See [1](https://github.com/Microsoft/monaco-editor/issues/61#issuecomment-342359348) [2](https://code.visualstudio.com/docs/languages/jsconfig#_jsconfig-options))
+
+(See [1](https://github.com/Microsoft/monaco-editor/issues/61#issuecomment-342359348) [2](https://code.visualstudio.com/docs/languages/jsconfig#_jsconfig-options) [esnext](https://basarat.gitbooks.io/typescript/docs/types/lib.d.ts.html))
 
 ### Create the TypeScript Project
 
 Create a clasp project in an empty directory (or use an existing project):
 
 ```sh
-clasp create
+clasp create --type standalone
 ```
-
-If you haven't already, run `npm i -S @types/google-apps-script` to allow your code editor to autocomplete TypeScript.
 
 Create a TypeScript file called `hello.ts` with the following contents:
 
@@ -121,9 +125,8 @@ var age = 42;
 console.log(`hello my name is ${name}, and I am ${age} years old`);
 
 // Rest arguments
-const add = (a, b) => a + b;
-let args = [3, 5];
-add(...args); // same as `add(args[0], args[1])`, or `add.apply(null, args)`
+const buildName = (first: string, ...rest) => first + ' ' + rest.join(' ');
+buildName('First', 'Second', 'Third');
 
 // Spread operator (array)
 let cde = ['c', 'd', 'e'];
@@ -152,7 +155,7 @@ doc.getBody().appendParagraph('This document was created by Google Apps Script.'
 // Decorators
 function Override(label: string) {
   return function (target: any, key: string) {
-    Object.defineProperty(target, key, { 
+    Object.defineProperty(target, key, {
       configurable: false,
       get: () => label
     });
@@ -196,13 +199,115 @@ In most cases, the inferred type is sufficient for Apps Script autocompletion.
 
 ### Advanced Services
 
-Enableing advanced services modifies the `appsscript.json` file on script.google.com. After enabling an advanced service in the UI, copy the `appsscript.json` file from script.google.com into your editor to use the advanced services in your project.
+Enabling advanced services modifies the `appsscript.json` file on script.google.com. After enabling an advanced service in the UI, copy the `appsscript.json` file from script.google.com into your editor to use the advanced services in your project.
 
-Advanced Service currently do not have TypeScript autocompletion.
+Advanced Service should have TypeScript autocompletion.
 
 ### TypeScript Support
 
-Currently, `clasp` supports [`typescript@2.9.2`](https://www.npmjs.com/package/typescript/v/2.9.2). If there is a feature in a newer  TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please file a bug.
+Currently, `clasp` supports [`typescript@3.5.2`](https://www.npmjs.com/package/typescript/v/3.5.2). If there is a feature in a newer TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please open an issue.
+
+#### TypeScript configuration
+
+- You can create a TypeScript configuration file by creating a `tsconfig.json` file in the same folder as your `.clasp.json` file.
+- Only the `"compilerOptions"` section is considered. Anything else is ignored.
+
+By default `"compilerOptions"` uses these options:
+
+```json
+{
+  "isolatedModules": true,
+  "noLib": true,
+  "noResolve": true,
+  "target": "ES3",
+  "module": "None",
+  "noImplicitUseStrict": true,
+  "experimentalDecorators": true,
+}
+```
+
+> Note that the options `isolatedModules`, `noLib`, `noResolve`, `target` and `module` cannot be changed.
+
+### Modules, exports and imports
+
+Currently, Google Apps Script does **not** support ES modules. Hence the typical `export`/`import` pattern cannot be used and the example below will fail:
+
+```ts
+// module.ts
+
+// `foo` is added to the `exports` object in the global namespace
+export const foo = 'Hello from Module';
+```
+
+```ts
+// main.ts
+import { foo } from './module'; // this statement is ignored
+
+// the variable `foo` does not exist in the global namespace
+const bar = foo;
+```
+
+There are some possible workaround though:
+
+#### The `exports` declaration workaround
+
+This workaround makes TypeScript aware of the `exports` object and its "imported" content. Please be aware that this approach does not even remotely offer proper code isolation one would assume from using modules and can cause issues that will be very hard to debug.
+
+```ts
+declare const exports: typeof import('./module');
+
+exports.foo;  // address "imported" content as it will be visible when transpiled
+```
+
+#### The `namespace` statement workaround
+
+This workaround takes advantage of TypeScript "namespaces" (formerly known as "internal module") and achieves proper code isolation.
+
+Namespace definition can be nested, spread over multiple files and do not need any `import`/`require` statement to be used.
+
+```ts
+// module.ts
+namespace Module {
+  export function foo() {}
+  function bar() {}  // this function can only be addressed from within the `Module` namespace
+}
+```
+
+```ts
+// anyFiles.ts
+Module.foo();  // address a namespace's exported content directly
+
+const nameIWantForMyImports = Module.foo;  // to simulate `import` with renaming
+nameIWantForMyImports();
+```
+
+For a more detailed example on how `namespace`s can be used in a project you can visit [ts-gas-project-starter](https://github.com/PopGoesTheWza/ts-gas-project-starter)
+
+#### The third party build-chain workaround
+
+Here the idea is to use third party tools ([webpack](https://webpack.js.org/), [rollup.js](https://rollupjs.org/), [gulp](https://gulpjs.com/), etc.) to do the following:
+
+1. parse your code and indentify module used (`export`and `import`)
+1. *(optional)* do some tree shaking in order to remove unused code
+1. pack the result into a single javascript package
+
+> At one of the steps above, transpilling TypeScript into JavaScript must occur (either by using TypeScript or [Babel](https://babeljs.io/)) but which precise step will be defined by the set of third party tools you choose and how you define your build chain.
+
+Documenting in detail any solution with third party tools is currently beyond the scope of this document. If you happen to setup such a build chain and want to share it with the community, please open an issue so that it can be reviewed and evaluated for completing the documentation.
+
+### Apps Script Libraries and TypeScript
+
+If your project contains libraries referenced in `appsscript.json`, TypeScript will throw errors for the library names or types it cannot resolve, e.g. `[ts] Cannot find name 'OAuth2'. [2304]`. Libraries have their own types and are not part of `@types/google-apps-script`. These libraries are only resolved once the script is deployed upstream with `clasp push`.
+
+One workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
+
+```ts
+function getOAuthService() {
+    // Ignore OAuth2 library resolution when working locally with clasp and TypeScript
+    // @ts-ignore
+    return OAuth2.createService('Auth0');
+}
+```
 
 ### Apps Script Libraries and TypeScript
 
@@ -231,8 +336,6 @@ If you see outdated TypeScript types, you can help update them by contributing t
 1. Copy the type files to your fork of `DefinitelyTyped/DefinitelyTyped`.
 1. View the diff (`git diff`), and make sure that the types look OK.
 1. Make a PR and ask [@grant](https://github.com/grant) for review.
-
-> (Eventually I'll configure a system to auto-update these types.)
 
 ## Further Reading
 

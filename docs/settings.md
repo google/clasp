@@ -10,7 +10,7 @@ You can get autocompletion for `appsscript.json` and `.clasp.json` in VSCode by 
 
 1. Open VSCode settings.
 
-    > **File** > **Preferences** > **Settings**
+    > **Code** > **Preferences** > **Settings**
 
 1. Add these `"json.schemas"` in the **User Settings** file:
 
@@ -49,3 +49,8 @@ You can also add `gs` color coding if you prefer not to use `js` or `ts` via thi
     "*.gs": "javascript"
 },
 ```
+
+## Missing Schema?
+
+File a Pull Request in this repo:
+https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/appsscript.json
