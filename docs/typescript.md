@@ -299,7 +299,27 @@ Documenting in detail any solution with third party tools is currently beyond th
 
 If your project contains libraries referenced in `appsscript.json`, TypeScript will throw errors for the library names or types it cannot resolve, e.g. `[ts] Cannot find name 'OAuth2'. [2304]`. Libraries have their own types and are not part of `@types/google-apps-script`. These libraries are only resolved once the script is deployed upstream with `clasp push`.
 
-One workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
+If the @types npm package exists for a GAS library, you can install it as so:
+
+```
+npm install -D @types/google-apps-script-oauth2
+```
+
+Add the types reference to your `tsconfig.json` file:
+
+```
+{
+  "compilerOptions": {
+    "types": ["google-apps-script", "google-apps-script-oauth2"],
+    "strict": true
+  }
+}
+
+```
+
+Not all libraries will have type definitions, so you may have to create your own. Refer to the [Outdated Types](##Outdated-Types) section below for more details.
+
+If you do not want to generate types, a lazier workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
 
 ```ts
 function getOAuthService() {
