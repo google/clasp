@@ -305,16 +305,21 @@ If the @types npm package exists for a GAS library, you can install it as so:
 npm install -D @types/google-apps-script-oauth2
 ```
 
-If names are still not resolving (in this example, for `OAuth2`), add an `index.d.ts` file to your main source folder containing the types reference as so:
+Add the types reference to your `tsconfig.json` file:
 
-```ts
-/* index.d.ts */
-/// <reference types="google-apps-script-oauth2" />
+```
+{
+  "compilerOptions": {
+    "types": ["google-apps-script", "google-apps-script-oauth2"],
+    "strict": true
+  }
+}
+
 ```
 
 Not all libraries will have type definitions, so you may have to create your own. Refer to the [Outdated Types](##Outdated-Types) section below for more details.
 
-Another (lazier) workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
+If you do not want to generate types, a lazier workaround for this error is to ignore the line causing the TypeScript error by adding a line comment `// @ts-ignore` above the line. This can be done as so:
 
 ```ts
 function getOAuthService() {
