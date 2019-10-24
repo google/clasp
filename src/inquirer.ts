@@ -3,7 +3,7 @@ import { prompt, registerPrompt } from 'inquirer';
 import { SCRIPT_TYPES } from './apis';
 import { LOG } from './utils';
 
-registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
+registerPrompt('autocomplete', require('inquirer-autocomplete-prompt-ipt'));
 
 export type functionNameSource =
   (answers: { functionName: string }, input?: string | undefined) => Promise<string[]>;
