@@ -83,45 +83,47 @@ function printLogs(
     } = entries[i];
     if (!resource || !resource.labels) return;
     let functionName = resource.labels.function_name;
-    functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
-    // tslint:disable-next-line:no-any
-    let payloadData: any = '';
-    if (formatJson) {
-      payloadData = JSON.stringify(entries[i], null, 2);
-    } else {
-      const data = {
-        textPayload,
-        // chokes on unmatched json payloads
-        // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
-        jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).substr(0, 255) : '',
-        protoPayload,
-      };
-      payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
-      if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
-        payloadData = LOG.STACKDRIVER_SETUP;
-        functionName = protoPayload.methodName.padEnd(15);
-      }
-      if (payloadData && typeof payloadData === 'string') {
-        payloadData = payloadData.padEnd(20);
-      }
-    }
-    const coloredStringMap: { [key: string]: string } = {
-      ERROR: chalk.red(severity),
-      INFO: chalk.cyan(severity),
-      DEBUG: chalk.green(severity), // includes timeEnd
-      NOTICE: chalk.magenta(severity),
-      WARNING: chalk.yellow(severity),
-    };
-    let coloredSeverity: string = coloredStringMap[severity] || severity;
-    coloredSeverity = String(coloredSeverity).padEnd(20);
-    // If we haven't logged this entry before, log it and mark the cache.
-    if (!logEntryCache[insertId]) {
-      if (simplified) {
-        console.log(`${coloredSeverity} ${functionName} ${payloadData}`);
+    if (insertId && protoPayload && severity) {
+      functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
+      // tslint:disable-next-line:no-any
+      let payloadData: any = '';
+      if (formatJson) {
+        payloadData = JSON.stringify(entries[i], null, 2);
       } else {
-        console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
+        const data = {
+          textPayload,
+          // chokes on unmatched json payloads
+          // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
+          jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).substr(0, 255) : '',
+          protoPayload,
+        };
+        payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
+        if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
+          payloadData = LOG.STACKDRIVER_SETUP;
+          functionName = protoPayload.methodName.padEnd(15);
+        }
+        if (payloadData && typeof payloadData === 'string') {
+          payloadData = payloadData.padEnd(20);
+        }
       }
-      logEntryCache[insertId] = true;
+      const coloredStringMap: { [key: string]: string } = {
+        ERROR: chalk.red(severity),
+        INFO: chalk.cyan(severity),
+        DEBUG: chalk.green(severity), // includes timeEnd
+        NOTICE: chalk.magenta(severity),
+        WARNING: chalk.yellow(severity),
+      };
+      let coloredSeverity: string = coloredStringMap[severity] || severity;
+      coloredSeverity = String(coloredSeverity).padEnd(20);
+      // If we haven't logged this entry before, log it and mark the cache.
+      if (!logEntryCache[insertId]) {
+        if (simplified) {
+          console.log(`${coloredSeverity} ${functionName} ${payloadData}`);
+        } else {
+          console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
+        }
+        logEntryCache[insertId] = true;
+      }
     }
   }
 }
