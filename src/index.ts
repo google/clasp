@@ -179,6 +179,7 @@ commander
   .description('Open a script')
   .option('--webapp', 'Open web application in the browser')
   .option('--creds', 'Open the URL to create credentials')
+  .option('--account <email>', 'Authenticate with specific email when opening')
   .action(handleError(openCmd));
 
 /**

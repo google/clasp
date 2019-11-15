@@ -59,6 +59,8 @@ export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
 // Error messages (some errors take required params)
 export const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
+  ACCOUNT_INCORRECT: (account: string) => `The account "${account}" looks incorrect.
+Is this an email or user number?`,
   BAD_CREDENTIALS_FILE: 'Incorrect credentials file format.',
   BAD_REQUEST: (message: string) => `Error: ${message}
 Your credentials may be invalid. Try logging in again.`,
@@ -71,6 +73,8 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   CREDENTIALS_DNE: (filename: string) => `Credentials file "${filename}" not found.`,
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
   DRIVE: `Something went wrong with the Google Drive API`,
+  EMAIL_INCORRECT: (email: string) => `The email address "${email}" syntax looks incorrect.
+There may be typos, did you provide a valid email?`,
   EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
@@ -164,7 +168,7 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
   OPEN_CREDS: (projectId: string) => `Opening credentials page: ${URL.CREDS(projectId)}`,
   OPEN_LINK: (link: string) => `Open this link: ${link}`,
-  OPEN_PROJECT: (scriptId: string) => `Opening script: ${URL.SCRIPT(scriptId)}`,
+  OPEN_PROJECT: (scriptId: string, account?: string) => `Opening script: ${URL.SCRIPT(scriptId, account)}`,
   OPEN_WEBAPP: (deploymentId?: string) => `Opening web application: ${deploymentId}`,
   PULLING: 'Pulling files...',
   PUSH_FAILURE: 'Push failed. Errors:',
@@ -423,6 +427,15 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
  */
 export function isValidProjectId(projectId: string) {
   return new RegExp(/^[a-z][a-z0-9\-]{5,29}$/).test(projectId);
+}
+
+/**
+ * Validate email address.
+ * @param {string} email The email address.
+ * @returns {boolean} Is the email address valid
+ */
+export function isValidEmail(email: string) {
+  return new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email);
 }
 
 /**

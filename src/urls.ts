@@ -32,6 +32,6 @@ export const URL = {
     `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`,
   SCRIPT_API_USER: 'https://script.google.com/home/usersettings',
   // It is too expensive to get the script URL from the Drive API. (Async/not offline)
-  SCRIPT: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
+  SCRIPT: (scriptId: string, account?: string) => `https://script.google.com/d/${scriptId}/edit${typeof account === 'undefined' ? '' : `?authuser=${account}`}`,
   DRIVE: (driveId: string) => `https://drive.google.com/open?id=${driveId}`,
 };

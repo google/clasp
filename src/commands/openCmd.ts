@@ -2,7 +2,7 @@ import open from 'open';
 import { loadAPICredentials, script } from '../auth';
 import { deploymentIdPrompt } from '../inquirer';
 import { URL } from '../urls';
-import { ERROR, LOG, getProjectSettings, getWebApplicationURL, logError } from '../utils';
+import { ERROR, LOG, getProjectSettings, getWebApplicationURL, logError, isValidEmail } from '../utils';
 
 interface EllipizeOptions {
   ellipse?: string;
@@ -16,12 +16,14 @@ const ellipsize: (str?: string, max?: number, opts?: EllipizeOptions) => string 
  * @param scriptId {string} The Apps Script project to open.
  * @param cmd.webapp {boolean} If true, the command will open the webapps URL.
  * @param cmd.creds {boolean} If true, the command will open the credentials URL.
+ * @param cmd.account {string} Email or user number authenticate with when opening
  */
 export default async (
   scriptId: string,
   cmd: {
     webapp: boolean;
     creds: boolean;
+    account: string;
   },
 ) => {
   const projectSettings = await getProjectSettings();
@@ -39,8 +41,21 @@ export default async (
 
   // If we're not a web app, open the script URL.
   if (!cmd.webapp) {
-    console.log(LOG.OPEN_PROJECT(scriptId));
-    return open(URL.SCRIPT(scriptId), { wait: false });
+    // If we should open script with a specific account
+    if (cmd.account) {
+      // Confirm account looks like an email address
+      if (cmd.account.length > 2 && !isValidEmail(cmd.account)) {
+        logError(null, ERROR.EMAIL_INCORRECT(cmd.account));
+      }
+      
+      // Check if account is number
+      if (cmd.account.length < 3 && isNaN(Number(cmd.account))) {
+        logError(null, ERROR.ACCOUNT_INCORRECT(cmd.account));
+      }
+    }
+
+    console.log(LOG.OPEN_PROJECT(scriptId, cmd.account));
+    return open(URL.SCRIPT(scriptId, cmd.account), { wait: false });
   }
 
   // Web app: Otherwise, open the latest deployment.
