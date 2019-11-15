@@ -47,7 +47,6 @@ export default async (
       if (cmd.account.length > 2 && !isValidEmail(cmd.account)) {
         logError(null, ERROR.EMAIL_INCORRECT(cmd.account));
       }
-      
       // Check if account is number
       if (cmd.account.length < 3 && isNaN(Number(cmd.account))) {
         logError(null, ERROR.ACCOUNT_INCORRECT(cmd.account));
