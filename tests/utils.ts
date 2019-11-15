@@ -9,7 +9,7 @@ import {
 import {
   ERROR,
   getValidJSON,
-  isValidEmail
+  isValidEmail,
 } from '../src/utils';
 
 describe('Test getValidJSON function', () => {
@@ -27,6 +27,8 @@ describe('Test utils isValidEmail function', () => {
   const validEmail = 'user@example.com';
   const invalidEmail = 'user@example';
 
+  // Disable a couple of linting rules just for these tests
+  // tslint:disable:no-unused-expression
   it('should return true for valid combinations of input', () => {
     expect(isValidEmail(validEmail)).to.be.true;
   });
