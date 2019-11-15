@@ -33,5 +33,17 @@ describe('Test clasp open function', () => {
     );
     expect(result.stdout).to.contain('Open which deployment?');
   });
+  it('should open script with account email correctly', () => {
+    const result = spawnSync(
+      CLASP, ['open', '--account', 'max@example.com'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('?authuser=max@example.com');
+  });
+  it('should open script with account number correctly', () => {
+    const result = spawnSync(
+      CLASP, ['open', '--account', '1'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain('?authuser=1');
+  });
   after(cleanup);
 });
