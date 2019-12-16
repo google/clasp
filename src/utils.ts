@@ -245,7 +245,7 @@ export const logError = (err: any, description = '', code = 1): never => {
   }
   if (description) console.error(description);
 
-  process.exit(code);
+  return process.exit(code);
 };
 
 /**
