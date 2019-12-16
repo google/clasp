@@ -28,10 +28,10 @@ export default async (options: { open?: string }) => {
   // The apis subcommands.
   const command: { [key: string]: Function } = {
     enable: async () => {
-      enableOrDisableAPI(serviceName, true);
+      await enableOrDisableAPI(serviceName, true);
     },
     disable: async () => {
-      enableOrDisableAPI(serviceName, false);
+      await enableOrDisableAPI(serviceName, false);
     },
     list: async () => {
       await checkIfOnline();
