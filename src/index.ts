@@ -360,5 +360,3 @@ if (!process.argv.slice(2).length) {
 }
 // User input is provided from the process' arguments
 commander.parse(process.argv);
-
-process.exit();
