@@ -22,7 +22,7 @@ export default async (options: { open?: string }) => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    return open(apisUrl, { wait: false });
+    return await open(apisUrl, { wait: false });
   }
 
   // The apis subcommands.
@@ -112,7 +112,7 @@ export default async (options: { open?: string }) => {
     },
   };
   if (command[subcommand]) {
-    command[subcommand]();
+    await command[subcommand]();
   } else {
     logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
   }

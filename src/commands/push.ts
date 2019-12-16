@@ -50,7 +50,7 @@ export default async (cmd: { watch: boolean; force: boolean }) => {
         return;
       }
       console.log(LOG.PUSHING);
-      pushFiles();
+      await pushFiles();
     });
   } else {
     if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
@@ -58,7 +58,7 @@ export default async (cmd: { watch: boolean; force: boolean }) => {
       return;
     }
     spinner.setSpinnerTitle(LOG.PUSHING).start();
-    pushFiles();
+    await pushFiles();
   }
 };
 
