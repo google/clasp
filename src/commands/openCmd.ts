@@ -33,7 +33,7 @@ export default async (
     if (projectId) {
       console.log(LOG.OPEN_CREDS(projectId));
       // return /*await*/ open(URL.CREDS(projectId), { wait: false });
-      return /*await*/ open(URL.CREDS(projectId));
+      return /*await*/ open(URL.CREDS(projectId), { url: true });
     }
     logError(null, ERROR.NO_GCLOUD_PROJECT);
   }
@@ -42,7 +42,7 @@ export default async (
   if (!cmd.webapp) {
     console.log(LOG.OPEN_PROJECT(scriptId));
     // return /*await*/ open(URL.SCRIPT(scriptId), { wait: false });
-    return /*await*/ open(URL.SCRIPT(scriptId));
+    return /*await*/ open(URL.SCRIPT(scriptId), { url: true });
   }
 
   // Web app: Otherwise, open the latest deployment.
@@ -81,7 +81,7 @@ export default async (
   const target = getWebApplicationURL(deployment.data);
   if (target) {
     // return /*await*/ open(target, { wait: false });
-    return /*await*/ open(target);
+    return /*await*/ open(target, { url: true });
   } else {
     logError(null, `Could not open deployment: ${deployment}`);
   }
