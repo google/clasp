@@ -244,7 +244,7 @@ async function authorizeWithLocalhost(
     });
     const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOpts);
     console.log(LOG.AUTHORIZE(authUrl));
-    /*await*/ open(authUrl, { url: true });
+    open(authUrl, { url: true });
   });
   server.close();
   return (await client.getToken(authCode)).tokens;
