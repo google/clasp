@@ -15,6 +15,7 @@ describe('Test clasp logs setup', () => {
     const result = spawnSync(
       CLASP, ['logs'], { encoding: 'utf8' },
     );
+    expect(result.stdout).to.contain(`BANG`);
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
     expect(result.status).to.equal(0);
   });
@@ -22,6 +23,7 @@ describe('Test clasp logs setup', () => {
     const result = spawnSync(
       CLASP, ['logs', '--setup'], { encoding: 'utf8' },
     );
+    expect(result.stdout).to.contain(`BANG`);
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
     expect(result.status).to.equal(0);
   });
