@@ -36,7 +36,7 @@ export default async (cmd: {
   if (cmd.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
-    return await open(url, { wait: false });
+    return /*await*/ open(url, { wait: false });
   }
 
   // Otherwise, if not opening StackDriver, load StackDriver logs.
