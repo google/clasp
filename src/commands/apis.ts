@@ -24,7 +24,7 @@ export default async (options: { open?: string }) => {
     console.log(apisUrl);
     // return /*await*/ open(apisUrl, { wait: false });
     /*await*/ open(apisUrl, { url: true });
-    return
+    return;
     // return /*await*/ open(apisUrl, { url: true });
   }
 
