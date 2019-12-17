@@ -92,7 +92,7 @@ describe('Test clasp version and versions function', () => {
     const result = spawnSync(
       CLASP, ['version'], { encoding: 'utf8' },
     );
-    expect(result.stdout).to.contain(`BANG`);
+    // expect(result.stdout).to.contain(`BANG`);
     expect(result.stdout).to.contain(LOG.GIVE_DESCRIPTION);
     expect(result.status).to.equal(0);
   });

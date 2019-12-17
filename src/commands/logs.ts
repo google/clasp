@@ -37,6 +37,7 @@ export default async (cmd: {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
     open(url, { url: true });
+    process.exit();
     return;
   }
 
