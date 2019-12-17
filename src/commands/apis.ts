@@ -22,7 +22,8 @@ export default async (options: { open?: string }) => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    return /*await*/ open(apisUrl, { wait: false });
+    // return /*await*/ open(apisUrl, { wait: false });
+    return /*await*/ open(apisUrl);
   }
 
   // The apis subcommands.
