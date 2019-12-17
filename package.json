@@ -77,7 +77,7 @@
     "mkdirp": "^0.5.1",
     "multimatch": "^4.0.0",
     "normalize-newline": "3.0.0",
-    "open": "^6.4.0",
+    "open": "^7.0.0",
     "pluralize": "^8.0.0",
     "recursive-readdir": "^2.2.2",
     "split-lines": "^2.0.0",
