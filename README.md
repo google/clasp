@@ -25,6 +25,10 @@ clear
 
 **To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
 
+You can also try clasp in Gitpod, a one-click online IDE for GitHub:
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/google/clasp/blob/master/demo/README.md)
+
 ## Features
 
 **🗺️ Develop Locally:** `clasp` allows you to develop your Apps Script projects locally. That means you can check-in your code into source control, collaborate with other developers, and use your favorite tools to develop Apps Script.
