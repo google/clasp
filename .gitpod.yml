@@ -1,3 +1,2 @@
-workspaceLocation: "./demo"
 tasks:
   - init: npm install -g @google/clasp
