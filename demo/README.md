@@ -3,7 +3,15 @@
 This is an instructional demo.
 You can try some operations on gitpod.
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/google/clasp/blob/master/demo/README.md)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/google/clasp/blob/master/demo/)
+
+## Preparation
+
+Change to the `demo` directory with the following command:
+
+```
+cd demo
+```
 
 ## Login
 
