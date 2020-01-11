@@ -4,8 +4,6 @@ import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';
 import { extractScriptId } from '../urls';
 import { ERROR, LOG, checkIfOnline, logError, saveProject, spinner } from '../utils';
 import status from './status';
-// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
-const padEnd = require('string.prototype.padend');
 
 /**
  * Fetches an Apps Script project.
@@ -43,7 +41,7 @@ const getScriptId = async () => {
   const files = data.files;
   if (files && files.length) {
     const fileIds: ScriptIdPrompt[] = files.map(file => ({
-      name: `${padEnd(file.name, 20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
+      name: `${file.name!.padEnd(20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
       value: file.id || '',
     }));
     const answers = await scriptIdPrompt(fileIds);

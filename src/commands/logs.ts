@@ -7,8 +7,6 @@ import { DOTFILE, ProjectSettings } from '../dotfile';
 import { projectIdPrompt } from '../inquirer';
 import { URL } from '../urls';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner } from '../utils';
-// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
-const padEnd = require('string.prototype.padend');
 
 /**
  * Prints StackDriver logs from this Apps Script project.
@@ -87,7 +85,7 @@ export function printLogs(
     } = entries[i];
     if (!resource || !resource.labels) return;
     let functionName = resource.labels.function_name;
-    functionName = functionName ? padEnd(functionName, 15) : ERROR.NO_FUNCTION_NAME;
+    functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
     // tslint:disable-next-line:no-any
     let payloadData: any = '';
     if (formatJson) {
@@ -106,7 +104,7 @@ export function printLogs(
         functionName = protoPayload!.methodName.padEnd(15);
       }
       if (payloadData && typeof payloadData === 'string') {
-        payloadData = padEnd(payloadData, 20);
+        payloadData = payloadData.padEnd(20);
       }
     }
     const coloredStringMap: { [key: string]: string } = {
