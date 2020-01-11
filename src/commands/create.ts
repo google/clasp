@@ -85,7 +85,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   const createdScriptId = res.data.scriptId || '';
   console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
   const rootDir = cmd.rootDir;
-  saveProject(
+  await saveProject(
     {
       scriptId: createdScriptId,
       rootDir,
@@ -94,6 +94,6 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   );
   if (!manifestExists(rootDir)) {
     const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
-    writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
+    await writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
   }
 };

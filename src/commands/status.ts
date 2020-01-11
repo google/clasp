@@ -12,7 +12,7 @@ export default async (cmd: { json: boolean } = { json: false }) => {
   await isValidManifest();
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
-  getProjectFiles(rootDir, (err, projectFiles) => {
+  await getProjectFiles(rootDir, (err, projectFiles) => {
     if (err) return console.log(err);
     if (projectFiles) {
       const [filesToPush, untrackedFiles] = projectFiles;

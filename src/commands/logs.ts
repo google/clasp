@@ -38,7 +38,8 @@ export default async (cmd: {
   if (cmd.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
-    return open(url, { wait: false });
+    open(url, { url: true });
+    return;
   }
 
   // Otherwise, if not opening StackDriver, load StackDriver logs.
@@ -50,7 +51,7 @@ export default async (cmd: {
       fetchAndPrintLogs(cmd.json, cmd.simplified, projectId, startDate);
     }, POLL_INTERVAL);
   } else {
-    fetchAndPrintLogs(cmd.json, cmd.simplified, projectId);
+    await fetchAndPrintLogs(cmd.json, cmd.simplified, projectId);
   }
 };
 
@@ -102,7 +103,7 @@ export function printLogs(
       payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
       if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
         payloadData = LOG.STACKDRIVER_SETUP;
-        functionName = padEnd(protoPayload.methodName, 15);
+        functionName = protoPayload!.methodName.padEnd(15);
       }
       if (payloadData && typeof payloadData === 'string') {
         payloadData = padEnd(payloadData, 20);
@@ -115,16 +116,16 @@ export function printLogs(
       NOTICE: chalk.magenta(severity),
       WARNING: chalk.yellow(severity),
     };
-    let coloredSeverity: string = coloredStringMap[severity] || severity;
-    coloredSeverity = padEnd(String(coloredSeverity), 20);
+    let coloredSeverity: string = coloredStringMap[severity!] || severity!;
+    coloredSeverity = String(coloredSeverity).padEnd(20);
     // If we haven't logged this entry before, log it and mark the cache.
-    if (!logEntryCache[insertId]) {
+    if (!logEntryCache[insertId!]) {
       if (simplified) {
         console.log(`${coloredSeverity} ${functionName} ${payloadData}`);
       } else {
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
-      logEntryCache[insertId] = true;
+      logEntryCache[insertId!] = true;
     }
   }
 }

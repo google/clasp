@@ -34,7 +34,9 @@ export default async (
     const projectId = projectSettings.projectId;
     if (projectId) {
       console.log(LOG.OPEN_CREDS(projectId));
-      return open(URL.CREDS(projectId), { wait: false });
+      open(URL.CREDS(projectId), { url: true });
+      // return open(URL.CREDS(projectId), { url: true });
+      process.exit(0);
     }
     logError(null, ERROR.NO_GCLOUD_PROJECT);
   }
@@ -42,7 +44,9 @@ export default async (
   // If we're not a web app, open the script URL.
   if (!cmd.webapp) {
     console.log(LOG.OPEN_PROJECT(scriptId));
-    return open(URL.SCRIPT(scriptId), { wait: false });
+    open(URL.SCRIPT(scriptId), { url: true });
+    // return open(URL.SCRIPT(scriptId), { url: true });
+    process.exit(0);
   }
 
   // Web app: Otherwise, open the latest deployment.
@@ -65,8 +69,9 @@ export default async (
       const config = e.deploymentConfig;
       const version = config && config.versionNumber;
       return {
-        name: padEnd(ellipsize(config && config.description, DESC_PAD_SIZE), DESC_PAD_SIZE) +
-          `@${padEnd(typeof version === 'number' ? version : 'HEAD', 4)} - ${e.deploymentId}`,
+        name:
+          ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
+          `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
         value: e,
       };
     });
@@ -74,12 +79,14 @@ export default async (
   const answers = await deploymentIdPrompt(choices);
   const deployment = await script.projects.deployments.get({
     scriptId,
-    deploymentId: answers.deployment.deploymentId,
+    deploymentId: answers.deployment.deploymentId!,
   });
-  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
+  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId!));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
-    return open(target, { wait: false });
+    open(target, { url: true });
+    // return open(target, { url: true });
+    process.exit(0);
   } else {
     logError(null, `Could not open deployment: ${deployment}`);
   }

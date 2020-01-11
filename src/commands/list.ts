@@ -34,7 +34,7 @@ export default async () => {
   }
   const NAME_PAD_SIZE = 20;
   files.forEach((file: drive_v3.Schema$File) => {
-    const fileName = ellipsize(file.name, NAME_PAD_SIZE);
-    console.log(`${padEnd(fileName, NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id || '')}`);
+    const fileName = ellipsize(file.name!, NAME_PAD_SIZE);
+    console.log(`${fileName.padEnd(NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id || '')}`);
   });
 };

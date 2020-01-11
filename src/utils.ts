@@ -277,6 +277,7 @@ export const logError = (err: any, description = '', code = 1): never => {
     }
   }
   if (description) console.error(description);
+
   return process.exit(code);
 };
 
@@ -442,6 +443,7 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
   return async (...args: any[]) => {
     try {
       await command(...args);
+      // process.exit();
     } catch (e) {
       spinner.stop(true);
       logError(null, e.message);
