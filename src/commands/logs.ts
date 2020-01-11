@@ -7,6 +7,8 @@ import { DOTFILE, ProjectSettings } from '../dotfile';
 import { projectIdPrompt } from '../inquirer';
 import { URL } from '../urls';
 import { ERROR, LOG, checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner } from '../utils';
+// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
+const padEnd = require('string.prototype.padend');
 
 /**
  * Prints StackDriver logs from this Apps Script project.
@@ -65,7 +67,8 @@ const logEntryCache: { [key: string]: boolean } = {};
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-function printLogs(
+// TODO: unnecessary export
+export function printLogs(
   entries: logging_v2.Schema$LogEntry[] = [],
   formatJson: boolean,
   simplified: boolean,
@@ -83,7 +86,7 @@ function printLogs(
     } = entries[i];
     if (!resource || !resource.labels) return;
     let functionName = resource.labels.function_name;
-    functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
+    functionName = functionName ? padEnd(functionName, 15) : ERROR.NO_FUNCTION_NAME;
     // tslint:disable-next-line:no-any
     let payloadData: any = '';
     if (formatJson) {
@@ -99,10 +102,10 @@ function printLogs(
       payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
       if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
         payloadData = LOG.STACKDRIVER_SETUP;
-        functionName = protoPayload.methodName.padEnd(15);
+        functionName = padEnd(protoPayload.methodName, 15);
       }
       if (payloadData && typeof payloadData === 'string') {
-        payloadData = payloadData.padEnd(20);
+        payloadData = padEnd(payloadData, 20);
       }
     }
     const coloredStringMap: { [key: string]: string } = {
@@ -113,7 +116,7 @@ function printLogs(
       WARNING: chalk.yellow(severity),
     };
     let coloredSeverity: string = coloredStringMap[severity] || severity;
-    coloredSeverity = String(coloredSeverity).padEnd(20);
+    coloredSeverity = padEnd(String(coloredSeverity), 20);
     // If we haven't logged this entry before, log it and mark the cache.
     if (!logEntryCache[insertId]) {
       if (simplified) {
@@ -126,7 +129,8 @@ function printLogs(
   }
 }
 
-async function setupLogs(): Promise<string> {
+// TODO: unnecessary export
+export async function setupLogs(): Promise<string> {
   let projectId: string;
   return new Promise<string>((resolve, reject) => {
     getProjectSettings().then(projectSettings => {
@@ -161,7 +165,8 @@ async function setupLogs(): Promise<string> {
  * Fetches the logs and prints the to the user.
  * @param startDate {Date?} Get logs from this date to now.
  */
-async function fetchAndPrintLogs(
+// TODO: unnecessary export
+export async function fetchAndPrintLogs(
   formatJson: boolean,
   simplified: boolean,
   projectId?: string,

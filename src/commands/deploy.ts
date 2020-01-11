@@ -1,13 +1,6 @@
 import { loadAPICredentials, script } from '../auth';
-import {
-  ERROR,
-  LOG,
-  PROJECT_MANIFEST_BASENAME,
-  checkIfOnline,
-  getProjectSettings,
-  logError,
-  spinner,
-} from '../utils';
+import { PROJECT_MANIFEST_BASENAME } from '../conf';
+import { ERROR, LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../utils';
 
 /**
  * Deploys an Apps Script project.

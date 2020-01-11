@@ -9,6 +9,8 @@ interface EllipizeOptions {
   truncate?: boolean | 'middle';
 }
 const ellipsize: (str?: string, max?: number, opts?: EllipizeOptions) => string = require('ellipsize');
+// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
+const padEnd = require('string.prototype.padend');
 
 /**
  * Lists a user's Apps Script projects using Google Drive.
@@ -33,6 +35,6 @@ export default async () => {
   const NAME_PAD_SIZE = 20;
   files.forEach((file: drive_v3.Schema$File) => {
     const fileName = ellipsize(file.name, NAME_PAD_SIZE);
-    console.log(`${fileName.padEnd(NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id || '')}`);
+    console.log(`${padEnd(fileName, NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id || '')}`);
   });
 };
