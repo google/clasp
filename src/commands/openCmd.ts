@@ -10,6 +10,8 @@ interface EllipizeOptions {
   truncate?: boolean | 'middle';
 }
 const ellipsize: (str?: string, max?: number, opts?: EllipizeOptions) => string = require('ellipsize');
+// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
+const padEnd = require('string.prototype.padend');
 
 /**
  * Opens an Apps Script project's script.google.com editor.
@@ -63,9 +65,8 @@ export default async (
       const config = e.deploymentConfig;
       const version = config && config.versionNumber;
       return {
-        name:
-          ellipsize(config && config.description, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
-          `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
+        name: padEnd(ellipsize(config && config.description, DESC_PAD_SIZE), DESC_PAD_SIZE) +
+          `@${padEnd(typeof version === 'number' ? version : 'HEAD', 4)} - ${e.deploymentId}`,
         value: e,
       };
     });

@@ -4,17 +4,18 @@ import { Spinner } from 'cli-spinner';
 import fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
 import pluralize from 'pluralize';
-import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
+import { Conf, PROJECT_MANIFEST_FILENAME, PROJECT_NAME } from './conf';
+import { ClaspToken, DOTFILE, ProjectSettings } from './dotfile';
 import { projectIdPrompt } from './inquirer';
 import { URL } from './urls';
 
+const conf = Conf.get();
+const auth = conf.auth;
+const ignore = conf.ignore;
+const project = conf.project;
+
 const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
 const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
-
-// Names / Paths
-export const PROJECT_NAME = 'clasp';
-export const PROJECT_MANIFEST_BASENAME = 'appsscript';
-export const PROJECT_MANIFEST_FILENAME = PROJECT_MANIFEST_BASENAME + '.json';
 
 /**
  * The installed credentials. This is a file downloaded from console.developers.google.com
@@ -40,8 +41,26 @@ export interface ClaspCredentials {
  * @param  {boolean} local check ./clasprc.json instead of ~/.clasprc.json
  * @return {boolean}
  */
-export const hasOauthClientSettings = (local = false): boolean =>
-  local ? fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH) : fs.existsSync(DOT.RC.ABSOLUTE_PATH);
+// export const hasOauthClientSettings = (local = false): boolean =>
+//   local ? fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH) : fs.existsSync(DOT.RC.ABSOLUTE_PATH);
+export const hasOauthClientSettings = (local = false): boolean => {
+  let result: boolean;
+  let previousPath: string | undefined = undefined;
+
+  if (local && auth.isDefault()) {
+    // if no local auth defined, try current directory
+    previousPath = auth.path;
+    auth.path = '.';
+  }
+
+  result = (local ? !auth.isDefault() : auth.isDefault()) && fs.existsSync(auth.resolve());
+
+  if (previousPath) {
+    auth.path = previousPath;
+  }
+
+  return result;
+};
 
 /**
  * Gets the OAuth client settings from rc file.
@@ -50,10 +69,24 @@ export const hasOauthClientSettings = (local = false): boolean =>
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
 export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
-  const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC
+  let result;
+  let previousPath: string | undefined = undefined;
+
+  if (local && auth.isDefault()) {
+    // if no local auth defined, try current directory
+    previousPath = auth.path;
+    auth.path = '.';
+  }
+
+  result = DOTFILE.AUTH()
     .read<ClaspToken>()
     .catch((err: Error) => logError(err, ERROR.NO_CREDENTIALS(local)));
+
+  if (previousPath) {
+    auth.path = previousPath;
+  }
+
+  return result;
 }
 
 // Error messages (some errors take required params)
@@ -72,7 +105,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
   DRIVE: `Something went wrong with the Google Drive API`,
   EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
-  FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
+  FOLDER_EXISTS: `Project file (${project.resolve()}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   INVALID_JSON: `Input params not Valid JSON string. Please fix and try again`,
@@ -86,7 +119,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   NO_CREDENTIALS: (local: boolean) => `Could not read API credentials. ` +
     `Are you logged in ${local ? 'locall' : 'globall'}y?`,
   NO_FUNCTION_NAME: 'N/A',
-  NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
+  NO_GCLOUD_PROJECT: `No projectId found in your ${project.resolve()} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
   NO_MANIFEST: (filename: string) =>
     `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
@@ -104,14 +137,14 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   RUN_NODATA: 'Script execution API returned no data.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
-  SCRIPT_ID_DNE: `No scriptId found in your ${DOT.PROJECT.PATH} file.`,
+  SCRIPT_ID_DNE: `No scriptId found in your ${project.resolve()} file.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
   SCRIPT_ID: `Could not find script.
 Did you provide the correct scriptId?
 Are you logged in to the correct account with the script?`,
   SETTINGS_DNE: `
-No valid ${DOT.PROJECT.PATH} project file. You may need to \`create\` or \`clone\` a project first.`,
+No valid ${project.resolve()} project file. You may need to \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
@@ -131,7 +164,7 @@ export const LOG = {
   AUTH_SUCCESSFUL: `Authorization successful.`,
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Warning: files in subfolder are not accounted for unless you set a '${
-    DOT.IGNORE.PATH
+    ignore.resolve()
   }' file.
 Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   CLONING: 'Cloning files...',
@@ -158,7 +191,7 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   GET_PROJECT_ID_INSTRUCTIONS: `Go to *Resource > Cloud Platform Project...* and copy your projectId
 (including "project-id-")`,
   GIVE_DESCRIPTION: 'Give a description: ',
-  LOCAL_CREDS: `Using local credentials: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME} 🔐 `,
+  LOCAL_CREDS: `Using local credentials: ${auth.resolve()} 🔐 `,
   LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}...`,
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
@@ -175,9 +208,9 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   PUSHING: 'Pushing files...',
   SAVED_CREDS: (isLocalCreds: boolean) =>
     isLocalCreds
-    ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
-    `*Be sure to never commit this file!* It's basically a password.`
-    : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
+      ? `Local credentials saved to: ${auth.resolve()}.
+*Be sure to never commit this file!* It's basically a password.`
+      : `Default credentials saved to: ${auth.resolve()}.`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   // TODO: `SCRIPT_RUN` is never used
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
