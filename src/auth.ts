@@ -225,11 +225,13 @@ async function authorizeWithLocalhost(
     const s = http.createServer();
     s.listen(0, () => resolve(s));
   });
+
   const port = (server.address() as AddressInfo).port;
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: `http://localhost:${port}`,
   });
+
   // TODO Add spinner
   const authCode = await new Promise<string>((res, rej) => {
     server.on('request', (req: http.IncomingMessage, resp: http.ServerResponse) => {
@@ -243,8 +245,9 @@ async function authorizeWithLocalhost(
     });
     const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOpts);
     console.log(LOG.AUTHORIZE(authUrl));
-    open(authUrl, { url: true });
+    open(authUrl);
   });
+
   server.close();
   return (await client.getToken(authCode)).tokens;
 }

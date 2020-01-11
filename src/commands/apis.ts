@@ -22,7 +22,7 @@ export default async (options: { open?: string }) => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    open(apisUrl, { url: true });
+    await open(apisUrl);
     // return open(apisUrl, { url: true });
     process.exit(0);
   }
@@ -101,7 +101,7 @@ export default async (options: { open?: string }) => {
 
       // Format the list
       for (const api of publicServices) {
-        console.log(`${api.name!.padEnd( 25)} - ${api.description!.padEnd(60)}`);
+        console.log(`${api.name!.padEnd(25)} - ${api.description!.padEnd(60)}`);
       }
     },
     undefined: () => {
