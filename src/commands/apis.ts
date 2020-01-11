@@ -22,16 +22,18 @@ export default async (options: { open?: string }) => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    return open(apisUrl, { wait: false });
+    open(apisUrl, { url: true });
+    // return open(apisUrl, { url: true });
+    process.exit(0);
   }
 
   // The apis subcommands.
   const command: { [key: string]: Function } = {
     enable: async () => {
-      enableOrDisableAPI(serviceName, true);
+      await enableOrDisableAPI(serviceName, true);
     },
     disable: async () => {
-      enableOrDisableAPI(serviceName, false);
+      await enableOrDisableAPI(serviceName, false);
     },
     list: async () => {
       await checkIfOnline();
@@ -112,7 +114,7 @@ export default async (options: { open?: string }) => {
     },
   };
   if (command[subcommand]) {
-    command[subcommand]();
+    await command[subcommand]();
   } else {
     logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
   }
