@@ -7,6 +7,8 @@ import { URL } from '../urls';
 import { enableOrDisableAPI } from '../apiutils';
 import open from 'open';
 import { serviceusage_v1 } from 'googleapis';
+// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
+const padEnd = require('string.prototype.padend');
 
 /**
  * Acts as a router to apis subcommands
@@ -101,7 +103,7 @@ export default async (options: { open?: string }) => {
 
       // Format the list
       for (const api of publicServices) {
-        console.log(`${api.name!.padEnd(25)} - ${api.description!.padEnd(60)}`);
+        console.log(`${padEnd(api.name, 25)} - ${padEnd(api.description, 60)}`);
       }
     },
     undefined: () => {

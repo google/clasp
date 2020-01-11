@@ -9,6 +9,8 @@ interface EllipizeOptions {
   truncate?: boolean | 'middle';
 }
 const ellipsize: (str?: string, max?: number, opts?: EllipizeOptions) => string = require('ellipsize');
+// TODO: drop padEnd polyfill with with NodeJs >= 8.2.1
+const padEnd = require('string.prototype.padend');
 
 /**
  * Lists a user's Apps Script projects using Google Drive.

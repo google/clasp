@@ -21,9 +21,14 @@ clasp deploy
 rm .clasp.json appsscript.json hello.js
 clear
 -->
+
 ![clasp](https://user-images.githubusercontent.com/744973/42856573-a5d96d7c-89fa-11e8-9d69-8d2c66f00d8d.gif)
 
 **To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
+
+You can also try clasp in Gitpod, a one-click online IDE for GitHub:
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/google/clasp/blob/master/demo/)
 
 ## Features
 
@@ -63,7 +68,6 @@ First download `clasp`:
 
 ```sh
 npm install -g @google/clasp
-# Alternatively: sudo npm i -g grpc @google/clasp --unsafe-perm
 ```
 
 Then enable the Google Apps Script API: https://script.google.com/home/usersettings
@@ -492,7 +496,10 @@ The following configuration values can be used:
 
 ### `scriptId` (required)
 
-Specifies the id of the Google Script project that clasp will target. It is the part located inbetween `/d/` and `/edit` in your project's URL: `https://script.google.com/d/<SCRIPT_ID>/edit`.
+Specifies the id of the Google Script project that clasp will target. 
+
+1. Open script url.
+1. File > Project properties > Script ID
 
 ### `rootDir` (optional)
 
@@ -519,12 +526,19 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ## Troubleshooting
 
-### Node Version
+### NodeJS Version
 
-The library requires **Node version >= 8.2.1**. Use this script to check your version and **upgrade Node if necessary**:
+The library requires **NodeJS version >= 8.2.1**.
+
+You can check your version of NodeJS with this command.
 
 ```sh
-node -v # Check Node version
+node -v
+```
+
+You can use these commands to upgrade NodeJS if necessary (**not on Windows**):
+
+```sh
 npm install -g npm # Update npm and npx
 npx n latest # use the n package to update node
 ```

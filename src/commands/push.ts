@@ -3,18 +3,14 @@ import { readFileSync } from 'fs-extra';
 import multimatch from 'multimatch';
 import { watchTree } from 'watch';
 import { loadAPICredentials } from '../auth';
-import { DOT, DOTFILE } from '../dotfile';
+import { Conf, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME } from '../conf';
+import { DOTFILE } from '../dotfile';
 import { FS_OPTIONS, fetchProject, pushFiles } from '../files';
 import { overwritePrompt } from '../inquirer';
 import { isValidManifest } from '../manifest';
-import {
-  LOG,
-  PROJECT_MANIFEST_BASENAME,
-  PROJECT_MANIFEST_FILENAME,
-  checkIfOnline,
-  getProjectSettings,
-  spinner,
-} from '../utils';
+import { LOG, checkIfOnline, getProjectSettings, spinner } from '../utils';
+
+const project = Conf.get().project;
 
 const normalizeNewline = require('normalize-newline');
 
@@ -77,7 +73,7 @@ const confirmManifestUpdate = async (): Promise<boolean> => {
  */
 const manifestHasChanges = async (): Promise<boolean> => {
   const { scriptId, rootDir } = await getProjectSettings();
-  const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
+  const localManifestPath = path.join(rootDir || project.resolvedDir, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(localManifestPath, FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
