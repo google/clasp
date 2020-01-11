@@ -21,9 +21,14 @@ clasp deploy
 rm .clasp.json appsscript.json hello.js
 clear
 -->
+
 ![clasp](https://user-images.githubusercontent.com/744973/42856573-a5d96d7c-89fa-11e8-9d69-8d2c66f00d8d.gif)
 
 **To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
+
+You can also try clasp in Gitpod, a one-click online IDE for GitHub:
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/google/clasp/blob/master/demo/)
 
 ## Features
 
