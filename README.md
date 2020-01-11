@@ -63,7 +63,6 @@ First download `clasp`:
 
 ```sh
 npm install -g @google/clasp
-# Alternatively: sudo npm i -g grpc @google/clasp --unsafe-perm
 ```
 
 Then enable the Google Apps Script API: https://script.google.com/home/usersettings
@@ -522,12 +521,19 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ## Troubleshooting
 
-### Node Version
+### NodeJS Version
 
-The library requires **Node version >= 8.2.1**. Use this script to check your version and **upgrade Node if necessary**:
+The library requires **NodeJS version >= 8.2.1**.
+
+You can check your version of NodeJS with this command.
 
 ```sh
-node -v # Check Node version
+node -v
+```
+
+You can use these commands to upgrade NodeJS if necessary (**not on Windows**):
+
+```sh
 npm install -g npm # Update npm and npx
 npx n latest # use the n package to update node
 ```
