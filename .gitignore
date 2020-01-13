@@ -4,11 +4,14 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-node_modules/
+node_modules
 .npm
 .env
-.nyc_output
 *.lock
-/tmp
+
+.nyc_output
+coverage
+tmp
+
 .clasprc.json
-package-lock.json # use yarn.lock
+
