@@ -492,7 +492,11 @@ The following configuration values can be used:
 
 ### `scriptId` (required)
 
-Specifies the id of the Google Script project that clasp will target. It is the part located inbetween `/d/` and `/edit` in your project's URL: `https://script.google.com/d/<SCRIPT_ID>/edit`.
+Specifies the id of the Google Script project that clasp will target. 
+
+1. Open script url.
+1. File > Project properties > Script ID
+
 
 ### `rootDir` (optional)
 
