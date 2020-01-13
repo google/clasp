@@ -91,5 +91,4 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
       });
     }
   }
-  // process.exit(0); // gracefully exit after successful login
 };

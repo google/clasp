@@ -32,9 +32,9 @@ export default async (
     const projectId = projectSettings.projectId;
     if (projectId) {
       console.log(LOG.OPEN_CREDS(projectId));
-      open(URL.CREDS(projectId), { url: true });
-      // return open(URL.CREDS(projectId), { url: true });
-      process.exit(0);
+      open(URL.CREDS(projectId));
+      // process.exit(0);
+      return;
     }
     logError(null, ERROR.NO_GCLOUD_PROJECT);
   }
@@ -42,9 +42,9 @@ export default async (
   // If we're not a web app, open the script URL.
   if (!cmd.webapp) {
     console.log(LOG.OPEN_PROJECT(scriptId));
-    open(URL.SCRIPT(scriptId), { url: true });
-    // return open(URL.SCRIPT(scriptId), { url: true });
-    process.exit(0);
+    open(URL.SCRIPT(scriptId));
+      // process.exit(0);
+      return;
   }
 
   // Web app: Otherwise, open the latest deployment.
@@ -68,24 +68,28 @@ export default async (
       const version = config && config.versionNumber;
       return {
         name:
-          ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
+          ellipsize(
+            (config && config.description) ? config.description : undefined,
+            DESC_PAD_SIZE,
+          ).padEnd(DESC_PAD_SIZE) +
           `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
         value: e,
       };
     });
 
   const answers = await deploymentIdPrompt(choices);
-  const deployment = await script.projects.deployments.get({
-    scriptId,
-    deploymentId: answers.deployment.deploymentId!,
-  });
-  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId!));
-  const target = getWebApplicationURL(deployment.data);
-  if (target) {
-    open(target, { url: true });
-    // return open(target, { url: true });
-    process.exit(0);
-  } else {
+  if (answers && answers.deployment && answers.deployment.deploymentId) {
+    const deployment = await script.projects.deployments.get({
+      scriptId,
+      deploymentId: answers.deployment.deploymentId,
+    });
+    console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
+    const target = getWebApplicationURL(deployment.data);
+    if (target) {
+      return open(target, { wait: false });
+    } else {
+      logError(null, `Could not open deployment: ${deployment}`);
+    }
     logError(null, `Could not open deployment: ${deployment}`);
   }
 };
