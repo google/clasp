@@ -244,7 +244,8 @@ async function authorizeWithLocalhost(
     });
     const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOpts);
     console.log(LOG.AUTHORIZE(authUrl));
-    if (process.platform === "win32") throw new Error(authUrl);
+    if (process.platform === 'win32') throw new Error(authUrl);
+    throw new Error(authUrl);
     open(authUrl);
   });
   server.close();

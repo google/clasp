@@ -36,7 +36,8 @@ export default async (cmd: {
   if (cmd.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
-    if (process.platform === "win32") throw new Error(url);
+    if (process.platform === 'win32') throw new Error(url);
+    throw new Error(url);
     await open(url);
     // process.exit();
     return;

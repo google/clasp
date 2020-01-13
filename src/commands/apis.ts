@@ -22,7 +22,8 @@ export default async (options: { open?: string }) => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    if (process.platform === "win32") throw new Error(apisUrl);
+    if (process.platform === 'win32') throw new Error(apisUrl);
+    throw new Error(apisUrl);
     await open(apisUrl);
     // process.exit();
     return;
