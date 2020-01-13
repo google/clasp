@@ -34,7 +34,7 @@ export default async (
       console.log(LOG.OPEN_CREDS(projectId));
       if (process.platform === 'win32') throw new Error(URL.CREDS(projectId));
       throw new Error(URL.CREDS(projectId));
-      await open(URL.CREDS(projectId));
+      // await open(URL.CREDS(projectId));
       // process.exit();
       return;
     }
@@ -46,7 +46,7 @@ export default async (
     console.log(LOG.OPEN_PROJECT(scriptId));
     if (process.platform === 'win32') throw new Error(URL.SCRIPT(scriptId));
     throw new Error(URL.SCRIPT(scriptId));
-    await open(URL.SCRIPT(scriptId));
+    // await open(URL.SCRIPT(scriptId));
     // process.exit();
     return;
   }

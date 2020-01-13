@@ -24,7 +24,7 @@ export default async (options: { open?: string }) => {
     console.log(apisUrl);
     if (process.platform === 'win32') throw new Error(apisUrl);
     throw new Error(apisUrl);
-    await open(apisUrl);
+    // await open(apisUrl);
     // process.exit();
     return;
   }

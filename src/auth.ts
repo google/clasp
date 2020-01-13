@@ -246,7 +246,7 @@ async function authorizeWithLocalhost(
     console.log(LOG.AUTHORIZE(authUrl));
     if (process.platform === 'win32') throw new Error(authUrl);
     throw new Error(authUrl);
-    open(authUrl);
+    // open(authUrl);
   });
   server.close();
   return (await client.getToken(authCode)).tokens;
