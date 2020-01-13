@@ -32,8 +32,7 @@ export default async (
     const projectId = projectSettings.projectId;
     if (projectId) {
       console.log(LOG.OPEN_CREDS(projectId));
-      open(URL.CREDS(projectId));
-      // process.exit(0);
+      await open(URL.CREDS(projectId));
       return;
     }
     logError(null, ERROR.NO_GCLOUD_PROJECT);
@@ -42,9 +41,8 @@ export default async (
   // If we're not a web app, open the script URL.
   if (!cmd.webapp) {
     console.log(LOG.OPEN_PROJECT(scriptId));
-    open(URL.SCRIPT(scriptId));
-      // process.exit(0);
-      return;
+    await open(URL.SCRIPT(scriptId));
+    return;
   }
 
   // Web app: Otherwise, open the latest deployment.
@@ -86,7 +84,8 @@ export default async (
     console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
     const target = getWebApplicationURL(deployment.data);
     if (target) {
-      return open(target, { wait: false });
+      await open(target, { wait: false });
+      return;
     } else {
       logError(null, `Could not open deployment: ${deployment}`);
     }
