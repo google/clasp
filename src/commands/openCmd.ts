@@ -32,8 +32,8 @@ export default async (
     const projectId = projectSettings.projectId;
     if (projectId) {
       console.log(LOG.OPEN_CREDS(projectId));
-      const escapeDoubleQuoteOnWindows = (url: string): string => process.platform === "win32" ? url.replace(/"/g, '%22') : url;
-      await open(escapeDoubleQuoteOnWindows(URL.CREDS(projectId)));
+      if (process.platform === "win32") throw new Error(URL.CREDS(projectId));
+      await open(URL.CREDS(projectId));
       // process.exit();
       return;
     }
@@ -43,8 +43,8 @@ export default async (
   // If we're not a web app, open the script URL.
   if (!cmd.webapp) {
     console.log(LOG.OPEN_PROJECT(scriptId));
-    const escapeDoubleQuoteOnWindows = (url: string): string => process.platform === "win32" ? url.replace(/"/g, '%22') : url;
-    await open(escapeDoubleQuoteOnWindows(URL.SCRIPT(scriptId)));
+    if (process.platform === "win32") throw new Error(URL.SCRIPT(scriptId));
+    await open(URL.SCRIPT(scriptId));
     // process.exit();
     return;
   }
@@ -88,8 +88,8 @@ export default async (
     console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
     const target = getWebApplicationURL(deployment.data);
     if (target) {
-      const escapeDoubleQuoteOnWindows = (url: string): string => process.platform === "win32" ? url.replace(/"/g, '%22') : url;
-      await open(escapeDoubleQuoteOnWindows(target));
+      if (process.platform === "win32") throw new Error(target);
+      await open(target);
       // process.exit();
       return;
     } else {

@@ -36,8 +36,8 @@ export default async (cmd: {
   if (cmd.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
-    const escapeDoubleQuoteOnWindows = (url: string): string => process.platform === "win32" ? url.replace(/"/g, '%22') : url;
-    await open(escapeDoubleQuoteOnWindows(url));
+    if (process.platform === "win32") throw new Error(url);
+    await open(url);
     // process.exit();
     return;
   }
