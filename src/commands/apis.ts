@@ -22,9 +22,10 @@ export default async (options: { open?: string }) => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    await open(apisUrl);
-    process.exit();
-    // return;
+    const escapeDoubleQuoteOnWindows = (url: string): string => process.platform === "win32" ? url.replace(/"/g, '%22') : url;
+    await open(escapeDoubleQuoteOnWindows(apisUrl));
+    // process.exit();
+    return;
   }
 
   // The apis subcommands.

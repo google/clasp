@@ -244,7 +244,8 @@ async function authorizeWithLocalhost(
     });
     const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOpts);
     console.log(LOG.AUTHORIZE(authUrl));
-    open(authUrl);
+    const escapeDoubleQuoteOnWindows = (url: string): string => process.platform === "win32" ? url.replace(/"/g, '%22') : url;
+    open(escapeDoubleQuoteOnWindows(authUrl));
   });
   server.close();
   return (await client.getToken(authCode)).tokens;
