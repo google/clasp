@@ -16,14 +16,14 @@ describe('Test clasp logs setup', () => {
       CLASP, ['logs'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
-    // expect(result.status).to.equal(0);
+    expect(result.status).to.equal(0);
   });
   it('should prompt for logs setup', () => {
     const result = spawnSync(
       CLASP, ['logs', '--setup'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
-    // expect(result.status).to.equal(0);
+    expect(result.status).to.equal(0);
   });
   after(cleanup);
 });
