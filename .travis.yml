@@ -1,6 +1,6 @@
 sudo: enabled
 os:
-  - linux
+  # - linux
   # - osx
   - windows
 language: node_js
