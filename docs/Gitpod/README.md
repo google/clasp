@@ -7,7 +7,7 @@ You can try some operations on gitpod.
 
 ## Preparation
 
-Change to the `demo` directory with the following command:
+Change to the `docs/Gitpod/` directory with the following command:
 
 ```
 cd docs/Gitpod/
