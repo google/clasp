@@ -22,16 +22,17 @@ export default async (options: { open?: string }) => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    return open(apisUrl, { wait: false });
+    await open(apisUrl);
+    return;
   }
 
   // The apis subcommands.
   const command: { [key: string]: Function } = {
     enable: async () => {
-      enableOrDisableAPI(serviceName, true);
+      await enableOrDisableAPI(serviceName, true);
     },
     disable: async () => {
-      enableOrDisableAPI(serviceName, false);
+      await enableOrDisableAPI(serviceName, false);
     },
     list: async () => {
       await checkIfOnline();
