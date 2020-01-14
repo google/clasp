@@ -10,7 +10,7 @@ You can try some operations on gitpod.
 Change to the `demo` directory with the following command:
 
 ```
-cd demo
+cd cd docs/Gitpod/
 ```
 
 ## Login
