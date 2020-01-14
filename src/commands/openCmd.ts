@@ -68,7 +68,7 @@ export default async (
         name:
           ellipsize(
             (config && config.description) ? config.description : undefined,
-            DESC_PAD_SIZE
+            DESC_PAD_SIZE,
           ).padEnd(DESC_PAD_SIZE) +
           `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
         value: e,
