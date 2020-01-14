@@ -28,6 +28,7 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
     } else {
       console.log(LOG.NOT_LOGGED_IN);
     }
+
   } else {
     // Local vs global checks
     const isLocalLogin = !!options.creds;

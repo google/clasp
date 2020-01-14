@@ -28,7 +28,7 @@ clear
 
 You can also try clasp in Gitpod, a one-click online IDE for GitHub:
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/google/clasp/blob/master/demo/)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/google/clasp/blob/master/docs/Gitpod/)
 
 ## Features
 
