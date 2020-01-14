@@ -5,4 +5,5 @@ import commander from 'commander';
  */
 export default async () => {
   commander.outputHelp();
+  // process.exit(0);
 };

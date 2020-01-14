@@ -26,9 +26,9 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
 
   const source: functionNameSource = (unused: object, input = '') => {
     // Returns a Promise
-    // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
+    // https://www.npmjs.com/package/inquirer-autocomplete-prompt#options
     return new Promise(resolve => {
-      // Example: https://github.com/ruyadorno/inquirer-autocomplete-prompt-ipt/blob/master/example.js#L76
+      // Example: https://github.com/mokkabonna/inquirer-autocomplete-prompt/blob/master/example.js#L76
       const original = fuzzy
         .filter(input, functionNames)
         .map(el => el.original);

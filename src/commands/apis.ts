@@ -23,7 +23,8 @@ export default async (options: { open?: string }) => {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
     await open(apisUrl);
-    return;
+    // return open(apisUrl, { url: true });
+    process.exit(0);
   }
 
   // The apis subcommands.

@@ -5,13 +5,11 @@ coverage
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-node_modules
+node_modules/
 .npm
 .env
-*.lock
-
 .nyc_output
-coverage
-tmp
-
+*.lock
+/tmp
 .clasprc.json
+package-lock.json # use yarn.lock

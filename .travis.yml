@@ -1,8 +1,8 @@
 sudo: enabled
 os:
   - linux
-# - osx
-# - windows
+  - osx
+  - windows
 language: node_js
 node_js:
   - "12"
@@ -16,7 +16,7 @@ cache:
   directories:
     - "$HOME/.npm"
 before_install:
-  - npm install -g npm@latest
+  # - npm install -g npm@latest
 install:
   - npm ci
 before_script:
@@ -25,5 +25,4 @@ before_script:
 script:
   - npm run lint
   - npm run test
-after_success:
-  - npm run coverage
+after_success: npm run coverage

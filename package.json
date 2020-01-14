@@ -3,12 +3,6 @@
   "version": "2.4.1",
   "description": "Develop Apps Script Projects locally - This is a fork!",
   "main": "./src/index.js",
-  "bin": {
-    "clasp": "./src/index.js"
-  },
-  "engines": {
-    "node": ">= 8.2.1"
-  },
   "scripts": {
     "build": "npm run build-local && npm i -g --loglevel=error",
     "build-fresh": "npm cache clean --force && npm i && npm run build",
@@ -20,11 +14,12 @@
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "prettier --parser typescript --single-quote --bracket-spacing --print-width 110 --trailing-comma all src/**/*.ts --write"
   },
-  "files": [
-    "docs",
-    "src/**/*.js",
-    "src/**/*.md"
-  ],
+  "engines": {
+    "node": ">=8.2.1"
+  },
+  "bin": {
+    "clasp": "./src/index.js"
+  },
   "nyc": {
     "include": [
       "src/**/*.ts"
@@ -77,7 +72,7 @@
     "google-auth-library": "^5.8.0",
     "googleapis": "^46.0.0",
     "inquirer": "^7.0.3",
-    "inquirer-autocomplete-prompt-ipt": "^2.0.0",
+    "inquirer-autocomplete-prompt": "1.0.1",
     "is-online": "^8.2.1",
     "mkdirp": "^0.5.1",
     "multimatch": "^4.0.0",
@@ -109,7 +104,7 @@
     "nyc": "^15.0.0",
     "prettier": "^1.19.1",
     "tmp": "^0.1.0",
-    "ts-node": "^8.6.2",
+    "ts-node": "^8.6.1",
     "tslint": "^5.20.1"
   }
 }
