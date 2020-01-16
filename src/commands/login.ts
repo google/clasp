@@ -28,8 +28,6 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
     } else {
       console.log(LOG.NOT_LOGGED_IN);
     }
-
-    process.exit(0);
   } else {
     // Local vs global checks
     const isLocalLogin = !!options.creds;
@@ -92,6 +90,5 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
         ],
       });
     }
-    process.exit(0); // gracefully exit after successful login
   }
 };
