@@ -5,7 +5,7 @@ import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../ut
 /**
  * Creates a new version of an Apps Script project.
  */
-export default async (description: string) => {
+export default async (description: string): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();

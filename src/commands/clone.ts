@@ -13,12 +13,12 @@ import status from './status';
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export default async (scriptId: string, versionNumber: number, cmd: { rootDir: string }) => {
+export default async (scriptId: string, versionNumber: number, cmd: { rootDir: string }): Promise<void> => {
   await checkIfOnline();
   if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
-  const rootDir = cmd.rootDir;
+  const { rootDir } = cmd;
   await saveProject({ scriptId, rootDir }, false);
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
@@ -36,11 +36,11 @@ const getScriptId = async () => {
     orderBy: 'modifiedByMeTime desc',
     q: 'mimeType="application/vnd.google-apps.script"',
   });
-  const data = list.data;
+  const { data } = list;
   if (!data) logError(list.statusText, 'Unable to use the Drive API.');
-  const files = data.files;
-  if (files && files.length) {
-    const fileIds: ScriptIdPrompt[] = files.map(file => ({
+  const { files } = data;
+  if (Array.isArray(files)) {
+    const fileIds: ScriptIdPrompt[] = files.map((file) => ({
       name: `${file.name!.padEnd(20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
       value: file.id || '',
     }));

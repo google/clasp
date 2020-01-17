@@ -15,12 +15,12 @@ import { ERROR, LOG, checkIfOnline, hasOauthClientSettings, safeIsOnline } from 
  * @param {string?} options.creds The location of credentials file.
  * @param {boolean?} options.status If true, prints who is logged in instead of doing login.
  */
-export default async (options: { localhost?: boolean; creds?: string; status?: boolean }) => {
+export default async (options: { localhost?: boolean; creds?: string; status?: boolean }): Promise<void> => {
   if (options.status) {
     if (hasOauthClientSettings()) {
       const email = (await safeIsOnline()) ? await getLoggedInEmail() : undefined;
 
-      if (!!email) {
+      if (email) {
         console.log(LOG.LOGGED_IN_AS(email));
       } else {
         console.log(LOG.LOGGED_IN_UNKNOWN);
@@ -52,8 +52,8 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
         'https://www.googleapis.com/auth/script.webapp.deploy', // Scope needed for script.run
       ]);
       console.log('');
-      console.log(`Authorizing with the following scopes:`);
-      oauthScopes.forEach(scope => {
+      console.log('Authorizing with the following scopes:');
+      oauthScopes.forEach((scope) => {
         console.log(scope);
       });
       console.log(`

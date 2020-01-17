@@ -105,9 +105,9 @@ export async function authorize(options: {
     }
 
     // Set scopes
-    let scope = (options.creds) ?
+    let scope = (options.creds)
       // Set scopes to custom scopes
-      options.scopes : [
+      ? options.scopes : [
         // Default to clasp scopes
         'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
         'https://www.googleapis.com/auth/script.projects', // Apps Script management
@@ -154,7 +154,7 @@ export async function authorize(options: {
     const token = await (options.useLocalhost
       ? authorizeWithLocalhost(oAuth2ClientOptions, oAuth2ClientAuthUrlOpts)
       : authorizeWithoutLocalhost(oAuth2ClientOptions, oAuth2ClientAuthUrlOpts));
-    console.log(LOG.AUTH_SUCCESSFUL + '\n');
+    console.log(`${LOG.AUTH_SUCCESSFUL}\n`);
 
     // Save the token and own creds together.
     let claspToken: ClaspToken;
@@ -182,8 +182,8 @@ export async function authorize(options: {
     }
     await dotfile.write(claspToken);
     console.log(LOG.SAVED_CREDS(!!options.creds));
-  } catch (err) {
-    logError(null, ERROR.ACCESS_TOKEN + err);
+  } catch (error) {
+    logError(null, ERROR.ACCESS_TOKEN + error);
   }
 }
 
@@ -194,7 +194,7 @@ export async function getLoggedInEmail() {
       auth: globalOAuth2Client,
     });
     return response.data.email;
-  } catch (e) {
+  } catch (error) {
     return undefined;
   }
 }
@@ -219,14 +219,15 @@ export async function loadAPICredentials(local = false): Promise<ClaspToken> {
  */
 async function authorizeWithLocalhost(
   oAuth2ClientOptions: OAuth2ClientOptions,
-  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts): Promise<Credentials> {
+  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts,
+): Promise<Credentials> {
   // Wait until the server is listening, otherwise we don't have
   // the server port needed to set up the Oauth2Client.
   const server = await new Promise<http.Server>((resolve, _) => {
     const s = http.createServer();
     s.listen(0, () => resolve(s));
   });
-  const port = (server.address() as AddressInfo).port;
+  const { port } = server.address() as AddressInfo;
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: `http://localhost:${port}`,
@@ -258,7 +259,8 @@ async function authorizeWithLocalhost(
  */
 async function authorizeWithoutLocalhost(
   oAuth2ClientOptions: OAuth2ClientOptions,
-  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts): Promise<Credentials> {
+  oAuth2ClientAuthUrlOpts: GenerateAuthUrlOpts,
+): Promise<Credentials> {
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: REDIRECT_URI_OOB,
@@ -272,7 +274,7 @@ async function authorizeWithoutLocalhost(
       output: process.stdout,
     });
     rl.question(LOG.AUTH_CODE, (code: string) => {
-      if (code && code.length) {
+      if (code && code.length > 0) {
         res(code);
       } else {
         rej('No authorization code entered.');
@@ -318,8 +320,8 @@ async function setOauthClientCredentials(rc: ClaspToken) {
 
     // Save the credentials.
     await (rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC).write(rc);
-  } catch (err) {
-    logError(null, ERROR.ACCESS_TOKEN + err);
+  } catch (error) {
+    logError(null, ERROR.ACCESS_TOKEN + error);
   }
 }
 
@@ -336,22 +338,21 @@ export async function checkOauthScopes(rc: ClaspToken) {
     const { scopes } = await globalOAuth2Client.getTokenInfo(globalOAuth2Client.credentials
       .access_token as string);
     const { oauthScopes } = await readManifest();
-    const newScopes =
-      oauthScopes && oauthScopes.length ? (oauthScopes).filter(x => !scopes.includes(x)) : [];
-    if (!newScopes.length) return;
+    const newScopes = oauthScopes && oauthScopes.length > 1 ? (oauthScopes).filter((x) => !scopes.includes(x)) : [];
+    if (newScopes.length === 0) return;
     console.log('New authorization scopes detected in manifest:\n', newScopes);
 
     await oauthScopesPrompt()
-    .then(async (answers) => {
-      if (answers.doAuth) {
-        if (!rc.isLocalCreds) logError(null, ERROR.NO_LOCAL_CREDENTIALS);
-        await authorize({
-          useLocalhost: answers.localhost,
-          scopes: newScopes,
-        });
-      }
-    });
-  } catch (err) {
-    logError(null, ERROR.BAD_REQUEST(err.message));
+      .then(async (answers) => {
+        if (answers.doAuth) {
+          if (!rc.isLocalCreds) logError(null, ERROR.NO_LOCAL_CREDENTIALS);
+          await authorize({
+            useLocalhost: answers.localhost,
+            scopes: newScopes,
+          });
+        }
+      });
+  } catch (error) {
+    logError(null, ERROR.BAD_REQUEST(error.message));
   }
 }

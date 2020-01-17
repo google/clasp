@@ -13,7 +13,7 @@ const ellipsize: (str?: string, max?: number, opts?: EllipizeOptions) => string 
 /**
  * Lists a user's Apps Script projects using Google Drive.
  */
-export default async () => {
+export default async (): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
@@ -27,8 +27,9 @@ export default async () => {
   spinner.stop(true);
   if (filesList.status !== 200) logError(null, ERROR.DRIVE);
   const files = filesList.data.files || [];
-  if (!files.length) {
-    return console.log(LOG.FINDING_SCRIPTS_DNE);
+  if (files.length === 0) {
+    console.log(LOG.FINDING_SCRIPTS_DNE);
+    return;
   }
   const NAME_PAD_SIZE = 20;
   files.forEach((file: drive_v3.Schema$File) => {

@@ -22,7 +22,7 @@ export default async (cmd: {
   setup: boolean;
   watch: boolean;
   simplified: boolean;
-}) => {
+}): Promise<void> => {
   await checkIfOnline();
   // Get project settings.
   let { projectId } = await getProjectSettings();
@@ -70,9 +70,9 @@ function printLogs(
   entries: logging_v2.Schema$LogEntry[] = [],
   formatJson: boolean,
   simplified: boolean,
-) {
+): void {
   entries.reverse(); // print in syslog ascending order
-  for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; ++i) {
+  for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; i += 1) {
     const {
       severity = '',
       timestamp = '',
@@ -94,7 +94,7 @@ function printLogs(
         textPayload,
         // chokes on unmatched json payloads
         // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
-        jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).substr(0, 255) : '',
+        jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).slice(0, 255) : '',
         protoPayload,
       };
       payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
@@ -130,17 +130,17 @@ function printLogs(
 async function setupLogs(): Promise<string> {
   let projectId: string;
   return new Promise<string>((resolve, reject) => {
-    getProjectSettings().then(projectSettings => {
+    getProjectSettings().then((projectSettings) => {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
       projectIdPrompt()
-        .then(answers => {
+        .then((answers) => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
           if (!dotfile) logError(null, ERROR.SETTINGS_DNE);
           dotfile
             .read<ProjectSettings>()
-            .then(settings => {
+            .then((settings) => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
               dotfile.write({ ...settings, ...{ projectId } });
               resolve(projectId);
@@ -152,7 +152,7 @@ async function setupLogs(): Promise<string> {
           reject();
         });
     });
-  }).catch(err => {
+  }).catch((err) => {
     spinner.stop(true);
     return logError(err);
   });
@@ -167,7 +167,7 @@ async function fetchAndPrintLogs(
   simplified: boolean,
   projectId?: string,
   startDate?: Date,
-) {
+): Promise<void> {
   const oauthSettings = await loadAPICredentials();
   spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
@@ -178,7 +178,8 @@ async function fetchAndPrintLogs(
   }
   // validate projectId
   if (!projectId) {
-    return logError(null, ERROR.NO_GCLOUD_PROJECT);
+    logError(null, ERROR.NO_GCLOUD_PROJECT);
+    return;
   }
   if (!isValidProjectId(projectId)) {
     logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
@@ -194,25 +195,27 @@ async function fetchAndPrintLogs(
     // We have an API response. Now, check the API response status.
     spinner.stop(true);
     // Only print filter if provided.
-    if (filter.length) {
+    if (filter.length > 0) {
       console.log(filter);
     }
     // Parse response and print logs or print error message.
-    const parseResponse = (response: GaxiosResponse<logging_v2.Schema$ListLogEntriesResponse>) => {
-      if (logs.status !== 200) {
-        switch (logs.status) {
+    const parseResponse = (response: GaxiosResponse<logging_v2.Schema$ListLogEntriesResponse>): void => {
+      if (response.status !== 200) {
+        switch (response.status) {
           case 401:
             logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+            break;
           case 403:
             logError(
               null,
               oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED,
             );
+            break;
           default:
-            logError(null, `(${logs.status}) Error: ${logs.statusText}`);
+            logError(null, `(${response.status}) Error: ${response.statusText}`);
         }
       } else {
-        printLogs(logs.data.entries, formatJson, simplified);
+        printLogs(response.data.entries, formatJson, simplified);
       }
     };
     parseResponse(logs);

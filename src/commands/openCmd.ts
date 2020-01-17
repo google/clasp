@@ -23,13 +23,13 @@ export default async (
     webapp: boolean;
     creds: boolean;
   },
-) => {
+): Promise<void> => {
   const projectSettings = await getProjectSettings();
   if (!scriptId) scriptId = projectSettings.scriptId;
   if (scriptId.length < 30) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // We've specified to open creds.
   if (cmd.creds) {
-    const projectId = projectSettings.projectId;
+    const { projectId } = projectSettings;
     if (projectId) {
       console.log(LOG.OPEN_CREDS(projectId));
       await open(URL.CREDS(projectId));
@@ -60,14 +60,14 @@ export default async (
       }
       return 0; // should never happen
     })
-    .map(e => {
+    .map((e) => {
       const DESC_PAD_SIZE = 30;
       const config = e.deploymentConfig;
       const version = config && config.versionNumber;
       return {
         name:
-          ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
-          `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
+          `${ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE)
+          }@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
         value: e,
       };
     });
@@ -81,7 +81,6 @@ export default async (
   const target = getWebApplicationURL(deployment.data);
   if (target) {
     await open(target);
-    return;
   } else {
     logError(null, `Could not open deployment: ${deployment}`);
   }

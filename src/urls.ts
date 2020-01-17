@@ -14,10 +14,8 @@ import { SCRIPT_ID_LENGTH } from './apis';
  */
 export const extractScriptId = (scriptId: string) => {
   if (scriptId.length !== SCRIPT_ID_LENGTH) {
-    const ids = scriptId.split('/').filter(s => {
-      return s.length === SCRIPT_ID_LENGTH;
-    });
-    if (ids.length) {
+    const ids = scriptId.split('/').filter((s) => s.length === SCRIPT_ID_LENGTH);
+    if (ids.length > 0) {
       scriptId = ids[0];
     }
   }
@@ -28,8 +26,7 @@ export const extractScriptId = (scriptId: string) => {
 export const URL = {
   APIS: (projectId: string) => `https://console.developers.google.com/apis/dashboard?project=${projectId}`,
   CREDS: (projectId: string) => `https://console.developers.google.com/apis/credentials?project=${projectId}`,
-  LOGS: (projectId: string) =>
-    `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`,
+  LOGS: (projectId: string) => `https://console.cloud.google.com/logs/viewer?project=${projectId}&resource=app_script_function`,
   SCRIPT_API_USER: 'https://script.google.com/home/usersettings',
   // It is too expensive to get the script URL from the Drive API. (Async/not offline)
   SCRIPT: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,

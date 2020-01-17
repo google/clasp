@@ -22,7 +22,9 @@ import {
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export default async (cmd: { type: string; title: string; parentId: string; rootDir: string }) => {
+export default async (
+  cmd: { type: string; title: string; parentId: string; rootDir: string },
+): Promise<void> => {
   // Handle common errors.
   await checkIfOnline();
   if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
@@ -65,7 +67,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   try {
     const { scriptId } = await getProjectSettings(true);
     if (scriptId) logError(null, ERROR.NO_NESTED_PROJECTS);
-  } catch (err) {
+  } catch (error) {
     // no scriptId (because project doesn't exist)
     // console.log(err);
   }
@@ -84,7 +86,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   }
   const createdScriptId = res.data.scriptId || '';
   console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
-  const rootDir = cmd.rootDir;
+  const { rootDir } = cmd;
   await saveProject(
     {
       scriptId: createdScriptId,

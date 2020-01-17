@@ -3,6 +3,6 @@ import commander from 'commander';
 /**
  * Outputs the help command.
  */
-export default async () => {
+export default async (): Promise<void> => {
   commander.outputHelp();
 };

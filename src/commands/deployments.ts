@@ -6,7 +6,7 @@ import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../ut
 /**
  * Lists a script's deployments.
  */
-export default async () => {
+export default async (): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
@@ -23,8 +23,8 @@ export default async () => {
   console.log(`${numDeployments} ${deploymentWord}.`);
   deploymentsList.forEach(({ deploymentId, deploymentConfig }: script_v1.Schema$Deployment) => {
     if (!deploymentId || !deploymentConfig) return; // fix ts errors
-    const versionString = !!deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
-    const description = deploymentConfig.description ? '- ' + deploymentConfig.description : '';
+    const versionString = deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
+    const description = deploymentConfig.description ? `- ${deploymentConfig.description}` : '';
     console.log(`- ${deploymentId} ${versionString} ${description}`);
   });
 };
