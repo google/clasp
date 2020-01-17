@@ -404,6 +404,7 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
   return async (...args: any[]) => {
     try {
       await command(...args);
+      process.exit(0);
     } catch (error) {
       spinner.stop(true);
       logError(null, error.message);
