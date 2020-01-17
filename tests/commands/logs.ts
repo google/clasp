@@ -38,6 +38,7 @@ describe('Test clasp logs function', () => {
     // tslint:disable-next-line:max-line-length
     // NOTICE               2019-02-26T05:10:20.658Z google.api.serviceusage.v1.ServiceUsage.EnableService Setting up StackDriver Logging.
     // ... we'll just expect there to be *some* stdout.
+    expect(result.stdout).to.equal('notice');
     expect(result.stdout).lengthOf.greaterThan(10);
     expect(result.status).to.equal(0);
   });
