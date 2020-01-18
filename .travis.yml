@@ -10,8 +10,8 @@ node_js:
   - "8"
 env:
   global:
-  - SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL
   - PROJECT_ID=project-id-3961473932623644264
+  - SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL
 cache:
   directories:
     - "$HOME/.npm"
