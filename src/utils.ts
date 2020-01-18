@@ -214,7 +214,6 @@ export const spinner = new Spinner();
  */
 // tslint:disable-next-line:no-any
 export const logError = (err: any, description = '', code = 1): never => {
-  spinner.stop(true);
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
   // change error model. Don't review this method now.
@@ -238,7 +237,8 @@ export const logError = (err: any, description = '', code = 1): never => {
     console.error(err.error);
   }
   if (description) console.error(description);
-  return process.exit(code);
+  spinner.stop(true);
+  process.exit(code);
 };
 
 /**
@@ -297,7 +297,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
       fail(); // Never found a dotfile
     }
   })
-    .catch((err) => logError(err));
+  .catch((err) => logError(err));
 }
 
 /**
@@ -329,7 +329,7 @@ export async function checkIfOnline() {
   if (await safeIsOnline()) {
     return true;
   }
-  return logError(null, ERROR.OFFLINE);
+  logError(null, ERROR.OFFLINE);
 }
 
 /**
@@ -405,9 +405,9 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
     try {
       await command(...args);
     } catch (error) {
-      spinner.stop(true);
       logError(null, error.message);
     }
+    spinner.stop(true);
   };
 }
 

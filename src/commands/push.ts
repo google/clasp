@@ -59,6 +59,7 @@ export default async (cmd: { watch: boolean; force: boolean }): Promise<void> =>
     }
     spinner.setSpinnerTitle(LOG.PUSHING).start();
     await pushFiles();
+    spinner.stop(true);
   }
 };
 

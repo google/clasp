@@ -323,7 +323,8 @@ export async function pushFiles(silent = false) {
     }
     if (!projectFiles) {
       console.log(LOG.PUSH_NO_FILES);
-      return spinner.stop(true);
+      spinner.stop(true);
+      return;
     }
 
     // Start pushing.
