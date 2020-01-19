@@ -13,7 +13,7 @@ import { serviceusage_v1 } from 'googleapis';
  * Calls functions for list, enable, or disable
  * Otherwise returns an error of command not supported
  */
-export default async (options: { open?: string }) => {
+export default async (options: { open?: string }): Promise<void> => {
   await loadAPICredentials();
   const subcommand: string = process.argv[3]; // clasp apis list => "list"
   const serviceName = process.argv[4]; // clasp apis enable drive => "drive"
@@ -22,16 +22,16 @@ export default async (options: { open?: string }) => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    return open(apisUrl, { wait: false });
+    await open(apisUrl, { wait: false });
   }
 
   // The apis subcommands.
   const command: { [key: string]: Function } = {
     enable: async () => {
-      enableOrDisableAPI(serviceName, true);
+      await enableOrDisableAPI(serviceName, true);
     },
     disable: async () => {
-      enableOrDisableAPI(serviceName, false);
+      await enableOrDisableAPI(serviceName, false);
     },
     list: async () => {
       await checkIfOnline();
@@ -55,14 +55,12 @@ export default async (options: { open?: string }) => {
 
       // Filter out the disabled ones. Print the enabled ones.
       const enabledAPIs = serviceList.filter(
-        (service: serviceusage_v1.Schema$GoogleApiServiceusageV1Service) => {
-          return service.state === 'ENABLED';
-        },
+        (service: serviceusage_v1.Schema$GoogleApiServiceusageV1Service) => service.state === 'ENABLED',
       );
       for (const enabledAPI of enabledAPIs) {
         if (enabledAPI.config && enabledAPI.config.documentation) {
           const name = enabledAPI.config.name || 'Unknown name.';
-          console.log(`${name.substr(0, name.indexOf('.'))} - ${enabledAPI.config.documentation.summary}`);
+          console.log(`${name.slice(0, name.indexOf('.'))} - ${enabledAPI.config.documentation.summary}`);
         }
       }
 
@@ -76,13 +74,13 @@ export default async (options: { open?: string }) => {
       const services = data.items || [];
       // Only get the public service IDs
       const PUBLIC_ADVANCED_SERVICE_IDS = PUBLIC_ADVANCED_SERVICES.map(
-        advancedService => advancedService.serviceId,
+        (advancedService) => advancedService.serviceId,
       );
 
       // Merge discovery data with public services data.
       const publicServices = [];
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
-        const service = services.find(s => s.name === publicServiceId);
+        const service = services.find((s) => s.name === publicServiceId);
         // for some reason 'youtubePartner' is not in the api list.
         if (service && service.id && service.description) {
           publicServices.push(service);
@@ -114,6 +112,6 @@ export default async (options: { open?: string }) => {
   if (command[subcommand]) {
     command[subcommand]();
   } else {
-    logError(null, ERROR.COMMAND_DNE('apis ' + subcommand));
+    logError(null, ERROR.COMMAND_DNE(`apis ${subcommand}`));
   }
 };
