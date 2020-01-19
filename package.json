@@ -15,11 +15,16 @@
     "prettier": "prettier --parser typescript --single-quote --bracket-spacing --print-width 110 --trailing-comma all src/**/*.ts --write"
   },
   "engines": {
-    "node": ">=8.2.1"
+    "node": ">= 8.2.1"
   },
   "bin": {
     "clasp": "./src/index.js"
   },
+  "files": [
+    "docs",
+    "src/**/*.js",
+    "src/**/*.md"
+  ],
   "nyc": {
     "include": [
       "src/**/*.ts"
