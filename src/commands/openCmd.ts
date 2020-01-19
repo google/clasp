@@ -64,18 +64,20 @@ export default async (
       const version = config && config.versionNumber;
       return {
         name:
-          ellipsize(config && config.description, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
+          ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE) +
           `@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
         value: e,
       };
     });
 
   const answers = await deploymentIdPrompt(choices);
+
+  script.projects.deployments.get
   const deployment = await script.projects.deployments.get({
     scriptId,
-    deploymentId: answers.deployment.deploymentId,
+    deploymentId: (answers.deployment.deploymentId as string),
   });
-  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId));
+  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId!));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
     return open(target, { wait: false });
