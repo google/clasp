@@ -23,7 +23,7 @@ const normalizeNewline = require('normalize-newline');
  * TODO: Only push the specific files that changed (rather than all files).
  * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export default async (cmd: { watch: boolean; force: boolean }) => {
+export default async (cmd: { watch: boolean; force: boolean }): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   await isValidManifest();
@@ -40,7 +40,7 @@ export default async (cmd: { watch: boolean; force: boolean }) => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
-        if (multimatch([f], patterns, { dot: true }).length) {
+        if (multimatch([f], patterns, { dot: true }).length > 0) {
           // The file matches the ignored files patterns so we do nothing
           return;
         }
@@ -50,7 +50,7 @@ export default async (cmd: { watch: boolean; force: boolean }) => {
         return;
       }
       console.log(LOG.PUSHING);
-      pushFiles();
+      await pushFiles();
     });
   } else {
     if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
@@ -58,7 +58,8 @@ export default async (cmd: { watch: boolean; force: boolean }) => {
       return;
     }
     spinner.setSpinnerTitle(LOG.PUSHING).start();
-    pushFiles();
+    await pushFiles();
+    spinner.stop(true);
   }
 };
 
@@ -80,7 +81,7 @@ const manifestHasChanges = async (): Promise<boolean> => {
   const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(localManifestPath, FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
-  const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
-  if (!remoteManifest) throw Error('remote manifest no found');
+  const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);
+  if (!remoteManifest) throw new Error('remote manifest no found');
   return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);
 };
