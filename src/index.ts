@@ -52,7 +52,7 @@ import versions from './commands/versions';
  */
 commander
   .name(PROJECT_NAME)
-  .usage(`<command> [options]`)
+  .usage('<command> [options]')
   .description(`${PROJECT_NAME} - The Apps Script CLI`);
 
 /**
@@ -355,7 +355,7 @@ commander.option('-v, --version').on('option:version', () => {
 });
 
 // defaults to help if commands are not provided
-if (!process.argv.slice(2).length) {
+if (process.argv.slice(2).length === 0) {
   commander.outputHelp();
 }
 // User input is provided from the process' arguments
