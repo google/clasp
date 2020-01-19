@@ -13,6 +13,6 @@ export default async (cmd: { versionNumber: number }): Promise<void> => {
     spinner.setSpinnerTitle(LOG.PULLING);
     const files = await fetchProject(scriptId, cmd.versionNumber);
     await writeProjectFiles(files, rootDir);
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
   }
 };

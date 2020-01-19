@@ -62,7 +62,7 @@ async function runFunction(functionName: string, params: string[], scriptId: str
         devMode,
       },
     });
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     if (!res || !res.data.done) {
       logError(null, ERROR.RUN_NODATA, 0); // exit gracefully in case localhost server spun up for authorize
     }
@@ -84,7 +84,7 @@ async function runFunction(functionName: string, params: string[], scriptId: str
       );
     }
   } catch (error) {
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     if (error) {
       // TODO move these to logError when stable?
       switch (error.code) {

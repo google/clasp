@@ -34,7 +34,7 @@ export default async (
         description,
       },
     });
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     if (version.status !== 200) logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
     versionNumber = version.data.versionNumber || 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
@@ -66,7 +66,7 @@ export default async (
       },
     });
   }
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (deployments.status !== 200) logError(null, ERROR.DEPLOYMENT_COUNT);
   console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
 };

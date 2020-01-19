@@ -172,7 +172,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     // This is needed because Apps Script blindly executes files in order of creation time.
     // The Apps Script API updates the creation time of files.
     if (filePushOrder && filePushOrder.length > 0) { // skip "filePushOrder": []
-      spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
       logFileList(filePushOrder);
       console.log('');
@@ -275,7 +275,7 @@ export async function fetchProject(
     }
     throw new Error(ERROR.SCRIPT_ID);
   }
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   const { data } = res;
   if (!data.files) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   if (!silent) console.log(LOG.CLONE_SUCCESS(data.files.length));
@@ -318,12 +318,12 @@ export async function pushFiles(silent = false) {
   getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     // Check for edge cases.
     if (err) {
-      spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
       logError(err, LOG.PUSH_FAILURE);
     }
     if (!projectFiles) {
       console.log(LOG.PUSH_NO_FILES);
-      spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
       return;
     }
 
@@ -342,7 +342,7 @@ export async function pushFiles(silent = false) {
       console.error(LOG.PUSH_FAILURE);
       console.error(error);
     } finally {
-      if (!silent) spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
       // no error
       if (!silent) {
         logFileList(nonIgnoredFilePaths);

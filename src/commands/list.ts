@@ -24,7 +24,7 @@ export default async (): Promise<void> => {
     // fields: 'nextPageToken, files(id, name)',
     q: 'mimeType="application/vnd.google-apps.script"',
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (filesList.status !== 200) logError(null, ERROR.DRIVE);
   const files = filesList.data.files || [];
   if (files.length === 0) {

@@ -20,7 +20,7 @@ export default async (description: string): Promise<void> => {
       description,
     },
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (versions.status === 200) {
     console.log(LOG.VERSION_CREATED(versions.data.versionNumber || -1));
   } else {

@@ -25,7 +25,7 @@ export default async (deploymentId: string, cmd: { all: boolean }): Promise<void
         scriptId,
         deploymentId: id,
       });
-      spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
       if (result.status !== 200) logError(null, ERROR.READ_ONLY_DELETE);
       console.log(LOG.UNDEPLOYMENT_FINISH(id));
     }
@@ -48,7 +48,7 @@ export default async (deploymentId: string, cmd: { all: boolean }): Promise<void
     scriptId,
     deploymentId,
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (response.status === 200) {
     console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
   } else {

@@ -14,7 +14,7 @@ export default async (): Promise<void> => {
     scriptId,
     pageSize: 500,
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (versions.status === 200) {
     const { data } = versions;
     if (data && data.versions && data.versions.length > 0) {

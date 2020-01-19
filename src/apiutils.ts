@@ -13,7 +13,7 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
   const content = await script.projects.getContent({
     scriptId,
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (content.status !== 200) logError(content.statusText);
   const files = content.data.files || [];
   type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;

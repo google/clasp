@@ -23,7 +23,7 @@ export default async (scriptId: string, versionNumber: number, cmd: { rootDir: s
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
   await status();
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
 };
 
 /**

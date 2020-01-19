@@ -153,7 +153,7 @@ async function setupLogs(): Promise<string> {
         });
     });
   }).catch((error) => {
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     return logError(error); // only because tsc doesn't understand logError never return type
   });
 }
@@ -193,7 +193,7 @@ async function fetchAndPrintLogs(
       },
     });
     // We have an API response. Now, check the API response status.
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     // Only print filter if provided.
     if (filter.length > 0) {
       console.log(filter);
@@ -218,7 +218,7 @@ async function fetchAndPrintLogs(
     };
     parseResponse(logs);
   } catch (error) {
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 }

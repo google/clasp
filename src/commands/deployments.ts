@@ -15,7 +15,7 @@ export default async (): Promise<void> => {
   const deployments = await script.projects.deployments.list({
     scriptId,
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (deployments.status !== 200) logError(deployments.statusText);
   const deploymentsList = deployments.data.deployments || [];
   const numDeployments = deploymentsList.length;

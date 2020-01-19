@@ -58,7 +58,7 @@ export default async (
       },
     });
     parentId = driveFile.data.id || '';
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     console.log(LOG.CREATE_DRIVE_FILE_FINISH(type, parentId));
   }
 
@@ -79,7 +79,7 @@ export default async (
       parentId,
     },
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (res.status !== 200) {
     if (parentId) console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
     logError(res.statusText, ERROR.CREATE);
