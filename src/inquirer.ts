@@ -3,7 +3,7 @@ import { prompt, registerPrompt } from 'inquirer';
 import { SCRIPT_TYPES } from './apis';
 import { LOG } from './utils';
 
-registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
+registerPrompt('autocomplete', require('inquirer-autocomplete-prompt-ipt'));
 
 export type functionNameSource =
   (answers: { functionName: string }, input?: string | undefined) => Promise<string[]>;
@@ -32,13 +32,14 @@ interface DeploymentIdPrompt {
  * @param {DeploymentIdPrompt[]} choices An array of `DeploymentIdPrompt` objects.
  * @returns {Promise<{ deploymentId: string }>} A promise for an object with the `deploymentId` property.
  */
-export const deploymentIdPrompt = (choices: DeploymentIdPrompt[]) =>
-  prompt<{ deployment: script_v1.Schema$Deployment }>([{
-    choices,
-    message: 'Open which deployment?',
-    name: 'deployment',
-    type: 'list',
-  }]);
+export const deploymentIdPrompt = (
+  choices: DeploymentIdPrompt[],
+) => prompt<{ deployment: script_v1.Schema$Deployment }>([{
+  choices,
+  message: 'Open which deployment?',
+  name: 'deployment',
+  type: 'list',
+}]);
 
 /**
  * Inquirer prompt for a project description.
@@ -68,9 +69,7 @@ export const oauthScopesPrompt = () => prompt<PromptAnswers>([{
   message: 'Use localhost?',
   name: 'localhost',
   type: 'confirm',
-  when: (answers: PromptAnswers) => {
-    return answers.doAuth;
-  },
+  when: (answers: PromptAnswers) => answers.doAuth,
 }]);
 
 /**
