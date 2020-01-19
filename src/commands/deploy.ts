@@ -15,7 +15,9 @@ import {
  * @param cmd.description   {string} The deployment description.
  * @param cmd.deploymentId  {string} The deployment ID to redeploy.
  */
-export default async (cmd: { versionNumber: number; description: string; deploymentId: string }) => {
+export default async (
+  cmd: { versionNumber: number; description: string; deploymentId: string },
+): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
