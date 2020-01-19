@@ -7,13 +7,16 @@ import { isValidManifest } from '../manifest';
  * Displays the status of which Apps Script files are ignored from .claspignore
  * @param cmd.json {boolean} Displays the status in json format.
  */
-export default async (cmd: { json: boolean } = { json: false }) => {
+export default async (cmd: { json: boolean } = { json: false }): Promise<void> => {
   await checkIfOnline();
   await isValidManifest();
   const { scriptId, rootDir } = await getProjectSettings();
   if (!scriptId) return;
-  getProjectFiles(rootDir, (err, projectFiles) => {
-    if (err) return console.log(err);
+  await getProjectFiles(rootDir, (err, projectFiles) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
     if (projectFiles) {
       const [filesToPush, untrackedFiles] = projectFiles;
       if (cmd.json) {
