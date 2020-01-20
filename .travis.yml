@@ -2,11 +2,12 @@ sudo: enabled
 os:
 - linux
 # - osx
+# - windows
 language: node_js
 node_js:
-- node
-- '10'
-- '8'
+- "12"
+- "10"
+- "8"
 env:
   global:
   - SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL
@@ -24,4 +25,5 @@ before_script:
 script:
 - npm run lint
 - npm run test
-after_success: npm run coverage
+after_success:
+- npm run coverage
