@@ -420,8 +420,7 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
  * @returns {boolean} Is the project id valid
  */
 export function isValidProjectId(projectId: string) {
-  return new RegExp(/^[a-z][a-z0-9\-]{5,29}$/).test(projectId);
-  // return new RegExp(/^[a-z][\d-a-z]{5,29}$/).test(projectId);
+  return /^[a-z][-\da-z]{5,29}$/.test(projectId);
 }
 
 /**
