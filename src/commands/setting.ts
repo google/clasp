@@ -6,7 +6,7 @@ import { ERROR, getProjectSettings, logError, saveProject } from '../utils';
  * @param {keyof ProjectSettings} settingKey The key to set
  * @param {string?} settingValue Optional value to set the key to
  */
-export default async (settingKey?: keyof ProjectSettings, settingValue?: string) => {
+export default async (settingKey?: keyof ProjectSettings, settingValue?: string): Promise<void> => {
   let currentSettings = await getProjectSettings();
 
   // Display all settings if ran `clasp setting`.
@@ -54,7 +54,7 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
       // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
       await saveProject(currentSettings, true);
       console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
-    } catch (e) {
+    } catch (error) {
       logError(null, 'Unable to update .clasp.json');
     }
   }

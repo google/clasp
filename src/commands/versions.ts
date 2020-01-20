@@ -1,11 +1,12 @@
 import { script_v1 } from 'googleapis';
+
 import { loadAPICredentials, script } from '../auth';
-import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../utils';
+import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../utils';
 
 /**
  * Lists versions of an Apps Script project.
  */
-export default async () => {
+export default async (): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   spinner.setSpinnerTitle('Grabbing versions...').start();
@@ -14,10 +15,10 @@ export default async () => {
     scriptId,
     pageSize: 500,
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (versions.status === 200) {
-    const data = versions.data;
-    if (data && data.versions && data.versions.length) {
+    const { data } = versions;
+    if (data && data.versions && data.versions.length > 0) {
       const numVersions = data.versions.length;
       console.log(LOG.VERSION_NUM(numVersions));
       data.versions.reverse();

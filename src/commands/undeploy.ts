@@ -1,11 +1,11 @@
 import { loadAPICredentials, script } from '../auth';
-import { ERROR, LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../utils';
+import { checkIfOnline, ERROR, getProjectSettings, LOG, logError, spinner } from '../utils';
 
 /**
  * Removes a deployment from the Apps Script project.
  * @param deploymentId {string} The deployment's ID
  */
-export default async (deploymentId: string, cmd: { all: boolean }) => {
+export default async (deploymentId: string, cmd: { all: boolean }): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
@@ -16,7 +16,7 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
     });
     if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
     const deployments = deploymentsList.data.deployments || [];
-    if (!deployments.length) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    if (deployments.length === 0) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
     for (const deployment of deployments) {
       const id = deployment.deploymentId || '';
@@ -25,7 +25,7 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
         scriptId,
         deploymentId: id,
       });
-      spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
       if (result.status !== 200) logError(null, ERROR.READ_ONLY_DELETE);
       console.log(LOG.UNDEPLOYMENT_FINISH(id));
     }
@@ -38,7 +38,7 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
     });
     if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
     const deployments = deploymentsList.data.deployments || [];
-    if (!deployments.length) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    if (deployments.length === 0) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     // @HEAD (Read-only deployments) may not be deleted.
     if (deployments.length <= 1) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
     deploymentId = deployments[deployments.length - 1].deploymentId || '';
@@ -48,7 +48,7 @@ export default async (deploymentId: string, cmd: { all: boolean }) => {
     scriptId,
     deploymentId,
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (response.status === 200) {
     console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
   } else {
