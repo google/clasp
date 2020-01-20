@@ -1,20 +1,21 @@
-import path from 'path';
 import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
 import fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
+import isOnline from 'is-online';
+import path from 'path';
 import pluralize from 'pluralize';
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { projectIdPrompt } from './inquirer';
 import { URL } from './urls';
 
 const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
-const isOnline: (options?: { timeout?: number; version?: 'v4'|'v6'; }) => boolean = require('is-online');
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
 export const PROJECT_MANIFEST_BASENAME = 'appsscript';
 export const PROJECT_MANIFEST_FILENAME = PROJECT_MANIFEST_BASENAME + '.json';
+// export const PROJECT_MANIFEST_FILENAME = `${PROJECT_MANIFEST_BASENAME}.json`;
 
 /**
  * The installed credentials. This is a file downloaded from console.developers.google.com
@@ -42,6 +43,7 @@ export interface ClaspCredentials {
  */
 export const hasOauthClientSettings = (local = false): boolean =>
   local ? fs.existsSync(DOT.RC.ABSOLUTE_LOCAL_PATH) : fs.existsSync(DOT.RC.ABSOLUTE_PATH);
+  // fs.existsSync(local ? DOT.RC.ABSOLUTE_LOCAL_PATH : DOT.RC.ABSOLUTE_PATH);
 
 /**
  * Gets the OAuth client settings from rc file.
@@ -53,12 +55,13 @@ export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
   return RC
     .read<ClaspToken>()
-    .catch((err: Error) => logError(err, ERROR.NO_CREDENTIALS(local)));
+    .catch((error: Error) => logError(error, ERROR.NO_CREDENTIALS(local)));
 }
 
 // Error messages (some errors take required params)
 export const ERROR = {
   ACCESS_TOKEN: `Error retrieving access token: `,
+  // ACCESS_TOKEN: 'Error retrieving access token: ',
   BAD_CREDENTIALS_FILE: 'Incorrect credentials file format.',
   BAD_REQUEST: (message: string) => `Error: ${message}
 Your credentials may be invalid. Try logging in again.`,
@@ -72,12 +75,18 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DEPLOYMENT_COUNT: `Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.`,
   DRIVE: `Something went wrong with the Google Drive API`,
   EXECUTE_ENTITY_NOT_FOUND: `Script API executable not published/deployed.`,
+  // DEPLOYMENT_COUNT: 'Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.',
+  // DRIVE: 'Something went wrong with the Google Drive API',
+  // EXECUTE_ENTITY_NOT_FOUND: 'Script API executable not published/deployed.',
   FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   INVALID_JSON: `Input params not Valid JSON string. Please fix and try again`,
   LOGGED_IN_LOCAL: `Warning: You seem to already be logged in *locally*. You have a ./.clasprc.json`,
   LOGGED_IN_GLOBAL: `Warning: You seem to already be logged in *globally*. You have a ~/.clasprc.json`,
+  // INVALID_JSON: 'Input params not Valid JSON string. Please fix and try again',
+  // LOGGED_IN_LOCAL: 'Warning: You seem to already be logged in *locally*. You have a ./.clasprc.json',
+  // LOGGED_IN_GLOBAL: 'Warning: You seem to already be logged in *globally*. You have a ~/.clasprc.json',
   LOGGED_OUT: `\nCommand failed. Please login. (${PROJECT_NAME} login)`,
   LOGS_NODATA: 'StackDriver logs query returned no data.',
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
@@ -85,6 +94,10 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
     `API ${api} doesn\'t exist. Try \'clasp apis ${enable ? 'enable' : 'disable'} sheets\'.`,
   NO_CREDENTIALS: (local: boolean) => `Could not read API credentials. ` +
     `Are you logged in ${local ? 'locall' : 'globall'}y?`,
+  // NO_API: (enable: boolean, api: string) =>
+  //   `API ${api} doesn't exist. Try 'clasp apis ${enable ? 'enable' : 'disable'} sheets'.`,
+  // NO_CREDENTIALS: (local: boolean) =>
+  //  `Could not read API credentials. Are you logged in ${local ? 'locall' : 'globall'}y?`,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
@@ -92,6 +105,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
     `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
   NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
   NO_VERSIONED_DEPLOYMENTS: `No versioned deployments found in project.`,
+  // NO_VERSIONED_DEPLOYMENTS: 'No versioned deployments found in project.',
   NO_WEBAPP: (deploymentId: string) => `Deployment "${deploymentId}" is not deployed as WebApp.`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
@@ -100,6 +114,10 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
     `- Added the necessary scopes needed for the API.\n` +
     `- Enabled the Apps Script API.\n` +
     `- Enable required APIs for project.`,
+//   PERMISSION_DENIED_LOCAL: `Error: Permission denied. Be sure that you have:
+// - Added the necessary scopes needed for the API.
+// - Enabled the Apps Script API.
+// - Enable required APIs for project.`,
   PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:\n${URL.SCRIPT_API_USER}`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   RUN_NODATA: 'Script execution API returned no data.',
@@ -113,6 +131,7 @@ Are you logged in to the correct account with the script?`,
   SETTINGS_DNE: `
 No valid ${DOT.PROJECT.PATH} project file. You may need to \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: `Error: Local client credentials unauthenticated. Check scopes/authorization.`,
+  // UNAUTHENTICATED_LOCAL: 'Error: Local client credentials unauthenticated. Check scopes/authorization.',
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
   PROJECT_ID_INCORRECT: (projectId: string) => `The projectId "${projectId}" looks incorrect.
@@ -122,6 +141,7 @@ Did you provide the correct projectID?`,
 // Log messages (some logs take required params)
 export const LOG = {
   ASK_PROJECT_ID: `What is your GCP projectId?`,
+  // ASK_PROJECT_ID: 'What is your GCP projectId?',
   NOT_LOGGED_IN: 'You are not logged in.',
   LOGGED_IN_UNKNOWN: 'You are logged in as an unknown user.',
   LOGGED_IN_AS: (email: string) => `You are logged in as ${email}.`,
@@ -129,6 +149,8 @@ export const LOG = {
   // TODO: Make AUTH_PAGE_SUCCESSFUL show an HTML page with something useful!
   AUTH_PAGE_SUCCESSFUL: `Logged in! You may close this page. `, // HTML Redirect Page
   AUTH_SUCCESSFUL: `Authorization successful.`,
+  // AUTH_PAGE_SUCCESSFUL: 'Logged in! You may close this page. ', // HTML Redirect Page
+  // AUTH_SUCCESSFUL: 'Authorization successful.',
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
   CLONE_SUCCESS: (fileNum: number) => `Warning: files in subfolder are not accounted for unless you set a '${
     DOT.IGNORE.PATH
@@ -151,6 +173,8 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   DEPLOYMENT_DNE: 'No deployed versions of script.',
   DEPLOYMENT_LIST: (scriptId: string) => `Listing deployments...`,
   DEPLOYMENT_START: (scriptId: string) => `Deploying project...`,
+  // DEPLOYMENT_LIST: (scriptId: string) => 'Listing deployments...',
+  // DEPLOYMENT_START: (scriptId: string) => 'Deploying project...',
   FILES_TO_PUSH: 'Files to push were:',
   FINDING_SCRIPTS_DNE: 'No script files found.',
   FINDING_SCRIPTS: 'Finding your scripts...',
@@ -178,6 +202,10 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
     ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.\n` +
     `*Be sure to never commit this file!* It's basically a password.`
     : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
+//   SAVED_CREDS: (isLocalCreds: boolean) => (isLocalCreds
+//     ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.
+// *Be sure to never commit this file!* It\'s basically a password.`
+//     : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`),
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   // TODO: `SCRIPT_RUN` is never used
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
@@ -186,11 +214,14 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   STATUS_PUSH: 'Not ignored files:',
   UNDEPLOYMENT_FINISH: (deploymentId: string) => `Undeployed ${deploymentId}.`,
   UNDEPLOYMENT_ALL_FINISH: `Undeployed all deployments.`,
+  // UNDEPLOYMENT_ALL_FINISH: 'Undeployed all deployments.',
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploying ${deploymentId}...`,
   VERSION_CREATE: 'Creating a new version...',
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
   VERSION_DESCRIPTION: ({ versionNumber, description }: script_v1.Schema$Version) =>
     `${versionNumber} - ` + (description || '(no description)'),
+  // VERSION_DESCRIPTION: ({ versionNumber, description }: script_v1.Schema$Version) =>
+  //   `${versionNumber} - ${description || '(no description)'}`,
   VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
   // TODO: `SETUP_LOCAL_OAUTH` is never used
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
@@ -218,6 +249,7 @@ export const spinner = new Spinner();
  */
 // tslint:disable-next-line:no-any
 export const logError = (err: any, description = '', code = 1): never => {
+  // if (spinner.isSpinning()) spinner.stop(true);
   spinner.stop(true);
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
@@ -225,8 +257,8 @@ export const logError = (err: any, description = '', code = 1): never => {
   if (err && typeof err.error === 'string') {
     description = JSON.parse(err.error).error;
   } else if (
-    (err && err.statusCode === 401) ||
-    (err && err.error && err.error.error && err.error.error.code === 401)
+    (err && err.statusCode === 401)
+    || (err && err.error && err.error.error && err.error.error.code === 401)
   ) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
@@ -242,9 +274,13 @@ export const logError = (err: any, description = '', code = 1): never => {
       console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
       console.error(err.error);
     }
+  // } else if (err && err.error) {
+  //   console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
+  //   console.error(err.error);
   }
   if (description) console.error(description);
   return process.exit(code);
+  // process.exit(code);
 };
 
 /**
@@ -258,9 +294,9 @@ export function getWebApplicationURL(deployment: script_v1.Schema$Deployment) {
   const entryPoints = deployment.entryPoints || [];
   const webEntryPoint = entryPoints.find((entryPoint: script_v1.Schema$EntryPoint) =>
     entryPoint.entryPointType === 'WEB_APP');
-    if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
-    logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
-  }
+  if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
+  logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
+}
 
 /**
  * Gets default project name.
@@ -278,9 +314,9 @@ export function getDefaultProjectName(): string {
  */
 export async function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
   return new Promise<ProjectSettings>((resolve, reject) => {
-    const fail = (silent?: boolean) => silent
+    const fail = (silent?: boolean) => (silent
       ? resolve()
-      : logError(null, ERROR.SETTINGS_DNE);
+      : logError(null, ERROR.SETTINGS_DNE));
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
@@ -302,7 +338,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
       fail(); // Never found a dotfile
     }
   })
-  .catch(err => logError(err));
+  .catch((error) => logError(error));
 }
 
 /**
@@ -312,20 +348,21 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
  */
 export function getAPIFileType(filePath: string): string {
   const extension = filePath.substr(filePath.lastIndexOf('.') + 1).toUpperCase();
+  // const extension = filePath.slice(filePath.lastIndexOf('.') + 1).toUpperCase();
   return extension === 'GS' || extension === 'JS' ? 'SERVER_JS' : extension;
 }
 
 /**
  * Checks if the network is available. Gracefully exits if not.
  */
-export async function safeIsOnline() {
+export async function safeIsOnline(): Promise<boolean> {
   // If using a proxy, return true since `isOnline` doesn't work.
   // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
   if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
     return true;
-  } else {
-    return await isOnline();
   }
+  return await isOnline();
+  // return isOnline();
 }
 
 /**
@@ -336,6 +373,7 @@ export async function checkIfOnline() {
     return true;
   }
   return logError(null, ERROR.OFFLINE);
+  // logError(null, ERROR.OFFLINE);
 }
 
 /**
@@ -369,10 +407,10 @@ export async function getProjectId(promptUser = true): Promise<string> {
       await DOTFILE.PROJECT().write(projectSettings);
     });
     return projectSettings.projectId || '';
-  } catch (err) {
-    logError(null, err.message);
+  } catch (error) {
+    logError(null, error.message);
   }
-  throw Error('Project ID not found');
+  throw new Error('Project ID not found');
 }
 
 /**
@@ -409,9 +447,10 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
   return async (...args: any[]) => {
     try {
       await command(...args);
-    } catch (e) {
+      // if (spinner.isSpinning()) spinner.stop(true);
+    } catch (error) {
       spinner.stop(true);
-      logError(null, e.message);
+      logError(null, error.message);
     }
   };
 }
@@ -423,6 +462,7 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
  */
 export function isValidProjectId(projectId: string) {
   return new RegExp(/^[a-z][a-z0-9\-]{5,29}$/).test(projectId);
+  // return new RegExp(/^[a-z][\d-a-z]{5,29}$/).test(projectId);
 }
 
 /**
