@@ -1,21 +1,22 @@
-import path from 'path';
 import findUp from 'find-up';
 import fs from 'fs-extra';
 import mkdirp from 'mkdirp';
 import multimatch from 'multimatch';
+import path from 'path';
 import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
 import ts from 'typescript';
+
 import { loadAPICredentials, script } from './auth';
 import { DOT, DOTFILE } from './dotfile';
 import {
-  ERROR,
-  LOG,
-  PROJECT_MANIFEST_FILENAME,
   checkIfOnline,
+  ERROR,
   getAPIFileType,
   getProjectSettings,
+  LOG,
   logError,
+  PROJECT_MANIFEST_FILENAME,
   spinner,
 } from './utils';
 
@@ -58,7 +59,7 @@ export function hasProject(): boolean {
 function getTranspileOptions(): ts.TranspileOptions {
   const projectPath = findUp.sync(DOT.PROJECT.PATH);
   const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
-  if(fs.existsSync(tsconfigPath)) {
+  if (fs.existsSync(tsconfigPath)) {
     const tsconfigContent = fs.readFileSync(tsconfigPath, FS_OPTIONS);
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
     return {
@@ -99,7 +100,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     // dispatch with patterns from .claspignore
     const filesToPush: string[] = [];
     const filesToIgnore: string[] = [];
-    filePaths.forEach(file => {
+    filePaths.forEach((file) => {
       if (multimatch(path.relative(rootDir, file), ignorePatterns, { dot: true }).length === 0) {
         filesToPush.push(file);
       } else {
@@ -113,8 +114,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     filesToPush.forEach((name: string) => {
       const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
       if (
-        filesToPush.indexOf(fileNameWithoutExt + '.js') !== -1 &&
-        filesToPush.indexOf(fileNameWithoutExt + '.gs') !== -1
+        filesToPush.includes(`${fileNameWithoutExt}.js`)
+        && filesToPush.includes(`${fileNameWithoutExt}.gs`)
       ) {
         // Can't rename, conflicting files
         abortPush = true;
@@ -159,12 +160,11 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             type, // the file extension
             source, // the file contents
           };
-          file2path.push({ file, path: name });  // allow matching of nonIgnoredFilePaths and files arrays
+          file2path.push({ file, path: name }); // allow matching of nonIgnoredFilePaths and files arrays
           return file;
-        } else {
-          ignoredFilePaths.push(name);
-          return; // Skip ignored files
         }
+        ignoredFilePaths.push(name);
+        // return; // Skip ignored files
       })
       .filter(Boolean); // remove null values
 
@@ -173,7 +173,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     // This is needed because Apps Script blindly executes files in order of creation time.
     // The Apps Script API updates the creation time of files.
     if (filePushOrder && filePushOrder.length > 0) { // skip "filePushOrder": []
-      spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
       logFileList(filePushOrder);
       console.log('');
@@ -189,8 +189,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       // apply nonIgnoredFilePaths sort order to files
       files = (files as AppsScriptFile[]).sort((file1, file2) => {
         // Get the file path from file2path
-        const path1 = file2path.find(e => e.file === file1);
-        const path2 = file2path.find(e => e.file === file2);
+        const path1 = file2path.find((e) => e.file === file1);
+        const path2 = file2path.find((e) => e.file === file2);
         // If a file path isn't in the nonIgnoredFilePaths array, set the order to +∞.
         const path1Index = path1 ? nonIgnoredFilePaths.indexOf(path1.path) : Number.POSITIVE_INFINITY;
         const path2Index = path2 ? nonIgnoredFilePaths.indexOf(path2.path) : Number.POSITIVE_INFINITY;
@@ -272,13 +272,13 @@ export async function fetchProject(
     });
   } catch (error) {
     if (error.statusCode === 404) {
-      throw Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+      throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
-    throw Error(ERROR.SCRIPT_ID);
+    throw new Error(ERROR.SCRIPT_ID);
   }
-  spinner.stop(true);
-  const data = res.data;
-  if (!data.files) throw Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  if (spinner.isSpinning()) spinner.stop(true);
+  const { data } = res;
+  if (!data.files) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   if (!silent) console.log(LOG.CLONE_SUCCESS(data.files.length));
   return data.files as AppsScriptFile[];
 }
@@ -296,10 +296,10 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
   sortedFiles.forEach((file) => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
-    mkdirp(path.dirname(truePath), err => {
+    mkdirp(path.dirname(truePath), (err) => {
       if (err) logError(err, ERROR.FS_DIR_WRITE);
       if (!file.source) return; // disallow empty files
-      fs.writeFile(truePath, file.source, err => {
+      fs.writeFile(truePath, file.source, (err) => {
         if (err) logError(err, ERROR.FS_FILE_WRITE);
       });
       // Log only filename if pulling to root (Code.gs vs ./Code.gs)
@@ -319,12 +319,13 @@ export async function pushFiles(silent = false) {
   getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     // Check for edge cases.
     if (err) {
-      spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
       logError(err, LOG.PUSH_FAILURE);
     }
     if (!projectFiles) {
       console.log(LOG.PUSH_NO_FILES);
-      return spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
+      return;
     }
 
     // Start pushing.
@@ -338,11 +339,11 @@ export async function pushFiles(silent = false) {
           files: filesForAPI,
         },
       });
-    } catch (e) {
+    } catch (error) {
       console.error(LOG.PUSH_FAILURE);
-      console.error(e);
+      console.error(error);
     } finally {
-      if (!silent) spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
       // no error
       if (!silent) {
         logFileList(nonIgnoredFilePaths);
@@ -352,4 +353,4 @@ export async function pushFiles(silent = false) {
   });
 }
 
-export const logFileList = (files: string[]) => console.log(files.map(file => `└─ ${file}`).join(`\n`));
+export const logFileList = (files: string[]) => console.log(files.map((file) => `└─ ${file}`).join('\n'));
