@@ -91,7 +91,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   NO_MANIFEST: (filename: string) =>
     `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
   NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
-  NO_VERSIONED_DEPLOYMENTS: `No versioned deployments found in project.`,
+  NO_VERSIONED_DEPLOYMENTS: 'No versioned deployments found in project.',
   NO_WEBAPP: (deploymentId: string) => `Deployment "${deploymentId}" is not deployed as WebApp.`,
   OFFLINE: 'Error: Looks like you are offline.',
   ONE_DEPLOYMENT_CREATE: 'Currently just one deployment can be created at a time.',
@@ -100,7 +100,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
 - Added the necessary scopes needed for the API.
 - Enabled the Apps Script API.
 - Enable required APIs for project.`,
-PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:\n${URL.SCRIPT_API_USER}`,
+  PERMISSION_DENIED: `Error: Permission denied. Enable the Apps Script API:\n${URL.SCRIPT_API_USER}`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   RUN_NODATA: 'Script execution API returned no data.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
@@ -177,7 +177,7 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
     ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.
 *Be sure to never commit this file!* It\'s basically a password.`
     : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`),
-SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
+  SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   // TODO: `SCRIPT_RUN` is never used
   SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
@@ -415,7 +415,7 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
   return async (...args: any[]) => {
     try {
       await command(...args);
-      // if (spinner.isSpinning()) spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
     } catch (error) {
       spinner.stop(true);
       logError(null, error.message);
@@ -429,8 +429,7 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
  * @returns {boolean} Is the project id valid
  */
 export function isValidProjectId(projectId: string) {
-  return new RegExp(/^[a-z][a-z0-9\-]{5,29}$/).test(projectId);
-  // return new RegExp(/^[a-z][\d-a-z]{5,29}$/).test(projectId);
+  return new RegExp(/^[a-z][\d-a-z]{5,29}$/).test(projectId);
 }
 
 /**
