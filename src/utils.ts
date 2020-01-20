@@ -415,7 +415,7 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
   return async (...args: any[]) => {
     try {
       await command(...args);
-      if (spinner.isSpinning()) spinner.stop(true);
+      // if (spinner.isSpinning()) spinner.stop(true);
     } catch (error) {
       spinner.stop(true);
       logError(null, error.message);
