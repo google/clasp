@@ -217,8 +217,7 @@ export const spinner = new Spinner();
  */
 // tslint:disable-next-line:no-any
 export const logError = (err: any, description = '', code = 1): never => {
-  // if (spinner.isSpinning()) spinner.stop(true);
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
   // change error model. Don't review this method now.
@@ -237,18 +236,12 @@ export const logError = (err: any, description = '', code = 1): never => {
     description = ERROR.PERMISSION_DENIED;
   } else if (err && err.code === 429) {
     description = ERROR.RATE_LIMIT;
-  } else {
-    if (err && err.error) {
-      console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
-      console.error(err.error);
-    }
-  // } else if (err && err.error) {
-  //   console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
-  //   console.error(err.error);
+  } else if (err && err.error) {
+    console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
+    console.error(err.error);
   }
   if (description) console.error(description);
-  return process.exit(code);
-  // process.exit(code);
+  process.exit(code);
 };
 
 /**
@@ -329,8 +322,7 @@ export async function safeIsOnline(): Promise<boolean> {
   if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
     return true;
   }
-  return await isOnline();
-  // return isOnline();
+  return isOnline();
 }
 
 /**
@@ -340,8 +332,7 @@ export async function checkIfOnline() {
   if (await safeIsOnline()) {
     return true;
   }
-  return logError(null, ERROR.OFFLINE);
-  // logError(null, ERROR.OFFLINE);
+  logError(null, ERROR.OFFLINE);
 }
 
 /**
@@ -415,7 +406,7 @@ export function handleError(command: (...args: any[]) => Promise<unknown>) {
   return async (...args: any[]) => {
     try {
       await command(...args);
-      // if (spinner.isSpinning()) spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
     } catch (error) {
       spinner.stop(true);
       logError(null, error.message);
