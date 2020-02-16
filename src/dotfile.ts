@@ -52,6 +52,7 @@ export interface ProjectSettings {
   projectId?: string;
   fileExtension?: string;
   filePushOrder?: string[];
+  parentId?: string[];
 }
 
 // Dotfile names

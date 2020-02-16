@@ -90,7 +90,7 @@ clasp
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch] [--force]`](#push)
 - [`clasp status [--json]`](#status)
-- [`clasp open [scriptId] [--webapp] [--creds]`](#open)
+- [`clasp open [scriptId] [--webapp] [--creds] [--addon]`](#open)
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
 - [`clasp undeploy [deploymentId] [--all]`](#undeploy)
@@ -248,8 +248,9 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 #### Options
 
 - `[scriptId]`: The optional script project to open.
-- `--webapp`: open web application in a browser.
+- `--webapp`: Open web application in a browser.
 - `--creds`: Open the URL to create credentials.
+- `--addon`: List parent IDs and open the URL of the first one.
 
 #### Examples
 
@@ -257,6 +258,7 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 - `clasp open "15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC"`
 - `clasp open --webapp`
 - `clasp open --creds`
+- `clasp open --addon`
 
 ### Deployments
 

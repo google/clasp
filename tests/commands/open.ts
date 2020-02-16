@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { URL } from '../../src/urls';
 import { ERROR, LOG } from '../../src/utils';
-import { CLASP, PROJECT_ID, SCRIPT_ID } from '../constants';
+import { CLASP, PROJECT_ID, SCRIPT_ID, PARENT_ID } from '../constants';
 import { cleanup, setup } from '../functions';
 
 describe('Test clasp open function', () => {
@@ -32,6 +32,12 @@ describe('Test clasp open function', () => {
       CLASP, ['open', '--webapp'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain('Open which deployment?');
+  });
+  it('open parent page correctly', () => {
+    const result = spawnSync(
+      CLASP, ['open', '--addon'], { encoding: 'utf8' },
+    );
+    expect(result.stdout).to.contain(LOG.OPEN_FIRST_PARENT(PARENT_ID[0]));
   });
   after(cleanup);
 });

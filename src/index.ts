@@ -179,6 +179,7 @@ commander
   .description('Open a script')
   .option('--webapp', 'Open web application in the browser')
   .option('--creds', 'Open the URL to create credentials')
+  .option('--addon', 'List parent IDs and open the URL of the first one')
   .action(handleError(openCmd));
 
 /**

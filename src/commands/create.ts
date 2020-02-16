@@ -91,6 +91,7 @@ export default async (
     {
       scriptId: createdScriptId,
       rootDir,
+      parentId: [parentId],
     },
     false,
   );
