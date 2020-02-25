@@ -1,9 +1,10 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "target": "es2016",
-    "lib": ["es2020"],
+    "lib": ["ESNext"],
     "strict": true,
     "inlineSourceMap": true,
     "moduleResolution": "node",

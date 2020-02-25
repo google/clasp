@@ -17,7 +17,7 @@ import {
   spinner,
 } from '../utils';
 
-const normalizeNewline = require('normalize-newline');
+import normalizeNewline from 'normalize-newline';
 
 /**
  * Uploads all files into the script.google.com filesystem.

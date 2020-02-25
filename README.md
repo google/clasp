@@ -61,6 +61,12 @@ You can also try clasp in Gitpod, a one-click online IDE for GitHub:
 - Easily add custom Google OAuth scopes
 - [And more...](docs/run.md)
 
+**- V8 support** take advantage of the performance boost of Chrome JavaScript engine:
+
+- Every ES2019 features (except ES modules)
+- Edit your `appsscript.json` manifest to choose between the **Rhino** and **V8** engines
+- Typescript users should update their `tsconfig.json` with the `"target": "2019"` compiler option
+
 ## Install
 
 First download `clasp`:
@@ -528,7 +534,7 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ### NodeJS Version
 
-The library requires **NodeJS version >= 8.2.1**.
+The library requires **NodeJS version >= 10.3.0**.
 
 You can check your version of NodeJS with this command.
 
