@@ -61,6 +61,12 @@ You can also try clasp in Gitpod, a one-click online IDE for GitHub:
 - Easily add custom Google OAuth scopes
 - [And more...](docs/run.md)
 
+**- V8 support** take advantage of the performance boost of Chrome JavaScript engine:
+
+- Every ES2019 features (except ES modules)
+- Edit your `appsscript.json` manifest to choose between the **Rhino** and **V8** engines
+- Typescript users should update their `tsconfig.json` with the `"target": "2019"` compiler option
+
 ## Install
 
 First download `clasp`:
