@@ -149,7 +149,7 @@ commander
   .command('push')
   .description('Update the remote project')
   .option('-f, --force', 'Forcibly overwrites the remote manifest.')
-  .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changs.')
+  .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changes.')
   .action(handleError(push));
 
 /**
