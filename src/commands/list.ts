@@ -9,7 +9,7 @@ interface EllipizeOptions {
   chars?: string[];
   truncate?: boolean | 'middle';
 }
-const ellipsize: (str?: string, max?: number, opts?: EllipizeOptions) => string = require('ellipsize');
+import ellipsize from 'ellipsize';
 
 /**
  * Lists a user's Apps Script projects using Google Drive.

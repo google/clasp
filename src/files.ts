@@ -296,15 +296,16 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
   sortedFiles.forEach((file) => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
-    mkdirp(path.dirname(truePath), (err) => {
-      if (err) logError(err, ERROR.FS_DIR_WRITE);
-      if (!file.source) return; // disallow empty files
-      fs.writeFile(truePath, file.source, (err) => {
-        if (err) logError(err, ERROR.FS_FILE_WRITE);
-      });
-      // Log only filename if pulling to root (Code.gs vs ./Code.gs)
-      console.log(`└─ ${rootDir ? truePath : filePath}`);
-    });
+    mkdirp(path.dirname(truePath))
+      .then(() => {
+        if (!file.source) return; // disallow empty files
+        fs.writeFile(truePath, file.source, (err) => {
+          if (err) logError(err, ERROR.FS_FILE_WRITE);
+        });
+        // Log only filename if pulling to root (Code.gs vs ./Code.gs)
+        console.log(`└─ ${rootDir ? truePath : filePath}`);
+      })
+      .catch((reason) => logError(reason, ERROR.FS_DIR_WRITE));
   });
 }
 
