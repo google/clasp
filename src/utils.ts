@@ -258,8 +258,6 @@ export const getErrorDescription = (err: any, description = ''): string => {
     console.error(err.error);
   }
 
-  if (description) console.error(description);
-
   return description;
 };
 

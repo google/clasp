@@ -381,7 +381,7 @@ loudRejection();
     // if (spinner.isSpinning()) spinner.stop(true);
     if (error instanceof ExitAndLogError) {
       process.exitCode = error.code;
-      console.log(error.message);
+      if (error.message) console.error(error.message);
     } else {
       process.exitCode = 1;
       console.log(error);
