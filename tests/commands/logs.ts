@@ -11,14 +11,16 @@ import {
 
 describe('Test clasp logs setup', () => {
   before(setupWithoutGCPProject);
-  it('should prompt for logs setup', () => {
+  // TODO: Reconsider test with `inquirer` in non-TTY environment
+  it.skip('should prompt for logs setup', () => {
     const result = spawnSync(
       CLASP, ['logs'], { encoding: 'utf8' },
     );
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
     expect(result.status).to.equal(0);
   });
-  it('should prompt for logs setup', () => {
+  // TODO: Reconsider test with `inquirer` in non-TTY environment
+  it.skip('should prompt for logs setup', () => {
     const result = spawnSync(
       CLASP, ['logs', '--setup'], { encoding: 'utf8' },
     );

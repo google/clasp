@@ -27,7 +27,8 @@ describe('Test clasp open function', () => {
     );
     expect(result.stdout).to.contain(LOG.OPEN_CREDS(PROJECT_ID));
   });
-  it('open credentials page correctly', () => {
+  // TODO: Reconsider test with `inquirer` in non-TTY environment
+  it.skip('open credentials page correctly', () => {
     const result = spawnSync(
       CLASP, ['open', '--webapp'], { encoding: 'utf8' },
     );

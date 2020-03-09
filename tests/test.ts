@@ -88,7 +88,8 @@ describe('Test clasp version and versions function', () => {
     setup();
   });
   let versionNumber = 0;
-  it('should prompt for version description', () => {
+  // TODO: Reconsider test with `inquirer` in non-TTY environment
+  it.skip('should prompt for version description', () => {
     const result = spawnSync(
       CLASP, ['version'], { encoding: 'utf8' },
     );

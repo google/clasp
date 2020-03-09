@@ -9,7 +9,8 @@ import { spawnSync } from 'child_process';
 
 describe('Test clasp create function', () => {
   before(setup);
-  it('should prompt for a project name correctly', () => {
+  // TODO: Reconsider test with `inquirer` in non-TTY environment
+  it.skip('should prompt for a project name correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = spawnSync(
       CLASP, ['create'], { encoding: 'utf8' },
