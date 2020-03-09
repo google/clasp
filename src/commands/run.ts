@@ -6,7 +6,7 @@ import { getFunctionNames } from '../apiutils';
 import { getLocalScript, loadAPICredentials, script } from '../auth';
 import { addScopeToManifest, isValidRunManifest } from '../manifest';
 import { URL } from '../urls';
-import { checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
+import { checkIfOnline, ERROR, ExitAndLogError, getProjectSettingsIfExist, getValidJSON, spinner } from '../utils';
 
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
@@ -19,10 +19,16 @@ import { checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinn
 export default async (functionName: string, cmd: { nondev: boolean; params: string }): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
-  const { scriptId } = await getProjectSettings(true);
+  const settings = await getProjectSettingsIfExist();
+  const scriptId = settings?.scriptId;
   const devMode = !cmd.nondev; // defaults to true
   const { params: paramString = '[]' } = cmd;
   const params = getValidJSON<string[]>(paramString);
+
+  if (typeof scriptId !== 'string') {
+    // logError(null, ERROR.SCRIPT_ID_DNE, 0); // exit gracefully in case localhost server spun up for authorize
+    throw new ExitAndLogError(0, ERROR.SCRIPT_ID_DNE);
+  }
 
   await isValidRunManifest();
 
@@ -49,7 +55,7 @@ export default async (functionName: string, cmd: { nondev: boolean; params: stri
  * Runs a function.
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
  */
-async function runFunction(functionName: string, params: string[], scriptId: string, devMode: boolean) {
+async function runFunction(functionName: string, params: string[], scriptId: string, devMode: boolean): Promise<void> {
   try {
     // Load local credentials.
     await loadAPICredentials(true);
@@ -65,16 +71,14 @@ async function runFunction(functionName: string, params: string[], scriptId: str
     });
     if (spinner.isSpinning()) spinner.stop(true);
     if (!res || !res.data.done) {
-      logError(null, ERROR.RUN_NODATA, 0); // exit gracefully in case localhost server spun up for authorize
+      // logError(null, ERROR.RUN_NODATA, 0); // exit gracefully in case localhost server spun up for authorize
+      throw new ExitAndLogError(0, ERROR.RUN_NODATA);
     }
+
     const { data } = res;
     // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
     if (data.response) {
-      if (data.response.result) {
-        console.log(data.response.result);
-      } else {
-        console.log(chalk.red('No response.'));
-      }
+      console.log(data.response.result ?? chalk.red('No response.'));
     } else if (data.error && data.error.details) {
       // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
       console.error(
@@ -85,8 +89,16 @@ async function runFunction(functionName: string, params: string[], scriptId: str
       );
     }
   } catch (error) {
+    // Rethrow `ExitAndLogError`s
+    if (error instanceof ExitAndLogError) {
+      throw error;
+    }
+
     if (spinner.isSpinning()) spinner.stop(true);
     if (error) {
+      // TODO: proper typing & check of `error`
+      let scopes: string[];
+      let rl: readline.Interface;
       // TODO move these to logError when stable?
       switch (error.code) {
         case 401:
@@ -106,8 +118,8 @@ https://www.googleapis.com/auth/presentations
           // https://mail.google.com/
           // https://www.googleapis.com/auth/presentations
           // https://www.googleapis.com/auth/spreadsheets
-          const scopes: string[] = [];
-          const rl = readline.createInterface({
+          scopes = [];
+          rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
             prompt: '',
@@ -133,13 +145,14 @@ https://www.googleapis.com/auth/presentations
           // logError(null, ERROR.UNAUTHENTICATED_LOCAL);
           break;
         case 403:
-          logError(null, ERROR.PERMISSION_DENIED_LOCAL);
-          break;
+          // logError(null, ERROR.PERMISSION_DENIED_LOCAL);
+          throw new ExitAndLogError(1, ERROR.PERMISSION_DENIED_LOCAL);
         case 404:
-          logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
-          break;
+          // logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
+          throw new ExitAndLogError(1, ERROR.EXECUTE_ENTITY_NOT_FOUND);
         default:
-          logError(null, `(${error.code}) Error: ${error.message}`);
+          // logError(null, `(${error.code}) Error: ${error.message}`);
+          throw new ExitAndLogError(1, `(${error.code}) Error: ${error.message}`);
       }
     }
   }

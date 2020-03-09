@@ -2,9 +2,9 @@ import { loadAPICredentials, script } from '../auth';
 import {
   checkIfOnline,
   ERROR,
+  ExitAndLogError,
   getProjectSettings,
   LOG,
-  logError,
   PROJECT_MANIFEST_BASENAME,
   spinner,
 } from '../utils';
@@ -20,8 +20,11 @@ export default async (
 ): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
-  const { scriptId } = await getProjectSettings();
+  const settings = await getProjectSettings();
+  const scriptId = settings?.scriptId;
+
   if (!scriptId) return;
+
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
   let { versionNumber } = cmd;
   const { description = '', deploymentId } = cmd;
@@ -35,7 +38,10 @@ export default async (
       },
     });
     if (spinner.isSpinning()) spinner.stop(true);
-    if (version.status !== 200) logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
+    if (version.status !== 200) {
+      throw new ExitAndLogError(1, ERROR.ONE_DEPLOYMENT_CREATE);
+    }
+
     versionNumber = version.data.versionNumber || 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
   }
@@ -53,7 +59,7 @@ export default async (
       },
     });
   } else {
-    // elseif, update deployment
+    // if deploymentId, update deployment
     deployments = await script.projects.deployments.update({
       scriptId,
       deploymentId,
@@ -66,7 +72,12 @@ export default async (
       },
     });
   }
+
   if (spinner.isSpinning()) spinner.stop(true);
-  if (deployments.status !== 200) logError(null, ERROR.DEPLOYMENT_COUNT);
+  if (deployments.status !== 200) {
+    // logError(null, ERROR.DEPLOYMENT_COUNT);
+    throw new ExitAndLogError(1, ERROR.DEPLOYMENT_COUNT);
+  }
+
   console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
 };

@@ -6,7 +6,7 @@ import { PUBLIC_ADVANCED_SERVICES } from '../apis';
 import { enableOrDisableAPI } from '../apiutils';
 import { discovery, loadAPICredentials, serviceUsage } from '../auth';
 import { URL } from '../urls';
-import { checkIfOnline, ERROR, getProjectId, logError } from '../utils';
+import { checkIfOnline, ERROR, ExitAndLogError, getProjectId } from '../utils';
 
 /**
  * Acts as a router to apis subcommands
@@ -27,7 +27,7 @@ export default async (options: { open?: string }): Promise<void> => {
   }
 
   // The apis subcommands.
-  const command: { [key: string]: Function } = {
+  const command: { [key: string]: () => Promise<void> | void } = {
     enable: async () => {
       await enableOrDisableAPI(serviceName, true);
     },
@@ -83,7 +83,7 @@ export default async (options: { open?: string }): Promise<void> => {
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
         const service = services.find((s) => s.name === publicServiceId);
         // for some reason 'youtubePartner' is not in the api list.
-        if (service && service.id && service.description) {
+        if (service?.id && service.description) {
           publicServices.push(service);
         }
       }
@@ -113,6 +113,7 @@ export default async (options: { open?: string }): Promise<void> => {
   if (command[subcommand]) {
     command[subcommand]();
   } else {
-    logError(null, ERROR.COMMAND_DNE(`apis ${subcommand}`));
+    // logError(null, ERROR.COMMAND_DNE(`apis ${subcommand}`));
+    throw new ExitAndLogError(1, ERROR.COMMAND_DNE(`apis ${subcommand}`));
   }
 };

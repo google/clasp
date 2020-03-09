@@ -83,7 +83,7 @@ export const DOTFILE = {
    * Reads DOT.IGNORE.PATH to get a glob pattern of ignored paths.
    * @return {Promise<string[]>} A list of file glob patterns
    */
-  IGNORE: () => {
+  IGNORE: async () => {
     const projectPath = findUp.sync(DOT.PROJECT.PATH);
     const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
     return new Promise<string[]>((resolve, reject) => {

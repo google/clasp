@@ -6,12 +6,13 @@ import { manifestExists } from '../manifest';
 import {
   checkIfOnline,
   ERROR,
+  ExitAndLogError,
   getDefaultProjectName,
-  getProjectSettings,
+  getProjectSettingsIfExist,
   LOG,
-  logError,
   saveProject,
   spinner,
+  getErrorDescription,
 } from '../utils';
 
 /**
@@ -27,7 +28,11 @@ export default async (
 ): Promise<void> => {
   // Handle common errors.
   await checkIfOnline();
-  if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
+  if (hasProject()) {
+    // logError(null, ERROR.FOLDER_EXISTS);
+    throw new ExitAndLogError(1, ERROR.FOLDER_EXISTS);
+  }
+
   await loadAPICredentials();
 
   // Create defaults.
@@ -65,9 +70,18 @@ export default async (
   // CLI Spinner
   spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
   try {
-    const { scriptId } = await getProjectSettings(true);
-    if (scriptId) logError(null, ERROR.NO_NESTED_PROJECTS);
+    const settings = await getProjectSettingsIfExist();
+    const scriptId = settings?.scriptId;
+    if (scriptId) {
+      // logError(null, ERROR.NO_NESTED_PROJECTS);
+      throw new ExitAndLogError(1, ERROR.NO_NESTED_PROJECTS);
+    }
   } catch (error) {
+    // Rethrow `ExitAndLogError`s
+    if (error instanceof ExitAndLogError) {
+      throw error;
+    }
+
     // no scriptId (because project doesn't exist)
     // console.log(error);
   }
@@ -82,8 +96,10 @@ export default async (
   if (spinner.isSpinning()) spinner.stop(true);
   if (res.status !== 200) {
     if (parentId) console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
-    logError(res.statusText, ERROR.CREATE);
+    // logError(res.statusText, ERROR.CREATE);
+    throw new ExitAndLogError(1, getErrorDescription(res.statusText, ERROR.CREATE));
   }
+
   const createdScriptId = res.data.scriptId || '';
   console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
   const { rootDir } = cmd;

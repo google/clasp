@@ -10,7 +10,7 @@ import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { projectIdPrompt } from './inquirer';
 import { URL } from './urls';
 
-const ucfirst = (str: string) => str && `${str[0].toUpperCase()}${str.slice(1)}`;
+const ucfirst = (str: string): string => str && `${str[0].toUpperCase()}${str.slice(1)}`;
 
 // Names / Paths
 export const PROJECT_NAME = 'clasp';
@@ -50,11 +50,21 @@ export const hasOauthClientSettings = (local = false): boolean =>
  * ! Should be used instead of `DOTFILE.RC?().read()`
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
-export function getOAuthSettings(local: boolean): Promise<ClaspToken> {
-  const RC = (local) ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC
-    .read<ClaspToken>()
-    .catch((error: Error) => logError(error, ERROR.NO_CREDENTIALS(local)));
+export async function getOAuthSettings(local: boolean): Promise<ClaspToken> {
+  const RC = local ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
+  {
+    try {
+      return await RC.read<ClaspToken>();
+    } catch (error) {
+      // Rethrow `ExitAndLogError`s
+      if (error instanceof ExitAndLogError) {
+        throw error;
+      }
+
+      // logError(error, ERROR.NO_CREDENTIALS(local));
+      throw new ExitAndLogError(1, getErrorDescription(error, ERROR.NO_CREDENTIALS(local)));
+    }
+  }
 }
 
 // Error messages (some errors take required params)
@@ -85,7 +95,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   NO_API: (enable: boolean, api: string) =>
     `API ${api} doesn't exist. Try 'clasp apis ${enable ? 'enable' : 'disable'} sheets'.`,
   NO_CREDENTIALS: (local: boolean) =>
-   `Could not read API credentials. Are you logged in ${local ? 'locally' : 'globally'}?`,
+    `Could not read API credentials. Are you logged in ${local ? 'locally' : 'globally'}?`,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
@@ -150,8 +160,8 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   DEFAULT_CREDENTIALS: 'No credentials given, continuing with default...',
   DEPLOYMENT_CREATE: 'Creating deployment...',
   DEPLOYMENT_DNE: 'No deployed versions of script.',
-  DEPLOYMENT_LIST: (scriptId: string) => 'Listing deployments...',
-  DEPLOYMENT_START: (scriptId: string) => 'Deploying project...',
+  DEPLOYMENT_LIST: (scriptId: string): string => 'Listing deployments...',
+  DEPLOYMENT_START: (scriptId: string): string => 'Deploying project...',
   FILES_TO_PUSH: 'Files to push were:',
   FINDING_SCRIPTS_DNE: 'No script files found.',
   FINDING_SCRIPTS: 'Finding your scripts...',
@@ -176,7 +186,7 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   PUSHING: 'Pushing files...',
   SAVED_CREDS: (isLocalCreds: boolean) => (isLocalCreds
     ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.
-*Be sure to never commit this file!* It\'s basically a password.`
+*Be sure to never commit this file!* It's basically a password.`
     : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`),
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   // TODO: `SCRIPT_RUN` is never used
@@ -207,43 +217,58 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
 
 export const spinner = new Spinner();
 
-/**
- * Logs errors to the user such as unauthenticated or permission denied and exits Node.
- *
- * > This function **`never`** returns
- *
- * @param  {object} err         The object from the request's error
- * @param  {string} description The description of the error
- * @param  {number} code        (*optional*) The process exit code. default value is `1`
- */
+// /**
+//  * Logs errors to the user such as unauthenticated or permission denied and exits Node.
+//  *
+//  * > This function **`never`** returns
+//  *
+//  * @param  {object} err         The object from the request's error
+//  * @param  {string} description The description of the error
+//  * @param  {number} code        (*optional*) The process exit code. default value is `1`
+//  */
+// // tslint:disable-next-line:no-any
+// export const logError = (err: any, description = '', code = 1): never => {
+//   if (spinner.isSpinning()) spinner.stop(true);
+//   description = getErrorDescription(err, description);
+
+//   if (description) console.error(description);
+
+//   process.exit(code);
+// };
+
 // tslint:disable-next-line:no-any
-export const logError = (err: any, description = '', code = 1): never => {
-  if (spinner.isSpinning()) spinner.stop(true);
+export const getErrorDescription = (err: any, description = ''): string => {
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
   // change error model. Don't review this method now.
   if (err && typeof err.error === 'string') {
     description = JSON.parse(err.error).error;
-  } else if (
-    (err && err.statusCode === 401)
-    || (err && err.error && err.error.error && err.error.error.code === 401)
-  ) {
+  } else if ((err?.statusCode === 401) || (err?.error?.error?.code === 401)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
     description = ERROR.UNAUTHENTICATED;
-  } else if (err && ((err.error && err.error.code === 403) || err.code === 403)) {
+  } else if (err?.error?.code === 403 || err?.code === 403) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.PERMISSION_DENIED : ERROR.PERMISSION_DENIED_LOCAL
     description = ERROR.PERMISSION_DENIED;
-  } else if (err && err.code === 429) {
+  } else if (err?.code === 429) {
     description = ERROR.RATE_LIMIT;
-  } else if (err && err.error) {
+  } else if (err?.error) {
     console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
     console.error(err.error);
   }
+
   if (description) console.error(description);
-  process.exit(code);
+
+  return description;
 };
+
+export class ExitAndLogError extends Error {
+  constructor(readonly code = 1, message?: string) {
+    super(message); // 'Error' breaks prototype chain here
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+  }
+}
 
 /**
  * Gets the web application URL from a deployment.
@@ -252,12 +277,14 @@ export const logError = (err: any, description = '', code = 1): never => {
  * @param  {any} deployment The deployment
  * @return {string}          The URL of the web application in the online script editor.
  */
-export function getWebApplicationURL(deployment: script_v1.Schema$Deployment) {
+export function getWebApplicationURL(deployment: script_v1.Schema$Deployment): string | null | undefined {
   const entryPoints = deployment.entryPoints || [];
   const webEntryPoint = entryPoints.find((entryPoint: script_v1.Schema$EntryPoint) =>
     entryPoint.entryPointType === 'WEB_APP');
   if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
-  logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
+
+  // logError(null, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
+  throw new ExitAndLogError(1, ERROR.NO_WEBAPP(deployment.deploymentId || ''));
 }
 
 /**
@@ -275,32 +302,41 @@ export function getDefaultProjectName(): string {
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
 export async function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
-  return new Promise<ProjectSettings>((resolve, reject) => {
-    const fail = (silent?: boolean) => (silent
-      ? resolve()
-      : logError(null, ERROR.SETTINGS_DNE));
-    const dotfile = DOTFILE.PROJECT();
-    if (dotfile) {
-      // Found a dotfile, but does it have the settings, or is it corrupted?
-      dotfile
-        .read<ProjectSettings>()
-        .then((settings) => {
-          // Settings must have the script ID. Otherwise we err.
-          if (settings.scriptId) {
-            resolve(settings);
-          } else {
-            // TODO: Better error message
-            fail(); // Script ID DNE
-          }
-        })
-        .catch((err: object) => {
-          fail(failSilently); // Failed to read dotfile
-        });
-    } else {
-      fail(); // Never found a dotfile
+  const settings = await getProjectSettingsIfExist();
+  if (settings) return settings;
+  throw new ExitAndLogError(1, ERROR.SETTINGS_DNE);
+}
+
+/**
+ * Gets the project settings from the project dotfile. Logs errors.
+ * ! Should be used instead of `DOTFILE.PROJECT().read()`
+ * @param  {boolean} failSilently Don't err when dot file DNE.
+ * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
+ */
+export async function getProjectSettingsIfExist(): Promise<ProjectSettings | undefined> {
+  const dotfile = DOTFILE.PROJECT();
+  if (dotfile) {
+    // Found a dotfile, but does it have the settings, or is it corrupted?
+    try {
+      const settings = await dotfile.read<ProjectSettings>();
+      // Settings must have the script ID. Otherwise we err.
+      if (settings.scriptId) {
+        return settings;
+      }
+
+      // TODO: Better error message
+      throw new ExitAndLogError(1, ERROR.SETTINGS_DNE); // Script ID DNE
+    } catch (error) {
+      // Rethrow `ExitAndLogError`s
+      if (error instanceof ExitAndLogError) {
+        throw error;
+      }
+
+      return undefined; // Failed to read dotfile
     }
-  })
-  .catch((error) => logError(error));
+  } else {
+    throw new ExitAndLogError(1, ERROR.SETTINGS_DNE); // Never found a dotfile
+  }
 }
 
 /**
@@ -309,7 +345,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
  * @return {string}           The API's FileType enum (uppercase), null if not valid.
  */
 export function getAPIFileType(filePath: string): string {
-  const extension = filePath.substr(filePath.lastIndexOf('.') + 1).toUpperCase();
+  const extension = filePath.slice(filePath.lastIndexOf('.') + 1).toUpperCase();
   // const extension = filePath.slice(filePath.lastIndexOf('.') + 1).toUpperCase();
   return extension === 'GS' || extension === 'JS' ? 'SERVER_JS' : extension;
 }
@@ -323,17 +359,20 @@ export async function safeIsOnline(): Promise<boolean> {
   if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
     return true;
   }
+
   return isOnline();
 }
 
 /**
  * Checks if the network is available. Gracefully exits if not.
  */
-export async function checkIfOnline() {
+export async function checkIfOnline(): Promise<true> {
   if (await safeIsOnline()) {
     return true;
   }
-  logError(null, ERROR.OFFLINE);
+
+  // logError(null, ERROR.OFFLINE);
+  throw new ExitAndLogError(1, ERROR.OFFLINE);
 }
 
 /**
@@ -345,9 +384,10 @@ export async function saveProject(
   newProjectSettings: ProjectSettings,
   append = true): Promise<ProjectSettings> {
   if (append) {
-    const projectSettings: ProjectSettings = await getProjectSettings();
+    const projectSettings = await getProjectSettings();
     newProjectSettings = { ...projectSettings, ...newProjectSettings };
   }
+
   return DOTFILE.PROJECT().write(newProjectSettings);
 }
 
@@ -357,20 +397,25 @@ export async function saveProject(
  */
 export async function getProjectId(promptUser = true): Promise<string> {
   try {
-    const projectSettings: ProjectSettings = await getProjectSettings();
-    if (projectSettings.projectId) return projectSettings.projectId;
+    const projectSettings = await getProjectSettings();
+    if (projectSettings?.projectId) return projectSettings.projectId;
     if (!promptUser) throw new Error('Project ID not found.');
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-    await projectIdPrompt().then(async (answers) => {
-      projectSettings.projectId = answers.projectId;
-      await DOTFILE.PROJECT().write(projectSettings);
-    });
+    const answers = await projectIdPrompt();
+    projectSettings.projectId = answers.projectId;
+    await DOTFILE.PROJECT().write(projectSettings);
+
     return projectSettings.projectId || '';
   } catch (error) {
-    logError(null, error.message);
+    // Rethrow `ExitAndLogError`s
+    if (error instanceof ExitAndLogError) {
+      throw error;
+    }
+
+    // logError(null, error.message);
+    throw new ExitAndLogError(1, error.message);
   }
-  throw new Error('Project ID not found');
 }
 
 /**
@@ -378,7 +423,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
  * @param {string} type The input file type. (i.e. docs, forms, sheets, slides)
  * @returns The name like "Google Docs".
  */
-function getFileTypeName(type: string) {
+function getFileTypeName(type: string): string {
   const name: { [key: string]: string } = {
     docs: 'Google Doc',
     forms: 'Google Form',
@@ -393,34 +438,35 @@ function getFileTypeName(type: string) {
  * @param {string} type The Apps Script project type. (i.e. docs, forms, sheets, slides)
  * @returns The script type (i.e. "Google Docs Add-on")
  */
-function getScriptTypeName(type: string) {
+function getScriptTypeName(type: string): string {
   const fileType = getFileTypeName(type);
   return fileType ? `${fileType}s Add-on` : type;
 }
 
-/**
- * Handles error of each command.
- */
-// tslint:disable-next-line:no-any
-export function handleError(command: (...args: any[]) => Promise<unknown>) {
-  // tslint:disable-next-line:no-any
-  return async (...args: any[]) => {
-    try {
-      await command(...args);
-      if (spinner.isSpinning()) spinner.stop(true);
-    } catch (error) {
-      spinner.stop(true);
-      logError(null, error.message);
-    }
-  };
-}
+// /**
+//  * Handles error of each command.
+//  */
+// // tslint:disable-next-line:no-any
+// export function handleError(command: (...args: any[]) => Promise<unknown>) {
+//   // tslint:disable-next-line:no-any
+//   return async (...args: unknown[]) => {
+//     try {
+//       await command(...args);
+//       if (spinner.isSpinning()) spinner.stop(true);
+//     } catch (error) {
+//       spinner.stop(true);
+//       logError(null, error.message);
+//       throw new Error('Because Typescript does not understand that `logError` never returns');
+//     }
+//   };
+// }
 
 /**
  * Validate the project id.
  * @param {string} projectId The project id.
  * @returns {boolean} Is the project id valid
  */
-export function isValidProjectId(projectId: string) {
+export function isValidProjectId(projectId: string): boolean {
   return /^[a-z][-\da-z]{5,29}$/.test(projectId);
 }
 

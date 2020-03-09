@@ -8,7 +8,9 @@ import { checkIfOnline, getProjectSettings, LOG, spinner } from '../utils';
  */
 export default async (cmd: { versionNumber: number }): Promise<void> => {
   await checkIfOnline();
-  const { scriptId, rootDir } = await getProjectSettings();
+  const settings = await getProjectSettings();
+  const scriptId = settings?.scriptId;
+  const rootDir = settings?.rootDir;
   if (scriptId) {
     spinner.setSpinnerTitle(LOG.PULLING);
     const files = await fetchProject(scriptId, cmd.versionNumber);

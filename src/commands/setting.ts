@@ -1,5 +1,5 @@
 import { ProjectSettings } from '../dotfile';
-import { ERROR, getProjectSettings, logError, saveProject } from '../utils';
+import { ERROR, ExitAndLogError, getProjectSettings, saveProject } from '../utils';
 
 /**
  * Gets or sets a setting in .clasp.json
@@ -7,7 +7,7 @@ import { ERROR, getProjectSettings, logError, saveProject } from '../utils';
  * @param {string?} settingValue Optional value to set the key to
  */
 export default async (settingKey?: keyof ProjectSettings, settingValue?: string): Promise<void> => {
-  let currentSettings = await getProjectSettings();
+  const currentSettings = await getProjectSettings() ?? ({} as ProjectSettings);
 
   // Display all settings if ran `clasp setting`.
   if (!settingKey) {
@@ -16,23 +16,9 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
   }
 
   // Make a new spinner piped to stdErr so we don't interfere with output
-  if (!settingValue) {
-    if (settingKey in currentSettings) {
-      let keyValue = currentSettings[settingKey];
-      if (Array.isArray(keyValue)) {
-        keyValue = keyValue.toString();
-      } else if (typeof keyValue !== 'string') {
-        keyValue = '';
-      }
-      // We don't use console.log as it automatically adds a new line
-      // Which interfers with storing the value
-      process.stdout.write(keyValue);
-    } else {
-      logError(null, ERROR.UNKNOWN_KEY(settingKey));
-    }
-  } else {
+
+  if (settingValue) {
     try {
-      currentSettings = await getProjectSettings();
       const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
       switch (settingKey) {
         case 'scriptId':
@@ -48,14 +34,36 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
           currentSettings.fileExtension = settingValue;
           break;
         default:
-          logError(null, ERROR.UNKNOWN_KEY(settingKey));
-      }
+          // logError(null, ERROR.UNKNOWN_KEY(settingKey));
+          throw new ExitAndLogError(1, ERROR.UNKNOWN_KEY(settingKey));
+        }
+
       // filePushOrder doesn't work since it requires an array.
       // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
       await saveProject(currentSettings, true);
-      console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
+      console.log(`Updated "${settingKey}": ${JSON.stringify(currentValue)} → "${settingValue}"`);
     } catch (error) {
-      logError(null, 'Unable to update .clasp.json');
+      // Rethrow `ExitAndLogError`s
+      if (error instanceof ExitAndLogError) {
+        throw error;
+      }
+
+      // logError(null, 'Unable to update .clasp.json');
+      throw new ExitAndLogError(1, 'Unable to update .clasp.json');
     }
+  } else if (settingKey in currentSettings) {
+    let keyValue = currentSettings[settingKey];
+    if (Array.isArray(keyValue)) {
+      keyValue = keyValue.toString();
+    } else if (typeof keyValue !== 'string') {
+      keyValue = '';
+    }
+
+    // We don't use console.log as it automatically adds a new line
+    // Which interfers with storing the value
+    process.stdout.write(keyValue);
+  } else {
+    // logError(null, ERROR.UNKNOWN_KEY(settingKey));
+    throw new ExitAndLogError(1, ERROR.UNKNOWN_KEY(settingKey));
   }
 };

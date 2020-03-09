@@ -7,7 +7,16 @@ import { loadAPICredentials, logger } from '../auth';
 import { DOTFILE, ProjectSettings } from '../dotfile';
 import { projectIdPrompt } from '../inquirer';
 import { URL } from '../urls';
-import { checkIfOnline, ERROR, getProjectSettings, isValidProjectId, LOG, logError, spinner } from '../utils';
+import {
+  checkIfOnline,
+  ERROR,
+  ExitAndLogError,
+  getProjectSettings,
+  isValidProjectId,
+  LOG,
+  spinner,
+  getErrorDescription,
+} from '../utils';
 
 /**
  * Prints StackDriver logs from this Apps Script project.
@@ -26,16 +35,18 @@ export default async (cmd: {
 }): Promise<void> => {
   await checkIfOnline();
   // Get project settings.
-  let { projectId } = await getProjectSettings();
+  const settings = await getProjectSettings();
+  let projectId = settings?.projectId;
   projectId = cmd.setup ? await setupLogs() : projectId;
   if (!projectId) {
     console.log(LOG.NO_GCLOUD_PROJECT);
     projectId = await setupLogs();
     console.log(LOG.LOGS_SETUP);
   }
+
   // If we're opening the logs, get the URL, open, then quit.
   if (cmd.open) {
-    const url = URL.LOGS(projectId);
+    const url = URL.LOGS(projectId ?? 'undefined');
     console.log(`Opening logs: ${url}`);
     await open(url, { wait: false });
     return;
@@ -67,16 +78,12 @@ const logEntryCache: { [key: string]: boolean } = {};
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-function printLogs(
-  entries: logging_v2.Schema$LogEntry[] = [],
-  formatJson: boolean,
-  simplified: boolean,
-): void {
+function printLogs(entries: logging_v2.Schema$LogEntry[] = [], formatJson: boolean, simplified: boolean): void {
   entries.reverse(); // print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; i += 1) {
     const {
       severity = '',
-      timestamp = '',
+      timestamp,
       resource,
       textPayload = '',
       protoPayload = {},
@@ -86,8 +93,7 @@ function printLogs(
     if (!resource || !resource.labels) return;
     let functionName = resource.labels.function_name;
     functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
-    // tslint:disable-next-line:no-any
-    let payloadData: any = '';
+    let payloadData = '';
     if (formatJson) {
       payloadData = JSON.stringify(entries[i], null, 2);
     } else {
@@ -95,18 +101,24 @@ function printLogs(
         textPayload,
         // chokes on unmatched json payloads
         // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
-        jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).slice(0, 255) : '',
+        jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).slice(0, 255) : undefined,
         protoPayload,
       };
-      payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
-      if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
-        payloadData = LOG.STACKDRIVER_SETUP;
+      let dataToTest: string | { [key: string]: unknown; '@type'?: string } =
+        data.textPayload ?? data.jsonPayload ?? data.protoPayload ?? ERROR.PAYLOAD_UNKNOWN;
+      if (
+        typeof dataToTest === 'object' &&
+        dataToTest?.['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog'
+      ) {
+        dataToTest = LOG.STACKDRIVER_SETUP;
         functionName = protoPayload!.methodName.padEnd(15);
       }
-      if (payloadData && typeof payloadData === 'string') {
-        payloadData = payloadData.padEnd(20);
+
+      if (typeof dataToTest === 'string') {
+        payloadData = dataToTest.padEnd(20);
       }
     }
+
     const coloredStringMap: { [key: string]: string } = {
       ERROR: chalk.red(severity),
       INFO: chalk.cyan(severity),
@@ -123,40 +135,68 @@ function printLogs(
       } else {
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
+
       logEntryCache[insertId!] = true;
     }
   }
 }
 
-async function setupLogs(): Promise<string> {
-  let projectId: string;
-  return new Promise<string>((resolve, reject) => {
-    getProjectSettings().then((projectSettings) => {
+async function setupLogs(): Promise<string | undefined> {
+  let projectId;
+
+  try {
+    const projectSettings = await getProjectSettings();
+    if (projectSettings) {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-      projectIdPrompt()
-        .then((answers) => {
-          projectId = answers.projectId;
-          const dotfile = DOTFILE.PROJECT();
-          if (!dotfile) logError(null, ERROR.SETTINGS_DNE);
-          dotfile
-            .read<ProjectSettings>()
-            .then((settings) => {
-              if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write({ ...settings, ...{ projectId } });
-              resolve(projectId);
-            })
-            .catch((error: object) => logError(error));
-        })
-        .catch((error: Error) => {
-          console.log(error);
-          reject();
-        });
-    });
-  }).catch((error) => {
+      const answers = await projectIdPrompt();
+      try {
+        projectId = answers.projectId;
+        const dotfile = DOTFILE.PROJECT();
+        if (!dotfile) {
+          // logError(null, ERROR.SETTINGS_DNE);
+          throw new ExitAndLogError(1, ERROR.SETTINGS_DNE);
+        }
+
+        const settings = await dotfile.read<ProjectSettings>();
+        try {
+          if (!settings.scriptId) {
+            // logError(ERROR.SCRIPT_ID_DNE);
+            throw new ExitAndLogError(1, ERROR.SCRIPT_ID_DNE);
+          }
+
+          dotfile.write({ ...settings, ...{ projectId } });
+        } catch (error) {
+          // Rethrow `ExitAndLogError`s
+          if (error instanceof ExitAndLogError) {
+            throw error;
+          }
+
+          // logError(error);
+          throw new ExitAndLogError(1, getErrorDescription(error));
+        }
+      } catch (error) {
+        // Rethrow `ExitAndLogError`s
+        if (error instanceof ExitAndLogError) {
+          throw error;
+        }
+
+        console.log(error);
+        throw error;
+      }
+    }
+  } catch (error) {
+    // Rethrow `ExitAndLogError`s
+    if (error instanceof ExitAndLogError) {
+      throw error;
+    }
+
     if (spinner.isSpinning()) spinner.stop(true);
-    return logError(error); // only because tsc doesn't understand logError never return type
-  });
+    // logError(error);
+    throw new ExitAndLogError(1, getErrorDescription(error));
+  }
+
+  return projectId;
 }
 
 /**
@@ -177,14 +217,18 @@ async function fetchAndPrintLogs(
   if (startDate) {
     filter = `timestamp >= "${startDate.toISOString()}"`;
   }
+
   // validate projectId
   if (!projectId) {
-    logError(null, ERROR.NO_GCLOUD_PROJECT);
-    return; // only because tsc doesn't understand logError never return type
+    // logError(null, ERROR.NO_GCLOUD_PROJECT);
+    throw new ExitAndLogError(1, ERROR.NO_GCLOUD_PROJECT);
   }
+
   if (!isValidProjectId(projectId)) {
-    logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
+    // logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
+    throw new ExitAndLogError(1, ERROR.PROJECT_ID_INCORRECT(projectId));
   }
+
   try {
     const logs = await logger.entries.list({
       requestBody: {
@@ -199,27 +243,41 @@ async function fetchAndPrintLogs(
     if (filter.length > 0) {
       console.log(filter);
     }
+
     // Parse response and print logs or print error message.
-    const parseResponse = (response: GaxiosResponse<logging_v2.Schema$ListLogEntriesResponse>) => {
+    const parseResponse = (response: GaxiosResponse<logging_v2.Schema$ListLogEntriesResponse>): void => {
       if (response.status !== 200) {
         switch (response.status) {
           case 401:
-            logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+            // logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+            throw new ExitAndLogError(
+              1,
+              oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED,
+            );
           case 403:
-            logError(
-              null,
+            // logError(null, oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
+            throw new ExitAndLogError(
+              1,
               oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED,
             );
           default:
-            logError(null, `(${response.status}) Error: ${response.statusText}`);
+            // logError(null, `(${response.status}) Error: ${response.statusText}`);
+            throw new ExitAndLogError(1, `(${response.status}) Error: ${response.statusText}`);
         }
       } else {
-        printLogs(response.data.entries, formatJson, simplified);
+        printLogs(response.data.entries ?? [], formatJson, simplified);
       }
     };
+
     parseResponse(logs);
   } catch (error) {
+    // Rethrow `ExitAndLogError`s
+    if (error instanceof ExitAndLogError) {
+      throw error;
+    }
+
     if (spinner.isSpinning()) spinner.stop(true);
-    logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
+    // logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
+    throw new ExitAndLogError(1, ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 }

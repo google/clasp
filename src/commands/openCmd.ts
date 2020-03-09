@@ -1,16 +1,10 @@
+import cliTruncate from 'cli-truncate';
 import open from 'open';
 
 import { loadAPICredentials, script } from '../auth';
 import { deploymentIdPrompt } from '../inquirer';
 import { URL } from '../urls';
-import { ERROR, getProjectSettings, getWebApplicationURL, LOG, logError } from '../utils';
-
-interface EllipizeOptions {
-  ellipse?: string;
-  chars?: string[];
-  truncate?: boolean | 'middle';
-}
-import ellipsize from 'ellipsize';
+import { ERROR, ExitAndLogError, getProjectSettings, getWebApplicationURL, LOG, getErrorDescription } from '../utils';
 
 /**
  * Opens an Apps Script project's script.google.com editor.
@@ -26,17 +20,23 @@ export default async (
   },
 ): Promise<void> => {
   const projectSettings = await getProjectSettings();
-  if (!scriptId) scriptId = projectSettings.scriptId;
-  if (scriptId.length < 30) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  if (!scriptId) scriptId = projectSettings?.scriptId ?? '';
+  if (scriptId.length < 30) {
+    // logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    throw new ExitAndLogError(1, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  }
+
   // We've specified to open creds.
   if (cmd.creds) {
-    const { projectId } = projectSettings;
+    const projectId = projectSettings?.projectId;
     if (projectId) {
       console.log(LOG.OPEN_CREDS(projectId));
       await open(URL.CREDS(projectId));
       return;
     }
-    logError(null, ERROR.NO_GCLOUD_PROJECT);
+
+    // logError(null, ERROR.NO_GCLOUD_PROJECT);
+    throw new ExitAndLogError(1, ERROR.NO_GCLOUD_PROJECT);
   }
 
   // If we're not a web app, open the script URL.
@@ -49,9 +49,17 @@ export default async (
   // Web app: Otherwise, open the latest deployment.
   await loadAPICredentials();
   const deploymentsList = await script.projects.deployments.list({ scriptId });
-  if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
+  if (deploymentsList.status !== 200) {
+    // logError(deploymentsList.statusText);
+    throw new ExitAndLogError(1, getErrorDescription(deploymentsList.statusText));
+  }
+
   const deployments = deploymentsList.data.deployments || [];
-  if (deployments.length === 0) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  if (deployments.length === 0) {
+    // logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    throw new ExitAndLogError(1, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  }
+
   // Order deployments by update time.
   const choices = deployments
     .slice()
@@ -59,15 +67,16 @@ export default async (
       if (d1.updateTime && d2.updateTime) {
         return d1.updateTime.localeCompare(d2.updateTime);
       }
+
       return 0; // should never happen
     })
     .map((e) => {
       const DESC_PAD_SIZE = 30;
       const config = e.deploymentConfig;
-      const version = config && config.versionNumber;
+      const version = config?.versionNumber;
       return {
         name:
-          `${ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE)
+          `${cliTruncate(config?.description ?? 'undefined', DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE)
           }@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
         value: e,
       };
@@ -77,14 +86,14 @@ export default async (
 
   const deployment = await script.projects.deployments.get({
     scriptId,
-    deploymentId: (answers.deployment.deploymentId as string),
+    deploymentId: answers.deployment.deploymentId as string,
   });
   console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId as string));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
     await open(target, { wait: false });
-    return;
   } else {
-    logError(null, `Could not open deployment: ${deployment}`);
+    // logError(null, `Could not open deployment: ${answers.deployment.deploymentId as string}`);
+    throw new ExitAndLogError(1, `Could not open deployment: ${answers.deployment.deploymentId as string}`);
   }
 };

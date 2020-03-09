@@ -2,7 +2,7 @@ import { script_v1 } from 'googleapis';
 import pluralize from 'pluralize';
 
 import { loadAPICredentials, script } from '../auth';
-import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../utils';
+import { checkIfOnline, getProjectSettings, LOG, spinner, ExitAndLogError, getErrorDescription } from '../utils';
 
 /**
  * Lists a script's deployments.
@@ -10,14 +10,21 @@ import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../ut
 export default async (): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
-  const { scriptId } = await getProjectSettings();
+  const settings = await getProjectSettings();
+  const scriptId = settings?.scriptId;
+
   if (!scriptId) return;
+
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
   const deployments = await script.projects.deployments.list({
     scriptId,
   });
   if (spinner.isSpinning()) spinner.stop(true);
-  if (deployments.status !== 200) logError(deployments.statusText);
+  if (deployments.status !== 200) {
+    // logError(deployments.statusText);
+    throw new ExitAndLogError(1, getErrorDescription(deployments.statusText));
+  }
+
   const deploymentsList = deployments.data.deployments || [];
   const numDeployments = deploymentsList.length;
   const deploymentWord = pluralize('Deployment', numDeployments);

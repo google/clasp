@@ -9,13 +9,16 @@ import { checkIfOnline, getProjectSettings, LOG } from '../utils';
 export default async (cmd: { json: boolean } = { json: false }): Promise<void> => {
   await checkIfOnline();
   await isValidManifest();
-  const { scriptId, rootDir } = await getProjectSettings();
+  const settings = await getProjectSettings();
+  const scriptId = settings?.scriptId;
+  const rootDir = settings?.rootDir;
   if (!scriptId) return;
   await getProjectFiles(rootDir, (err, projectFiles) => {
     if (err) {
       console.log(err);
       return;
     }
+
     if (projectFiles) {
       const [filesToPush, untrackedFiles] = projectFiles;
       if (cmd.json) {

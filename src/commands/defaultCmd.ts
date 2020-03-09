@@ -1,9 +1,10 @@
-import { ERROR, logError } from '../utils';
+import { ERROR, ExitAndLogError } from '../utils';
 
 /**
  * Displays a default message when an unknown command is typed.
  * @param command {string} The command that was typed.
  */
 export default async (command: string): Promise<void> => {
-  logError(null, ERROR.COMMAND_DNE(command));
+  // logError(null, ERROR.COMMAND_DNE(command));
+  throw new ExitAndLogError(1, ERROR.COMMAND_DNE(command));
 };

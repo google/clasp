@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import mkdirp from 'mkdirp';
 import multimatch from 'multimatch';
 import path from 'path';
+import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
 import ts from 'typescript';
@@ -12,10 +13,11 @@ import { DOT, DOTFILE } from './dotfile';
 import {
   checkIfOnline,
   ERROR,
+  ExitAndLogError,
   getAPIFileType,
+  getErrorDescription,
   getProjectSettings,
   LOG,
-  logError,
   PROJECT_MANIFEST_FILENAME,
   spinner,
 } from './utils';
@@ -24,7 +26,7 @@ import {
 export const FS_OPTIONS = { encoding: 'utf8' };
 
 // An Apps Script API File
-interface AppsScriptFile {
+export interface AppsScriptFile {
   name: string;
   type: string;
   source: string;
@@ -66,6 +68,7 @@ function getTranspileOptions(): ts.TranspileOptions {
       compilerOptions: parsedConfigResult.config.compilerOptions,
     };
   }
+
   return {};
 }
 
@@ -79,8 +82,9 @@ function getTranspileOptions(): ts.TranspileOptions {
  *   files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
  * @todo Make this function actually return a Promise that can be awaited.
  */
-export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
-  const { filePushOrder } = await getProjectSettings();
+export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback): Promise<void> {
+  const settings = await getProjectSettings();
+  const filePushOrder = settings?.filePushOrder;
 
   // Load tsconfig
   const userConf = getTranspileOptions();
@@ -95,7 +99,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
 
     // Replace OS specific path separator to common '/' char for console output
     filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
-    filePaths.sort(); // Sort files alphanumerically
+    filePaths.sort((a, b) => a.localeCompare(b)); // Sort files alphanumerically
 
     // dispatch with patterns from .claspignore
     const filesToPush: string[] = [];
@@ -121,7 +125,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         abortPush = true;
         // only print error once (for .gs)
         if (path.extname(name) === '.gs') {
-          logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
+          // logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
+          throw new ExitAndLogError(1, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
         }
       }
     });
@@ -133,7 +138,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     const file2path: Array<{ path: string; file: AppsScriptFile }> = []; // used by `filePushOrder`
     // Loop through files that are not ignored
     let files = filesToPush
-      .map((name, i) => {
+      .map((name, i): AppsScriptFile | undefined => {
         const normalizedName = path.normalize(name);
 
         let type = getAPIFileType(name);
@@ -163,8 +168,9 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
           file2path.push({ file, path: name }); // allow matching of nonIgnoredFilePaths and files arrays
           return file;
         }
+
         ignoredFilePaths.push(name);
-        // return; // Skip ignored files
+        return undefined; // Skip ignored files
       })
       .filter(Boolean); // remove null values
 
@@ -173,7 +179,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     // This is needed because Apps Script blindly executes files in order of creation time.
     // The Apps Script API updates the creation time of files.
     if (filePushOrder && filePushOrder.length > 0) { // skip "filePushOrder": []
-    if (spinner.isSpinning()) spinner.stop(true);
+      if (spinner.isSpinning()) spinner.stop(true);
       console.log('Detected filePushOrder setting. Pushing these files first:');
       logFileList(filePushOrder);
       console.log('');
@@ -224,13 +230,15 @@ export function isValidFileName(name: string,
     // https://developers.google.com/apps-script/api/reference/rest/v1/File
     valid = type === 'SERVER_JS' || type === 'HTML';
   }
+
   // Prevent node_modules/@types/
   if (name.includes('node_modules/@types')) {
     return false;
   }
-  const validType = type && isValidJSONIfJSON;
+
+  const validType = Boolean(type && isValidJSONIfJSON);
   const notIgnored = !ignoreMatches.includes(name);
-  valid = !!(valid && validType && notIgnored);
+  valid = Boolean(valid && validType && notIgnored);
   return valid;
 }
 
@@ -242,7 +250,7 @@ export function isValidFileName(name: string,
  * @param {string} rootDir The directory to save the project files to.
  * @param {string} filePath Path of file that is part of the current project
  */
-export function getAppsScriptFileName(rootDir: string, filePath: string) {
+export function getAppsScriptFileName(rootDir: string, filePath: string): string {
   const nameWithoutExt = filePath.slice(0, -path.extname(filePath).length);
   let fullFilePathNoExt = rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt;
   // Replace OS specific path separator to common '/' char
@@ -271,11 +279,14 @@ export async function fetchProject(
       versionNumber,
     });
   } catch (error) {
-    if (error.statusCode === 404) {
-      throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    // Rethrow `ExitAndLogError`s
+    if (error instanceof ExitAndLogError) {
+      throw error;
     }
+
     throw new Error(ERROR.SCRIPT_ID);
   }
+
   if (spinner.isSpinning()) spinner.stop(true);
   const { data } = res;
   if (!data.files) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
@@ -288,41 +299,59 @@ export async function fetchProject(
  * @param {AppsScriptFile[]} Files to wirte
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
-export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
-  const { fileExtension } = await getProjectSettings();
+export async function writeProjectFiles(files: AppsScriptFile[], rootDir = ''): Promise<void> {
+  const settings = await getProjectSettings();
+  const fileExtension = settings?.fileExtension;
   // ? following statement mutates variable `files`. Is that desirable?
   files.sort((file1, file2) => file1.name.localeCompare(file2.name));
   const sortedFiles = files;
-  sortedFiles.forEach((file) => {
+
+  const mapper = async (file: AppsScriptFile): Promise<void> => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
-    mkdirp(path.dirname(truePath))
-      .then(() => {
-        if (!file.source) return; // disallow empty files
-        fs.writeFile(truePath, file.source, (err) => {
-          if (err) logError(err, ERROR.FS_FILE_WRITE);
-        });
-        // Log only filename if pulling to root (Code.gs vs ./Code.gs)
-        console.log(`└─ ${rootDir ? truePath : filePath}`);
-      })
-      .catch((reason) => logError(reason, ERROR.FS_DIR_WRITE));
-  });
+    try {
+      await mkdirp(path.dirname(truePath));
+      if (!file.source) return; // disallow empty files
+      fs.writeFile(truePath, file.source, (err) => {
+        if (err) {
+          // logError(err, ERROR.FS_FILE_WRITE);
+          throw new ExitAndLogError(1, getErrorDescription(err, ERROR.FS_FILE_WRITE));
+        }
+      });
+      // Log only filename if pulling to root (Code.gs vs ./Code.gs)
+      console.log(`└─ ${rootDir ? truePath : filePath}`);
+    } catch (error) {
+      // Rethrow `ExitAndLogError`s
+      if (error instanceof ExitAndLogError) {
+        throw error;
+      }
+
+      // logError(error, ERROR.FS_DIR_WRITE);
+      throw new ExitAndLogError(1, getErrorDescription(error, ERROR.FS_DIR_WRITE));
+    }
+  };
+
+  await pMap(sortedFiles, mapper);
 }
 
 /**
  * Pushes project files to script.google.com.
  * @param {boolean} silent If true, doesn't console.log any success message.
  */
-export async function pushFiles(silent = false) {
-  const { scriptId, rootDir } = await getProjectSettings();
+export async function pushFiles(silent = false): Promise<void> {
+  const settings = await getProjectSettings();
+  const scriptId = settings?.scriptId;
+  const rootDir = settings?.rootDir;
   if (!scriptId) return;
   // TODO Make getProjectFiles async
-  getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
+  await getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     // Check for edge cases.
     if (err) {
       if (spinner.isSpinning()) spinner.stop(true);
-      logError(err, LOG.PUSH_FAILURE);
+      // logError(err, LOG.PUSH_FAILURE);
+      throw new ExitAndLogError(1, getErrorDescription(err, LOG.PUSH_FAILURE));
     }
+
     if (!projectFiles) {
       console.log(LOG.PUSH_NO_FILES);
       if (spinner.isSpinning()) spinner.stop(true);
@@ -341,6 +370,11 @@ export async function pushFiles(silent = false) {
         },
       });
     } catch (error) {
+      // Rethrow `ExitAndLogError`s
+      if (error instanceof ExitAndLogError) {
+        throw error;
+      }
+
       console.error(LOG.PUSH_FAILURE);
       console.error(error);
     } finally {
@@ -354,4 +388,4 @@ export async function pushFiles(silent = false) {
   });
 }
 
-export const logFileList = (files: string[]) => console.log(files.map((file) => `└─ ${file}`).join('\n'));
+export const logFileList = (files: string[]): void => console.log(files.map((file) => `└─ ${file}`).join('\n'));

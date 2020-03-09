@@ -1,11 +1,12 @@
 import { readFileSync } from 'fs-extra';
 import multimatch from 'multimatch';
+import normalizeNewline from 'normalize-newline';
 import path from 'path';
 import { watchTree } from 'watch';
 
 import { loadAPICredentials } from '../auth';
 import { DOT, DOTFILE } from '../dotfile';
-import { fetchProject, FS_OPTIONS, pushFiles } from '../files';
+import { AppsScriptFile, fetchProject, FS_OPTIONS, pushFiles } from '../files';
 import { overwritePrompt } from '../inquirer';
 import { isValidManifest } from '../manifest';
 import {
@@ -17,8 +18,6 @@ import {
   spinner,
 } from '../utils';
 
-import normalizeNewline from 'normalize-newline';
-
 /**
  * Uploads all files into the script.google.com filesystem.
  * TODO: Only push the specific files that changed (rather than all files).
@@ -28,7 +27,8 @@ export default async (cmd: { watch: boolean; force: boolean }): Promise<void> =>
   await checkIfOnline();
   await loadAPICredentials();
   await isValidManifest();
-  const { rootDir } = await getProjectSettings();
+  const settings = await getProjectSettings();
+  const rootDir = settings?.rootDir;
 
   if (cmd.watch) {
     console.log(LOG.PUSH_WATCH);
@@ -46,10 +46,12 @@ export default async (cmd: { watch: boolean; force: boolean }): Promise<void> =>
           return;
         }
       }
+
       if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
         console.log('Stopping push...');
         return;
       }
+
       console.log(LOG.PUSHING);
       await pushFiles();
     });
@@ -58,6 +60,7 @@ export default async (cmd: { watch: boolean; force: boolean }): Promise<void> =>
       console.log('Stopping push...');
       return;
     }
+
     spinner.setSpinnerTitle(LOG.PUSHING).start();
     await pushFiles();
     if (spinner.isSpinning()) spinner.stop(true);
@@ -78,11 +81,13 @@ const confirmManifestUpdate = async (): Promise<boolean> => {
  * @returns {Promise<boolean>}
  */
 const manifestHasChanges = async (): Promise<boolean> => {
-  const { scriptId, rootDir } = await getProjectSettings();
+  const settings = await getProjectSettings();
+  const scriptId = settings?.scriptId as string;
+  const rootDir = settings?.rootDir;
   const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(localManifestPath, FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
-  const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);
+  const remoteManifest = remoteFiles.find((file: AppsScriptFile) => file.name === PROJECT_MANIFEST_BASENAME);
   if (!remoteManifest) throw new Error('remote manifest no found');
   return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);
 };

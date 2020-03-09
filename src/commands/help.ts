@@ -5,5 +5,5 @@ import commander from 'commander';
  */
 export default async (): Promise<void> => {
   commander.outputHelp();
-  // process.exit(0);
+  // process.exitCode = 0;
 };
