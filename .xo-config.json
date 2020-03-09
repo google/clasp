@@ -1,0 +1,14 @@
+{
+  "ignores": [".js"],
+  "space": 2,
+  "prettier": true,
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/restrict-template-expressions": "warn",
+    "capitalized-comments": "warn",
+    "promise/prefer-await-to-then": "warn",
+    "unicorn/filename-case": "warn",
+    "unicorn/no-process-exit": "warn",
+    "new-cap": "warn"
+  }
+}
