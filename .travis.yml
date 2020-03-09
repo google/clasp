@@ -1,8 +1,8 @@
 sudo: enabled
 os:
-- linux
+# - linux
 # - osx
-# - windows
+- windows
 language: node_js
 node_js:
 - "12"
