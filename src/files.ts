@@ -284,7 +284,7 @@ export async function fetchProject(
       throw error;
     }
 
-    throw new Error(ERROR.SCRIPT_ID);
+    throw new ExitAndLogError(1, ERROR.SCRIPT_ID);
   }
 
   if (spinner.isSpinning()) spinner.stop(true);
