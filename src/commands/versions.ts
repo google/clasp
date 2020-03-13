@@ -21,7 +21,7 @@ export default async (): Promise<void> => {
     res = await script.projects.versions.list({
       scriptId,
       pageSize: 200,
-      pageToken: pageToken || ''
+      pageToken: pageToken || '',
     });
     if (res && res.data) {
       versions = versions.concat(res.data.versions || []);
