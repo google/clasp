@@ -275,7 +275,10 @@ List deployments of a script.
 ### Deploy
 
 Creates a version and deploys a script.
-The response gives the version of the deployment.
+The response gives the deployment ID and the version of the deployment.
+
+For web apps, each deployment has a unique URL.
+To update/redeploy an existing deployment, provide the deployment ID.
 
 #### Options
 
@@ -288,7 +291,7 @@ The response gives the version of the deployment.
 - `clasp deploy` (create new deployment and new version)
 - `clasp deploy --versionNumber 4` (create new deployment)
 - `clasp deploy --description "Updates sidebar logo."` (deploy with description)
-- `clasp deploy --deploymentId abcd1234` (create new version)
+- `clasp deploy --deploymentId abcd1234` (redeploy and create new version)
 - `clasp deploy -V 7 -d "Updates sidebar logo." -i abdc1234`
 
 ### Undeploy
