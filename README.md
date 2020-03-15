@@ -288,8 +288,8 @@ The response gives the version of the deployment.
 - `clasp deploy` (create new deployment and new version)
 - `clasp deploy --versionNumber 4` (create new deployment)
 - `clasp deploy --description "Updates sidebar logo."` (deploy with description)
-- `clasp deploy --deploymentId 123` (create new version)
-- `clasp deploy -V 7 -d "Updates sidebar logo." -i 456`
+- `clasp deploy --deploymentId abcd1234` (create new version)
+- `clasp deploy -V 7 -d "Updates sidebar logo." -i abdc1234`
 
 ### Undeploy
 
