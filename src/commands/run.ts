@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import pluralize from 'pluralize';
 import readline from 'readline';
 
 import { getFunctionNames } from '../apiutils';
@@ -124,7 +123,7 @@ https://www.googleapis.com/auth/presentations
             await addScopeToManifest(scopes);
             const numScopes = scopes.length;
             console.log(
-              `Added ${numScopes} ${pluralize('scope', numScopes)} to your appsscript.json' oauthScopes`,
+              `Added ${numScopes} ${numScopes === 1 ? 'scope' : 'scopes'} to your appsscript.json' oauthScopes`,
             );
             console.log('Please `clasp login --creds <file>` to log in with these new scopes.');
           });
