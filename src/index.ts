@@ -43,6 +43,7 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
+import metrics from './commands/metrics';
 import { handleError, PROJECT_NAME } from './utils';
 
 // CLI
@@ -337,6 +338,16 @@ commander
   .alias('settings')
   .description('Update <settingKey> in .clasp.json')
   .action(handleError(setting));
+
+/**
+ * Show metrics
+ * @name metrics
+ * @example metrics
+ */
+commander
+  .command('metrics')
+  .description('Show metrics')
+  .action(handleError(metrics));
 
 /**
  * All other commands are given a help message.
