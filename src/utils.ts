@@ -4,7 +4,6 @@ import fs from 'fs-extra';
 import { script_v1 } from 'googleapis';
 import isOnline from 'is-online';
 import path from 'path';
-import pluralize from 'pluralize';
 
 import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
 import { projectIdPrompt } from './inquirer';
@@ -135,7 +134,7 @@ export const LOG = {
   CLONE_SUCCESS: (fileNum: number) => `Warning: files in subfolder are not accounted for unless you set a '${
     DOT.IGNORE.PATH
   }' file.
-Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
+Cloned ${fileNum} ${fileNum === 1 ? 'file' : 'files'}.`,
   CLONING: 'Cloning files...',
   CLONE_SCRIPT_QUESTION: 'Clone which script?',
   CREATE_SCRIPT_QUESTION: 'Create which script?',
@@ -173,7 +172,7 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   PULLING: 'Pulling files...',
   PUSH_FAILURE: 'Push failed. Errors:',
   PUSH_NO_FILES: 'No files to push.',
-  PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${pluralize('files', numFiles)}.`,
+  PUSH_SUCCESS: (numFiles: number) => `Pushed ${numFiles} ${numFiles === 1 ? 'file' :'files'}.`,
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files...\n',
   PUSHING: 'Pushing files...',
@@ -194,7 +193,7 @@ Cloned ${fileNum} ${pluralize('files', fileNum)}.`,
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
   VERSION_DESCRIPTION: ({ versionNumber, description }: script_v1.Schema$Version) =>
     `${versionNumber} - ${description || '(no description)'}`,
-  VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${pluralize('Version', numVersions)} ~`,
+  VERSION_NUM: (numVersions: number) => `~ ${numVersions} ${numVersions === 1 ? 'Version' : 'Versions'} ~`,
   // TODO: `SETUP_LOCAL_OAUTH` is never used
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
     Open this link: ${chalk.blue(URL.CREDS(projectId))}
