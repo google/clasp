@@ -23,6 +23,7 @@ export default async (
   cmd: {
     webapp: boolean;
     creds: boolean;
+    addon: boolean;
   },
 ): Promise<void> => {
   const projectSettings = await getProjectSettings();
@@ -37,6 +38,23 @@ export default async (
       return;
     }
     logError(null, ERROR.NO_GCLOUD_PROJECT);
+  }
+
+  // We've specified to print addons and open the first one.
+  if (cmd.addon) {
+    const { parentId } = projectSettings;
+    if (parentId && parentId.length > 0) {
+      if (parentId.length > 1) {
+        parentId.forEach(id => {
+          console.log(LOG.FOUND_PARENT(id));
+        });
+      }
+
+      console.log(LOG.OPEN_FIRST_PARENT(parentId[0]));
+      await open(URL.DRIVE(parentId[0]));
+      return;
+    }
+    logError(null, ERROR.NO_PARENT_ID);
   }
 
   // If we're not a web app, open the script URL.

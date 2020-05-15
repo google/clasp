@@ -27,6 +27,7 @@ export const TEST_APPSSCRIPT_JSON_WITH_RUN_API = JSON.stringify({
 export const IS_PR: boolean = (process.env.TRAVIS_PULL_REQUEST === 'true');
 export const SCRIPT_ID: string = process.env.SCRIPT_ID || '';
 export const PROJECT_ID: string = process.env.PROJECT_ID || '';
+export const PARENT_ID: string[] = [process.env.PROJECT_ID || ''];
 const HOME: string = process.env.HOME || '';
 
 // Paths
@@ -44,6 +45,7 @@ export const CLASP_USAGE = 'Usage: clasp <command> [options]';
 const VALID_CLASP_SETTINGS = {
   scriptId: SCRIPT_ID,
   projectId: PROJECT_ID,
+  parentId: PARENT_ID,
 };
 
 const INVALID_CLASP_SETTINGS = {
