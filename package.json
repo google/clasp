@@ -8,6 +8,7 @@
     "build-fresh": "npm cache clean --force && npm i && npm run build",
     "build-local": "tsc --project tsconfig.json",
     "watch": "tsc --project tsconfig.json --watch",
+    "prepare": "npm run build-local",
     "publish": "npm publish --access public",
     "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
     "test": "nyc mocha -r ts-node/register --cache false --timeout 100000 'tests/**/*.ts'",
