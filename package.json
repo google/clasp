@@ -68,7 +68,7 @@
   "dependencies": {
     "chalk": "^4.0.0",
     "cli-spinner": "^0.2.10",
-    "commander": "^5.1.0",
+    "commander": "^4.1.1",
     "dotf": "^1.5.1",
     "ellipsize": "^0.1.0",
     "find-up": "^4.1.0",
