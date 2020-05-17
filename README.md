@@ -52,14 +52,14 @@ You can also try clasp in Gitpod, a one-click online IDE for GitHub:
 - Classes
 - Type inference
 - Interfaces
-- [And more...](docs/typescript.md)
+- [And more…](docs/typescript.md)
 
 **➡️ Run Apps Script:** Execute your Apps Script from the command line. Features:
 
 - _Instant_ deployment.
 - Suggested functions Autocomplete (Fuzzy)
 - Easily add custom Google OAuth scopes
-- [And more...](docs/run.md)
+- [And more…](docs/run.md)
 
 **- V8 support** take advantage of the performance boost of Chrome JavaScript engine:
 
@@ -473,17 +473,17 @@ _Note_: The `.claspignore` patterns are applied relative from the `rootDir`.
 If no `.claspignore` is specified, a default set of patterns is applied. This default set will only consider the `appsscript.json` manifest and any JavaScript, TypeScript and `.html` source files within the `rootDir` folder. Child folders other than `.git` and `node_modules` are processed.
 
 ```text
-# ignore all files...
+# ignore all files…
 **/**
 
-# except the extensions...
+# except the extensions…
 !appsscript.json
 !**/*.gs
 !**/*.js
 !**/*.ts
 !**/*.html
 
-# ignore even valid files if in...
+# ignore even valid files if in…
 .git/**
 node_modules/**
 ```
