@@ -13,7 +13,7 @@
     "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
     "test": "nyc mocha -r ts-node/register --cache false --timeout 100000 'tests/**/*.ts'",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
-    "prettier": "prettier --parser typescript --single-quote --bracket-spacing --print-width 110 --trailing-comma all src/**/*.ts --write"
+    "prettier": "prettier src/*.ts src/**/*.ts --write"
   },
   "engines": {
     "node": ">= 10.3.0"
@@ -75,8 +75,8 @@
     "fs-extra": "^8.1.0",
     "fuzzy": "^0.1.3",
     "gaxios": "^3.0.3",
-    "google-auth-library": "^5.10.1",
-    "googleapis": "^47.0.0",
+    "google-auth-library": "^6.0.0",
+    "googleapis": "^51.0.0",
     "inquirer": "^7.1.0",
     "inquirer-autocomplete-prompt-ipt": "^2.0.0",
     "is-online": "^8.3.1",

@@ -8,7 +8,7 @@ Using TypeScript with your `clasp` project allows you to use features such as:
 - Classes
 - Type inference
 - Interfaces
-- And more...
+- And more…
 
 Starting with version  `1.5.0`, Clasp allows **new** and **existing** Apps Script projects to use TypeScript.
 
