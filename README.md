@@ -211,6 +211,8 @@ Updates local files with Apps Script project.
 
 Force writes all local files to script.google.com.
 
+> Warning: Google `scripts` APIs do not currently support atomic nor per file operations. Thus the `push` command always **replaces** the whole content of the online project with the files being pushed.
+
 Ignores files:
 
 - That start with a `.`
