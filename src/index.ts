@@ -50,6 +50,13 @@ import { handleError, PROJECT_NAME } from './utils';
 /**
  * Set global CLI configurations
  */
+
+/**
+ * Displays clasp version
+ */
+commander
+  .version(require('../package.json').version, '-v, --version', 'output the current version');
+
 commander
   .name(PROJECT_NAME)
   .usage('<command> [options]')
@@ -347,13 +354,6 @@ commander
   .command('*', { isDefault: true })
   .description('Any other command is not supported')
   .action(handleError(defaultCmd));
-
-/**
- * Displays clasp version
- */
-commander.option('-v, --version').on('option:version', () => {
-  console.log(require('../package.json').version);
-});
 
 // defaults to help if commands are not provided
 if (process.argv.slice(2).length === 0) {
