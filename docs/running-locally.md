@@ -16,7 +16,7 @@ Optionally, you can specify an older version.
 npm install --save-exact @google/clasp@1.7.0
 ```
 
-After this, any npm scripts using `clasp`will use the **local** version
+After this, any npm scripts using `clasp` will use the **local** version
 
 ```json
   "scripts": {
