@@ -1,12 +1,12 @@
 import { script_v1 } from 'googleapis';
-import pluralize from 'pluralize';
+
 import { loadAPICredentials, script } from '../auth';
-import { LOG, checkIfOnline, getProjectSettings, logError, spinner } from '../utils';
+import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../utils';
 
 /**
  * Lists a script's deployments.
  */
-export default async () => {
+export default async (): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings();
@@ -15,16 +15,16 @@ export default async () => {
   const deployments = await script.projects.deployments.list({
     scriptId,
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (deployments.status !== 200) logError(deployments.statusText);
   const deploymentsList = deployments.data.deployments || [];
   const numDeployments = deploymentsList.length;
-  const deploymentWord = pluralize('Deployment', numDeployments);
+  const deploymentWord = numDeployments === 1 ? 'Deployment' : 'Deployments';
   console.log(`${numDeployments} ${deploymentWord}.`);
   deploymentsList.forEach(({ deploymentId, deploymentConfig }: script_v1.Schema$Deployment) => {
     if (!deploymentId || !deploymentConfig) return; // fix ts errors
-    const versionString = !!deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
-    const description = deploymentConfig.description ? '- ' + deploymentConfig.description : '';
+    const versionString = deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
+    const description = deploymentConfig.description ? `- ${deploymentConfig.description}` : '';
     console.log(`- ${deploymentId} ${versionString} ${description}`);
   });
 };

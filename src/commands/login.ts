@@ -2,11 +2,12 @@
  * Clasp command method bodies.
  */
 import { readJsonSync } from 'fs-extra';
+
 import { enableAppsScriptAPI } from '../apiutils';
 import { authorize, getLoggedInEmail } from '../auth';
 import { FS_OPTIONS } from '../files';
 import { readManifest } from '../manifest';
-import { ERROR, LOG, checkIfOnline, hasOauthClientSettings, safeIsOnline } from '../utils';
+import { checkIfOnline, ERROR, hasOauthClientSettings, LOG, safeIsOnline } from '../utils';
 
 /**
  * Logs the user in. Saves the client credentials to an either local or global rc file.
@@ -15,12 +16,12 @@ import { ERROR, LOG, checkIfOnline, hasOauthClientSettings, safeIsOnline } from 
  * @param {string?} options.creds The location of credentials file.
  * @param {boolean?} options.status If true, prints who is logged in instead of doing login.
  */
-export default async (options: { localhost?: boolean; creds?: string; status?: boolean }) => {
+export default async (options: { localhost?: boolean; creds?: string; status?: boolean }): Promise<void> => {
   if (options.status) {
     if (hasOauthClientSettings()) {
       const email = (await safeIsOnline()) ? await getLoggedInEmail() : undefined;
 
-      if (!!email) {
+      if (email) {
         console.log(LOG.LOGGED_IN_AS(email));
       } else {
         console.log(LOG.LOGGED_IN_UNKNOWN);
@@ -28,8 +29,7 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
     } else {
       console.log(LOG.NOT_LOGGED_IN);
     }
-
-    process.exit(0);
+    // process.exit(0);
   } else {
     // Local vs global checks
     const isLocalLogin = !!options.creds;
@@ -54,8 +54,8 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
         'https://www.googleapis.com/auth/script.webapp.deploy', // Scope needed for script.run
       ]);
       console.log('');
-      console.log(`Authorizing with the following scopes:`);
-      oauthScopes.forEach(scope => {
+      console.log('Authorizing with the following scopes:');
+      oauthScopes.forEach((scope) => {
         console.log(scope);
       });
       console.log(`
@@ -92,6 +92,6 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
         ],
       });
     }
-    process.exit(0); // gracefully exit after successful login
+    // process.exit(0); // gracefully exit after successful login
   }
 };

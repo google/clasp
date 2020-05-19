@@ -25,6 +25,10 @@ clear
 
 **To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
 
+You can also try clasp in Gitpod, a one-click online IDE for GitHub:
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/google/clasp/blob/master/docs/Gitpod/)
+
 ## Features
 
 **🗺️ Develop Locally:** `clasp` allows you to develop your Apps Script projects locally. That means you can check-in your code into source control, collaborate with other developers, and use your favorite tools to develop Apps Script.
@@ -48,14 +52,20 @@ clear
 - Classes
 - Type inference
 - Interfaces
-- [And more...](docs/typescript.md)
+- [And more…](docs/typescript.md)
 
 **➡️ Run Apps Script:** Execute your Apps Script from the command line. Features:
 
 - _Instant_ deployment.
 - Suggested functions Autocomplete (Fuzzy)
 - Easily add custom Google OAuth scopes
-- [And more...](docs/run.md)
+- [And more…](docs/run.md)
+
+**- V8 support** take advantage of the performance boost of Chrome JavaScript engine:
+
+- Every ES2019 features (except ES modules)
+- Edit your `appsscript.json` manifest to choose between the **Rhino** and **V8** engines
+- Typescript users should update their `tsconfig.json` with the `"target": "2019"` compiler option
 
 ## Install
 
@@ -63,7 +73,6 @@ First download `clasp`:
 
 ```sh
 npm install -g @google/clasp
-# Alternatively: sudo npm i -g grpc @google/clasp --unsafe-perm
 ```
 
 Then enable the Google Apps Script API: https://script.google.com/home/usersettings
@@ -88,6 +97,7 @@ clasp
 - [`clasp push [--watch] [--force]`](#push)
 - [`clasp status [--json]`](#status)
 - [`clasp open [scriptId] [--webapp] [--creds] [--account <account>]`](#open)
+- [`clasp open [scriptId] [--webapp] [--creds] [--addon]`](#open)
 - [`clasp deployments`](#deployments)
 - [`clasp deploy [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
 - [`clasp undeploy [deploymentId] [--all]`](#undeploy)
@@ -202,6 +212,8 @@ Updates local files with Apps Script project.
 
 Force writes all local files to script.google.com.
 
+> Warning: Google `scripts` APIs do not currently support atomic nor per file operations. Thus the `push` command always **replaces** the whole content of the online project with the files being pushed.
+
 Ignores files:
 
 - That start with a `.`
@@ -245,9 +257,10 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 #### Options
 
 - `[scriptId]`: The optional script project to open.
-- `--webapp`: open web application in a browser.
+- `--webapp`: Open web application in a browser.
 - `--creds`: Open the URL to create credentials.
 - `--account <account>`: Open script using specific email or Google account number.
+- `--addon`: List parent IDs and open the URL of the first one.
 
 #### Examples
 
@@ -257,6 +270,7 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 - `clasp open --creds`
 - `clasp open --account user@example.com`
 - `clasp open --account 1`
+- `clasp open --addon`
 
 ### Deployments
 
@@ -269,7 +283,10 @@ List deployments of a script.
 ### Deploy
 
 Creates a version and deploys a script.
-The response gives the version of the deployment.
+The response gives the deployment ID and the version of the deployment.
+
+For web apps, each deployment has a unique URL.
+To update/redeploy an existing deployment, provide the deployment ID.
 
 #### Options
 
@@ -282,8 +299,8 @@ The response gives the version of the deployment.
 - `clasp deploy` (create new deployment and new version)
 - `clasp deploy --versionNumber 4` (create new deployment)
 - `clasp deploy --description "Updates sidebar logo."` (deploy with description)
-- `clasp deploy --deploymentId 123` (create new version)
-- `clasp deploy -V 7 -d "Updates sidebar logo." -i 456`
+- `clasp deploy --deploymentId abcd1234` (redeploy and create new version)
+- `clasp deploy -V 7 -d "Updates sidebar logo." -i abdc1234`
 
 ### Undeploy
 
@@ -462,17 +479,17 @@ _Note_: The `.claspignore` patterns are applied relative from the `rootDir`.
 If no `.claspignore` is specified, a default set of patterns is applied. This default set will only consider the `appsscript.json` manifest and any JavaScript, TypeScript and `.html` source files within the `rootDir` folder. Child folders other than `.git` and `node_modules` are processed.
 
 ```text
-# ignore all files...
+# ignore all files…
 **/**
 
-# except the extensions...
+# except the extensions…
 !appsscript.json
 !**/*.gs
 !**/*.js
 !**/*.ts
 !**/*.html
 
-# ignore even valid files if in...
+# ignore even valid files if in…
 .git/**
 node_modules/**
 ```
@@ -495,7 +512,11 @@ The following configuration values can be used:
 
 ### `scriptId` (required)
 
-Specifies the id of the Google Script project that clasp will target. It is the part located inbetween `/d/` and `/edit` in your project's URL: `https://script.google.com/d/<SCRIPT_ID>/edit`.
+Specifies the id of the Google Script project that clasp will target. 
+
+1. Open script url.
+1. File > Project properties > Script ID
+
 
 ### `rootDir` (optional)
 
@@ -522,12 +543,19 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ## Troubleshooting
 
-### Node Version
+### NodeJS Version
 
-The library requires **Node version >= 8.2.1**. Use this script to check your version and **upgrade Node if necessary**:
+The library requires **NodeJS version >= 10.3.0**.
+
+You can check your version of NodeJS with this command.
 
 ```sh
-node -v # Check Node version
+node -v
+```
+
+You can use these commands to upgrade NodeJS if necessary (**not on Windows**):
+
+```sh
 npm install -g npm # Update npm and npx
 npx n latest # use the n package to update node
 ```

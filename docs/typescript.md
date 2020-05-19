@@ -8,7 +8,7 @@ Using TypeScript with your `clasp` project allows you to use features such as:
 - Classes
 - Type inference
 - Interfaces
-- And more...
+- And more…
 
 Starting with version  `1.5.0`, Clasp allows **new** and **existing** Apps Script projects to use TypeScript.
 
@@ -205,7 +205,7 @@ Advanced Service should have TypeScript autocompletion.
 
 ### TypeScript Support
 
-Currently, `clasp` supports [`typescript@3.5.2`](https://www.npmjs.com/package/typescript/v/3.5.2). If there is a feature in a newer TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please open an issue.
+Currently, `clasp` supports [`typescript@3.8.2`](https://www.npmjs.com/package/typescript/v/3.8.2). If there is a feature in a newer TypeScript version that you'd like to support, or some experimental flag you'd like enabled, please open an issue.
 
 #### TypeScript configuration
 
@@ -226,7 +226,11 @@ By default `"compilerOptions"` uses these options:
 }
 ```
 
-> Note that the options `isolatedModules`, `noLib`, `noResolve`, `target` and `module` cannot be changed.
+> Note that the options `isolatedModules`, `noLib`, `noResolve` and `module` cannot be changed.
+
+##### V8 engine support
+
+If your Apps Script project is configured to use the V8 Engine, you should set `"target": "ES2019"`  in your `tsconfig.json`.
 
 ### Modules, exports and imports
 

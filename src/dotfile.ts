@@ -16,26 +16,12 @@ import os from 'os';
 import path from 'path';
 import findUp from 'find-up';
 import fs from 'fs-extra';
-import { Credentials } from 'google-auth-library';
-import { OAuth2ClientOptions } from 'google-auth-library/build/src/auth/oauth2client';
+import { Credentials, OAuth2ClientOptions } from 'google-auth-library';
 import stripBom from 'strip-bom';
+import dotf from 'dotf';
+import splitLines from 'split-lines';
 
-// Getting ready to switch to `dotf` embedded types
-// import { default as dotf } from 'dotf';
-// export { Dotfile } from 'dotf';
-
-// When switching, comment-out the following two exports
-export declare type Dotf = (dirname: string, name: string) => {
-  exists: () => Promise<boolean>;
-  read: <T>() => Promise<T>;
-  write: <T>(obj: T) => Promise<T>;
-  delete: () => Promise<void>;
-};
-export type Dotfile = ReturnType<Dotf>;
-
-const dotf: Dotf = require('dotf');
-const splitLines: (str: string, options?: { preserveNewLines?: boolean })
-  => string[] = require('split-lines');
+export { Dotfile } from 'dotf';
 
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';
@@ -52,6 +38,7 @@ export interface ProjectSettings {
   projectId?: string;
   fileExtension?: string;
   filePushOrder?: string[];
+  parentId?: string[];
 }
 
 // Dotfile names

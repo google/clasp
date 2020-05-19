@@ -21,11 +21,10 @@
  * clasp – The Apps Script CLI
  */
 
-import { PROJECT_NAME, handleError } from './utils';
+import commander from 'commander';
 
 import apis from './commands/apis';
 import clone from './commands/clone';
-import commander from 'commander';
 import create from './commands/create';
 import defaultCmd from './commands/defaultCmd';
 import deploy from './commands/deploy';
@@ -44,15 +43,23 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
+import { handleError, PROJECT_NAME } from './utils';
 
 // CLI
 
 /**
  * Set global CLI configurations
  */
+
+/**
+ * Displays clasp version
+ */
+commander
+  .version(require('../package.json').version, '-v, --version', 'output the current version');
+
 commander
   .name(PROJECT_NAME)
-  .usage(`<command> [options]`)
+  .usage('<command> [options]')
   .description(`${PROJECT_NAME} - The Apps Script CLI`);
 
 /**
@@ -149,7 +156,7 @@ commander
   .command('push')
   .description('Update the remote project')
   .option('-f, --force', 'Forcibly overwrites the remote manifest.')
-  .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changs.')
+  .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changes.')
   .action(handleError(push));
 
 /**
@@ -180,6 +187,7 @@ commander
   .option('--webapp', 'Open web application in the browser')
   .option('--creds', 'Open the URL to create credentials')
   .option('--account <email>', 'Authenticate with specific email when opening')
+  .option('--addon', 'List parent IDs and open the URL of the first one')
   .action(handleError(openCmd));
 
 /**
@@ -348,15 +356,8 @@ commander
   .description('Any other command is not supported')
   .action(handleError(defaultCmd));
 
-/**
- * Displays clasp version
- */
-commander.option('-v, --version').on('option:version', () => {
-  console.log(require('../package.json').version);
-});
-
 // defaults to help if commands are not provided
-if (!process.argv.slice(2).length) {
+if (process.argv.slice(2).length === 0) {
   commander.outputHelp();
 }
 // User input is provided from the process' arguments

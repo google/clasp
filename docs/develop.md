@@ -9,18 +9,24 @@ You can develop and test `clasp` on your computer by following these steps.
 - Install `tsc`: `npm install -g typescript`
 - Remove your local version of `clasp`: `npm uninstall -g @google/clasp`
   - This will prevent errors when updating `node_modules`.
+- [Fork](https://help.github.com/en/github/getting-started-with-github/fork-a-repo) the `clasp` repository 
+- Clone it to your device
+```
+git clone https://github.com/<your-github-username>/clasp.git
+cd clasp
+```
 - Install dependencies: `npm install`
 
 ### After Making a Change
 
 ```sh
-npm run build;
+npm run build
 clasp <command>
 ```
 
 #### Build Errors?
 
-If you're seeing build errors, try deleting `node_modules` and building `clasp` from scratch:
+If you're seeing build errors, try deleting the local `node_modules` and re-building `clasp` from scratch:
 
 ```sh
 rm package-lock.json

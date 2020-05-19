@@ -4,11 +4,11 @@ import { fetchProject, hasProject, writeProjectFiles } from '../files';
 import { scriptTypePrompt } from '../inquirer';
 import { manifestExists } from '../manifest';
 import {
-  ERROR,
-  LOG,
   checkIfOnline,
+  ERROR,
   getDefaultProjectName,
   getProjectSettings,
+  LOG,
   logError,
   saveProject,
   spinner,
@@ -22,7 +22,9 @@ import {
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export default async (cmd: { type: string; title: string; parentId: string; rootDir: string }) => {
+export default async (
+  cmd: { type: string; title: string; parentId: string; rootDir: string },
+): Promise<void> => {
   // Handle common errors.
   await checkIfOnline();
   if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
@@ -56,7 +58,7 @@ export default async (cmd: { type: string; title: string; parentId: string; root
       },
     });
     parentId = driveFile.data.id || '';
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     console.log(LOG.CREATE_DRIVE_FILE_FINISH(type, parentId));
   }
 
@@ -65,9 +67,9 @@ export default async (cmd: { type: string; title: string; parentId: string; root
   try {
     const { scriptId } = await getProjectSettings(true);
     if (scriptId) logError(null, ERROR.NO_NESTED_PROJECTS);
-  } catch (err) {
+  } catch (error) {
     // no scriptId (because project doesn't exist)
-    // console.log(err);
+    // console.log(error);
   }
 
   // Create a new Apps Script project
@@ -77,23 +79,24 @@ export default async (cmd: { type: string; title: string; parentId: string; root
       parentId,
     },
   });
-  spinner.stop(true);
+  if (spinner.isSpinning()) spinner.stop(true);
   if (res.status !== 200) {
     if (parentId) console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
     logError(res.statusText, ERROR.CREATE);
   }
   const createdScriptId = res.data.scriptId || '';
   console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
-  const rootDir = cmd.rootDir;
-  saveProject(
+  const { rootDir } = cmd;
+  await saveProject(
     {
       scriptId: createdScriptId,
       rootDir,
+      parentId: [parentId],
     },
     false,
   );
   if (!manifestExists(rootDir)) {
     const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
-    writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
+    await writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
   }
 };

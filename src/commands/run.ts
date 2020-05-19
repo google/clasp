@@ -1,11 +1,11 @@
-import readline from 'readline';
 import chalk from 'chalk';
-import pluralize from 'pluralize';
+import readline from 'readline';
+
 import { getFunctionNames } from '../apiutils';
 import { getLocalScript, loadAPICredentials, script } from '../auth';
 import { addScopeToManifest, isValidRunManifest } from '../manifest';
 import { URL } from '../urls';
-import { ERROR, checkIfOnline, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
+import { checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
 
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
@@ -15,7 +15,7 @@ import { ERROR, checkIfOnline, getProjectSettings, getValidJSON, logError, spinn
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  * @requires `clasp login --creds` to be run beforehand.
  */
-export default async (functionName: string, cmd: { nondev: boolean; params: string }) => {
+export default async (functionName: string, cmd: { nondev: boolean; params: string }): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings(true);
@@ -62,11 +62,11 @@ async function runFunction(functionName: string, params: string[], scriptId: str
         devMode,
       },
     });
-    spinner.stop(true);
+    if (spinner.isSpinning()) spinner.stop(true);
     if (!res || !res.data.done) {
       logError(null, ERROR.RUN_NODATA, 0); // exit gracefully in case localhost server spun up for authorize
     }
-    const data = res.data;
+    const { data } = res;
     // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
     if (data.response) {
       if (data.response.result) {
@@ -83,11 +83,11 @@ async function runFunction(functionName: string, params: string[], scriptId: str
         data.error.details[0].scriptStackTraceElements || [],
       );
     }
-  } catch (err) {
-    spinner.stop(true);
-    if (err) {
+  } catch (error) {
+    if (spinner.isSpinning()) spinner.stop(true);
+    if (error) {
       // TODO move these to logError when stable?
-      switch (err.code) {
+      switch (error.code) {
         case 401:
           // The 401 is probably due to this error:
           // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
@@ -123,7 +123,7 @@ https://www.googleapis.com/auth/presentations
             await addScopeToManifest(scopes);
             const numScopes = scopes.length;
             console.log(
-              `Added ${numScopes} ` + `${pluralize('scope', numScopes)} to your appsscript.json' oauthScopes`,
+              `Added ${numScopes} ${numScopes === 1 ? 'scope' : 'scopes'} to your appsscript.json' oauthScopes`,
             );
             console.log('Please `clasp login --creds <file>` to log in with these new scopes.');
           });
@@ -138,7 +138,7 @@ https://www.googleapis.com/auth/presentations
           logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
           break;
         default:
-          logError(null, `(${err.code}) Error: ${err.message}`);
+          logError(null, `(${error.code}) Error: ${error.message}`);
       }
     }
   }

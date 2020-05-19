@@ -1,10 +1,11 @@
-import path from 'path';
 import fs from 'fs-extra';
+import path from 'path';
+
 import { PUBLIC_ADVANCED_SERVICES } from './apis';
 import { enableOrDisableAPI, isEnabled } from './apiutils';
 import { DOT } from './dotfile';
 import { FS_OPTIONS } from './files';
-import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, logError } from './utils';
+import { ERROR, getProjectSettings, getValidJSON, logError, PROJECT_MANIFEST_FILENAME } from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -13,8 +14,9 @@ import { ERROR, PROJECT_MANIFEST_FILENAME, getProjectSettings, getValidJSON, log
  *
  * @return {boolean} True if valid project, false otherwise
  */
-export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
-  fs.existsSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME));
+export const manifestExists = (
+  rootDir: string = DOT.PROJECT.DIR,
+): boolean => fs.existsSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME));
 
 /**
  * Reads the appsscript.json manifest file.
@@ -27,7 +29,7 @@ export async function readManifest(): Promise<Manifest> {
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
     return fs.readJsonSync(manifest, FS_OPTIONS);
-  } catch (err) {
+  } catch (error) {
     return logError(null, ERROR.NO_MANIFEST(manifest));
     // throw Error('Could not read the manifest file.'); // TODO standardize errors.
   }
@@ -43,7 +45,7 @@ async function writeManifest(manifest: Manifest) {
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
     fs.writeJsonSync(manifestFilePath, manifest, { encoding: 'utf8', spaces: 2 });
-  } catch (err) {
+  } catch (error) {
     logError(null, ERROR.FS_FILE_WRITE);
   }
 }
@@ -81,7 +83,7 @@ export async function isValidRunManifest(): Promise<boolean> {
 export async function getManifest(): Promise<Manifest> {
   let { rootDir } = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifestString =  fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
+  const manifestString = fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
   return getValidJSON<Manifest>(manifestString);
 }
 
@@ -93,7 +95,7 @@ export async function addScopeToManifest(scopes: string[]) {
   const manifest = await readManifest();
   const oldScopes = manifest.oauthScopes || [];
   const newScopes = oldScopes.concat(scopes);
-  const uniqueNewScopes = Array.from(new Set(newScopes));
+  const uniqueNewScopes = [...new Set(newScopes)];
   manifest.oauthScopes = uniqueNewScopes;
   await writeManifest(manifest);
 }
@@ -148,12 +150,16 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
 
   // Disable the service (even if we may enable it)
   newEnabledAdvancedServices = manifest.dependencies.enabledAdvancedServices || [];
-  newEnabledAdvancedServices = newEnabledAdvancedServices.filter(service => service.serviceId !== serviceId);
+  newEnabledAdvancedServices = newEnabledAdvancedServices.filter(
+    (service) => service.serviceId !== serviceId,
+  );
 
   // Enable the service
   if (enable) {
     // Add new service (get the first one from the public list)
-    const newAdvancedService = PUBLIC_ADVANCED_SERVICES.filter(service => service.serviceId === serviceId)[0];
+    const newAdvancedService = PUBLIC_ADVANCED_SERVICES.filter(
+      (service) => service.serviceId === serviceId,
+    )[0];
     newEnabledAdvancedServices.push(newAdvancedService);
   }
 
