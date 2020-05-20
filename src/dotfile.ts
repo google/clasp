@@ -83,29 +83,26 @@ export const DOTFILE = {
    * Reads DOT.IGNORE.PATH to get a glob pattern of ignored paths.
    * @return {Promise<string[]>} A list of file glob patterns
    */
-  IGNORE: () => {
+  IGNORE: async () => {
     const projectPath = findUp.sync(DOT.PROJECT.PATH);
     const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
-    return new Promise<string[]>((resolve, reject) => {
-      if (
-        fs.existsSync(ignoreDirectory)
-        && fs.existsSync(DOT.IGNORE.PATH)
-      ) {
+    return new Promise<string[]>((resolve) => {
+      if (fs.existsSync(ignoreDirectory) && fs.existsSync(DOT.IGNORE.PATH)) {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
-        resolve(splitLines(buffer).filter((name: string) => name));
+        resolve((splitLines(buffer) as string[]).filter((name: string) => name));
       } else {
         const defaultClaspignore = [
-          '# ignore all files...',
+          '# ignore all files…',
           '**/**',
           '',
-          '# except the extensions...',
+          '# except the extensions…',
           '!appsscript.json',
           '!**/*.gs',
           '!**/*.js',
           '!**/*.ts',
           '!**/*.html',
           '',
-          '# ignore even valid files if in...',
+          '# ignore even valid files if in…',
           '.git/**',
           'node_modules/**',
         ];

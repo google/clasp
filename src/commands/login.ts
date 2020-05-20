@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 /**
  * Clasp command method bodies.
  */
@@ -16,7 +17,11 @@ import { checkIfOnline, ERROR, hasOauthClientSettings, LOG, safeIsOnline } from 
  * @param {string?} options.creds The location of credentials file.
  * @param {boolean?} options.status If true, prints who is logged in instead of doing login.
  */
-export default async (options: { localhost?: boolean; creds?: string; status?: boolean }): Promise<void> => {
+export default async (options: {
+  readonly localhost?: boolean;
+  readonly creds?: string;
+  readonly status?: boolean;
+}): Promise<void> => {
   if (options.status) {
     if (hasOauthClientSettings()) {
       const email = (await safeIsOnline()) ? await getLoggedInEmail() : undefined;
@@ -32,7 +37,7 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
     // process.exit(0);
   } else {
     // Local vs global checks
-    const isLocalLogin = !!options.creds;
+    const isLocalLogin = Boolean(options.creds);
     const loggedInLocal = hasOauthClientSettings(true);
     const loggedInGlobal = hasOauthClientSettings(false);
     if (isLocalLogin && loggedInLocal) console.error(ERROR.LOGGED_IN_LOCAL);
@@ -41,7 +46,7 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
     await checkIfOnline();
 
     // Localhost check
-    const useLocalhost = !!options.localhost;
+    const useLocalhost = Boolean(options.localhost);
 
     // Using own credentials.
     if (options.creds) {
@@ -49,7 +54,7 @@ export default async (options: { localhost?: boolean; creds?: string; status?: b
       // First read the manifest to detect any additional scopes in "oauthScopes" fields.
       // In the script.google.com UI, these are found under File > Project Properties > Scopes
       const manifest = await readManifest();
-      oauthScopes = manifest.oauthScopes || [];
+      oauthScopes = manifest.oauthScopes ?? [];
       oauthScopes = oauthScopes.concat([
         'https://www.googleapis.com/auth/script.webapp.deploy', // Scope needed for script.run
       ]);

@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 import chalk from 'chalk';
 import readline from 'readline';
 
@@ -15,13 +16,16 @@ import { checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinn
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  * @requires `clasp login --creds` to be run beforehand.
  */
-export default async (functionName: string, cmd: { nondev: boolean; params: string }): Promise<void> => {
+export default async (
+  functionName: string,
+  cmd: { readonly nondev: boolean; readonly params: string }
+): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const { scriptId } = await getProjectSettings(true);
-  const devMode = !cmd.nondev; // defaults to true
-  const { params: paramString = '[]' } = cmd;
-  const params = getValidJSON<string[]>(paramString);
+  const devMode = !cmd.nondev; // Defaults to true
+  const { params: jsonString = '[]' } = cmd;
+  const parameters = getValidJSON<string[]>(jsonString);
 
   await isValidRunManifest();
 
@@ -41,32 +45,33 @@ export default async (functionName: string, cmd: { nondev: boolean; params: stri
   // Get the list of functions.
   if (!functionName) functionName = await getFunctionNames(script, scriptId);
 
-  await runFunction(functionName, params, scriptId, devMode);
+  await runFunction(functionName, parameters, scriptId, devMode);
 };
 
 /**
  * Runs a function.
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
  */
-async function runFunction(functionName: string, params: string[], scriptId: string, devMode: boolean) {
+async function runFunction(functionName: string, parameters: string[], scriptId: string, devMode: boolean) {
   try {
     // Load local credentials.
     await loadAPICredentials(true);
     const localScript = await getLocalScript();
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
-    const res = await localScript.scripts.run({
+    const response = await localScript.scripts.run({
       scriptId,
       requestBody: {
         function: functionName,
-        parameters: params,
+        parameters,
         devMode,
       },
     });
     if (spinner.isSpinning()) spinner.stop(true);
-    if (!res || !res.data.done) {
-      logError(null, ERROR.RUN_NODATA, 0); // exit gracefully in case localhost server spun up for authorize
+    if (!response || !response.data.done) {
+      logError(null, ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
     }
-    const { data } = res;
+
+    const { data } = response;
     // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
     if (data.response) {
       if (data.response.result) {
@@ -80,7 +85,7 @@ async function runFunction(functionName: string, params: string[], scriptId: str
         `${chalk.red('Exception:')}`,
         data.error.details[0].errorType,
         data.error.details[0].errorMessage,
-        data.error.details[0].scriptStackTraceElements || [],
+        data.error.details[0].scriptStackTraceElements || []
       );
     }
   } catch (error) {
@@ -121,9 +126,11 @@ https://www.googleapis.com/auth/presentations
           });
           rl.on('close', async () => {
             await addScopeToManifest(scopes);
-            const numScopes = scopes.length;
+            const scopeCount = scopes.length;
             console.log(
-              `Added ${numScopes} ${numScopes === 1 ? 'scope' : 'scopes'} to your appsscript.json' oauthScopes`,
+              `Added ${scopeCount} ${
+                scopeCount === 1 ? 'scope' : 'scopes'
+              } to your appsscript.json' oauthScopes`
             );
             console.log('Please `clasp login --creds <file>` to log in with these new scopes.');
           });

@@ -44,6 +44,7 @@ import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
 import { handleError, PROJECT_NAME } from './utils';
+import { PackageJson } from 'type-fest';
 
 // CLI
 
@@ -54,8 +55,11 @@ import { handleError, PROJECT_NAME } from './utils';
 /**
  * Displays clasp version
  */
-commander
-  .version(require('../package.json').version, '-v, --version', 'output the current version');
+commander.version(
+  (require('../package.json') as Required<PackageJson>).version,
+  '-v, --version',
+  'output the current version'
+);
 
 commander
   .name(PROJECT_NAME)
@@ -84,10 +88,7 @@ commander
  * @name logout
  * @example logout
  */
-commander
-  .command('logout')
-  .description('Log out')
-  .action(handleError(logout));
+commander.command('logout').description('Log out').action(handleError(logout));
 
 /**
  * Creates a new script project.
@@ -109,8 +110,7 @@ commander
   .description('Create a script')
   .option(
     '--type <type>',
-    // tslint:disable-next-line: max-line-length
-    'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, Form, or as a standalone script, web app, or API.',
+    'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, Form, or as a standalone script, web app, or API.'
   )
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
@@ -212,7 +212,7 @@ commander
 commander
   .command('deploy')
   .description('Deploy a project')
-  .option('-V, --versionNumber <version>', 'The project version') // we can't use `version` in subcommand
+  .option('-V, --versionNumber <version>', 'The project version') // We can't use `version` in subcommand
   .option('-d, --description <description>', 'The deployment description')
   .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
   .action(handleError(deploy));
@@ -249,10 +249,7 @@ commander
  * @name versions
  * @example versions
  */
-commander
-  .command('versions')
-  .description('List versions of a script')
-  .action(handleError(versions));
+commander.command('versions').description('List versions of a script').action(handleError(versions));
 
 /**
  * Lists your most recent 10 Apps Script projects.
@@ -260,10 +257,7 @@ commander
  * @example list # helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
  * @todo Add --all flag to list all projects.
  */
-commander
-  .command('list')
-  .description('List App Scripts projects')
-  .action(handleError(list));
+commander.command('list').description('List App Scripts projects').action(handleError(list));
 
 /**
  * Prints StackDriver logs.
@@ -314,7 +308,7 @@ commander
     `List, enable, or disable APIs
   list
   enable <api>
-  disable <api>`,
+  disable <api>`
   )
   .option('--open', 'Open the API Console in the browser')
   .action(handleError(apis));
@@ -324,10 +318,7 @@ commander
  * @name help
  * @example help
  */
-commander
-  .command('help')
-  .description('Display help')
-  .action(handleError(help));
+commander.command('help').description('Display help').action(handleError(help));
 
 /**
  * Update .clasp.json settings file.
@@ -355,9 +346,10 @@ commander
   .description('Any other command is not supported')
   .action(handleError(defaultCmd));
 
-// defaults to help if commands are not provided
+// Defaults to help if commands are not provided
 if (process.argv.slice(2).length === 0) {
   commander.outputHelp();
 }
+
 // User input is provided from the process' arguments
 commander.parse(process.argv);

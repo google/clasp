@@ -1,4 +1,5 @@
-import { script_v1 } from 'googleapis';
+/* eslint-disable new-cap */
+import { script_v1 as scriptV1 } from 'googleapis';
 
 import { loadAPICredentials, script } from '../auth';
 import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../utils';
@@ -9,39 +10,40 @@ import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../ut
 export default async (): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
-  spinner.setSpinnerTitle('Grabbing versions...').start();
+  spinner.setSpinnerTitle('Grabbing versions…').start();
   const { scriptId } = await getProjectSettings();
   let maxPages = 5;
-  /** @type {script_v1.Schema$Version[] | undefined} */
-  let versions = [] as script_v1.Schema$Version[];
-  let res = undefined;
+  /** @type {scriptV1.Schema$Version[] | undefined} */
+  let versions = [] as scriptV1.Schema$Version[];
+  let response;
   /** @type {string | null | undefined} */
   let pageToken;
   do {
-    res = await script.projects.versions.list({
+    // eslint-disable-next-line no-await-in-loop
+    response = await script.projects.versions.list({
       scriptId,
       pageSize: 200,
-      pageToken: pageToken || '',
+      pageToken: pageToken ?? '',
     });
-    if (res && res.data) {
-      versions = versions.concat(res.data.versions || []);
-      pageToken = res.data.nextPageToken;
+    if (response?.data) {
+      versions = versions.concat(response.data.versions ?? []);
+      pageToken = response.data.nextPageToken;
     }
   } while (pageToken && --maxPages);
 
   if (spinner.isSpinning()) spinner.stop(true);
-  if (res.status === 200) {
+  if (response.status === 200) {
     if (versions.length > 0) {
-      const numVersions = versions.length;
-      console.log(LOG.VERSION_NUM(numVersions));
+      const versionCount = versions.length;
+      console.log(LOG.VERSION_NUM(versionCount));
       versions.reverse();
-      versions.forEach((version: script_v1.Schema$Version) => {
+      versions.forEach((version: Readonly<scriptV1.Schema$Version>) => {
         console.log(LOG.VERSION_DESCRIPTION(version));
       });
     } else {
       logError(null, LOG.DEPLOYMENT_DNE);
     }
   } else {
-    logError(res.statusText);
+    logError(response.statusText);
   }
 };

@@ -1,3 +1,4 @@
+/* eslint-disable new-cap, @typescript-eslint/prefer-readonly-parameter-types */
 import { SCRIPT_TYPES } from '../apis';
 import { drive, loadAPICredentials, script } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
@@ -22,9 +23,12 @@ import {
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export default async (
-  cmd: { type: string; title: string; parentId: string; rootDir: string },
-): Promise<void> => {
+export default async (cmd: {
+  type: string;
+  title: string;
+  parentId: string;
+  rootDir: string;
+}): Promise<void> => {
   // Handle common errors.
   await checkIfOnline();
   if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
@@ -57,7 +61,7 @@ export default async (
         name: title,
       },
     });
-    parentId = driveFile.data.id || '';
+    parentId = driveFile.data.id ?? '';
     if (spinner.isSpinning()) spinner.stop(true);
     console.log(LOG.CREATE_DRIVE_FILE_FINISH(type, parentId));
   }
@@ -67,24 +71,25 @@ export default async (
   try {
     const { scriptId } = await getProjectSettings(true);
     if (scriptId) logError(null, ERROR.NO_NESTED_PROJECTS);
-  } catch (error) {
-    // no scriptId (because project doesn't exist)
+  } catch {
+    // No scriptId (because project doesn't exist)
     // console.log(error);
   }
 
   // Create a new Apps Script project
-  const res = await script.projects.create({
+  const response = await script.projects.create({
     requestBody: {
       title,
       parentId,
     },
   });
   if (spinner.isSpinning()) spinner.stop(true);
-  if (res.status !== 200) {
-    if (parentId) console.log(res.statusText, ERROR.CREATE_WITH_PARENT);
-    logError(res.statusText, ERROR.CREATE);
+  if (response.status !== 200) {
+    if (parentId) console.log(response.statusText, ERROR.CREATE_WITH_PARENT);
+    logError(response.statusText, ERROR.CREATE);
   }
-  const createdScriptId = res.data.scriptId || '';
+
+  const createdScriptId = response.data.scriptId ?? '';
   console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
   const { rootDir } = cmd;
   await saveProject(
@@ -93,10 +98,10 @@ export default async (
       rootDir,
       parentId: [parentId],
     },
-    false,
+    false
   );
   if (!manifestExists(rootDir)) {
-    const files = await fetchProject(createdScriptId); // fetches appsscript.json, o.w. `push` breaks
-    await writeProjectFiles(files, rootDir); // fetches appsscript.json, o.w. `push` breaks
+    const files = await fetchProject(createdScriptId); // Fetches appsscript.json, o.w. `push` breaks
+    await writeProjectFiles(files, rootDir); // Fetches appsscript.json, o.w. `push` breaks
   }
 };

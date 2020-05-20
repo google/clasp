@@ -1,6 +1,7 @@
+/* eslint-disable new-cap,@typescript-eslint/default-param-last,@typescript-eslint/no-floating-promises,promise/prefer-await-to-then */
 import chalk from 'chalk';
 import { GaxiosResponse } from 'gaxios';
-import { logging_v2 } from 'googleapis';
+import { logging_v2 as loggingV2 } from 'googleapis';
 import open from 'open';
 
 import { loadAPICredentials, logger } from '../auth';
@@ -18,11 +19,11 @@ import { checkIfOnline, ERROR, getProjectSettings, isValidProjectId, LOG, logErr
  * @param cmd.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
 export default async (cmd: {
-  json: boolean;
-  open: boolean;
-  setup: boolean;
-  watch: boolean;
-  simplified: boolean;
+  readonly json: boolean;
+  readonly open: boolean;
+  readonly setup: boolean;
+  readonly watch: boolean;
+  readonly simplified: boolean;
 }): Promise<void> => {
   await checkIfOnline();
   // Get project settings.
@@ -33,6 +34,7 @@ export default async (cmd: {
     projectId = await setupLogs();
     console.log(LOG.LOGS_SETUP);
   }
+
   // If we're opening the logs, get the URL, open, then quit.
   if (cmd.open) {
     const url = URL.LOGS(projectId);
@@ -68,11 +70,11 @@ const logEntryCache: { [key: string]: boolean } = {};
  * @param entries {any[]} StackDriver log entries.
  */
 function printLogs(
-  entries: logging_v2.Schema$LogEntry[] = [],
+  entries: loggingV2.Schema$LogEntry[] = [],
   formatJson: boolean,
-  simplified: boolean,
+  simplified: boolean
 ): void {
-  entries.reverse(); // print in syslog ascending order
+  entries.reverse(); // Print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; i += 1) {
     const {
       severity = '',
@@ -86,31 +88,32 @@ function printLogs(
     if (!resource || !resource.labels) return;
     let functionName = resource.labels.function_name;
     functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
-    // tslint:disable-next-line:no-any
     let payloadData: any = '';
     if (formatJson) {
       payloadData = JSON.stringify(entries[i], null, 2);
     } else {
       const data = {
         textPayload,
-        // chokes on unmatched json payloads
+        // Chokes on unmatched json payloads
         // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
         jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).slice(0, 255) : '',
         protoPayload,
       };
-      payloadData = data.textPayload || data.jsonPayload || data.protoPayload || ERROR.PAYLOAD_UNKNOWN;
+      payloadData = data.textPayload ?? (data.jsonPayload || data.protoPayload) ?? ERROR.PAYLOAD_UNKNOWN;
       if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
         payloadData = LOG.STACKDRIVER_SETUP;
-        functionName = protoPayload!.methodName.padEnd(15);
+        functionName = (protoPayload!.methodName as string).padEnd(15);
       }
+
       if (payloadData && typeof payloadData === 'string') {
         payloadData = payloadData.padEnd(20);
       }
     }
+
     const coloredStringMap: { [key: string]: string } = {
       ERROR: chalk.red(severity),
       INFO: chalk.cyan(severity),
-      DEBUG: chalk.green(severity), // includes timeEnd
+      DEBUG: chalk.green(severity), // Includes timeEnd
       NOTICE: chalk.magenta(severity),
       WARNING: chalk.yellow(severity),
     };
@@ -123,6 +126,7 @@ function printLogs(
       } else {
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
+
       logEntryCache[insertId!] = true;
     }
   }
@@ -131,7 +135,7 @@ function printLogs(
 async function setupLogs(): Promise<string> {
   let projectId: string;
   return new Promise<string>((resolve, reject) => {
-    getProjectSettings().then((projectSettings) => {
+    getProjectSettings().then((projectSettings: Readonly<ProjectSettings>) => {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
       projectIdPrompt()
@@ -141,21 +145,21 @@ async function setupLogs(): Promise<string> {
           if (!dotfile) logError(null, ERROR.SETTINGS_DNE);
           dotfile
             .read<ProjectSettings>()
-            .then((settings) => {
+            .then((settings: Readonly<ProjectSettings>) => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
               dotfile.write({ ...settings, ...{ projectId } });
               resolve(projectId);
             })
             .catch((error: object) => logError(error));
         })
-        .catch((error: Error) => {
+        .catch((error: Readonly<Error>) => {
           console.log(error);
           reject();
         });
     });
   }).catch((error) => {
     if (spinner.isSpinning()) spinner.stop(true);
-    return logError(error); // only because tsc doesn't understand logError never return type
+    return logError(error); // Only because tsc doesn't understand logError never return type
   });
 }
 
@@ -167,7 +171,7 @@ async function fetchAndPrintLogs(
   formatJson: boolean,
   simplified: boolean,
   projectId?: string,
-  startDate?: Date,
+  startDate?: Date
 ): Promise<void> {
   const oauthSettings = await loadAPICredentials();
   spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
@@ -177,14 +181,17 @@ async function fetchAndPrintLogs(
   if (startDate) {
     filter = `timestamp >= "${startDate.toISOString()}"`;
   }
-  // validate projectId
+
+  // Validate projectId
   if (!projectId) {
     logError(null, ERROR.NO_GCLOUD_PROJECT);
-    return; // only because tsc doesn't understand logError never return type
+    return; // Only because tsc doesn't understand logError never return type
   }
+
   if (!isValidProjectId(projectId)) {
     logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
   }
+
   try {
     const logs = await logger.entries.list({
       requestBody: {
@@ -199,26 +206,30 @@ async function fetchAndPrintLogs(
     if (filter.length > 0) {
       console.log(filter);
     }
+
     // Parse response and print logs or print error message.
-    const parseResponse = (response: GaxiosResponse<logging_v2.Schema$ListLogEntriesResponse>) => {
-      if (response.status !== 200) {
+    const parseResponse = (response: GaxiosResponse<loggingV2.Schema$ListLogEntriesResponse>) => {
+      if (response.status === 200) {
+        printLogs(response.data.entries, formatJson, simplified);
+      } else {
         switch (response.status) {
           case 401:
             logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+            break;
           case 403:
             logError(
               null,
-              oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED,
+              oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED
             );
+            break;
           default:
             logError(null, `(${response.status}) Error: ${response.statusText}`);
         }
-      } else {
-        printLogs(response.data.entries, formatJson, simplified);
       }
     };
+
     parseResponse(logs);
-  } catch (error) {
+  } catch {
     if (spinner.isSpinning()) spinner.stop(true);
     logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
   }

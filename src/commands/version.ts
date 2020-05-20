@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 import { loadAPICredentials, script } from '../auth';
 import { descriptionPrompt } from '../inquirer';
 import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../utils';
@@ -13,6 +14,7 @@ export default async (description: string): Promise<void> => {
     const answers = await descriptionPrompt();
     description = answers.description;
   }
+
   spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
   const versions = await script.projects.versions.create({
     scriptId,
@@ -22,7 +24,7 @@ export default async (description: string): Promise<void> => {
   });
   if (spinner.isSpinning()) spinner.stop(true);
   if (versions.status === 200) {
-    console.log(LOG.VERSION_CREATED(versions.data.versionNumber || -1));
+    console.log(LOG.VERSION_CREATED(versions.data.versionNumber ?? -1));
   } else {
     logError(versions.statusText);
   }

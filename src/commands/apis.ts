@@ -1,5 +1,6 @@
+/* eslint-disable new-cap, @typescript-eslint/prefer-readonly-parameter-types */
 import { GaxiosResponse } from 'gaxios';
-import { serviceusage_v1 } from 'googleapis';
+import { serviceusage_v1 as serviceUsageV1 } from 'googleapis';
 import open from 'open';
 
 import { PUBLIC_ADVANCED_SERVICES } from '../apis';
@@ -13,10 +14,10 @@ import { checkIfOnline, ERROR, getProjectId, logError } from '../utils';
  * Calls functions for list, enable, or disable
  * Otherwise returns an error of command not supported
  */
-export default async (options: { open?: string }): Promise<void> => {
+export default async (options: { readonly open?: string }): Promise<void> => {
   await loadAPICredentials();
-  const subcommand: string = process.argv[3]; // clasp apis list => "list"
-  const serviceName = process.argv[4]; // clasp apis enable drive => "drive"
+  const subcommand: string = process.argv[3]; // Clasp apis list => "list"
+  const serviceName = process.argv[4]; // Clasp apis enable drive => "drive"
 
   // clasp apis --open
   if (options.open) {
@@ -27,7 +28,7 @@ export default async (options: { open?: string }): Promise<void> => {
   }
 
   // The apis subcommands.
-  const command: { [key: string]: Function } = {
+  const command: { [key: string]: () => void } = {
     enable: async () => {
       await enableOrDisableAPI(serviceName, true);
     },
@@ -40,27 +41,28 @@ export default async (options: { open?: string }): Promise<void> => {
        * List currently enabled APIs.
        */
       console.log('\n# Currently enabled APIs:');
-      const projectId = await getProjectId(); // will prompt user to set up if required
+      const projectId = await getProjectId(); // Will prompt user to set up if required
       const MAX_PAGE_SIZE = 200; // This is the max page size according to the docs.
-      const list: GaxiosResponse<
-        serviceusage_v1.Schema$ListServicesResponse
-      > = await serviceUsage.services.list({
-        parent: `projects/${projectId}`,
-        filter: 'state:ENABLED',
-        pageSize: MAX_PAGE_SIZE,
-      });
-      const serviceList = list.data.services || [];
+      const list: GaxiosResponse<serviceUsageV1.Schema$ListServicesResponse> = await serviceUsage.services.list(
+        {
+          parent: `projects/${projectId}`,
+          filter: 'state:ENABLED',
+          pageSize: MAX_PAGE_SIZE,
+        }
+      );
+      const serviceList = list.data.services ?? [];
       if (serviceList.length >= MAX_PAGE_SIZE) {
         console.log('There is a bug with pagination. Please file an issue on Github.');
       }
 
       // Filter out the disabled ones. Print the enabled ones.
       const enabledAPIs = serviceList.filter(
-        (service: serviceusage_v1.Schema$GoogleApiServiceusageV1Service) => service.state === 'ENABLED',
+        (service: Readonly<serviceUsageV1.Schema$GoogleApiServiceusageV1Service>) =>
+          service.state === 'ENABLED'
       );
       for (const enabledAPI of enabledAPIs) {
         if (enabledAPI.config && enabledAPI.config.documentation) {
-          const name = enabledAPI.config.name || 'Unknown name.';
+          const name = enabledAPI.config.name ?? 'Unknown name.';
           console.log(`${name.slice(0, name.indexOf('.'))} - ${enabledAPI.config.documentation.summary}`);
         }
       }
@@ -72,26 +74,27 @@ export default async (options: { open?: string }): Promise<void> => {
       const { data } = await discovery.apis.list({
         preferred: true,
       });
-      const services = data.items || [];
+      const services = data.items ?? [];
       // Only get the public service IDs
       const PUBLIC_ADVANCED_SERVICE_IDS = PUBLIC_ADVANCED_SERVICES.map(
-        (advancedService) => advancedService.serviceId,
+        (advancedService) => advancedService.serviceId
       );
 
       // Merge discovery data with public services data.
       const publicServices = [];
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
         const service = services.find((s) => s.name === publicServiceId);
-        // for some reason 'youtubePartner' is not in the api list.
-        if (service && service.id && service.description) {
+        // For some reason 'youtubePartner' is not in the api list.
+        if (service?.id && service.description) {
           publicServices.push(service);
         }
       }
 
       // Sort the services based on id
-      // tslint:disable-next-line:no-any
       publicServices.sort((a: any, b: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (a.id < b.id) return -1;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (a.id > b.id) return 1;
         return 0;
       });

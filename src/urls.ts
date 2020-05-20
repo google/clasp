@@ -19,6 +19,7 @@ export const extractScriptId = (scriptId: string) => {
       scriptId = ids[0];
     }
   }
+
   return scriptId;
 };
 

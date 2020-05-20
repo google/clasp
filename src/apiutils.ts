@@ -1,38 +1,41 @@
+/* eslint-disable new-cap */
 import fuzzy from 'fuzzy';
-import { script_v1 } from 'googleapis';
+import { script_v1 as scriptV1 } from 'googleapis';
 
 import { loadAPICredentials, serviceUsage } from './auth';
 import { functionNamePrompt, functionNameSource } from './inquirer';
 import { enableOrDisableAdvanceServiceInManifest } from './manifest';
 import { ERROR, getProjectId, logError, spinner } from './utils';
+import { ReadonlyDeep } from 'type-fest';
 
 /**
  * Prompts for the function name.
  */
-export async function getFunctionNames(script: script_v1.Script, scriptId: string): Promise<string> {
+export async function getFunctionNames(
+  script: ReadonlyDeep<scriptV1.Script>,
+  scriptId: string
+): Promise<string> {
   spinner.setSpinnerTitle('Getting functions').start();
   const content = await script.projects.getContent({
     scriptId,
   });
   if (spinner.isSpinning()) spinner.stop(true);
   if (content.status !== 200) logError(content.statusText);
-  const files = content.data.files || [];
-  type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
+  const files = content.data.files ?? [];
+  type TypeFunction = scriptV1.Schema$GoogleAppsScriptTypeFunction;
   const functionNames: string[] = files
-    .reduce((functions: TypeFunction[], file: script_v1.Schema$File) => {
+    .reduce((functions: ReadonlyArray<Readonly<TypeFunction>>, file: Readonly<scriptV1.Schema$File>) => {
       if (!file.functionSet || !file.functionSet.values) return functions;
       return functions.concat(file.functionSet.values);
     }, [])
-    .map((func: TypeFunction) => func.name) as string[];
+    .map((func: Readonly<TypeFunction>) => func.name) as string[];
 
-  const source: functionNameSource = (unused: object, input = '') =>
+  const source: functionNameSource = async (_unused: object, input = '') =>
     // Returns a Promise
     // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
-    new Promise(resolve => {
+    new Promise((resolve) => {
       // Example: https://github.com/ruyadorno/inquirer-autocomplete-prompt/blob/master/example.js#L76
-      const original = fuzzy
-        .filter(input, functionNames)
-        .map((el) => el.original);
+      const original = fuzzy.filter(input, functionNames).map((element) => element.original);
 
       resolve(original);
     });
@@ -45,7 +48,7 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
  * Gets the project ID from the manifest. If there is no project ID, it returns an error.
  */
 async function getProjectIdWithErrors(): Promise<string> {
-  const projectId = await getProjectId(); // will prompt user to set up if required
+  const projectId = await getProjectId(); // Will prompt user to set up if required
   if (!projectId) logError(null, ERROR.NO_GCLOUD_PROJECT);
   return projectId;
 }
@@ -75,6 +78,7 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean): 
     } else {
       await serviceUsage.services.disable({ name });
     }
+
     await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
     console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName} API.`);
   } catch (error) {

@@ -1,5 +1,7 @@
+/* eslint-disable new-cap */
 import { readFileSync } from 'fs-extra';
 import multimatch from 'multimatch';
+import normalizeNewline from 'normalize-newline';
 import path from 'path';
 import { watchTree } from 'watch';
 
@@ -17,14 +19,12 @@ import {
   spinner,
 } from '../utils';
 
-import normalizeNewline from 'normalize-newline';
-
 /**
  * Uploads all files into the script.google.com filesystem.
  * TODO: Only push the specific files that changed (rather than all files).
  * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export default async (cmd: { watch: boolean; force: boolean }): Promise<void> => {
+export default async (cmd: { readonly watch: boolean; readonly force: boolean }): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   await isValidManifest();
@@ -37,7 +37,7 @@ export default async (cmd: { watch: boolean; force: boolean }): Promise<void> =>
      * @see https://www.npmjs.com/package/watch
      */
     // TODO check alternative https://github.com/paulmillr/chokidar
-    watchTree(rootDir || '.', async (f, curr, prev) => {
+    watchTree(rootDir ?? '.', async (f) => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
@@ -46,18 +46,21 @@ export default async (cmd: { watch: boolean; force: boolean }): Promise<void> =>
           return;
         }
       }
+
       if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
-        console.log('Stopping push...');
+        console.log('Stopping push…');
         return;
       }
+
       console.log(LOG.PUSHING);
       await pushFiles();
     });
   } else {
     if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
-      console.log('Stopping push...');
+      console.log('Stopping push…');
       return;
     }
+
     spinner.setSpinnerTitle(LOG.PUSHING).start();
     await pushFiles();
     if (spinner.isSpinning()) spinner.stop(true);
@@ -79,7 +82,7 @@ const confirmManifestUpdate = async (): Promise<boolean> => {
  */
 const manifestHasChanges = async (): Promise<boolean> => {
   const { scriptId, rootDir } = await getProjectSettings();
-  const localManifestPath = path.join(rootDir || DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
+  const localManifestPath = path.join(rootDir ?? DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(localManifestPath, FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find((file) => file.name === PROJECT_MANIFEST_BASENAME);

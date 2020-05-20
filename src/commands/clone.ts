@@ -1,3 +1,4 @@
+/* eslint-disable new-cap, @typescript-eslint/prefer-readonly-parameter-types */
 import { drive, loadAPICredentials } from '../auth';
 import { fetchProject, hasProject, writeProjectFiles } from '../files';
 import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';
@@ -13,7 +14,11 @@ import status from './status';
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export default async (scriptId: string, versionNumber: number, cmd: { rootDir: string }): Promise<void> => {
+export default async (
+  scriptId: string,
+  versionNumber: number,
+  cmd: { readonly rootDir: string }
+): Promise<void> => {
   await checkIfOnline();
   if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
@@ -42,11 +47,12 @@ const getScriptId = async (): Promise<string> => {
   const { files } = data;
   if (files && files.length > 0) {
     const fileIds: ScriptIdPrompt[] = files.map((file) => ({
-      name: `${file.name!.padEnd(20)} – ${LOG.SCRIPT_LINK(file.id || '')}`,
-      value: file.id || '',
+      name: `${file.name!.padEnd(20)} – ${LOG.SCRIPT_LINK(file.id ?? '')}`,
+      value: file.id ?? '',
     }));
     const answers = await scriptIdPrompt(fileIds);
     return answers.scriptId;
   }
+
   return logError(null, LOG.FINDING_SCRIPTS_DNE);
 };

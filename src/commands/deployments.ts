@@ -1,4 +1,5 @@
-import { script_v1 } from 'googleapis';
+/* eslint-disable new-cap */
+import { script_v1 as scriptV1 } from 'googleapis';
 
 import { loadAPICredentials, script } from '../auth';
 import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../utils';
@@ -17,12 +18,12 @@ export default async (): Promise<void> => {
   });
   if (spinner.isSpinning()) spinner.stop(true);
   if (deployments.status !== 200) logError(deployments.statusText);
-  const deploymentsList = deployments.data.deployments || [];
-  const numDeployments = deploymentsList.length;
-  const deploymentWord = numDeployments === 1 ? 'Deployment' : 'Deployments';
-  console.log(`${numDeployments} ${deploymentWord}.`);
-  deploymentsList.forEach(({ deploymentId, deploymentConfig }: script_v1.Schema$Deployment) => {
-    if (!deploymentId || !deploymentConfig) return; // fix ts errors
+  const deploymentsList = deployments.data.deployments ?? [];
+  const deploymentCount = deploymentsList.length;
+  const deploymentWord = deploymentCount === 1 ? 'Deployment' : 'Deployments';
+  console.log(`${deploymentCount} ${deploymentWord}.`);
+  deploymentsList.forEach(({ deploymentId, deploymentConfig }: Readonly<scriptV1.Schema$Deployment>) => {
+    if (!deploymentId || !deploymentConfig) return; // Fix ts errors
     const versionString = deploymentConfig.versionNumber ? `@${deploymentConfig.versionNumber}` : '@HEAD';
     const description = deploymentConfig.description ? `- ${deploymentConfig.description}` : '';
     console.log(`- ${deploymentId} ${versionString} ${description}`);

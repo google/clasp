@@ -1,3 +1,5 @@
+/* eslint-disable new-cap,unicorn/filename-case */
+import ellipsize from 'ellipsize';
 import open from 'open';
 
 import { loadAPICredentials, script } from '../auth';
@@ -10,8 +12,6 @@ interface EllipizeOptions {
   chars?: string[];
   truncate?: boolean | 'middle';
 }
-import ellipsize from 'ellipsize';
-
 /**
  * Opens an Apps Script project's script.google.com editor.
  * @param scriptId {string} The Apps Script project to open.
@@ -21,10 +21,10 @@ import ellipsize from 'ellipsize';
 export default async (
   scriptId: string,
   cmd: {
-    webapp: boolean;
-    creds: boolean;
-    addon: boolean;
-  },
+    readonly webapp: boolean;
+    readonly creds: boolean;
+    readonly addon: boolean;
+  }
 ): Promise<void> => {
   const projectSettings = await getProjectSettings();
   if (!scriptId) scriptId = projectSettings.scriptId;
@@ -37,6 +37,7 @@ export default async (
       await open(URL.CREDS(projectId));
       return;
     }
+
     logError(null, ERROR.NO_GCLOUD_PROJECT);
   }
 
@@ -45,7 +46,7 @@ export default async (
     const { parentId } = projectSettings;
     if (parentId && parentId.length > 0) {
       if (parentId.length > 1) {
-        parentId.forEach(id => {
+        parentId.forEach((id) => {
           console.log(LOG.FOUND_PARENT(id));
         });
       }
@@ -54,6 +55,7 @@ export default async (
       await open(URL.DRIVE(parentId[0]));
       return;
     }
+
     logError(null, ERROR.NO_PARENT_ID);
   }
 
@@ -68,7 +70,7 @@ export default async (
   await loadAPICredentials();
   const deploymentsList = await script.projects.deployments.list({ scriptId });
   if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
-  const deployments = deploymentsList.data.deployments || [];
+  const deployments = deploymentsList.data.deployments ?? [];
   if (deployments.length === 0) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // Order deployments by update time.
   const choices = deployments
@@ -77,17 +79,18 @@ export default async (
       if (d1.updateTime && d2.updateTime) {
         return d1.updateTime.localeCompare(d2.updateTime);
       }
-      return 0; // should never happen
+
+      return 0; // Should never happen
     })
-    .map((e) => {
+    .map((deployment) => {
       const DESC_PAD_SIZE = 30;
-      const config = e.deploymentConfig;
-      const version = config && config.versionNumber;
+      const config = deployment.deploymentConfig;
+      const version = config?.versionNumber;
       return {
-        name:
-          `${ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE)
-          }@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${e.deploymentId}`,
-        value: e,
+        name: `${ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(
+          DESC_PAD_SIZE
+        )}@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${deployment.deploymentId}`,
+        value: deployment,
       };
     });
 
@@ -95,14 +98,13 @@ export default async (
 
   const deployment = await script.projects.deployments.get({
     scriptId,
-    deploymentId: (answers.deployment.deploymentId as string),
+    deploymentId: answers.deployment.deploymentId as string,
   });
   console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId as string));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
     await open(target, { wait: false });
-    return;
   } else {
-    logError(null, `Could not open deployment: ${deployment}`);
+    logError(null, `Could not open deployment: ${JSON.stringify(deployment)}`);
   }
 };
