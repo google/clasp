@@ -10,8 +10,8 @@
     "watch": "tsc --project tsconfig.json --watch",
     "prepare": "npm run build-local",
     "publish": "npm publish --access public",
-    "lint": "tslint --project tslint.json && echo 'No lint errors. All good!'",
-    "test": "nyc mocha -r ts-node/register --cache false --timeout 100000 'tests/**/*.ts'",
+    "lint": "xo src/**.ts && echo 'No lint errors. All good!'",
+    "test": "npm run lint && nyc mocha -r ts-node/register --cache false --timeout 100000 'tests/**/*.ts'",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "prettier src/*.ts src/**/*.ts --write"
   },
