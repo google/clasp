@@ -1,4 +1,4 @@
-/* eslint-disable new-cap */
+/* eslint-disable camelcase,new-cap */
 import chalk from 'chalk';
 import { Spinner } from 'cli-spinner';
 import fs from 'fs-extra';
@@ -227,18 +227,15 @@ export const logError = (err: any, description = '', code = 1): never => {
   // change error model. Don't review this method now.
   if (err && typeof err.error === 'string') {
     description = JSON.parse(err.error).error;
-  } else if (
-    (err && err.statusCode === 401) ||
-    (err?.error && err.error.error && err.error.error.code === 401)
-  ) {
+  } else if (err?.statusCode === 401 || (err?.error && err.error.error && err.error.error.code === 401)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
     description = ERROR.UNAUTHENTICATED;
-  } else if (err?.error?.code === 403 || err.code === 403) {
+  } else if (err && ((err.error && err.error.code === 403) || err.code === 403)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.PERMISSION_DENIED : ERROR.PERMISSION_DENIED_LOCAL
     description = ERROR.PERMISSION_DENIED;
-  } else if (err?.code === 429) {
+  } else if (err && err.code === 429) {
     description = ERROR.RATE_LIMIT;
   } else if (err?.error) {
     console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
