@@ -261,6 +261,7 @@ export function getWebApplicationURL(deployment: Readonly<scriptV1.Schema$Deploy
   );
   if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
   logError(null, ERROR.NO_WEBAPP(deployment.deploymentId ?? ''));
+  throw new Error('This line should never be executed');
 }
 
 /**
@@ -336,6 +337,7 @@ export async function checkIfOnline() {
   }
 
   logError(null, ERROR.OFFLINE);
+  throw new Error('This line should never be executed');
 }
 
 /**

@@ -176,7 +176,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         }
 
         ignoredFilePaths.push(name);
-        // return; // Skip ignored files
+        return undefined; // Kludgy. Skip ignored files
       })
       .filter(Boolean); // Remove null values
 
