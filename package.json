@@ -66,6 +66,7 @@
   "author": "Grant Timmerman",
   "license": "Apache-2.0",
   "dependencies": {
+    "@sindresorhus/is": "^2.1.1",
     "chalk": "^4.0.0",
     "cli-spinner": "^0.2.10",
     "commander": "^5.1.0",
@@ -88,17 +89,17 @@
     "split-lines": "^2.0.0",
     "strip-bom": "^4.0.0",
     "ts2gas": "^3.6.2",
-    "typescript": "^3.9.2",
+    "typescript": "^3.9.3",
     "watch": "^1.0.2"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
     "@types/cli-spinner": "^0.2.0",
-    "@types/fs-extra": "^9.0.0",
+    "@types/fs-extra": "^9.0.1",
     "@types/inquirer": "^6.5.0",
     "@types/mkdirp": "^1.0.0",
     "@types/mocha": "^7.0.2",
-    "@types/node": "^12.12.39",
+    "@types/node": "^12.12.41",
     "@types/recursive-readdir": "^2.2.0",
     "@types/tmp": "^0.2.0",
     "@types/watch": "^1.0.1",
@@ -108,7 +109,9 @@
     "nyc": "^15.0.1",
     "prettier": "^2.0.4",
     "tmp": "^0.1.0",
+    "type-fest": "^0.13.1",
     "ts-node": "^8.10.1",
-    "tslint": "^6.1.2"
+    "tslint": "^6.1.2",
+    "xo": "^0.30.0"
   }
 }
