@@ -6,11 +6,6 @@ import { drive, loadAPICredentials } from '../auth';
 import { URL } from '../urls';
 import { checkIfOnline, ERROR, LOG, logError, spinner } from '../utils';
 
-interface EllipizeOptions {
-  ellipse?: string;
-  chars?: string[];
-  truncate?: boolean | 'middle';
-}
 /**
  * Lists a user's Apps Script projects using Google Drive.
  */

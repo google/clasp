@@ -7,11 +7,6 @@ import { deploymentIdPrompt } from '../inquirer';
 import { URL } from '../urls';
 import { ERROR, getProjectSettings, getWebApplicationURL, LOG, logError } from '../utils';
 
-interface EllipizeOptions {
-  ellipse?: string;
-  chars?: string[];
-  truncate?: boolean | 'middle';
-}
 /**
  * Opens an Apps Script project's script.google.com editor.
  * @param scriptId {string} The Apps Script project to open.
