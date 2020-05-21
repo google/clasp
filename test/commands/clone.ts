@@ -2,8 +2,8 @@ import {spawnSync} from 'child_process';
 import {expect} from 'chai';
 import fs from 'fs-extra';
 import {describe, it} from 'mocha';
-import {URL} from '../../src/urls';
-import {ERROR, LOG} from '../../src/utils';
+import {URL} from '../../build/src/urls';
+import {ERROR, LOG} from '../../build/src/utils';
 import {CLASP, SCRIPT_ID} from '../constants';
 import {cleanup, setup} from '../functions';
 

@@ -1,5 +1,5 @@
 import {CLASP, CLASP_PATHS, CLIENT_CREDS, FAKE_CLASPRC} from '../constants';
-import {ERROR, LOG} from '../../src/utils';
+import {ERROR, LOG} from '../../build/src/utils';
 import {backupSettings, cleanup, restoreSettings, rndStr, setup} from '../functions';
 import {describe, it} from 'mocha';
 
