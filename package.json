@@ -11,7 +11,7 @@
     "prepare": "npm run compile",
     "publish": "npm publish --access public",
     "lint": "npm run check",
-    "test": "nyc mocha -r ts-node/register --cache false --timeout 100000 'test/**/*.ts'",
+    "test": "nyc mocha -r ts-node/register --cache false --timeout 100000 --files 'test/**/*.ts'",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "prettier src test --write",
     "check": "gts check ./src/**.ts",
