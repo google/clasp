@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
-import { loadAPICredentials, script } from '../auth';
-import { descriptionPrompt } from '../inquirer';
-import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../utils';
+import {loadAPICredentials, script} from '../auth';
+import {descriptionPrompt} from '../inquirer';
+import {checkIfOnline, getProjectSettings, LOG, logError, spinner} from '../utils';
 
 /**
  * Creates a new version of an Apps Script project.
@@ -9,7 +9,7 @@ import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../ut
 export default async (description: string): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
-  const { scriptId } = await getProjectSettings();
+  const {scriptId} = await getProjectSettings();
   if (!description) {
     const answers = await descriptionPrompt();
     description = answers.description;

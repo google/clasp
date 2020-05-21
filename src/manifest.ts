@@ -3,11 +3,11 @@ import fs from 'fs-extra';
 import path from 'path';
 import is from '@sindresorhus/is';
 
-import { PUBLIC_ADVANCED_SERVICES } from './apis';
-import { enableOrDisableAPI, isEnabled } from './apiutils';
-import { DOT } from './dotfile';
-import { FS_OPTIONS } from './files';
-import { ERROR, getProjectSettings, getValidJSON, logError, PROJECT_MANIFEST_FILENAME } from './utils';
+import {PUBLIC_ADVANCED_SERVICES} from './apis';
+import {enableOrDisableAPI, isEnabled} from './apiutils';
+import {DOT} from './dotfile';
+import {FS_OPTIONS} from './files';
+import {ERROR, getProjectSettings, getValidJSON, logError, PROJECT_MANIFEST_FILENAME} from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -25,7 +25,7 @@ export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
  * @see https://developers.google.com/apps-script/concepts/manifests
  */
 export async function readManifest(): Promise<Manifest> {
-  let { rootDir } = await getProjectSettings();
+  let {rootDir} = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
@@ -40,11 +40,11 @@ export async function readManifest(): Promise<Manifest> {
  * @param {Manifest} manifest The new manifest to write.
  */
 async function writeManifest(manifest: Readonly<Manifest>) {
-  let { rootDir } = await getProjectSettings();
+  let {rootDir} = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
-    fs.writeJsonSync(manifestFilePath, manifest, { encoding: 'utf8', spaces: 2 });
+    fs.writeJsonSync(manifestFilePath, manifest, {encoding: 'utf8', spaces: 2});
   } catch {
     logError(null, ERROR.FS_FILE_WRITE);
   }
@@ -82,7 +82,7 @@ export async function isValidRunManifest(): Promise<boolean> {
  * - Is valid JSON.
  */
 export async function getManifest(): Promise<Manifest> {
-  let { rootDir } = await getProjectSettings();
+  let {rootDir} = await getProjectSettings();
   if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
   const manifestString = fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
   return getValidJSON<Manifest>(manifestString);
@@ -162,7 +162,7 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
     // Add new service (get the first one from the public list)
     const newAdvancedService = PUBLIC_ADVANCED_SERVICES.filter(
       // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-      (service) => service.serviceId === serviceId
+      service => service.serviceId === serviceId
     )[0];
     newEnabledAdvancedServices.push(newAdvancedService);
   }

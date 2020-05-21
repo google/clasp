@@ -1,9 +1,9 @@
-/* eslint-disable new-cap, @typescript-eslint/prefer-readonly-parameter-types */
-import { drive, loadAPICredentials } from '../auth';
-import { fetchProject, hasProject, writeProjectFiles } from '../files';
-import { ScriptIdPrompt, scriptIdPrompt } from '../inquirer';
-import { extractScriptId } from '../urls';
-import { checkIfOnline, ERROR, LOG, logError, saveProject, spinner } from '../utils';
+/* eslint-disable new-cap,@typescript-eslint/prefer-readonly-parameter-types */
+import {drive, loadAPICredentials} from '../auth';
+import {fetchProject, hasProject, writeProjectFiles} from '../files';
+import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer';
+import {extractScriptId} from '../urls';
+import {checkIfOnline, ERROR, LOG, logError, saveProject, spinner} from '../utils';
 import status from './status';
 
 /**
@@ -14,17 +14,13 @@ import status from './status';
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export default async (
-  scriptId: string,
-  versionNumber: number,
-  cmd: { readonly rootDir: string }
-): Promise<void> => {
+export default async (scriptId: string, versionNumber: number, cmd: {readonly rootDir: string}): Promise<void> => {
   await checkIfOnline();
   if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
-  const { rootDir } = cmd;
-  await saveProject({ scriptId, rootDir }, false);
+  const {rootDir} = cmd;
+  await saveProject({scriptId, rootDir}, false);
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
   await status();
@@ -42,11 +38,11 @@ const getScriptId = async (): Promise<string> => {
     orderBy: 'modifiedByMeTime desc',
     q: 'mimeType="application/vnd.google-apps.script"',
   });
-  const { data } = list;
+  const {data} = list;
   if (!data) logError(list.statusText, 'Unable to use the Drive API.');
-  const { files } = data;
+  const {files} = data;
   if (files && files.length > 0) {
-    const fileIds: ScriptIdPrompt[] = files.map((file) => ({
+    const fileIds: ScriptIdPrompt[] = files.map(file => ({
       name: `${file.name!.padEnd(20)} – ${LOG.SCRIPT_LINK(file.id ?? '')}`,
       value: file.id ?? '',
     }));

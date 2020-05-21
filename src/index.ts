@@ -22,6 +22,7 @@
  */
 
 import commander from 'commander';
+import {PackageJson} from 'type-fest';
 
 import apis from './commands/apis';
 import clone from './commands/clone';
@@ -43,8 +44,7 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
-import { handleError, PROJECT_NAME } from './utils';
-import { PackageJson } from 'type-fest';
+import {handleError, PROJECT_NAME} from './utils';
 
 // CLI
 
@@ -61,10 +61,7 @@ commander.version(
   'output the current version'
 );
 
-commander
-  .name(PROJECT_NAME)
-  .usage('<command> [options]')
-  .description(`${PROJECT_NAME} - The Apps Script CLI`);
+commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -194,10 +191,7 @@ commander
  * @name deployments
  * @example deployments
  */
-commander
-  .command('deployments')
-  .description('List deployment ids of a script')
-  .action(handleError(deployments));
+commander.command('deployments').description('List deployment ids of a script').action(handleError(deployments));
 
 /**
  * Creates a version and deploys a script.
@@ -342,7 +336,7 @@ commander
  * @example random
  */
 commander
-  .command('*', { isDefault: true })
+  .command('*', {isDefault: true})
   .description('Any other command is not supported')
   .action(handleError(defaultCmd));
 

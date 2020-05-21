@@ -1,20 +1,17 @@
 /* eslint-disable new-cap */
 import fuzzy from 'fuzzy';
-import { script_v1 as scriptV1 } from 'googleapis';
+import {script_v1 as scriptV1} from 'googleapis';
 
-import { loadAPICredentials, serviceUsage } from './auth';
-import { functionNamePrompt, functionNameSource } from './inquirer';
-import { enableOrDisableAdvanceServiceInManifest } from './manifest';
-import { ERROR, getProjectId, logError, spinner } from './utils';
-import { ReadonlyDeep } from 'type-fest';
+import {loadAPICredentials, serviceUsage} from './auth';
+import {functionNamePrompt, functionNameSource} from './inquirer';
+import {enableOrDisableAdvanceServiceInManifest} from './manifest';
+import {ERROR, getProjectId, logError, spinner} from './utils';
+import {ReadonlyDeep} from 'type-fest';
 
 /**
  * Prompts for the function name.
  */
-export async function getFunctionNames(
-  script: ReadonlyDeep<scriptV1.Script>,
-  scriptId: string
-): Promise<string> {
+export async function getFunctionNames(script: ReadonlyDeep<scriptV1.Script>, scriptId: string): Promise<string> {
   spinner.setSpinnerTitle('Getting functions').start();
   const content = await script.projects.getContent({
     scriptId,
@@ -33,9 +30,9 @@ export async function getFunctionNames(
   const source: functionNameSource = async (_unused: object, input = '') =>
     // Returns a Promise
     // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
-    new Promise((resolve) => {
+    new Promise(resolve => {
       // Example: https://github.com/ruyadorno/inquirer-autocomplete-prompt/blob/master/example.js#L76
-      const original = fuzzy.filter(input, functionNames).map((element) => element.original);
+      const original = fuzzy.filter(input, functionNames).map(element => element.original);
 
       resolve(original);
     });
@@ -59,7 +56,7 @@ async function getProjectIdWithErrors(): Promise<string> {
  * @returns {boolean} True if the service is enabled.
  */
 export async function isEnabled(serviceName: string): Promise<boolean> {
-  const serviceDetails = await serviceUsage.services.get({ name: serviceName });
+  const serviceDetails = await serviceUsage.services.get({name: serviceName});
   return serviceDetails.data.state === 'ENABLED';
 }
 
@@ -74,9 +71,9 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean): 
   const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
   try {
     if (enable) {
-      await serviceUsage.services.enable({ name });
+      await serviceUsage.services.enable({name});
     } else {
-      await serviceUsage.services.disable({ name });
+      await serviceUsage.services.disable({name});
     }
 
     await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
@@ -96,5 +93,5 @@ export async function enableAppsScriptAPI(): Promise<void> {
   await loadAPICredentials();
   const projectId = await getProjectIdWithErrors();
   const name = `projects/${projectId}/services/script.googleapis.com`;
-  await serviceUsage.services.enable({ name });
+  await serviceUsage.services.enable({name});
 }

@@ -1,9 +1,9 @@
-/* eslint-disable new-cap, @typescript-eslint/prefer-readonly-parameter-types */
-import { SCRIPT_TYPES } from '../apis';
-import { drive, loadAPICredentials, script } from '../auth';
-import { fetchProject, hasProject, writeProjectFiles } from '../files';
-import { scriptTypePrompt } from '../inquirer';
-import { manifestExists } from '../manifest';
+/* eslint-disable new-cap,@typescript-eslint/prefer-readonly-parameter-types */
+import {SCRIPT_TYPES} from '../apis';
+import {drive, loadAPICredentials, script} from '../auth';
+import {fetchProject, hasProject, writeProjectFiles} from '../files';
+import {scriptTypePrompt} from '../inquirer';
+import {manifestExists} from '../manifest';
 import {
   checkIfOnline,
   ERROR,
@@ -23,12 +23,7 @@ import {
  * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                    If not specified, clasp will default to the current directory.
  */
-export default async (cmd: {
-  type: string;
-  title: string;
-  parentId: string;
-  rootDir: string;
-}): Promise<void> => {
+export default async (cmd: {type: string; title: string; parentId: string; rootDir: string}): Promise<void> => {
   // Handle common errors.
   await checkIfOnline();
   if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
@@ -36,8 +31,8 @@ export default async (cmd: {
 
   // Create defaults.
   const title = cmd.title || getDefaultProjectName();
-  let { type } = cmd;
-  let { parentId } = cmd;
+  let {type} = cmd;
+  let {parentId} = cmd;
 
   if (!parentId && !type) {
     const answers = await scriptTypePrompt();
@@ -46,7 +41,7 @@ export default async (cmd: {
 
   // Create files with MIME type.
   // https://developers.google.com/drive/api/v3/mime-types
-  const DRIVE_FILE_MIMETYPES: { [key: string]: string } = {
+  const DRIVE_FILE_MIMETYPES: {[key: string]: string} = {
     [SCRIPT_TYPES.DOCS]: 'application/vnd.google-apps.document',
     [SCRIPT_TYPES.FORMS]: 'application/vnd.google-apps.form',
     [SCRIPT_TYPES.SHEETS]: 'application/vnd.google-apps.spreadsheet',
@@ -69,7 +64,7 @@ export default async (cmd: {
   // CLI Spinner
   spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
   try {
-    const { scriptId } = await getProjectSettings(true);
+    const {scriptId} = await getProjectSettings(true);
     if (scriptId) logError(null, ERROR.NO_NESTED_PROJECTS);
   } catch {
     // No scriptId (because project doesn't exist)
@@ -91,7 +86,7 @@ export default async (cmd: {
 
   const createdScriptId = response.data.scriptId ?? '';
   console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
-  const { rootDir } = cmd;
+  const {rootDir} = cmd;
   await saveProject(
     {
       scriptId: createdScriptId,

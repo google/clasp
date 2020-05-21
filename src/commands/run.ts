@@ -2,11 +2,11 @@
 import chalk from 'chalk';
 import readline from 'readline';
 
-import { getFunctionNames } from '../apiutils';
-import { getLocalScript, loadAPICredentials, script } from '../auth';
-import { addScopeToManifest, isValidRunManifest } from '../manifest';
-import { URL } from '../urls';
-import { checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
+import {getFunctionNames} from '../apiutils';
+import {getLocalScript, loadAPICredentials, script} from '../auth';
+import {addScopeToManifest, isValidRunManifest} from '../manifest';
+import {URL} from '../urls';
+import {checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinner} from '../utils';
 
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
@@ -18,13 +18,13 @@ import { checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinn
  */
 export default async (
   functionName: string,
-  cmd: { readonly nondev: boolean; readonly params: string }
+  cmd: {readonly nondev: boolean; readonly params: string}
 ): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
-  const { scriptId } = await getProjectSettings(true);
+  const {scriptId} = await getProjectSettings(true);
   const devMode = !cmd.nondev; // Defaults to true
-  const { params: jsonString = '[]' } = cmd;
+  const {params: jsonString = '[]'} = cmd;
   const parameters = getValidJSON<string[]>(jsonString);
 
   await isValidRunManifest();
@@ -71,7 +71,7 @@ async function runFunction(functionName: string, parameters: string[], scriptId:
       logError(null, ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
     }
 
-    const { data } = response;
+    const {data} = response;
     // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
     if (data.response) {
       if (data.response.result) {
@@ -128,9 +128,7 @@ https://www.googleapis.com/auth/presentations
             await addScopeToManifest(scopes);
             const scopeCount = scopes.length;
             console.log(
-              `Added ${scopeCount} ${
-                scopeCount === 1 ? 'scope' : 'scopes'
-              } to your appsscript.json' oauthScopes`
+              `Added ${scopeCount} ${scopeCount === 1 ? 'scope' : 'scopes'} to your appsscript.json' oauthScopes`
             );
             console.log('Please `clasp login --creds <file>` to log in with these new scopes.');
           });

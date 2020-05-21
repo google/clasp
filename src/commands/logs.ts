@@ -1,14 +1,14 @@
 /* eslint-disable new-cap,@typescript-eslint/default-param-last,@typescript-eslint/no-floating-promises,promise/prefer-await-to-then */
 import chalk from 'chalk';
-import { GaxiosResponse } from 'gaxios';
-import { logging_v2 as loggingV2 } from 'googleapis';
+import {GaxiosResponse} from 'gaxios';
+import {logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
-import { loadAPICredentials, logger } from '../auth';
-import { DOTFILE, ProjectSettings } from '../dotfile';
-import { projectIdPrompt } from '../inquirer';
-import { URL } from '../urls';
-import { checkIfOnline, ERROR, getProjectSettings, isValidProjectId, LOG, logError, spinner } from '../utils';
+import {loadAPICredentials, logger} from '../auth';
+import {DOTFILE, ProjectSettings} from '../dotfile';
+import {projectIdPrompt} from '../inquirer';
+import {URL} from '../urls';
+import {checkIfOnline, ERROR, getProjectSettings, isValidProjectId, LOG, logError, spinner} from '../utils';
 
 /**
  * Prints StackDriver logs from this Apps Script project.
@@ -27,7 +27,7 @@ export default async (cmd: {
 }): Promise<void> => {
   await checkIfOnline();
   // Get project settings.
-  let { projectId } = await getProjectSettings();
+  let {projectId} = await getProjectSettings();
   projectId = cmd.setup ? await setupLogs() : projectId;
   if (!projectId) {
     console.log(LOG.NO_GCLOUD_PROJECT);
@@ -39,7 +39,7 @@ export default async (cmd: {
   if (cmd.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
-    await open(url, { wait: false });
+    await open(url, {wait: false});
     return;
   }
 
@@ -63,17 +63,13 @@ export default async (cmd: {
  * rather than filter server-side.
  * @see logs.data.entries[0].insertId
  */
-const logEntryCache: { [key: string]: boolean } = {};
+const logEntryCache: {[key: string]: boolean} = {};
 
 /**
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-function printLogs(
-  entries: loggingV2.Schema$LogEntry[] = [],
-  formatJson: boolean,
-  simplified: boolean
-): void {
+function printLogs(entries: loggingV2.Schema$LogEntry[] = [], formatJson: boolean, simplified: boolean): void {
   entries.reverse(); // Print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; i += 1) {
     const {
@@ -110,7 +106,7 @@ function printLogs(
       }
     }
 
-    const coloredStringMap: { [key: string]: string } = {
+    const coloredStringMap: {[key: string]: string} = {
       ERROR: chalk.red(severity),
       INFO: chalk.cyan(severity),
       DEBUG: chalk.green(severity), // Includes timeEnd
@@ -139,7 +135,7 @@ async function setupLogs(): Promise<string> {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
       projectIdPrompt()
-        .then((answers) => {
+        .then(answers => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
           if (!dotfile) logError(null, ERROR.SETTINGS_DNE);
@@ -147,7 +143,7 @@ async function setupLogs(): Promise<string> {
             .read<ProjectSettings>()
             .then((settings: Readonly<ProjectSettings>) => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              dotfile.write({ ...settings, ...{ projectId } });
+              dotfile.write({...settings, ...{projectId}});
               resolve(projectId);
             })
             .catch((error: object) => logError(error));
@@ -157,7 +153,7 @@ async function setupLogs(): Promise<string> {
           reject();
         });
     });
-  }).catch((error) => {
+  }).catch(error => {
     if (spinner.isSpinning()) spinner.stop(true);
     return logError(error); // Only because tsc doesn't understand logError never return type
   });
@@ -217,10 +213,7 @@ async function fetchAndPrintLogs(
             logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
             break;
           case 403:
-            logError(
-              null,
-              oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED
-            );
+            logError(null, oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
             break;
           default:
             logError(null, `(${response.status}) Error: ${response.statusText}`);

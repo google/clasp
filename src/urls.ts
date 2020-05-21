@@ -1,4 +1,4 @@
-import { SCRIPT_ID_LENGTH } from './apis';
+import {SCRIPT_ID_LENGTH} from './apis';
 
 /**
  * Extracts scriptId from URL if given in URL form.
@@ -14,7 +14,7 @@ import { SCRIPT_ID_LENGTH } from './apis';
  */
 export const extractScriptId = (scriptId: string) => {
   if (scriptId.length !== SCRIPT_ID_LENGTH) {
-    const ids = scriptId.split('/').filter((s) => s.length === SCRIPT_ID_LENGTH);
+    const ids = scriptId.split('/').filter(s => s.length === SCRIPT_ID_LENGTH);
     if (ids.length > 0) {
       scriptId = ids[0];
     }

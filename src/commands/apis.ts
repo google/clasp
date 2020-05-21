@@ -1,20 +1,20 @@
-/* eslint-disable new-cap, @typescript-eslint/prefer-readonly-parameter-types */
-import { GaxiosResponse } from 'gaxios';
-import { serviceusage_v1 as serviceUsageV1 } from 'googleapis';
+/* eslint-disable new-cap,@typescript-eslint/prefer-readonly-parameter-types */
+import {GaxiosResponse} from 'gaxios';
+import {serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';
 
-import { PUBLIC_ADVANCED_SERVICES } from '../apis';
-import { enableOrDisableAPI } from '../apiutils';
-import { discovery, loadAPICredentials, serviceUsage } from '../auth';
-import { URL } from '../urls';
-import { checkIfOnline, ERROR, getProjectId, logError } from '../utils';
+import {PUBLIC_ADVANCED_SERVICES} from '../apis';
+import {enableOrDisableAPI} from '../apiutils';
+import {discovery, loadAPICredentials, serviceUsage} from '../auth';
+import {URL} from '../urls';
+import {checkIfOnline, ERROR, getProjectId, logError} from '../utils';
 
 /**
  * Acts as a router to apis subcommands
  * Calls functions for list, enable, or disable
  * Otherwise returns an error of command not supported
  */
-export default async (options: { readonly open?: string }): Promise<void> => {
+export default async (options: {readonly open?: string}): Promise<void> => {
   await loadAPICredentials();
   const subcommand: string = process.argv[3]; // Clasp apis list => "list"
   const serviceName = process.argv[4]; // Clasp apis enable drive => "drive"
@@ -23,12 +23,12 @@ export default async (options: { readonly open?: string }): Promise<void> => {
   if (options.open) {
     const apisUrl = URL.APIS(await getProjectId());
     console.log(apisUrl);
-    await open(apisUrl, { wait: false });
+    await open(apisUrl, {wait: false});
     return;
   }
 
   // The apis subcommands.
-  const command: { [key: string]: () => void } = {
+  const command: {[key: string]: () => void} = {
     enable: async () => {
       await enableOrDisableAPI(serviceName, true);
     },
@@ -43,13 +43,11 @@ export default async (options: { readonly open?: string }): Promise<void> => {
       console.log('\n# Currently enabled APIs:');
       const projectId = await getProjectId(); // Will prompt user to set up if required
       const MAX_PAGE_SIZE = 200; // This is the max page size according to the docs.
-      const list: GaxiosResponse<serviceUsageV1.Schema$ListServicesResponse> = await serviceUsage.services.list(
-        {
-          parent: `projects/${projectId}`,
-          filter: 'state:ENABLED',
-          pageSize: MAX_PAGE_SIZE,
-        }
-      );
+      const list: GaxiosResponse<serviceUsageV1.Schema$ListServicesResponse> = await serviceUsage.services.list({
+        parent: `projects/${projectId}`,
+        filter: 'state:ENABLED',
+        pageSize: MAX_PAGE_SIZE,
+      });
       const serviceList = list.data.services ?? [];
       if (serviceList.length >= MAX_PAGE_SIZE) {
         console.log('There is a bug with pagination. Please file an issue on Github.');
@@ -57,8 +55,7 @@ export default async (options: { readonly open?: string }): Promise<void> => {
 
       // Filter out the disabled ones. Print the enabled ones.
       const enabledAPIs = serviceList.filter(
-        (service: Readonly<serviceUsageV1.Schema$GoogleApiServiceusageV1Service>) =>
-          service.state === 'ENABLED'
+        (service: Readonly<serviceUsageV1.Schema$GoogleApiServiceusageV1Service>) => service.state === 'ENABLED'
       );
       for (const enabledAPI of enabledAPIs) {
         if (enabledAPI.config && enabledAPI.config.documentation) {
@@ -71,19 +68,17 @@ export default async (options: { readonly open?: string }): Promise<void> => {
        * List available APIs.
        */
       console.log('\n# List of available APIs:');
-      const { data } = await discovery.apis.list({
+      const {data} = await discovery.apis.list({
         preferred: true,
       });
       const services = data.items ?? [];
       // Only get the public service IDs
-      const PUBLIC_ADVANCED_SERVICE_IDS = PUBLIC_ADVANCED_SERVICES.map(
-        (advancedService) => advancedService.serviceId
-      );
+      const PUBLIC_ADVANCED_SERVICE_IDS = PUBLIC_ADVANCED_SERVICES.map(advancedService => advancedService.serviceId);
 
       // Merge discovery data with public services data.
       const publicServices = [];
       for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
-        const service = services.find((s) => s.name === publicServiceId);
+        const service = services.find(s => s.name === publicServiceId);
         // For some reason 'youtubePartner' is not in the api list.
         if (service?.id && service.description) {
           publicServices.push(service);

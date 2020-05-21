@@ -1,17 +1,17 @@
-/* eslint-disable camelcase,new-cap,no-warning-comments,node/prefer-global/url */
-import { Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
-import { google, script_v1 as scriptV1 } from 'googleapis';
-import { createServer, IncomingMessage, Server, ServerResponse } from 'http';
-import { AddressInfo } from 'net';
+/* eslint-disable camelcase,new-cap,node/prefer-global/url */
+import {Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions} from 'google-auth-library';
+import {google, script_v1 as scriptV1} from 'googleapis';
+import {createServer, IncomingMessage, Server, ServerResponse} from 'http';
+import {AddressInfo} from 'net';
 import open from 'open';
 import readline from 'readline';
-import { ReadonlyDeep } from 'type-fest';
-import { URL } from 'url';
+import {ReadonlyDeep} from 'type-fest';
+import {URL} from 'url';
 
-import { ClaspToken, DOTFILE, Dotfile } from './dotfile';
-import { oauthScopesPrompt, PromptAnswers } from './inquirer';
-import { readManifest } from './manifest';
-import { checkIfOnline, ClaspCredentials, ERROR, getOAuthSettings, LOG, logError } from './utils';
+import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
+import {oauthScopesPrompt, PromptAnswers} from './inquirer';
+import {readManifest} from './manifest';
+import {checkIfOnline, ClaspCredentials, ERROR, getOAuthSettings, LOG, logError} from './utils';
 
 /**
  * Authentication with Google's APIs.
@@ -54,10 +54,10 @@ const globalOAuth2Client = new OAuth2Client(globalOauth2ClientSettings);
 let localOAuth2Client: OAuth2Client; // Must be set up after authorize.
 
 // *Global* Google API clients
-export const script = google.script({ version: 'v1', auth: globalOAuth2Client });
-export const logger = google.logging({ version: 'v2', auth: globalOAuth2Client });
-export const drive = google.drive({ version: 'v3', auth: globalOAuth2Client });
-export const discovery = google.discovery({ version: 'v1' });
+export const script = google.script({version: 'v1', auth: globalOAuth2Client});
+export const logger = google.logging({version: 'v2', auth: globalOAuth2Client});
+export const drive = google.drive({version: 'v3', auth: globalOAuth2Client});
+export const discovery = google.discovery({version: 'v1'});
 export const serviceUsage = google.serviceusage({
   version: 'v1',
   auth: globalOAuth2Client,
@@ -69,7 +69,7 @@ export const serviceUsage = google.serviceusage({
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  */
 export async function getLocalScript(): Promise<scriptV1.Script> {
-  return google.script({ version: 'v1', auth: localOAuth2Client });
+  return google.script({version: 'v1', auth: localOAuth2Client});
 }
 
 /**
@@ -200,7 +200,7 @@ export async function getLoggedInEmail() {
     });
     return response.data.email;
   } catch {
-    return undefined;
+    return;
   }
 }
 
@@ -228,11 +228,11 @@ async function authorizeWithLocalhost(
 ): Promise<Credentials> {
   // Wait until the server is listening, otherwise we don't have
   // the server port needed to set up the Oauth2Client.
-  const server = await new Promise<Server>((resolve) => {
+  const server = await new Promise<Server>(resolve => {
     const s = createServer();
     s.listen(0, () => resolve(s));
   });
-  const { port } = server.address() as AddressInfo;
+  const {port} = server.address() as AddressInfo;
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: `http://localhost:${port}`,
@@ -348,12 +348,9 @@ export async function checkOauthScopes(rc: ReadonlyDeep<ClaspToken>) {
   try {
     await checkIfOnline();
     await setOauthClientCredentials(rc);
-    const { scopes } = await globalOAuth2Client.getTokenInfo(
-      globalOAuth2Client.credentials.access_token as string
-    );
-    const { oauthScopes } = await readManifest();
-    const newScopes =
-      oauthScopes && oauthScopes.length > 1 ? oauthScopes.filter((x) => !scopes.includes(x)) : [];
+    const {scopes} = await globalOAuth2Client.getTokenInfo(globalOAuth2Client.credentials.access_token as string);
+    const {oauthScopes} = await readManifest();
+    const newScopes = oauthScopes && oauthScopes.length > 1 ? oauthScopes.filter(x => !scopes.includes(x)) : [];
     if (newScopes.length === 0) return;
     console.log('New authorization scopes detected in manifest:\n', newScopes);
 
@@ -367,6 +364,6 @@ export async function checkOauthScopes(rc: ReadonlyDeep<ClaspToken>) {
       }
     });
   } catch (error) {
-    logError(null, ERROR.BAD_REQUEST((error as { message: string }).message));
+    logError(null, ERROR.BAD_REQUEST((error as {message: string}).message));
   }
 }

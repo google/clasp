@@ -1,14 +1,6 @@
 /* eslint-disable new-cap */
-import { loadAPICredentials, script } from '../auth';
-import {
-  checkIfOnline,
-  ERROR,
-  getProjectSettings,
-  LOG,
-  logError,
-  PROJECT_MANIFEST_BASENAME,
-  spinner,
-} from '../utils';
+import {loadAPICredentials, script} from '../auth';
+import {checkIfOnline, ERROR, getProjectSettings, LOG, logError, PROJECT_MANIFEST_BASENAME, spinner} from '../utils';
 
 /**
  * Deploys an Apps Script project.
@@ -23,11 +15,11 @@ export default async (cmd: {
 }): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
-  const { scriptId } = await getProjectSettings();
+  const {scriptId} = await getProjectSettings();
   if (!scriptId) return;
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
-  let { versionNumber } = cmd;
-  const { description = '', deploymentId } = cmd;
+  let {versionNumber} = cmd;
+  const {description = '', deploymentId} = cmd;
 
   // If no version, create a new version
   if (!versionNumber) {

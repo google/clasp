@@ -1,15 +1,15 @@
-import { script_v1 as scriptV1 } from 'googleapis';
-import { prompt, registerPrompt } from 'inquirer';
-import { ReadonlyDeep } from 'type-fest';
+import {script_v1 as scriptV1} from 'googleapis';
+import {prompt, registerPrompt} from 'inquirer';
+import {ReadonlyDeep} from 'type-fest';
 
-import { SCRIPT_TYPES } from './apis';
-import { LOG } from './utils';
+import {SCRIPT_TYPES} from './apis';
+import {LOG} from './utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 registerPrompt('autocomplete', require('inquirer-autocomplete-prompt-ipt'));
 
 export type functionNameSource = (
-  answers: { readonly functionName: string },
+  answers: {readonly functionName: string},
   input?: string | undefined
 ) => Promise<string[]>;
 
@@ -24,7 +24,7 @@ export const functionNamePrompt = (source: functionNameSource) => {
     type: 'autocomplete',
     source,
   };
-  return prompt<{ functionName: string }>([question]);
+  return prompt<{functionName: string}>([question]);
 };
 
 interface DeploymentIdPrompt {
@@ -38,7 +38,7 @@ interface DeploymentIdPrompt {
  * @returns {Promise<{ deploymentId: string }>} A promise for an object with the `deploymentId` property.
  */
 export const deploymentIdPrompt = (choices: ReadonlyArray<ReadonlyDeep<DeploymentIdPrompt>>) =>
-  prompt<{ deployment: scriptV1.Schema$Deployment }>([
+  prompt<{deployment: scriptV1.Schema$Deployment}>([
     {
       choices,
       message: 'Open which deployment?',
@@ -52,7 +52,7 @@ export const deploymentIdPrompt = (choices: ReadonlyArray<ReadonlyDeep<Deploymen
  * @returns {Promise<{ description: string }>} A promise for an object with the `description` property.
  */
 export const descriptionPrompt = () =>
-  prompt<{ description: string }>([
+  prompt<{description: string}>([
     {
       default: '',
       message: LOG.GIVE_DESCRIPTION,
@@ -90,7 +90,7 @@ export const oauthScopesPrompt = () =>
  * @returns {Promise<{ overwrite: boolean }>} A promise for an object with the `overwrite` property.
  */
 export const overwritePrompt = () =>
-  prompt<{ overwrite: boolean }>([
+  prompt<{overwrite: boolean}>([
     {
       default: false,
       message: 'Manifest file has been updated. Do you want to push and overwrite?',
@@ -104,7 +104,7 @@ export const overwritePrompt = () =>
  * @returns {Promise<{ projectId: string }>} A promise for an object with the `projectId` property.
  */
 export const projectIdPrompt = () =>
-  prompt<{ projectId: string }>([
+  prompt<{projectId: string}>([
     {
       message: `${LOG.ASK_PROJECT_ID}`,
       name: 'projectId',
@@ -123,7 +123,7 @@ export interface ScriptIdPrompt {
  * @returns {Promise<{scriptId: string;}>} A promise for an object with the `scriptId` property.
  */
 export const scriptIdPrompt = (fileIds: ReadonlyArray<Readonly<ScriptIdPrompt>>) =>
-  prompt<{ scriptId: string }>([
+  prompt<{scriptId: string}>([
     {
       choices: fileIds,
       message: LOG.CLONE_SCRIPT_QUESTION,
@@ -138,9 +138,9 @@ export const scriptIdPrompt = (fileIds: ReadonlyArray<Readonly<ScriptIdPrompt>>)
  * @returns {Promise<{ type: string }>} A promise for an object with the `type` property.
  */
 export const scriptTypePrompt = () =>
-  prompt<{ type: string }>([
+  prompt<{type: string}>([
     {
-      choices: Object.keys(SCRIPT_TYPES).map((key) => SCRIPT_TYPES[key as keyof typeof SCRIPT_TYPES]),
+      choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as keyof typeof SCRIPT_TYPES]),
       message: LOG.CREATE_SCRIPT_QUESTION,
       name: 'type',
       type: 'list',

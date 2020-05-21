@@ -16,12 +16,12 @@ import os from 'os';
 import path from 'path';
 import findUp from 'find-up';
 import fs from 'fs-extra';
-import { Credentials, OAuth2ClientOptions } from 'google-auth-library';
+import {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 import stripBom from 'strip-bom';
 import dotf from 'dotf';
 import splitLines from 'split-lines';
 
-export { Dotfile } from 'dotf';
+export {Dotfile} from 'dotf';
 
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';
@@ -29,7 +29,7 @@ const PROJECT_NAME = 'clasp';
 
 // TODO: workaround the circular dependency with `files.ts`
 // @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
-const FS_OPTIONS = { encoding: 'utf8' };
+const FS_OPTIONS = {encoding: 'utf8'};
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
@@ -86,7 +86,7 @@ export const DOTFILE = {
   IGNORE: async () => {
     const projectPath = findUp.sync(DOT.PROJECT.PATH);
     const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
-    return new Promise<string[]>((resolve) => {
+    return new Promise<string[]>(resolve => {
       if (fs.existsSync(ignoreDirectory) && fs.existsSync(DOT.IGNORE.PATH)) {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
         resolve((splitLines(buffer) as string[]).filter((name: string) => name));

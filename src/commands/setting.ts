@@ -1,5 +1,6 @@
-import { ProjectSettings } from '../dotfile';
-import { ERROR, getProjectSettings, logError, saveProject } from '../utils';
+/* eslint-disable new-cap */
+import {ProjectSettings} from '../dotfile';
+import {ERROR, getProjectSettings, logError, saveProject} from '../utils';
 
 /**
  * Gets or sets a setting in .clasp.json

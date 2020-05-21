@@ -2,13 +2,13 @@
 /**
  * Clasp command method bodies.
  */
-import { readJsonSync } from 'fs-extra';
+import {readJsonSync} from 'fs-extra';
 
-import { enableAppsScriptAPI } from '../apiutils';
-import { authorize, getLoggedInEmail } from '../auth';
-import { FS_OPTIONS } from '../files';
-import { readManifest } from '../manifest';
-import { checkIfOnline, ERROR, hasOauthClientSettings, LOG, safeIsOnline } from '../utils';
+import {enableAppsScriptAPI} from '../apiutils';
+import {authorize, getLoggedInEmail} from '../auth';
+import {FS_OPTIONS} from '../files';
+import {readManifest} from '../manifest';
+import {checkIfOnline, ERROR, hasOauthClientSettings, LOG, safeIsOnline} from '../utils';
 
 /**
  * Logs the user in. Saves the client credentials to an either local or global rc file.
@@ -60,7 +60,7 @@ export default async (options: {
       ]);
       console.log('');
       console.log('Authorizing with the following scopes:');
-      oauthScopes.forEach((scope) => {
+      oauthScopes.forEach(scope => {
         console.log(scope);
       });
       console.log(`

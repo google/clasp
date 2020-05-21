@@ -1,8 +1,8 @@
 /* eslint-disable new-cap */
-import { script_v1 as scriptV1 } from 'googleapis';
+import {script_v1 as scriptV1} from 'googleapis';
 
-import { loadAPICredentials, script } from '../auth';
-import { checkIfOnline, getProjectSettings, LOG, logError, spinner } from '../utils';
+import {loadAPICredentials, script} from '../auth';
+import {checkIfOnline, getProjectSettings, LOG, logError, spinner} from '../utils';
 
 /**
  * Lists versions of an Apps Script project.
@@ -11,7 +11,7 @@ export default async (): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   spinner.setSpinnerTitle('Grabbing versions…').start();
-  const { scriptId } = await getProjectSettings();
+  const {scriptId} = await getProjectSettings();
   let maxPages = 5;
   /** @type {scriptV1.Schema$Version[] | undefined} */
   let versions = [] as scriptV1.Schema$Version[];

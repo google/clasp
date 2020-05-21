@@ -1,14 +1,14 @@
 /* eslint-disable camelcase,new-cap */
 import chalk from 'chalk';
-import { Spinner } from 'cli-spinner';
+import {Spinner} from 'cli-spinner';
 import fs from 'fs-extra';
-import { script_v1 as scriptV1 } from 'googleapis';
+import {script_v1 as scriptV1} from 'googleapis';
 import isOnline from 'is-online';
 import path from 'path';
 
-import { ClaspToken, DOT, DOTFILE, ProjectSettings } from './dotfile';
-import { projectIdPrompt } from './inquirer';
-import { URL } from './urls';
+import {ClaspToken, DOT, DOTFILE, ProjectSettings} from './dotfile';
+import {projectIdPrompt} from './inquirer';
+import {URL} from './urls';
 
 const ucfirst = (value: string) => value && `${value[0].toUpperCase()}${value.slice(1)}`;
 
@@ -89,8 +89,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
   NO_PARENT_ID: `No parentId or empty parentId found in your ${DOT.PROJECT.PATH} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
-  NO_MANIFEST: (filename: string) =>
-    `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
+  NO_MANIFEST: (filename: string) => `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
   NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
   NO_VERSIONED_DEPLOYMENTS: 'No versioned deployments found in project.',
   NO_WEBAPP: (deploymentId: string) => `Deployment "${deploymentId}" is not deployed as WebApp.`,
@@ -131,17 +130,16 @@ export const LOG = {
   AUTH_PAGE_SUCCESSFUL: 'Logged in! You may close this page. ', // HTML Redirect Page
   AUTH_SUCCESSFUL: 'Authorization successful.',
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
-  CLONE_SUCCESS: (
-    fileCount: number
-  ) => `Warning: files in subfolder are not accounted for unless you set a '${DOT.IGNORE.PATH}' file.
+  CLONE_SUCCESS: (fileCount: number) => `Warning: files in subfolder are not accounted for unless you set a '${
+    DOT.IGNORE.PATH
+  }' file.
 Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   CLONING: 'Cloning files…',
   CLONE_SCRIPT_QUESTION: 'Clone which script?',
   CREATE_SCRIPT_QUESTION: 'Create which script?',
   CREATE_DRIVE_FILE_FINISH: (filetype: string, fileid: string) =>
     `Created new ${getFileTypeName(filetype) || '(unknown type)'}: ${URL.DRIVE(fileid)}`,
-  CREATE_DRIVE_FILE_START: (filetype: string) =>
-    `Creating new ${getFileTypeName(filetype) || '(unknown type)'}…`,
+  CREATE_DRIVE_FILE_START: (filetype: string) => `Creating new ${getFileTypeName(filetype) || '(unknown type)'}…`,
   CREATE_PROJECT_FINISH: (filetype: string, scriptId: string) =>
     `Created new ${getScriptTypeName(filetype)} script: ${URL.SCRIPT(scriptId)}`,
   CREATE_PROJECT_START: (title: string) => `Creating new script: ${title}…`,
@@ -192,10 +190,9 @@ Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   UNDEPLOYMENT_START: (deploymentId: string) => `Undeploying ${deploymentId}…`,
   VERSION_CREATE: 'Creating a new version…',
   VERSION_CREATED: (versionNumber: number) => `Created version ${versionNumber}.`,
-  VERSION_DESCRIPTION: ({ versionNumber, description }: scriptV1.Schema$Version) =>
+  VERSION_DESCRIPTION: ({versionNumber, description}: scriptV1.Schema$Version) =>
     `${versionNumber} - ${description ?? '(no description)'}`,
-  VERSION_NUM: (versionsCount: number) =>
-    `~ ${versionsCount} ${versionsCount === 1 ? 'Version' : 'Versions'} ~`,
+  VERSION_NUM: (versionsCount: number) => `~ ${versionsCount} ${versionsCount === 1 ? 'Version' : 'Versions'} ~`,
   // TODO: `SETUP_LOCAL_OAUTH` is never used
   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
     Open this link: ${chalk.blue(URL.CREDS(projectId))}
@@ -279,7 +276,7 @@ export function getDefaultProjectName(): string {
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
 export async function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
-  return new Promise<ProjectSettings>((resolve) => {
+  return new Promise<ProjectSettings>(resolve => {
     const fail = (silent?: boolean) => (silent ? resolve() : logError(null, ERROR.SETTINGS_DNE));
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
@@ -287,7 +284,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
       dotfile
         .read<ProjectSettings>()
         // eslint-disable-next-line promise/prefer-await-to-then
-        .then((settings) => {
+        .then(settings => {
           // Settings must have the script ID. Otherwise we err.
           if (settings.scriptId) {
             resolve(settings);
@@ -302,7 +299,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
     } else {
       fail(); // Never found a dotfile
     }
-  }).catch((error) => logError(error));
+  }).catch(error => logError(error));
 }
 
 /**
@@ -345,13 +342,10 @@ export async function checkIfOnline() {
  * @param {ProjectSettings} newProjectSettings The project settings
  * @param {boolean} append Appends the settings if true.
  */
-export async function saveProject(
-  newProjectSettings: ProjectSettings,
-  append = true
-): Promise<ProjectSettings> {
+export async function saveProject(newProjectSettings: ProjectSettings, append = true): Promise<ProjectSettings> {
   if (append) {
     const projectSettings: ProjectSettings = await getProjectSettings();
-    newProjectSettings = { ...projectSettings, ...newProjectSettings };
+    newProjectSettings = {...projectSettings, ...newProjectSettings};
   }
 
   return DOTFILE.PROJECT().write(newProjectSettings);
@@ -368,7 +362,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
     if (!promptUser) throw new Error('Project ID not found.');
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-    await projectIdPrompt().then(async (answers) => {
+    await projectIdPrompt().then(async answers => {
       projectSettings.projectId = answers.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
     });
@@ -386,7 +380,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
  * @returns The name like "Google Docs".
  */
 function getFileTypeName(type: string) {
-  const name: { [key: string]: string } = {
+  const name: {[key: string]: string} = {
     docs: 'Google Doc',
     forms: 'Google Form',
     sheets: 'Google Sheet',

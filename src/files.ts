@@ -8,8 +8,8 @@ import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
 import ts from 'typescript';
 
-import { loadAPICredentials, script } from './auth';
-import { DOT, DOTFILE } from './dotfile';
+import {loadAPICredentials, script} from './auth';
+import {DOT, DOTFILE} from './dotfile';
 import {
   checkIfOnline,
   ERROR,
@@ -20,10 +20,10 @@ import {
   PROJECT_MANIFEST_FILENAME,
   spinner,
 } from './utils';
-import { ReadonlyDeep } from 'type-fest';
+import {ReadonlyDeep} from 'type-fest';
 
 // @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
-export const FS_OPTIONS = { encoding: 'utf8' };
+export const FS_OPTIONS = {encoding: 'utf8'};
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -89,7 +89,7 @@ function getTranspileOptions(): ts.TranspileOptions {
  */
 // eslint-disable-next-line @typescript-eslint/default-param-last
 export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
-  const { filePushOrder } = await getProjectSettings();
+  const {filePushOrder} = await getProjectSettings();
 
   // Load tsconfig
   const userConf = getTranspileOptions();
@@ -104,14 +104,14 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     const ignorePatterns = await DOTFILE.IGNORE();
 
     // Replace OS specific path separator to common '/' char for console output
-    filePaths = filePaths.map((name) => name.replace(/\\/g, '/'));
+    filePaths = filePaths.map(name => name.replace(/\\/g, '/'));
     filePaths.sort((a, b) => a.localeCompare(b)); // Sort files alphanumerically
 
     // dispatch with patterns from .claspignore
     const filesToPush: string[] = [];
     const filesToIgnore: string[] = [];
-    filePaths.forEach((file) => {
-      if (multimatch(path.relative(rootDir, file), ignorePatterns, { dot: true }).length === 0) {
+    filePaths.forEach(file => {
+      if (multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length === 0) {
         filesToPush.push(file);
       } else {
         filesToIgnore.push(file);
@@ -123,10 +123,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     let abortPush = false;
     filesToPush.forEach((name: string) => {
       const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
-      if (
-        filesToPush.includes(`${fileNameWithoutExt}.js`) &&
-        filesToPush.includes(`${fileNameWithoutExt}.gs`)
-      ) {
+      if (filesToPush.includes(`${fileNameWithoutExt}.js`) && filesToPush.includes(`${fileNameWithoutExt}.gs`)) {
         // Can't rename, conflicting files
         abortPush = true;
         // Only print error once (for .gs)
@@ -140,11 +137,10 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
     const nonIgnoredFilePaths: string[] = [];
     const ignoredFilePaths = [...filesToIgnore];
 
-    const file2path: Array<{ path: string; file: AppsScriptFile }> = []; // Used by `filePushOrder`
+    const file2path: Array<{path: string; file: AppsScriptFile}> = []; // Used by `filePushOrder`
     // Loop through files that are not ignored
     let files = filesToPush
-      // eslint-disable-next-line array-callback-return
-      .map((name) => {
+      .map(name => {
         const normalizedName = path.normalize(name);
 
         let type = getAPIFileType(name);
@@ -171,12 +167,13 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
             type, // The file extension
             source, // The file contents
           };
-          file2path.push({ file, path: name }); // Allow matching of nonIgnoredFilePaths and files arrays
+          file2path.push({file, path: name}); // Allow matching of nonIgnoredFilePaths and files arrays
           return file;
         }
 
         ignoredFilePaths.push(name);
-        return undefined; // Kludgy. Skip ignored files
+        // eslint-disable-next-line array-callback-return
+        return; // Kludgy. Skip ignored files
       })
       .filter(Boolean); // Remove null values
 
@@ -202,8 +199,8 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
       // Apply nonIgnoredFilePaths sort order to files
       files = (files as AppsScriptFile[]).sort((file1, file2) => {
         // Get the file path from file2path
-        const path1 = file2path.find((element) => element.file === file1);
-        const path2 = file2path.find((element) => element.file === file2);
+        const path1 = file2path.find(element => element.file === file1);
+        const path2 = file2path.find(element => element.file === file2);
         // If a file path isn't in the nonIgnoredFilePaths array, set the order to +∞.
         const path1Index = path1 ? nonIgnoredFilePaths.indexOf(path1.path) : Number.POSITIVE_INFINITY;
         const path2Index = path2 ? nonIgnoredFilePaths.indexOf(path2.path) : Number.POSITIVE_INFINITY;
@@ -296,7 +293,7 @@ export async function fetchProject(
   }
 
   if (spinner.isSpinning()) spinner.stop(true);
-  const { data } = response;
+  const {data} = response;
   if (!data.files) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   if (!silent) console.log(LOG.CLONE_SUCCESS(data.files.length));
   return data.files as AppsScriptFile[];
@@ -308,11 +305,11 @@ export async function fetchProject(
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
 export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
-  const { fileExtension } = await getProjectSettings();
+  const {fileExtension} = await getProjectSettings();
   // ? following statement mutates variable `files`. Is that desirable?
   files.sort((file1, file2) => file1.name.localeCompare(file2.name));
   const sortedFiles = files;
-  sortedFiles.forEach((file) => {
+  sortedFiles.forEach(file => {
     const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
     const truePath = `${rootDir || '.'}/${filePath}`;
     mkdirp(path.dirname(truePath))
@@ -325,7 +322,7 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
         // Log only filename if pulling to root (Code.gs vs ./Code.gs)
         console.log(`└─ ${rootDir ? truePath : filePath}`);
       })
-      .catch((error) => logError(error, ERROR.FS_DIR_WRITE));
+      .catch(error => logError(error, ERROR.FS_DIR_WRITE));
   });
 }
 
@@ -334,7 +331,7 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
  * @param {boolean} silent If true, doesn't console.log any success message.
  */
 export async function pushFiles(silent = false) {
-  const { scriptId, rootDir } = await getProjectSettings();
+  const {scriptId, rootDir} = await getProjectSettings();
   if (!scriptId) return;
   // TODO Make getProjectFiles async
   await getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
@@ -375,5 +372,4 @@ export async function pushFiles(silent = false) {
   });
 }
 
-export const logFileList = (files: readonly string[]) =>
-  console.log(files.map((file) => `└─ ${file}`).join('\n'));
+export const logFileList = (files: readonly string[]) => console.log(files.map(file => `└─ ${file}`).join('\n'));
