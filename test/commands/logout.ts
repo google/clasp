@@ -4,7 +4,7 @@ import {describe, it} from 'mocha';
 
 import {expect} from 'chai';
 import fs from 'fs-extra';
-import {hasOauthClientSettings} from '../../build/src/utils';
+import {hasOauthClientSettings} from '../\.\./src/utils';
 import {spawnSync} from 'child_process';
 
 describe('Test clasp logout function', () => {

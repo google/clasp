@@ -2,7 +2,7 @@ import {cleanup, setup} from '../functions';
 import {describe, it} from 'mocha';
 
 import {CLASP} from '../constants';
-import {LOG} from '../../build/src/utils';
+import {LOG} from '../\.\./src/utils';
 import {expect} from 'chai';
 import fs from 'fs-extra';
 import {spawnSync} from 'child_process';

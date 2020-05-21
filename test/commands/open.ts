@@ -1,8 +1,8 @@
 import {spawnSync} from 'child_process';
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
-import {URL} from '../../build/src/urls';
-import {ERROR, LOG} from '../../build/src/utils';
+import {URL} from '../\.\./src/urls';
+import {ERROR, LOG} from '../\.\./src/utils';
 import {CLASP, PROJECT_ID, SCRIPT_ID, PARENT_ID} from '../constants';
 import {cleanup, setup} from '../functions';
 
