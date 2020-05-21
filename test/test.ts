@@ -1,9 +1,9 @@
 import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
-import {ERROR, LOG, getAPIFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '\.\./src/utils';
-import {URL, extractScriptId} from '\.\./src/urls';
+import {ERROR, LOG, getAPIFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
+import {URL, extractScriptId} from '../src/urls';
 import {cleanup, setup} from './functions';
 import {describe, it} from 'mocha';
-import {getAppsScriptFileName, getFileType} from '\.\./src/files';
+import {getAppsScriptFileName, getFileType} from '../src/files';
 
 import {expect} from 'chai';
 import fs from 'fs-extra';

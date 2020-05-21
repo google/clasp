@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
 import {OAuth2ClientOptions} from 'google-auth-library';
-import {ClaspToken} from '\.\./src/dotfile';
+import {ClaspToken} from '../src/dotfile';
 import {rndStr} from './functions';
 
 // Sample files

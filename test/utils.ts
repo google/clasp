@@ -3,7 +3,7 @@ import {describe, it} from 'mocha';
 
 import {cleanup, setup} from './functions';
 
-import {ERROR, getValidJSON} from '\.\./src/utils';
+import {ERROR, getValidJSON} from '../src/utils';
 
 describe('Test getValidJSON function', () => {
   before(setup);

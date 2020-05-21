@@ -1,7 +1,7 @@
 import {spawnSync} from 'child_process';
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
-import {LOG} from '../\.\./src/utils';
+import {LOG} from '../../src/utils';
 import {CLASP} from '../constants';
 import {cleanup, setup, setupWithoutGCPProject} from '../functions';
 
