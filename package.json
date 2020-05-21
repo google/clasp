@@ -11,7 +11,7 @@
     "prepare": "npm run compile",
     "publish": "npm publish --access public",
     "lint": "npm run check",
-    "test": "nyc mocha -r ts-node/register --cache false --timeout 100000 --files 'test/**/*.ts'",
+    "test": "nyc mocha -r './build/test/*.js'",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "prettier src test --write",
     "check": "gts check ./src/**.ts",
@@ -119,7 +119,6 @@
     "prettier": "^2.0.4",
     "tmp": "^0.1.0",
     "type-fest": "^0.13.1",
-    "ts-node": "^8.10.1",
     "xo": "^0.30.0"
   }
 }
