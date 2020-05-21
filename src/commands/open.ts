@@ -12,6 +12,7 @@ interface CommandOption {
   readonly webapp?: boolean;
   readonly creds?: boolean;
   readonly addon?: boolean;
+  readonly deploymentId?: string;
 }
 
 /**
@@ -19,6 +20,7 @@ interface CommandOption {
  * @param scriptId {string} The Apps Script project to open.
  * @param options.webapp {boolean} If true, the command will open the webapps URL.
  * @param options.creds {boolean} If true, the command will open the credentials URL.
+ * @param options.deploymentId {string} Use custom deployment ID with webapp.
  */
 export default async (scriptId: string, options: CommandOption): Promise<void> => {
   const projectSettings = await getProjectSettings();
@@ -89,13 +91,17 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
       };
     });
 
-  const answers = await deploymentIdPrompt(choices);
+  let { deploymentId } = options;
+  if (!deploymentId) {
+    const { deployment: { deploymentId: depIdFromPrompt } } = await deploymentIdPrompt(choices);
+    deploymentId = (depIdFromPrompt as string);
+  }
 
   const deployment = await script.projects.deployments.get({
     scriptId,
-    deploymentId: answers.deployment.deploymentId as string,
+    deploymentId,
   });
-  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId as string));
+  console.log(LOG.OPEN_WEBAPP(deploymentId as string));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
     await open(target, {wait: false});
