@@ -1,5 +1,3 @@
-*.js
-*.js.map
 *.DS_Store
 *.log
 npm-debug.log*
@@ -10,6 +8,7 @@ yarn-error.log*
 .nyc_output
 *.lock
 
+build
 coverage
 node_modules
 tmp

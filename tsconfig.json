@@ -1,38 +1,33 @@
 {
-  "compileOnSave": true,
+  "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "strict": true,
+
+    "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "lib": ["ESNext"],
+    "moduleResolution": "node",
+    "newLine": "lf",
     "noImplicitAny": true,
     "noImplicitThis": true,
-    "alwaysStrict": true,
-    "strictBindCallApply": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "outDir": "build",
+    "rootDir": ".",
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "stripInternal": true,
     "suppressExcessPropertyErrors": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "es2017",
-    "lib": ["ESNext"],
-    "newLine": "lf",
-    "noEmitOnError": true,
-    "sourceMap": true,
-    "moduleResolution": "node",
-    "module": "commonjs",
-    // "declaration": true,
-    "stripInternal": true,
-    "experimentalDecorators": true,
-    "pretty": true,
-    // "inlineSourceMap": true,
+
     "importHelpers": true // canary: will cause runtime error if `tslib` is necessary
   },
   "include": [
     "src/**/*.ts",
-    "tests/**/*.ts"
+    "test/**/*.ts"
   ]
 }

@@ -2,18 +2,24 @@
   "name": "@google/clasp",
   "version": "2.3.0",
   "description": "Develop Apps Script Projects locally",
-  "main": "./src/index.js",
+  "main": "build/src/index.js",
   "scripts": {
-    "build": "npm run build-local && npm i -g --loglevel=error",
+    "build": "npm run compile && npm i -g --loglevel=error",
     "build-fresh": "npm cache clean --force && npm i && npm run build",
-    "build-local": "tsc --project tsconfig.json",
+    "build-local": "npm run compile",
     "watch": "tsc --project tsconfig.json --watch",
-    "prepare": "npm run build-local",
+    "prepare": "npm run compile",
     "publish": "npm publish --access public",
-    "lint": "xo src/**.ts && echo 'No lint errors. All good!'",
-    "test": "npm run lint && nyc mocha -r ts-node/register --cache false --timeout 100000 'tests/**/*.ts'",
+    "lint": "npm run check",
+    "test": "nyc mocha -r ts-node/register --cache false --timeout 100000 'test/**/*.ts'",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
-    "prettier": "prettier src/*.ts src/**/*.ts --write"
+    "prettier": "prettier src test --write",
+    "check": "gts check ./src/**.ts",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "pretest": "npm run compile",
+    "posttest": "npm run check"
   },
   "engines": {
     "node": ">= 10.3.0"
@@ -23,8 +29,7 @@
   },
   "files": [
     "docs",
-    "src/**/*.js",
-    "src/**/*.md"
+    "build/src"
   ],
   "nyc": {
     "include": [
@@ -103,15 +108,18 @@
     "@types/recursive-readdir": "^2.2.0",
     "@types/tmp": "^0.2.0",
     "@types/watch": "^1.0.1",
+    "@typescript-eslint/parser": "^2.34.0",
     "chai": "^4.2.0",
     "coveralls": "^3.1.0",
+    "eslint-config-xo-typescript": "^0.29.0",
+    "eslint-plugin-unicorn": "^20.0.0",
+    "gts": "^2.0.2",
     "mocha": "^7.1.2",
     "nyc": "^15.0.1",
     "prettier": "^2.0.4",
     "tmp": "^0.1.0",
     "type-fest": "^0.13.1",
     "ts-node": "^8.10.1",
-    "tslint": "^6.1.2",
     "xo": "^0.30.0"
   }
 }
