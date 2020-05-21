@@ -25,7 +25,7 @@
     "node": ">= 10.3.0"
   },
   "bin": {
-    "clasp": "./src/index.js"
+    "clasp": "build/src/index.js"
   },
   "files": [
     "docs",
