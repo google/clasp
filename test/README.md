@@ -17,9 +17,9 @@
 1. Log in: `clasp login`
 1. Rebuild: `npm run build`
 1. Set environmental variables:
-    - `export TRAVIS_PULL_REQUEST=false`
-    - `export SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL`
-    - `export PROJECT_ID=project-id-3961473932623644264`
+   - `export TRAVIS_PULL_REQUEST=false`
+   - `export SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL`
+   - `export PROJECT_ID=project-id-3961473932623644264`
 1. Test: `npm run test`
 
 ## Configuration using Travis
@@ -38,8 +38,8 @@ To then encrypt the `.clasprc.json` file, use these commands using the [Travis C
 
 ```sh
 clasp login
-cp ~/.clasprc.json ./tests/.clasprc.json
-travis encrypt-file ./tests/.clasprc.json --add
+cp ~/.clasprc.json ./test/.clasprc.json
+travis encrypt-file ./test/.clasprc.json --add
 ```
 
 This will add the following line to `.travis.yml`, which decrypts that file:
@@ -48,17 +48,17 @@ This will add the following line to `.travis.yml`, which decrypts that file:
 openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv -in .clasprc.json.enc -out .clasprc.json -d || true
 ```
 
-Now move `.clasprc.json.enc` to the `/tests/` folder:
+Now move `.clasprc.json.enc` to the `/test/` folder:
 
 ```sh
-rm ./tests/.clasprc.json.enc
-cp .clasprc.json.enc ./tests/.clasprc.json.enc
+rm ./test/.clasprc.json.enc
+cp .clasprc.json.enc ./test/.clasprc.json.enc
 rm ./.clasprc.json.enc
 ```
 
 And edit the `openssl` command in `.travis.yml` file:
 
-- Change the `-in` file to `./tests/.clasprc.json.enc`
+- Change the `-in` file to `./test/.clasprc.json.enc`
 - Change the `-out` file to `.clasprc.json`
 - Add `|| true` to the end of the command
 
@@ -88,7 +88,7 @@ This section tracks which `clasp` commands are tested. Unchecked checkboxes are 
 - [ ] echo '// test' >> index.js && clasp push
 - [x] clasp open
 - [ ] clasp deployments
-- [ ] clasp deploy [version] [description]
+- [ ] clasp deploy [version][description]
 - [ ] clasp version [description]
 - [x] clasp versions
 - [x] saveProject

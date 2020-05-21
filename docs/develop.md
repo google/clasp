@@ -65,7 +65,7 @@ npm run build;
 npm run test
 ```
 
-See [/tests/](/tests/) for more information.
+See [/test/](/test/) for more information.
 
 ### Lint
 
