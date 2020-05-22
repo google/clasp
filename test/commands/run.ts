@@ -3,7 +3,7 @@ import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 
-import {LOG} from '../../src/utils';
+import {LOG} from '../../src/messages';
 import {CLASP, CLASP_PATHS, CLASP_SETTINGS} from '../constants';
 import {cleanup, setup} from '../functions';
 

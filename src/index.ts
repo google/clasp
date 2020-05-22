@@ -27,7 +27,7 @@ import {PackageJson} from 'type-fest';
 import apis from './commands/apis';
 import clone from './commands/clone';
 import create from './commands/create';
-import defaultCmd from './commands/defaultCmd';
+import defaultCmd from './commands/default';
 import deploy from './commands/deploy';
 import deployments from './commands/deployments';
 import help from './commands/help';
@@ -35,7 +35,7 @@ import list from './commands/list';
 import login from './commands/login';
 import logout from './commands/logout';
 import logs from './commands/logs';
-import openCmd from './commands/openCmd';
+import openCmd from './commands/open';
 import pull from './commands/pull';
 import push from './commands/push';
 import run from './commands/run';
@@ -44,7 +44,8 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
-import {handleError, PROJECT_NAME} from './utils';
+import {PROJECT_NAME} from './constants';
+import {handleError} from './utils';
 
 // CLI
 

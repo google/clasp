@@ -4,16 +4,8 @@ import {drive, loadAPICredentials, script} from '../auth';
 import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {scriptTypePrompt} from '../inquirer';
 import {manifestExists} from '../manifest';
-import {
-  checkIfOnline,
-  ERROR,
-  getDefaultProjectName,
-  getProjectSettings,
-  LOG,
-  logError,
-  saveProject,
-  spinner,
-} from '../utils';
+import {ERROR, LOG} from '../messages';
+import {checkIfOnline, getDefaultProjectName, getProjectSettings, logError, saveProject, spinner} from '../utils';
 
 /**
  * Creates a new Apps Script project.

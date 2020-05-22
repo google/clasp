@@ -2,8 +2,9 @@
 import {drive, loadAPICredentials} from '../auth';
 import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer';
+import {ERROR, LOG} from '../messages';
 import {extractScriptId} from '../urls';
-import {checkIfOnline, ERROR, LOG, logError, saveProject, spinner} from '../utils';
+import {checkIfOnline, logError, saveProject, spinner} from '../utils';
 import status from './status';
 
 /**

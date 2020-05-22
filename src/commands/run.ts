@@ -5,8 +5,9 @@ import readline from 'readline';
 import {getFunctionNames} from '../apiutils';
 import {getLocalScript, loadAPICredentials, script} from '../auth';
 import {addScopeToManifest, isValidRunManifest} from '../manifest';
+import {ERROR} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, getValidJSON, logError, spinner} from '../utils';
 
 /**
  * Executes an Apps Script function. Requires clasp login --creds.

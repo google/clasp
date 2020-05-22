@@ -3,8 +3,9 @@ import ellipsize from 'ellipsize';
 import {drive_v3 as driveV3} from 'googleapis';
 
 import {drive, loadAPICredentials} from '../auth';
+import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, ERROR, LOG, logError, spinner} from '../utils';
+import {checkIfOnline, logError, spinner} from '../utils';
 
 /**
  * Lists a user's Apps Script projects using Google Drive.

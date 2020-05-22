@@ -2,7 +2,8 @@
 import {Command} from 'commander';
 import {ReadonlyDeep} from 'type-fest';
 
-import {ERROR, logError} from '../utils';
+import {ERROR} from '../messages';
+import {logError} from '../utils';
 
 /**
  * Displays a default message when an unknown command is typed.

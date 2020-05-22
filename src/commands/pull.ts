@@ -1,5 +1,6 @@
 import {fetchProject, writeProjectFiles} from '../files';
-import {checkIfOnline, getProjectSettings, LOG, spinner} from '../utils';
+import {LOG} from '../messages';
+import {checkIfOnline, getProjectSettings, spinner} from '../utils';
 
 /**
  * Force downloads all Apps Script project files into the local filesystem.

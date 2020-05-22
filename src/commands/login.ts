@@ -6,9 +6,10 @@ import {readJsonSync} from 'fs-extra';
 
 import {enableAppsScriptAPI} from '../apiutils';
 import {authorize, getLoggedInEmail} from '../auth';
-import {FS_OPTIONS} from '../files';
+import {FS_OPTIONS} from '../constants';
 import {readManifest} from '../manifest';
-import {checkIfOnline, ERROR, hasOauthClientSettings, LOG, safeIsOnline} from '../utils';
+import {ERROR, LOG} from '../messages';
+import {checkIfOnline, hasOauthClientSettings, safeIsOnline} from '../utils';
 
 /**
  * Logs the user in. Saves the client credentials to an either local or global rc file.

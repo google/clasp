@@ -4,10 +4,11 @@ import path from 'path';
 import is from '@sindresorhus/is';
 
 import {PUBLIC_ADVANCED_SERVICES} from './apis';
+import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {enableOrDisableAPI, isEnabled} from './apiutils';
 import {DOT} from './dotfile';
-import {FS_OPTIONS} from './files';
-import {ERROR, getProjectSettings, getValidJSON, logError, PROJECT_MANIFEST_FILENAME} from './utils';
+import {ERROR} from './messages';
+import {getProjectSettings, getValidJSON, logError} from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.

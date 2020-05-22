@@ -1,6 +1,7 @@
 /* eslint-disable new-cap */
 import {loadAPICredentials, script} from '../auth';
-import {checkIfOnline, ERROR, getProjectSettings, LOG, logError, spinner} from '../utils';
+import {ERROR, LOG} from '../messages';
+import {checkIfOnline, getProjectSettings, logError, spinner} from '../utils';
 
 /**
  * Removes a deployment from the Apps Script project.

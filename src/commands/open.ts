@@ -4,8 +4,9 @@ import open from 'open';
 
 import {loadAPICredentials, script} from '../auth';
 import {deploymentIdPrompt} from '../inquirer';
+import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {ERROR, getProjectSettings, getWebApplicationURL, LOG, logError} from '../utils';
+import {getProjectSettings, getWebApplicationURL, logError} from '../utils';
 
 /**
  * Opens an Apps Script project's script.google.com editor.

@@ -6,8 +6,9 @@ import {after, before, describe, it} from 'mocha';
 import path from 'path';
 
 import {getAppsScriptFileName, getFileType} from '../src/files';
+import {ERROR, LOG} from '../src/messages';
 import {extractScriptId, URL} from '../src/urls';
-import {ERROR, getAPIFileType, getDefaultProjectName, getWebApplicationURL, LOG, saveProject} from '../src/utils';
+import {getAPIFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
 import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
 import {cleanup, setup} from './functions';
 

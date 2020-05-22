@@ -2,7 +2,8 @@
 import {script_v1 as scriptV1} from 'googleapis';
 
 import {loadAPICredentials, script} from '../auth';
-import {checkIfOnline, getProjectSettings, LOG, logError, spinner} from '../utils';
+import {LOG} from '../messages';
+import {checkIfOnline, getProjectSettings, logError, spinner} from '../utils';
 
 /**
  * Lists a script's deployments.

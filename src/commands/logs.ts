@@ -7,8 +7,9 @@ import open from 'open';
 import {loadAPICredentials, logger} from '../auth';
 import {DOTFILE, ProjectSettings} from '../dotfile';
 import {projectIdPrompt} from '../inquirer';
+import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, ERROR, getProjectSettings, isValidProjectId, LOG, logError, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner} from '../utils';
 
 /**
  * Prints StackDriver logs from this Apps Script project.

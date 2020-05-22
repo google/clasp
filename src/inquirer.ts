@@ -3,7 +3,7 @@ import {prompt, registerPrompt} from 'inquirer';
 import {ReadonlyDeep} from 'type-fest';
 
 import {SCRIPT_TYPES} from './apis';
-import {LOG} from './utils';
+import {LOG} from './messages';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 registerPrompt('autocomplete', require('inquirer-autocomplete-prompt-ipt'));

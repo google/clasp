@@ -1,7 +1,8 @@
 /* eslint-disable new-cap */
 import {loadAPICredentials, script} from '../auth';
 import {descriptionPrompt} from '../inquirer';
-import {checkIfOnline, getProjectSettings, LOG, logError, spinner} from '../utils';
+import {LOG} from '../messages';
+import {checkIfOnline, getProjectSettings, logError, spinner} from '../utils';
 
 /**
  * Creates a new version of an Apps Script project.

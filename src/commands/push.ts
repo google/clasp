@@ -6,18 +6,13 @@ import path from 'path';
 import {watchTree} from 'watch';
 
 import {loadAPICredentials} from '../auth';
+import {FS_OPTIONS, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants';
 import {DOT, DOTFILE} from '../dotfile';
-import {fetchProject, FS_OPTIONS, pushFiles} from '../files';
+import {fetchProject, pushFiles} from '../files';
 import {overwritePrompt} from '../inquirer';
 import {isValidManifest} from '../manifest';
-import {
-  checkIfOnline,
-  getProjectSettings,
-  LOG,
-  PROJECT_MANIFEST_BASENAME,
-  PROJECT_MANIFEST_FILENAME,
-  spinner,
-} from '../utils';
+import {LOG} from '../messages';
+import {checkIfOnline, getProjectSettings, spinner} from '../utils';
 
 /**
  * Uploads all files into the script.google.com filesystem.

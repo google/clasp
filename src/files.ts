@@ -9,21 +9,11 @@ import ts2gas from 'ts2gas';
 import ts from 'typescript';
 
 import {loadAPICredentials, script} from './auth';
+import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOT, DOTFILE} from './dotfile';
-import {
-  checkIfOnline,
-  ERROR,
-  getAPIFileType,
-  getProjectSettings,
-  LOG,
-  logError,
-  PROJECT_MANIFEST_FILENAME,
-  spinner,
-} from './utils';
+import {ERROR, LOG} from './messages';
+import {checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner} from './utils';
 import {ReadonlyDeep} from 'type-fest';
-
-// @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
-export const FS_OPTIONS = {encoding: 'utf8'};
 
 // An Apps Script API File
 interface AppsScriptFile {

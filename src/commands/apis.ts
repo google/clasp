@@ -6,8 +6,9 @@ import open from 'open';
 import {PUBLIC_ADVANCED_SERVICES} from '../apis';
 import {enableOrDisableAPI} from '../apiutils';
 import {discovery, loadAPICredentials, serviceUsage} from '../auth';
+import {ERROR} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, ERROR, getProjectId, logError} from '../utils';
+import {checkIfOnline, getProjectId, logError} from '../utils';
 
 /**
  * Acts as a router to apis subcommands

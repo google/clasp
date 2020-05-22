@@ -21,15 +21,13 @@ import stripBom from 'strip-bom';
 import dotf from 'dotf';
 import splitLines from 'split-lines';
 
+import {FS_OPTIONS} from './constants';
+
 export {Dotfile} from 'dotf';
 
 // TEMP CIRCULAR DEPS, TODO REMOVE
 // import { PROJECT_NAME } from './utils';
 const PROJECT_NAME = 'clasp';
-
-// TODO: workaround the circular dependency with `files.ts`
-// @see https://nodejs.org/api/fs.html#fs_fs_readfilesync_path_options
-const FS_OPTIONS = {encoding: 'utf8'};
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {

@@ -11,7 +11,8 @@ import {URL} from 'url';
 import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
 import {oauthScopesPrompt, PromptAnswers} from './inquirer';
 import {readManifest} from './manifest';
-import {checkIfOnline, ClaspCredentials, ERROR, getOAuthSettings, LOG, logError} from './utils';
+import {ERROR, LOG} from './messages';
+import {checkIfOnline, ClaspCredentials, getOAuthSettings, logError} from './utils';
 
 /**
  * Authentication with Google's APIs.

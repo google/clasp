@@ -5,7 +5,8 @@ import {script_v1 as scriptV1} from 'googleapis';
 import {loadAPICredentials, serviceUsage} from './auth';
 import {functionNamePrompt, functionNameSource} from './inquirer';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest';
-import {ERROR, getProjectId, logError, spinner} from './utils';
+import {ERROR} from './messages';
+import {getProjectId, logError, spinner} from './utils';
 import {ReadonlyDeep} from 'type-fest';
 
 /**

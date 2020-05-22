@@ -4,7 +4,7 @@ import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, afterEach, before, beforeEach, describe, it} from 'mocha';
 
-import {ERROR, LOG} from '../../src/utils';
+import {ERROR, LOG} from '../../src/messages';
 import {CLASP, CLASP_PATHS, CLIENT_CREDS, FAKE_CLASPRC} from '../constants';
 import {backupSettings, cleanup, restoreSettings, rndStr, setup} from '../functions';
 

@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {spawnSync} from 'child_process';
 import {after, before, describe, it} from 'mocha';
 
-import {LOG} from '../../src/utils';
+import {LOG} from '../../src/messages';
 import {CLASP} from '../constants';
 import {cleanup, setup, setupWithoutGCPProject} from '../functions';
 
