@@ -1,4 +1,5 @@
 /* eslint-disable camelcase,new-cap */
+import cliTruncate from 'cli-truncate';
 import {Spinner} from 'cli-spinner';
 import fs from 'fs-extra';
 import {script_v1 as scriptV1} from 'googleapis';
@@ -253,3 +254,6 @@ export function getValidJSON<T>(value: string): T {
     throw new Error(ERROR.INVALID_JSON);
   }
 }
+
+export const ellipsize = (value: string, length: number) =>
+  cliTruncate(value, length, {preferTruncationOnSpace: true}).padEnd(length);

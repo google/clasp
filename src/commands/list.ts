@@ -1,11 +1,10 @@
 /* eslint-disable new-cap */
-import ellipsize from 'ellipsize';
 import {drive_v3 as driveV3} from 'googleapis';
 
 import {drive, loadAPICredentials} from '../auth';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, logError, spinner} from '../utils';
+import {checkIfOnline, logError, spinner, ellipsize} from '../utils';
 
 /**
  * Lists a user's Apps Script projects using Google Drive.
@@ -29,9 +28,7 @@ export default async (): Promise<void> => {
     return;
   }
 
-  const NAME_PAD_SIZE = 20;
-  files.forEach((file: Readonly<driveV3.Schema$File>) => {
-    const fileName = ellipsize(file.name!, NAME_PAD_SIZE) as string;
-    console.log(`${fileName.padEnd(NAME_PAD_SIZE)} – ${URL.SCRIPT(file.id ?? '')}`);
-  });
+  files.forEach((file: Readonly<driveV3.Schema$File>) =>
+    console.log(`${ellipsize(file.name!, 20)} – ${URL.SCRIPT(file.id ?? '')}`)
+  );
 };

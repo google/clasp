@@ -1,12 +1,12 @@
 /* eslint-disable new-cap,unicorn/filename-case */
-import ellipsize from 'ellipsize';
+import {script_v1 as scriptV1} from 'googleapis';
 import open from 'open';
 
 import {loadAPICredentials, script} from '../auth';
 import {deploymentIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {getProjectSettings, getWebApplicationURL, logError} from '../utils';
+import {getProjectSettings, getWebApplicationURL, logError, ellipsize} from '../utils';
 
 /**
  * Opens an Apps Script project's script.google.com editor.
@@ -79,15 +79,13 @@ export default async (
       return 0; // Should never happen
     })
     .map(deployment => {
-      const DESC_PAD_SIZE = 30;
-      const config = deployment.deploymentConfig;
-      const version = config?.versionNumber;
+      const config = deployment.deploymentConfig as scriptV1.Schema$DeploymentConfig;
+      const version = config.versionNumber;
+      const description = config.description ?? '';
       return {
-        name: `${ellipsize(config && config.description!, DESC_PAD_SIZE).padEnd(DESC_PAD_SIZE)}@${(typeof version ===
-        'number'
-          ? `${version}`
-          : 'HEAD'
-        ).padEnd(4)} - ${deployment.deploymentId}`,
+        name: `${ellipsize(description, 30)}@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(
+          4
+        )} - ${deployment.deploymentId}`,
         value: deployment,
       };
     });
