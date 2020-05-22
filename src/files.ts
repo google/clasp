@@ -327,7 +327,6 @@ export async function pushFiles(silent = false) {
   await getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     // Check for edge cases.
     if (err) {
-      if (spinner.isSpinning()) spinner.stop(true);
       logError(err, LOG.PUSH_FAILURE);
     }
 

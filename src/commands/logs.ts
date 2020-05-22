@@ -168,7 +168,6 @@ async function setupLogs(): Promise<string> {
         });
     });
   }).catch(error => {
-    if (spinner.isSpinning()) spinner.stop(true);
     return logError(error); // Only because tsc doesn't understand logError never return type
   });
 }
@@ -237,7 +236,6 @@ async function fetchAndPrintLogs(
 
     parseResponse(logs);
   } catch {
-    if (spinner.isSpinning()) spinner.stop(true);
     logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 }
