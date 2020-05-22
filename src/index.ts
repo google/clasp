@@ -346,5 +346,11 @@ if (process.argv.slice(2).length === 0) {
   commander.outputHelp();
 }
 
-// User input is provided from the process' arguments
-commander.parse(process.argv);
+(async () => {
+  try {
+    // User input is provided from the process' arguments
+    await commander.parseAsync(process.argv);
+  } catch (error) {
+    process.exitCode = 1;
+  }
+})();
