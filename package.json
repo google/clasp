@@ -14,7 +14,7 @@
     "test": "nyc mocha --cache false --timeout 100000 build/test",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "prettier src test --write",
-    "check": "gts check",
+    "check": "gts check src/**/*.ts test/**/*.ts",
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
