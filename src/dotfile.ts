@@ -87,7 +87,7 @@ export const DOTFILE = {
     return new Promise<string[]>(resolve => {
       if (fs.existsSync(ignoreDirectory) && fs.existsSync(DOT.IGNORE.PATH)) {
         const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
-        resolve((splitLines(buffer) as string[]).filter((name: string) => name));
+        resolve(splitLines(buffer).filter((name: string) => name));
       } else {
         const defaultClaspignore = [
           '# ignore all files…',

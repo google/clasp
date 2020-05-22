@@ -83,9 +83,9 @@ export default async (
       const version = config.versionNumber;
       const description = config.description ?? '';
       return {
-        name: `${ellipsize(description, 30)}@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(
-          4
-        )} - ${deployment.deploymentId}`,
+        name: `${ellipsize(description, 30)}@${(typeof version === 'number' ? `${version}` : 'HEAD').padEnd(4)} - ${
+          deployment.deploymentId
+        }`,
         value: deployment,
       };
     });
