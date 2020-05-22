@@ -220,21 +220,6 @@ export async function getProjectId(promptUser = true): Promise<string> {
 }
 
 /**
- * Handles error of each command.
- */
-export function handleError(command: (...args: readonly any[]) => Promise<unknown>) {
-  return async (...args: readonly any[]) => {
-    try {
-      await command(...args);
-      if (spinner.isSpinning()) spinner.stop(true);
-    } catch (error) {
-      spinner.stop(true);
-      logError(null, error.message);
-    }
-  };
-}
-
-/**
  * Validate the project id.
  * @param {string} projectId The project id.
  * @returns {boolean} Is the project id valid
