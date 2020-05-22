@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/prevent-abbreviations */
 import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
@@ -37,7 +36,7 @@ export const setupWithRunManifest = () => {
 };
 
 /** produce a pseudo random string */
-export const rndStr = () => Math.random().toString(36).slice(2);
+export const randomString = () => Math.random().toString(36).slice(2);
 
 /**
  * backup clasp settings. Use `restoreSettings()` to restore these.
@@ -74,7 +73,7 @@ export const restoreSettings = () => {
  *
  * @param {Array<{ file: string, data: string }} filepathsAndContents directory content (files)
  */
-export function setupTmpDirectory(filepathsAndContents: Array<{file: string; data: string}>) {
+export function setupTemporaryDirectory(filepathsAndContents: Array<{file: string; data: string}>) {
   fs.ensureDirSync('tmp');
   const tmpdir = tmp.dirSync({unsafeCleanup: true, dir: 'tmp/', keep: false}).name;
   filepathsAndContents.forEach(({file, data}) => {

@@ -1,4 +1,4 @@
-/* eslint-disable camelcase,new-cap */
+/* eslint-disable new-cap */
 import cliTruncate from 'cli-truncate';
 import {Spinner} from 'cli-spinner';
 import fs from 'fs-extra';

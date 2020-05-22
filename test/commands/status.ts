@@ -3,12 +3,12 @@ import {spawnSync} from 'child_process';
 import {after, before, describe, it} from 'mocha';
 
 import {CLASP, TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API, TEST_CODE_JS} from '../constants';
-import {cleanup, setup, setupTmpDirectory} from '../functions';
+import {cleanup, setup, setupTemporaryDirectory} from '../functions';
 
 describe('Test clasp status function', () => {
   before(setup);
   it('should respect globs and negation rules', () => {
-    const tmpdir = setupTmpDirectory([
+    const tmpdir = setupTemporaryDirectory([
       {file: '.clasp.json', data: '{ "scriptId":"1234" }'},
       {file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json'},
       {file: 'build/main.js', data: TEST_CODE_JS},
@@ -30,7 +30,7 @@ describe('Test clasp status function', () => {
     // TODO: cleanup by del/rimraf tmpdir
   });
   it('should ignore dotfiles if the parent folder is ignored', () => {
-    const tmpdir = setupTmpDirectory([
+    const tmpdir = setupTemporaryDirectory([
       {file: '.clasp.json', data: '{ "scriptId":"1234" }'},
       {file: '.claspignore', data: '**/node_modules/**\n**/**\n!appsscript.json'},
       {file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API},
@@ -49,7 +49,7 @@ describe('Test clasp status function', () => {
     // TODO: cleanup by del/rimraf tmpdir
   });
   it('should respect globs and negation rules when rootDir given', () => {
-    const tmpdir = setupTmpDirectory([
+    const tmpdir = setupTemporaryDirectory([
       {file: '.clasp.json', data: '{ "scriptId":"1234", "rootDir":"dist" }'},
       {file: '.claspignore', data: '**/**\n!build/main.js\n!appsscript.json'},
       {file: 'dist/build/main.js', data: TEST_CODE_JS},
@@ -66,7 +66,7 @@ describe('Test clasp status function', () => {
     // TODO: cleanup by del/rimraf tmpdir
   });
   it('should respect globs and negation rules when relative rootDir given', () => {
-    const tmpdir = setupTmpDirectory([
+    const tmpdir = setupTemporaryDirectory([
       {file: 'src/.clasp.json', data: '{ "scriptId":"1234", "rootDir":"../build" }'},
       {file: 'src/.claspignore', data: '**/**\n!main.js\n!appsscript.json'},
       {file: 'build/main.js', data: TEST_CODE_JS},

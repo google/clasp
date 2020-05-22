@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
 import path from 'path';
@@ -19,15 +18,16 @@ describe('Test files isValidFileName function', () => {
   const validIgnoreMatches = ['ignoredFile', 'anotherFile'];
 
   // Disable a couple of linting rules just for these tests
-  // tslint:disable:max-line-length
-  // tslint:disable:no-unused-expression
   it('should return true for valid combinations of input', () => {
-    expect(isValidFileName(validFileName, validJSFileType, validRootDir, validNormalizedName, validIgnoreMatches)).to.be
-      .true;
-    expect(isValidFileName(validFileName, validHTMLFileType, validRootDir, validNormalizedName, validIgnoreMatches)).to
-      .be.true;
-    expect(isValidFileName(validJSONFileName, validJSONFileType, validRootDir, validNormalizedName, validIgnoreMatches))
-      .to.be.true;
+    expect(
+      isValidFileName(validFileName, validJSFileType, validRootDir, validNormalizedName, validIgnoreMatches)
+    ).to.equal(true);
+    expect(
+      isValidFileName(validFileName, validHTMLFileType, validRootDir, validNormalizedName, validIgnoreMatches)
+    ).to.equal(true);
+    expect(
+      isValidFileName(validJSONFileName, validJSONFileType, validRootDir, validNormalizedName, validIgnoreMatches)
+    ).to.equal(true);
   });
   it('should return false for invalid combinations of input', () => {
     expect(
@@ -38,7 +38,7 @@ describe('Test files isValidFileName function', () => {
         validNormalizedName,
         validIgnoreMatches
       )
-    ).to.be.false;
+    ).to.equal(false);
     expect(
       isValidFileName(
         invalidFileNameInIgnoreMatches,
@@ -47,8 +47,9 @@ describe('Test files isValidFileName function', () => {
         validNormalizedName,
         validIgnoreMatches
       )
-    ).to.be.false;
-    expect(isValidFileName(validFileName, invalidFileType, validRootDir, validNormalizedName, validIgnoreMatches)).to.be
-      .false;
+    ).to.equal(false);
+    expect(
+      isValidFileName(validFileName, invalidFileType, validRootDir, validNormalizedName, validIgnoreMatches)
+    ).to.equal(false);
   });
 });

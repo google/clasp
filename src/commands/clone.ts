@@ -1,4 +1,4 @@
-/* eslint-disable new-cap,@typescript-eslint/prefer-readonly-parameter-types */
+/* eslint-disable new-cap */
 import {drive, loadAPICredentials} from '../auth';
 import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer';

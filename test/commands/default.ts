@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/filename-case */
 import {expect} from 'chai';
 import {spawnSync} from 'child_process';
 import {describe, it} from 'mocha';

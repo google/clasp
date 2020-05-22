@@ -1,4 +1,4 @@
-/* eslint-disable new-cap,@typescript-eslint/prefer-readonly-parameter-types */
+/* eslint-disable new-cap */
 import {GaxiosResponse} from 'gaxios';
 import {serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';

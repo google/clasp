@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 
 import {CLASP, CLASP_SETTINGS, TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API, TEST_CODE_JS, TEST_PAGE_HTML} from '../constants';
-import {cleanup, setup, setupTmpDirectory} from '../functions';
+import {cleanup, setup, setupTemporaryDirectory} from '../functions';
 
 describe('Test clasp push function', () => {
   before(setup);
@@ -32,7 +32,7 @@ describe('Test clasp push function', () => {
 
 describe('Test clasp push with no `.claspignore`', () => {
   it('should push local project correctly', () => {
-    const tmpdir = setupTmpDirectory([
+    const tmpdir = setupTemporaryDirectory([
       {file: '.clasp.json', data: CLASP_SETTINGS.valid},
       {file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API},
       {file: 'Code.js', data: TEST_CODE_JS},

@@ -1,4 +1,4 @@
-/* eslint-disable new-cap,unicorn/filename-case */
+/* eslint-disable new-cap */
 import {Command} from 'commander';
 import {ReadonlyDeep} from 'type-fest';
 

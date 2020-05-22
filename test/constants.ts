@@ -3,7 +3,7 @@ import os from 'os';
 import path from 'path';
 
 import {ClaspToken} from '../src/dotfile';
-import {rndStr} from './functions';
+import {randomString} from './functions';
 
 // Sample files
 export const TEST_CODE_JS = "function test() { Logger.log('test'); }";
@@ -51,7 +51,7 @@ const VALID_CLASP_SETTINGS = {
 
 const INVALID_CLASP_SETTINGS = {
   scriptId: SCRIPT_ID,
-  projectId: `project-id-${rndStr()}`,
+  projectId: `project-id-${randomString()}`,
 };
 
 const VALID_CLASP_SETTINGS_WITHOUT_PROJECT_ID = {
@@ -65,16 +65,16 @@ export const CLASP_SETTINGS = {
 };
 
 const FAKE_CLASPRC_TOKEN = {
-  access_token: rndStr(),
-  refresh_token: rndStr(),
+  access_token: randomString(),
+  refresh_token: randomString(),
   scope: 'https://www.googleapis.com/auth/script.projects',
   token_type: 'Bearer',
   expiry_date: new Date().getTime(),
 };
 
 const oAuth2ClientOptions: OAuth2ClientOptions = {
-  clientId: `${rndStr()}.apps.googleusercontent.com`,
-  clientSecret: rndStr(),
+  clientId: `${randomString()}.apps.googleusercontent.com`,
+  clientSecret: randomString(),
 };
 
 const FAKE_CLASPRC_LOCAL: ClaspToken = {
@@ -90,14 +90,14 @@ export const FAKE_CLASPRC = {
 
 const FAKE_CLIENT_CREDS = {
   installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com`,
-    client_secret: rndStr(),
+    client_id: `${randomString()}.apps.googleusercontent.com`,
+    client_secret: randomString(),
   },
 };
 
 const INVALID_CLIENT_CREDS = {
   installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com`,
+    client_id: `${randomString()}.apps.googleusercontent.com`,
   },
 };
 

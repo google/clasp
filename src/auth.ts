@@ -1,4 +1,4 @@
-/* eslint-disable camelcase,new-cap,node/prefer-global/url */
+/* eslint-disable new-cap */
 import {Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions} from 'google-auth-library';
 import {google, script_v1 as scriptV1} from 'googleapis';
 import {createServer, IncomingMessage, Server, ServerResponse} from 'http';
@@ -303,7 +303,6 @@ async function authorizeWithoutLocalhost(
  * @param {ClaspToken} rc OAuth client settings from rc file.
  */
 // Because of mutation:
-// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
 async function setOauthClientCredentials(rc: ClaspToken) {
   /**
    * Refreshes the credentials and saves them.

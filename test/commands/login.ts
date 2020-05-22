@@ -6,7 +6,7 @@ import {after, afterEach, before, beforeEach, describe, it} from 'mocha';
 
 import {ERROR, LOG} from '../../src/messages';
 import {CLASP, CLASP_PATHS, CLIENT_CREDS, FAKE_CLASPRC} from '../constants';
-import {backupSettings, cleanup, restoreSettings, rndStr, setup} from '../functions';
+import {backupSettings, cleanup, restoreSettings, randomString, setup} from '../functions';
 
 describe('Test clasp login function', () => {
   before(setup);
@@ -57,7 +57,7 @@ describe('Test clasp login function', () => {
   });
   // TODO: this test needs to be updated
   it.skip('should exit(0) with ERROR.BAD_CREDENTIALS_FILE if --creds file corrupt json', () => {
-    fs.writeFileSync(CLASP_PATHS.clientCredsLocal, rndStr());
+    fs.writeFileSync(CLASP_PATHS.clientCredsLocal, randomString());
     const result = spawnSync(CLASP, ['login', '--creds', `${CLASP_PATHS.clientCredsLocal}`, '--no-localhost'], {
       encoding: 'utf8',
     });

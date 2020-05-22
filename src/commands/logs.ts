@@ -1,4 +1,4 @@
-/* eslint-disable new-cap,@typescript-eslint/default-param-last,@typescript-eslint/no-floating-promises,promise/prefer-await-to-then */
+/* eslint-disable new-cap */
 import chalk from 'chalk';
 import {GaxiosResponse} from 'gaxios';
 import {logging_v2 as loggingV2} from 'googleapis';
@@ -50,6 +50,7 @@ export default async (cmd: {
     setInterval(() => {
       const startDate = new Date();
       startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       fetchAndPrintLogs(cmd.json, cmd.simplified, projectId, startDate);
     }, POLL_INTERVAL);
   } else {
@@ -70,6 +71,7 @@ const logEntryCache: {[key: string]: boolean} = {};
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
+// eslint-disable-next-line @typescript-eslint/default-param-last
 function printLogs(entries: loggingV2.Schema$LogEntry[] = [], formatJson: boolean, simplified: boolean): void {
   entries.reverse(); // Print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; i += 1) {
@@ -132,18 +134,22 @@ function printLogs(entries: loggingV2.Schema$LogEntry[] = [], formatJson: boolea
 async function setupLogs(): Promise<string> {
   let projectId: string;
   return new Promise<string>((resolve, reject) => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises,promise/prefer-await-to-then
     getProjectSettings().then((projectSettings: Readonly<ProjectSettings>) => {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
       projectIdPrompt()
+        // eslint-disable-next-line promise/prefer-await-to-then
         .then(answers => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
           if (!dotfile) logError(null, ERROR.SETTINGS_DNE);
           dotfile
             .read<ProjectSettings>()
+            // eslint-disable-next-line promise/prefer-await-to-then
             .then((settings: Readonly<ProjectSettings>) => {
               if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
               dotfile.write({...settings, ...{projectId}});
               resolve(projectId);
             })
