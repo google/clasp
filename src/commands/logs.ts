@@ -71,9 +71,13 @@ const logEntryCache: {[key: string]: boolean} = {};
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-// eslint-disable-next-line @typescript-eslint/default-param-last
-function printLogs(entries: loggingV2.Schema$LogEntry[] = [], formatJson: boolean, simplified: boolean): void {
-  entries.reverse(); // Print in syslog ascending order
+function printLogs(
+  // eslint-disable-next-line @typescript-eslint/default-param-last
+  input: ReadonlyArray<Readonly<loggingV2.Schema$LogEntry>> = [],
+  formatJson: boolean,
+  simplified: boolean
+): void {
+  const entries = [...input].reverse(); // Print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; i += 1) {
     const {
       severity = '',
@@ -87,7 +91,7 @@ function printLogs(entries: loggingV2.Schema$LogEntry[] = [], formatJson: boolea
     if (!resource || !resource.labels) return;
     let functionName = resource.labels.function_name;
     functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
-    let payloadData: any = '';
+    let payloadData: string | {[key: string]: unknown} = '';
     if (formatJson) {
       payloadData = JSON.stringify(entries[i], null, 2);
     } else {
@@ -116,13 +120,16 @@ function printLogs(entries: loggingV2.Schema$LogEntry[] = [], formatJson: boolea
       NOTICE: chalk.magenta(severity),
       WARNING: chalk.yellow(severity),
     };
+
     let coloredSeverity: string = coloredStringMap[severity!] || severity!;
     coloredSeverity = String(coloredSeverity).padEnd(20);
     // If we haven't logged this entry before, log it and mark the cache.
     if (!logEntryCache[insertId!]) {
       if (simplified) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         console.log(`${coloredSeverity} ${functionName} ${payloadData}`);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
 

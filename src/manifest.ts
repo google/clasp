@@ -161,10 +161,7 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
   // Enable the service
   if (enable) {
     // Add new service (get the first one from the public list)
-    const newAdvancedService = PUBLIC_ADVANCED_SERVICES.filter(
-      // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
-      service => service.serviceId === serviceId
-    )[0];
+    const newAdvancedService = PUBLIC_ADVANCED_SERVICES.filter(service => service.serviceId === serviceId)[0];
     newEnabledAdvancedServices.push(newAdvancedService);
   }
 

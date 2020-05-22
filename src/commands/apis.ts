@@ -1,6 +1,6 @@
 /* eslint-disable new-cap */
 import {GaxiosResponse} from 'gaxios';
-import {serviceusage_v1 as serviceUsageV1} from 'googleapis';
+import {serviceusage_v1 as serviceUsageV1, discovery_v1 as discoveryV1} from 'googleapis';
 import open from 'open';
 
 import {PUBLIC_ADVANCED_SERVICES} from '../apis';
@@ -9,6 +9,7 @@ import {discovery, loadAPICredentials, serviceUsage} from '../auth';
 import {ERROR} from '../messages';
 import {URL} from '../urls';
 import {checkIfOnline, getProjectId, logError} from '../utils';
+import {ReadonlyDeep} from 'type-fest';
 
 /**
  * Acts as a router to apis subcommands
@@ -72,14 +73,18 @@ export default async (options: {readonly open?: string}): Promise<void> => {
       const {data} = await discovery.apis.list({
         preferred: true,
       });
-      const services = data.items ?? [];
+
+      type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
+      type PublicAdvancedService = ReadonlyDeep<Required<NonNullable<DirectoryItem>>>;
+
+      const services: DirectoryItem[] = data.items ?? [];
       // Only get the public service IDs
-      const PUBLIC_ADVANCED_SERVICE_IDS = PUBLIC_ADVANCED_SERVICES.map(advancedService => advancedService.serviceId);
+      const publicAdvancedServicesIds = PUBLIC_ADVANCED_SERVICES.map(advancedService => advancedService.serviceId);
 
       // Merge discovery data with public services data.
       const publicServices = [];
-      for (const publicServiceId of PUBLIC_ADVANCED_SERVICE_IDS) {
-        const service = services.find(s => s.name === publicServiceId);
+      for (const publicServiceId of publicAdvancedServicesIds) {
+        const service = services.find(s => s?.name === publicServiceId) as PublicAdvancedService;
         // For some reason 'youtubePartner' is not in the api list.
         if (service?.id && service.description) {
           publicServices.push(service);
@@ -87,17 +92,15 @@ export default async (options: {readonly open?: string}): Promise<void> => {
       }
 
       // Sort the services based on id
-      publicServices.sort((a: any, b: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      publicServices.sort((a, b) => {
         if (a.id < b.id) return -1;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (a.id > b.id) return 1;
         return 0;
       });
 
       // Format the list
       for (const api of publicServices) {
-        console.log(`${api.name!.padEnd(25)} - ${api.description!.padEnd(60)}`);
+        console.log(`${api.name.padEnd(25)} - ${api.description.padEnd(60)}`);
       }
     },
     undefined: () => {
