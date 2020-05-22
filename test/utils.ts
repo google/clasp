@@ -1,9 +1,8 @@
 import {expect} from 'chai';
-import {describe, it} from 'mocha';
-
-import {cleanup, setup} from './functions';
+import {after, before, describe, it} from 'mocha';
 
 import {ERROR, getValidJSON} from '../src/utils';
+import {cleanup, setup} from './functions';
 
 describe('Test getValidJSON function', () => {
   before(setup);

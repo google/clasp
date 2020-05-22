@@ -1,11 +1,11 @@
-import {cleanup, setup} from '../functions';
-import {describe, it} from 'mocha';
-
-import {CLASP} from '../constants';
-import {LOG} from '../../src/utils';
 import {expect} from 'chai';
-import fs from 'fs-extra';
 import {spawnSync} from 'child_process';
+import fs from 'fs-extra';
+import {after, before, describe, it} from 'mocha';
+
+import {LOG} from '../../src/utils';
+import {CLASP} from '../constants';
+import {cleanup, setup} from '../functions';
 
 describe('Test clasp create function', () => {
   before(setup);

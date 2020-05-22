@@ -1,6 +1,8 @@
-import {spawnSync} from 'child_process';
+/* eslint-disable new-cap */
 import {expect} from 'chai';
-import {describe, it} from 'mocha';
+import {spawnSync} from 'child_process';
+import {after, before, describe, it} from 'mocha';
+
 import {URL} from '../../src/urls';
 import {CLASP, PROJECT_ID} from '../constants';
 import {cleanup, setup} from '../functions';
@@ -52,7 +54,7 @@ describe('Test clasp apis functions', () => {
   });
   it('should error with unknown subcommand', () => {
     const result = spawnSync(CLASP, ['apis', 'unknown'], {encoding: 'utf8'});
-    expect(result.stderr).to.contain(`Unknown command`);
+    expect(result.stderr).to.contain('Unknown command');
     expect(result.status).to.equal(1);
   });
   it('should open APIs dashboard', () => {

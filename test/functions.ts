@@ -1,13 +1,14 @@
-import {
-  CLASP_PATHS,
-  CLASP_SETTINGS,
-  TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
-  TEST_APPSSCRIPT_JSON_WITH_RUN_API,
-} from './constants';
-
+/* eslint-disable unicorn/prevent-abbreviations */
 import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
+
+import {
+  CLASP_PATHS,
+  CLASP_SETTINGS,
+  TEST_APPSSCRIPT_JSON_WITH_RUN_API,
+  TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
+} from './constants';
 
 /** basic cleanup after tests */
 export const cleanup = () => {
@@ -36,7 +37,7 @@ export const setupWithRunManifest = () => {
 };
 
 /** produce a pseudo random string */
-export const rndStr = () => Math.random().toString(36).substr(2);
+export const rndStr = () => Math.random().toString(36).slice(2);
 
 /**
  * backup clasp settings. Use `restoreSettings()` to restore these.

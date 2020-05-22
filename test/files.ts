@@ -1,8 +1,9 @@
-import {describe, it} from 'mocha';
-
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import {expect} from 'chai';
-import {isValidFileName} from '../src/files';
+import {describe, it} from 'mocha';
 import path from 'path';
+
+import {isValidFileName} from '../src/files';
 
 describe('Test files isValidFileName function', () => {
   const validFileName = 'testFile';

@@ -1,9 +1,9 @@
-/// <reference path="../../src/types.d.ts" />
-
-import {spawnSync} from 'child_process';
+/* eslint-disable new-cap */
 import {expect} from 'chai';
+import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
-import {describe, it} from 'mocha';
+import {after, before, describe, it} from 'mocha';
+
 import {URL} from '../../src/urls';
 import {ERROR, LOG} from '../../src/utils';
 import {CLASP, SCRIPT_ID} from '../constants';

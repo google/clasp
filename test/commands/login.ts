@@ -1,11 +1,12 @@
-import {CLASP, CLASP_PATHS, CLIENT_CREDS, FAKE_CLASPRC} from '../constants';
-import {ERROR, LOG} from '../../src/utils';
-import {backupSettings, cleanup, restoreSettings, rndStr, setup} from '../functions';
-import {describe, it} from 'mocha';
-
+/* eslint-disable new-cap */
 import {expect} from 'chai';
-import fs from 'fs-extra';
 import {spawnSync} from 'child_process';
+import fs from 'fs-extra';
+import {after, afterEach, before, beforeEach, describe, it} from 'mocha';
+
+import {ERROR, LOG} from '../../src/utils';
+import {CLASP, CLASP_PATHS, CLIENT_CREDS, FAKE_CLASPRC} from '../constants';
+import {backupSettings, cleanup, restoreSettings, rndStr, setup} from '../functions';
 
 describe('Test clasp login function', () => {
   before(setup);

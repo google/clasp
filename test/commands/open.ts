@@ -1,9 +1,11 @@
-import {spawnSync} from 'child_process';
+/* eslint-disable new-cap */
 import {expect} from 'chai';
-import {describe, it} from 'mocha';
+import {spawnSync} from 'child_process';
+import {after, before, describe, it} from 'mocha';
+
 import {URL} from '../../src/urls';
 import {ERROR, LOG} from '../../src/utils';
-import {CLASP, PROJECT_ID, SCRIPT_ID, PARENT_ID} from '../constants';
+import {CLASP, PARENT_ID, PROJECT_ID, SCRIPT_ID} from '../constants';
 import {cleanup, setup} from '../functions';
 
 describe('Test clasp open function', () => {

@@ -1,9 +1,9 @@
-import {CLASP, TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API, TEST_CODE_JS} from '../constants';
-import {cleanup, setup, setupTmpDirectory} from '../functions';
-import {describe, it} from 'mocha';
-
 import {expect} from 'chai';
 import {spawnSync} from 'child_process';
+import {after, before, describe, it} from 'mocha';
+
+import {CLASP, TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API, TEST_CODE_JS} from '../constants';
+import {cleanup, setup, setupTmpDirectory} from '../functions';
 
 describe('Test clasp status function', () => {
   before(setup);

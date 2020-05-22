@@ -1,14 +1,15 @@
-import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
-import {ERROR, LOG, getAPIFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
-import {URL, extractScriptId} from '../src/urls';
-import {cleanup, setup} from './functions';
-import {describe, it} from 'mocha';
-import {getAppsScriptFileName, getFileType} from '../src/files';
-
+/* eslint-disable new-cap */
 import {expect} from 'chai';
-import fs from 'fs-extra';
-import path from 'path';
 import {spawnSync} from 'child_process';
+import fs from 'fs-extra';
+import {after, before, describe, it} from 'mocha';
+import path from 'path';
+
+import {getAppsScriptFileName, getFileType} from '../src/files';
+import {extractScriptId, URL} from '../src/urls';
+import {ERROR, getAPIFileType, getDefaultProjectName, getWebApplicationURL, LOG, saveProject} from '../src/utils';
+import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
+import {cleanup, setup} from './functions';
 
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
@@ -84,14 +85,14 @@ describe('Test clasp version and versions function', () => {
   });
   it('should create a new version correctly', () => {
     const result = spawnSync(CLASP, ['version', 'xxx'], {encoding: 'utf8'});
-    versionNumber = Number(result.stdout.substring(result.stdout.lastIndexOf(' '), result.stdout.length - 2));
+    versionNumber = Number(result.stdout.slice(result.stdout.lastIndexOf(' '), -2));
     expect(versionNumber).to.be.greaterThan(0);
   });
   // TODO: this test needs to be updated
   it.skip('should list versions correctly', () => {
     const result = spawnSync(CLASP, ['versions'], {encoding: 'utf8'});
     expect(result.stdout).to.contain('Versions');
-    if (versionNumber) expect(result.stdout).to.contain(versionNumber + ' - ');
+    if (versionNumber) expect(result.stdout).to.contain(`${versionNumber} - `);
     expect(result.status).to.equal(0);
   });
   after(cleanup);
@@ -240,7 +241,7 @@ describe('Test variations of clasp --version', () => {
 describe('Test unknown functions', () => {
   it('should show version correctly', () => {
     const result = spawnSync(CLASP, ['unknown'], {encoding: 'utf8'});
-    expect(result.stderr).to.contain(`Unknown command`);
+    expect(result.stderr).to.contain('Unknown command');
     expect(result.status).to.equal(1);
   });
 });

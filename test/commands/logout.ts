@@ -1,11 +1,11 @@
+import {expect} from 'chai';
+import {spawnSync} from 'child_process';
+import fs from 'fs-extra';
+import {after, before, beforeEach, describe, it} from 'mocha';
+
+import {hasOauthClientSettings} from '../../src/utils';
 import {CLASP, CLASP_PATHS, FAKE_CLASPRC} from '../constants';
 import {backupSettings, cleanup, restoreSettings, setup} from '../functions';
-import {describe, it} from 'mocha';
-
-import {expect} from 'chai';
-import fs from 'fs-extra';
-import {hasOauthClientSettings} from '../../src/utils';
-import {spawnSync} from 'child_process';
 
 describe('Test clasp logout function', () => {
   before(setup);

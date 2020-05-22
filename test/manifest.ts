@@ -1,9 +1,8 @@
 import {expect} from 'chai';
-import {describe, it} from 'mocha';
-
-import {cleanup, setup, setupWithRunManifest} from './functions';
+import {after, before, describe, it} from 'mocha';
 
 import {getManifest, isValidManifest, isValidRunManifest} from '../src/manifest';
+import {cleanup, setup, setupWithRunManifest} from './functions';
 
 describe('Test getManifest function', () => {
   before(setup);
