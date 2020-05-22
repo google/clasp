@@ -1,5 +1,3 @@
 {
-    "files.exclude": {
-        "**/*.js": true,
-    }
+  "files.exclude": {}
 }
