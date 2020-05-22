@@ -232,7 +232,7 @@ describe('Test variations of clasp --version', () => {
   const expectVersion = (variation: string) => {
     const result = spawnSync(CLASP, [variation], {encoding: 'utf8'});
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.include(require('../package.json').version);
+    expect(result.stdout).to.include(require('../../package.json').version);
   };
   it('should show version for clasp --version', () => expectVersion('--version'));
   it('should show version for clasp -v', () => expectVersion('-v'));

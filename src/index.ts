@@ -56,7 +56,7 @@ import {handleError, PROJECT_NAME} from './utils';
  * Displays clasp version
  */
 commander.version(
-  (require('../package.json') as Required<PackageJson>).version,
+  (require('../../package.json') as Required<PackageJson>).version,
   '-v, --version',
   'output the current version'
 );
