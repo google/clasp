@@ -100,11 +100,11 @@
     "@types/inquirer": "^6.5.0",
     "@types/mkdirp": "^1.0.0",
     "@types/mocha": "^7.0.2",
-    "@types/node": "^12.12.41",
+    "@types/node": "^12.12.42",
     "@types/recursive-readdir": "^2.2.0",
     "@types/tmp": "^0.2.0",
     "@types/watch": "^1.0.1",
-    "@typescript-eslint/parser": "^2.34.0",
+    "@typescript-eslint/parser": "^3.0.0",
     "chai": "^4.2.0",
     "coveralls": "^3.1.0",
     "eslint-config-xo-typescript": "^0.29.0",
@@ -114,7 +114,7 @@
     "nyc": "^15.0.1",
     "prettier": "^2.0.4",
     "tmp": "^0.1.0",
-    "type-fest": "^0.13.1",
+    "type-fest": "^0.14.0",
     "xo": "^0.30.0"
   }
 }
