@@ -11,15 +11,14 @@
     "prepare": "npm run compile",
     "publish": "npm publish --access public",
     "lint": "npm run check",
-    "test": "nyc mocha -r ts-node/register --cache false --timeout 100000 'test/**/*.ts'",
+    "test": "nyc mocha --cache false --timeout 100000 build/test",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "prettier src test --write",
-    "check": "gts check ./src/**.ts",
+    "check": "gts check",
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
-    "pretest": "npm run compile",
-    "posttest": "npm run check"
+    "pretest": "npm run compile && npm run check"
   },
   "engines": {
     "node": ">= 10.3.0"
@@ -118,7 +117,6 @@
     "nyc": "^15.0.1",
     "prettier": "^2.0.4",
     "tmp": "^0.1.0",
-    "ts-node": "^8.10.1",
     "type-fest": "^0.13.1",
     "xo": "^0.30.0"
   }
