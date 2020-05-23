@@ -6,7 +6,7 @@ import {loadAPICredentials, serviceUsage} from './auth';
 import {functionNamePrompt, functionNameSource} from './inquirer';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest';
 import {ERROR} from './messages';
-import {getProjectId, logError, spinner} from './utils';
+import {getDescriptionFrom, getProjectId, logError, spinner} from './utils';
 import {ReadonlyDeep} from 'type-fest';
 
 /**
@@ -18,7 +18,7 @@ export async function getFunctionNames(script: ReadonlyDeep<scriptV1.Script>, sc
     scriptId,
   });
   if (spinner.isSpinning()) spinner.stop(true);
-  if (content.status !== 200) logError(content.statusText);
+  if (content.status !== 200) logError(getDescriptionFrom(content.statusText));
   const files = content.data.files ?? [];
   type TypeFunction = scriptV1.Schema$GoogleAppsScriptTypeFunction;
   const functionNames: string[] = files
@@ -47,7 +47,7 @@ export async function getFunctionNames(script: ReadonlyDeep<scriptV1.Script>, sc
  */
 async function getProjectIdWithErrors(): Promise<string> {
   const projectId = await getProjectId(); // Will prompt user to set up if required
-  if (!projectId) logError(null, ERROR.NO_GCLOUD_PROJECT);
+  if (!projectId) logError(ERROR.NO_GCLOUD_PROJECT);
   return projectId;
 }
 
@@ -67,7 +67,7 @@ export async function isEnabled(serviceName: string): Promise<boolean> {
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
 export async function enableOrDisableAPI(serviceName: string, enable: boolean): Promise<void> {
-  if (!serviceName) logError(null, 'An API name is required. Try sheets');
+  if (!serviceName) logError('An API name is required. Try sheets');
   const projectId = await getProjectIdWithErrors();
   const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
   try {
@@ -83,7 +83,7 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean): 
     // If given non-existent API (like fakeAPI, it throws 403 permission denied)
     // We will log this for the user instead:
     console.log(error);
-    logError(null, ERROR.NO_API(enable, serviceName));
+    logError(ERROR.NO_API(enable, serviceName));
   }
 }
 

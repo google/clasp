@@ -4,7 +4,7 @@ import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {extractScriptId} from '../urls';
-import {checkIfOnline, logError, saveProject, spinner} from '../utils';
+import {checkIfOnline, getDescriptionFrom, logError, saveProject, spinner} from '../utils';
 import status from './status';
 
 /**
@@ -17,7 +17,7 @@ import status from './status';
  */
 export default async (scriptId: string, versionNumber: number, cmd: {readonly rootDir: string}): Promise<void> => {
   await checkIfOnline();
-  if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
+  if (hasProject()) logError(ERROR.FOLDER_EXISTS);
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
   const {rootDir} = cmd;
@@ -40,7 +40,7 @@ const getScriptId = async (): Promise<string> => {
     q: 'mimeType="application/vnd.google-apps.script"',
   });
   const {data} = list;
-  if (!data) logError(list.statusText, 'Unable to use the Drive API.');
+  if (!data) logError(getDescriptionFrom(list.statusText) ?? 'Unable to use the Drive API.');
   const {files} = data;
   if (files && files.length > 0) {
     const fileIds: ScriptIdPrompt[] = files.map(file => ({
@@ -51,5 +51,5 @@ const getScriptId = async (): Promise<string> => {
     return answers.scriptId;
   }
 
-  return logError(null, LOG.FINDING_SCRIPTS_DNE);
+  return logError(LOG.FINDING_SCRIPTS_DNE);
 };

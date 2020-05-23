@@ -9,7 +9,7 @@ import {DOTFILE, ProjectSettings} from '../dotfile';
 import {projectIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getProjectSettings, isValidProjectId, logError, spinner} from '../utils';
+import {checkIfOnline, getDescriptionFrom, getProjectSettings, isValidProjectId, logError, spinner} from '../utils';
 
 /**
  * Prints StackDriver logs from this Apps Script project.
@@ -150,7 +150,7 @@ async function setupLogs(): Promise<string> {
         .then(answers => {
           projectId = answers.projectId;
           const dotfile = DOTFILE.PROJECT();
-          if (!dotfile) logError(null, ERROR.SETTINGS_DNE);
+          if (!dotfile) logError(ERROR.SETTINGS_DNE);
           dotfile
             .read<ProjectSettings>()
             // eslint-disable-next-line promise/prefer-await-to-then
@@ -160,7 +160,7 @@ async function setupLogs(): Promise<string> {
               dotfile.write({...settings, ...{projectId}});
               resolve(projectId);
             })
-            .catch((error: object) => logError(error));
+            .catch((error: object) => logError(getDescriptionFrom(error)));
         })
         .catch((error: Readonly<Error>) => {
           console.log(error);
@@ -168,7 +168,7 @@ async function setupLogs(): Promise<string> {
         });
     });
   }).catch(error => {
-    return logError(error); // Only because tsc doesn't understand logError never return type
+    return logError(getDescriptionFrom(error)); // Only because tsc doesn't understand logError never return type
   });
 }
 
@@ -193,12 +193,12 @@ async function fetchAndPrintLogs(
 
   // Validate projectId
   if (!projectId) {
-    logError(null, ERROR.NO_GCLOUD_PROJECT);
+    logError(ERROR.NO_GCLOUD_PROJECT);
     return; // Only because tsc doesn't understand logError never return type
   }
 
   if (!isValidProjectId(projectId)) {
-    logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
+    logError(ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 
   try {
@@ -223,19 +223,19 @@ async function fetchAndPrintLogs(
       } else {
         switch (response.status) {
           case 401:
-            logError(null, oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+            logError(oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
             break;
           case 403:
-            logError(null, oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
+            logError(oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
             break;
           default:
-            logError(null, `(${response.status}) Error: ${response.statusText}`);
+            logError(`(${response.status}) Error: ${response.statusText}`);
         }
       }
     };
 
     parseResponse(logs);
   } catch {
-    logError(null, ERROR.PROJECT_ID_INCORRECT(projectId));
+    logError(ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 }

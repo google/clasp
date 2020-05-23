@@ -32,7 +32,7 @@ export default async (cmd: {
       },
     });
     if (spinner.isSpinning()) spinner.stop(true);
-    if (version.status !== 200) logError(null, ERROR.ONE_DEPLOYMENT_CREATE);
+    if (version.status !== 200) logError(ERROR.ONE_DEPLOYMENT_CREATE);
     versionNumber = version.data.versionNumber ?? 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
   }
@@ -65,6 +65,6 @@ export default async (cmd: {
   }
 
   if (spinner.isSpinning()) spinner.stop(true);
-  if (deployments.status !== 200) logError(null, ERROR.DEPLOYMENT_COUNT);
+  if (deployments.status !== 200) logError(ERROR.DEPLOYMENT_COUNT);
   console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
 };

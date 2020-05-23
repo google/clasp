@@ -69,7 +69,7 @@ async function runFunction(functionName: string, parameters: string[], scriptId:
     });
     if (spinner.isSpinning()) spinner.stop(true);
     if (!response || !response.data.done) {
-      logError(null, ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
+      logError(ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
     }
 
     const {data} = response;
@@ -135,16 +135,16 @@ https://www.googleapis.com/auth/presentations
           });
           // We probably don't need to show the unauth error
           // since we always prompt the user to fix this now.
-          // logError(null, ERROR.UNAUTHENTICATED_LOCAL);
+          // logError(ERROR.UNAUTHENTICATED_LOCAL);
           break;
         case 403:
-          logError(null, ERROR.PERMISSION_DENIED_LOCAL);
+          logError(ERROR.PERMISSION_DENIED_LOCAL);
           break;
         case 404:
-          logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
+          logError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
           break;
         default:
-          logError(null, `(${error.code}) Error: ${error.message}`);
+          logError(`(${error.code}) Error: ${error.message}`);
       }
     }
   }

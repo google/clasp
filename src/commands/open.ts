@@ -6,7 +6,7 @@ import {loadAPICredentials, script} from '../auth';
 import {deploymentIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {getProjectSettings, getWebApplicationURL, logError, ellipsize} from '../utils';
+import {ellipsize, getDescriptionFrom, getProjectSettings, getWebApplicationURL, logError} from '../utils';
 
 /**
  * Opens an Apps Script project's script.google.com editor.
@@ -24,7 +24,7 @@ export default async (
 ): Promise<void> => {
   const projectSettings = await getProjectSettings();
   if (!scriptId) scriptId = projectSettings.scriptId;
-  if (scriptId.length < 30) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  if (scriptId.length < 30) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // We've specified to open creds.
   if (cmd.creds) {
     const {projectId} = projectSettings;
@@ -34,7 +34,7 @@ export default async (
       return;
     }
 
-    logError(null, ERROR.NO_GCLOUD_PROJECT);
+    logError(ERROR.NO_GCLOUD_PROJECT);
   }
 
   // We've specified to print addons and open the first one.
@@ -52,7 +52,7 @@ export default async (
       return;
     }
 
-    logError(null, ERROR.NO_PARENT_ID);
+    logError(ERROR.NO_PARENT_ID);
   }
 
   // If we're not a web app, open the script URL.
@@ -65,9 +65,9 @@ export default async (
   // Web app: Otherwise, open the latest deployment.
   await loadAPICredentials();
   const deploymentsList = await script.projects.deployments.list({scriptId});
-  if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
+  if (deploymentsList.status !== 200) logError(getDescriptionFrom(deploymentsList.statusText));
   const deployments = deploymentsList.data.deployments ?? [];
-  if (deployments.length === 0) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  if (deployments.length === 0) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // Order deployments by update time.
   const choices = deployments
     .slice()
@@ -101,6 +101,6 @@ export default async (
   if (target) {
     await open(target, {wait: false});
   } else {
-    logError(null, `Could not open deployment: ${JSON.stringify(deployment)}`);
+    logError(`Could not open deployment: ${JSON.stringify(deployment)}`);
   }
 };

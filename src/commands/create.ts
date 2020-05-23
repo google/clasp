@@ -5,7 +5,15 @@ import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {scriptTypePrompt} from '../inquirer';
 import {manifestExists} from '../manifest';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getDefaultProjectName, getProjectSettings, logError, saveProject, spinner} from '../utils';
+import {
+  checkIfOnline,
+  getDefaultProjectName,
+  getDescriptionFrom,
+  getProjectSettings,
+  logError,
+  saveProject,
+  spinner,
+} from '../utils';
 
 /**
  * Creates a new Apps Script project.
@@ -18,7 +26,7 @@ import {checkIfOnline, getDefaultProjectName, getProjectSettings, logError, save
 export default async (cmd: {type: string; title: string; parentId: string; rootDir: string}): Promise<void> => {
   // Handle common errors.
   await checkIfOnline();
-  if (hasProject()) logError(null, ERROR.FOLDER_EXISTS);
+  if (hasProject()) logError(ERROR.FOLDER_EXISTS);
   await loadAPICredentials();
 
   // Create defaults.
@@ -57,7 +65,7 @@ export default async (cmd: {type: string; title: string; parentId: string; rootD
   spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
   try {
     const {scriptId} = await getProjectSettings(true);
-    if (scriptId) logError(null, ERROR.NO_NESTED_PROJECTS);
+    if (scriptId) logError(ERROR.NO_NESTED_PROJECTS);
   } catch {
     // No scriptId (because project doesn't exist)
     // console.log(error);
@@ -73,7 +81,7 @@ export default async (cmd: {type: string; title: string; parentId: string; rootD
   if (spinner.isSpinning()) spinner.stop(true);
   if (response.status !== 200) {
     if (parentId) console.log(response.statusText, ERROR.CREATE_WITH_PARENT);
-    logError(response.statusText, ERROR.CREATE);
+    logError(getDescriptionFrom(response.statusText) ?? ERROR.CREATE);
   }
 
   const createdScriptId = response.data.scriptId ?? '';

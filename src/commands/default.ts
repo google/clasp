@@ -10,5 +10,5 @@ import {logError} from '../utils';
  * @param command {string} The command that was typed.
  */
 export default async (_: ReadonlyDeep<Command>, command: string): Promise<void> => {
-  logError(null, ERROR.COMMAND_DNE(command));
+  logError(ERROR.COMMAND_DNE(command));
 };

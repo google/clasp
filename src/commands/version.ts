@@ -2,7 +2,7 @@
 import {loadAPICredentials, script} from '../auth';
 import {descriptionPrompt} from '../inquirer';
 import {LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, logError, spinner} from '../utils';
+import {checkIfOnline, getDescriptionFrom, getProjectSettings, logError, spinner} from '../utils';
 
 /**
  * Creates a new version of an Apps Script project.
@@ -27,6 +27,6 @@ export default async (description: string): Promise<void> => {
   if (versions.status === 200) {
     console.log(LOG.VERSION_CREATED(versions.data.versionNumber ?? -1));
   } else {
-    logError(versions.statusText);
+    logError(getDescriptionFrom(versions.statusText));
   }
 };

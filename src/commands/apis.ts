@@ -115,6 +115,6 @@ export default async (options: {readonly open?: string}): Promise<void> => {
   if (command[subcommand]) {
     command[subcommand]();
   } else {
-    logError(null, ERROR.COMMAND_DNE(`apis ${subcommand}`));
+    logError(ERROR.COMMAND_DNE(`apis ${subcommand}`));
   }
 };

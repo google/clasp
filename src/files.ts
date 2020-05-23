@@ -12,7 +12,7 @@ import {loadAPICredentials, script} from './auth';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOT, DOTFILE} from './dotfile';
 import {ERROR, LOG} from './messages';
-import {checkIfOnline, getAPIFileType, getProjectSettings, logError, spinner} from './utils';
+import {checkIfOnline, getAPIFileType, getDescriptionFrom, getProjectSettings, logError, spinner} from './utils';
 import {ReadonlyDeep} from 'type-fest';
 
 // An Apps Script API File
@@ -118,7 +118,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         abortPush = true;
         // Only print error once (for .gs)
         if (path.extname(name) === '.gs') {
-          logError(null, ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
+          logError(ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
         }
       }
     });
@@ -307,12 +307,12 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
       .then(() => {
         if (!file.source) return; // Disallow empty files
         fs.writeFile(truePath, file.source, (err: Readonly<NodeJS.ErrnoException>) => {
-          if (err) logError(err, ERROR.FS_FILE_WRITE);
+          if (err) logError(getDescriptionFrom(err) ?? ERROR.FS_FILE_WRITE);
         });
         // Log only filename if pulling to root (Code.gs vs ./Code.gs)
         console.log(`└─ ${rootDir ? truePath : filePath}`);
       })
-      .catch(error => logError(error, ERROR.FS_DIR_WRITE));
+      .catch(error => logError(getDescriptionFrom(error) ?? ERROR.FS_DIR_WRITE));
   });
 }
 
@@ -327,7 +327,7 @@ export async function pushFiles(silent = false) {
   await getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     // Check for edge cases.
     if (err) {
-      logError(err, LOG.PUSH_FAILURE);
+      logError(getDescriptionFrom(err) ?? LOG.PUSH_FAILURE);
     }
 
     if (!projectFiles) {

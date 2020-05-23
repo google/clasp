@@ -30,7 +30,7 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
       // Which interfers with storing the value
       process.stdout.write(keyValue);
     } else {
-      logError(null, ERROR.UNKNOWN_KEY(settingKey));
+      logError(ERROR.UNKNOWN_KEY(settingKey));
     }
   } else {
     try {
@@ -50,14 +50,14 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
           currentSettings.fileExtension = settingValue;
           break;
         default:
-          logError(null, ERROR.UNKNOWN_KEY(settingKey));
+          logError(ERROR.UNKNOWN_KEY(settingKey));
       }
       // filePushOrder doesn't work since it requires an array.
       // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
       await saveProject(currentSettings, true);
       console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
     } catch (error) {
-      logError(null, 'Unable to update .clasp.json');
+      logError('Unable to update .clasp.json');
     }
   }
 };

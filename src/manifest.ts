@@ -32,7 +32,7 @@ export async function readManifest(): Promise<Manifest> {
   try {
     return fs.readJsonSync(manifest, FS_OPTIONS) as Manifest;
   } catch {
-    return logError(null, ERROR.NO_MANIFEST(manifest));
+    return logError(ERROR.NO_MANIFEST(manifest));
   }
 }
 
@@ -47,7 +47,7 @@ async function writeManifest(manifest: Readonly<Manifest>) {
   try {
     fs.writeJsonSync(manifestFilePath, manifest, {encoding: 'utf8', spaces: 2});
   } catch {
-    logError(null, ERROR.FS_FILE_WRITE);
+    logError(ERROR.FS_FILE_WRITE);
   }
 }
 

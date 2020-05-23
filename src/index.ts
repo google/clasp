@@ -348,6 +348,6 @@ if (process.argv.slice(2).length === 0) {
   } catch (error) {
     process.exitCode = 1;
     spinner.stop(true);
-    logError(null, error.message);
+    logError(error.message);
   }
 })();

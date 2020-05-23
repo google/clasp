@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
 import {loadAPICredentials, script} from '../auth';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, logError, spinner} from '../utils';
+import {checkIfOnline, getDescriptionFrom, getProjectSettings, logError, spinner} from '../utils';
 
 /**
  * Removes a deployment from the Apps Script project.
@@ -16,9 +16,9 @@ export default async (deploymentId: string, cmd: {all: boolean}): Promise<void> 
     const deploymentsList = await script.projects.deployments.list({
       scriptId,
     });
-    if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
+    if (deploymentsList.status !== 200) logError(getDescriptionFrom(deploymentsList.statusText));
     const deployments = deploymentsList.data.deployments ?? [];
-    if (deployments.length === 0) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    if (deployments.length === 0) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
     for (const deployment of deployments) {
       const id = deployment.deploymentId ?? '';
@@ -28,7 +28,7 @@ export default async (deploymentId: string, cmd: {all: boolean}): Promise<void> 
         deploymentId: id,
       });
       if (spinner.isSpinning()) spinner.stop(true);
-      if (result.status !== 200) logError(null, ERROR.READ_ONLY_DELETE);
+      if (result.status !== 200) logError(ERROR.READ_ONLY_DELETE);
       console.log(LOG.UNDEPLOYMENT_FINISH(id));
     }
     console.log(LOG.UNDEPLOYMENT_ALL_FINISH);
@@ -38,11 +38,11 @@ export default async (deploymentId: string, cmd: {all: boolean}): Promise<void> 
     const deploymentsList = await script.projects.deployments.list({
       scriptId,
     });
-    if (deploymentsList.status !== 200) logError(deploymentsList.statusText);
+    if (deploymentsList.status !== 200) logError(getDescriptionFrom(deploymentsList.statusText));
     const deployments = deploymentsList.data.deployments ?? [];
-    if (deployments.length === 0) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    if (deployments.length === 0) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     // @HEAD (Read-only deployments) may not be deleted.
-    if (deployments.length <= 1) logError(null, ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    if (deployments.length <= 1) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     deploymentId = deployments[deployments.length - 1].deploymentId ?? '';
   }
   spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
@@ -54,6 +54,6 @@ export default async (deploymentId: string, cmd: {all: boolean}): Promise<void> 
   if (response.status === 200) {
     console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
   } else {
-    logError(null, ERROR.READ_ONLY_DELETE);
+    logError(ERROR.READ_ONLY_DELETE);
   }
 };

@@ -48,7 +48,9 @@ export const hasOauthClientSettings = (local = false): boolean =>
  */
 export async function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   const RC = local ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC.read<ClaspToken>().catch((error: Error) => logError(error, ERROR.NO_CREDENTIALS(local)));
+  return RC.read<ClaspToken>().catch((error: Error) =>
+    logError(getDescriptionFrom(error) ?? ERROR.NO_CREDENTIALS(local))
+  );
 }
 
 export const spinner = new Spinner();
@@ -62,8 +64,14 @@ export const spinner = new Spinner();
  * @param  {string} description The description of the error
  * @param  {number} code        (*optional*) The process exit code. default value is `1`
  */
-export const logError = (err: any, description = '', code = 1): never => {
+export const logError = (description = '', code = 1): never => {
   if (spinner.isSpinning()) spinner.stop(true);
+  if (description) console.error(description);
+  process.exit(code);
+};
+
+export const getDescriptionFrom = (err: any) => {
+  let description: string | undefined;
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
   // change error model. Don't review this method now.
@@ -80,12 +88,11 @@ export const logError = (err: any, description = '', code = 1): never => {
   } else if (err && err.code === 429) {
     description = ERROR.RATE_LIMIT;
   } else if (err?.error) {
-    console.error(`~~ API ERROR (${err.statusCode || err.error.code})`);
-    console.error(err.error);
+    description = `~~ API ERROR (${err.statusCode || err.error.code})
+${err.error}`;
   }
 
-  if (description) console.error(description);
-  process.exit(code);
+  return description;
 };
 
 /**
@@ -102,7 +109,7 @@ export function getWebApplicationURL(deployment: Readonly<scriptV1.Schema$Deploy
     (entryPoint: Readonly<scriptV1.Schema$EntryPoint>) => entryPoint.entryPointType === 'WEB_APP'
   );
   if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
-  logError(null, ERROR.NO_WEBAPP(deployment.deploymentId ?? ''));
+  logError(ERROR.NO_WEBAPP(deployment.deploymentId ?? ''));
   throw new Error('This line should never be executed');
 }
 
@@ -122,7 +129,7 @@ export function getDefaultProjectName(): string {
  */
 export async function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
   return new Promise<ProjectSettings>(resolve => {
-    const fail = (silent?: boolean) => (silent ? resolve() : logError(null, ERROR.SETTINGS_DNE));
+    const fail = (silent?: boolean) => (silent ? resolve() : logError(ERROR.SETTINGS_DNE));
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
@@ -144,7 +151,7 @@ export async function getProjectSettings(failSilently?: boolean): Promise<Projec
     } else {
       fail(); // Never found a dotfile
     }
-  }).catch(error => logError(error));
+  }).catch(error => logError(getDescriptionFrom(error)));
 }
 
 /**
@@ -178,7 +185,7 @@ export async function checkIfOnline() {
     return true;
   }
 
-  logError(null, ERROR.OFFLINE);
+  logError(ERROR.OFFLINE);
   throw new Error('This line should never be executed');
 }
 
@@ -213,7 +220,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
     });
     return projectSettings.projectId ?? '';
   } catch (error) {
-    logError(null, error.message);
+    logError(error.message);
   }
 
   throw new Error('Project ID not found');
