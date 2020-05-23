@@ -6,7 +6,6 @@
   "scripts": {
     "build": "npm run compile && npm i -g --loglevel=error",
     "build-fresh": "npm cache clean --force && npm i && npm run build",
-    "build-local": "npm run compile",
     "watch": "tsc --project tsconfig.json --watch",
     "prepare": "npm run compile",
     "publish": "npm publish --access public",
@@ -110,7 +109,7 @@
     "eslint-config-xo-typescript": "^0.29.0",
     "eslint-plugin-unicorn": "^20.0.0",
     "gts": "^2.0.2",
-    "mocha": "^7.1.2",
+    "mocha": "^7.2.0",
     "nyc": "^15.0.1",
     "prettier": "^2.0.4",
     "tmp": "^0.1.0",
