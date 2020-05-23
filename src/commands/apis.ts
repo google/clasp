@@ -11,12 +11,16 @@ import {URL} from '../urls';
 import {checkIfOnline, getProjectId, logError} from '../utils';
 import {ReadonlyDeep} from 'type-fest';
 
+interface CommandOption {
+  readonly open?: string;
+}
+
 /**
  * Acts as a router to apis subcommands
  * Calls functions for list, enable, or disable
  * Otherwise returns an error of command not supported
  */
-export default async (options: {readonly open?: string}): Promise<void> => {
+export default async (options: CommandOption): Promise<void> => {
   await loadAPICredentials();
   const subcommand: string = process.argv[3]; // Clasp apis list => "list"
   const serviceName = process.argv[4]; // Clasp apis enable drive => "drive"

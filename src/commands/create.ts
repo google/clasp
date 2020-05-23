@@ -15,24 +15,30 @@ import {
   spinner,
 } from '../utils';
 
+interface CommandOption {
+  readonly type?: string;
+  readonly title?: string;
+  readonly parentId?: string;
+  readonly rootDir?: string;
+}
+
 /**
  * Creates a new Apps Script project.
- * @param cmd.type {string} The type of the Apps Script project.
- * @param cmd.title {string} The title of the Apps Script project's file
- * @param cmd.parentId {string} The Drive ID of the G Suite doc this script is bound to.
- * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
- *                    If not specified, clasp will default to the current directory.
+ * @param options.type {string} The type of the Apps Script project.
+ * @param options.title {string} The title of the Apps Script project's file
+ * @param options.parentId {string} The Drive ID of the G Suite doc this script is bound to.
+ * @param options.rootDir {string} Specifies the local directory in which clasp will store your project files.
+ *                        If not specified, clasp will default to the current directory.
  */
-export default async (cmd: {type: string; title: string; parentId: string; rootDir: string}): Promise<void> => {
+export default async (options: CommandOption): Promise<void> => {
   // Handle common errors.
   await checkIfOnline();
   if (hasProject()) logError(ERROR.FOLDER_EXISTS);
   await loadAPICredentials();
 
   // Create defaults.
-  const title = cmd.title || getDefaultProjectName();
-  let {type} = cmd;
-  let {parentId} = cmd;
+  const title = options.title ?? getDefaultProjectName();
+  let {parentId, type} = options as Required<CommandOption>;
 
   if (!parentId && !type) {
     const answers = await scriptTypePrompt();
@@ -86,7 +92,7 @@ export default async (cmd: {type: string; title: string; parentId: string; rootD
 
   const createdScriptId = response.data.scriptId ?? '';
   console.log(LOG.CREATE_PROJECT_FINISH(type, createdScriptId));
-  const {rootDir} = cmd;
+  const {rootDir} = options;
   await saveProject(
     {
       scriptId: createdScriptId,

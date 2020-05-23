@@ -104,7 +104,7 @@ export const overwritePrompt = () =>
  * @returns {Promise<{ projectId: string }>} A promise for an object with the `projectId` property.
  */
 export const projectIdPrompt = () =>
-  prompt<{projectId: string}>([
+  prompt<{readonly projectId: string}>([
     {
       message: `${LOG.ASK_PROJECT_ID}`,
       name: 'projectId',

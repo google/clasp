@@ -9,23 +9,25 @@ import {ERROR} from '../messages';
 import {URL} from '../urls';
 import {checkIfOnline, getProjectSettings, getValidJSON, logError, spinner} from '../utils';
 
+interface CommandOption {
+  readonly nondev: boolean;
+  readonly params: string;
+}
+
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
  * @param functionName {string} The function name within the Apps Script project.
- * @param cmd.nondev {boolean} If we want to run the last deployed version vs the latest code.
- * @param cmd.params {string} JSON string of parameters to be input to function.
+ * @param options.nondev {boolean} If we want to run the last deployed version vs the latest code.
+ * @param options.params {string} JSON string of parameters to be input to function.
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  * @requires `clasp login --creds` to be run beforehand.
  */
-export default async (
-  functionName: string,
-  cmd: {readonly nondev: boolean; readonly params: string}
-): Promise<void> => {
+export default async (functionName: string, options: CommandOption): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings(true);
-  const devMode = !cmd.nondev; // Defaults to true
-  const {params: jsonString = '[]'} = cmd;
+  const devMode = !options.nondev; // Defaults to true
+  const {params: jsonString = '[]'} = options;
   const parameters = getValidJSON<string[]>(jsonString);
 
   await isValidRunManifest();

@@ -11,6 +11,12 @@ import {readManifest} from '../manifest';
 import {ERROR, LOG} from '../messages';
 import {checkIfOnline, hasOauthClientSettings, safeIsOnline} from '../utils';
 
+interface CommandOption {
+  readonly localhost?: boolean;
+  readonly creds?: string;
+  readonly status?: boolean;
+}
+
 /**
  * Logs the user in. Saves the client credentials to an either local or global rc file.
  * @param {object} options The login options.
@@ -18,11 +24,7 @@ import {checkIfOnline, hasOauthClientSettings, safeIsOnline} from '../utils';
  * @param {string?} options.creds The location of credentials file.
  * @param {boolean?} options.status If true, prints who is logged in instead of doing login.
  */
-export default async (options: {
-  readonly localhost?: boolean;
-  readonly creds?: string;
-  readonly status?: boolean;
-}): Promise<void> => {
+export default async (options: CommandOption): Promise<void> => {
   if (options.status) {
     if (hasOauthClientSettings()) {
       const email = (await safeIsOnline()) ? await getLoggedInEmail() : undefined;

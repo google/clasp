@@ -6,21 +6,30 @@ import {ERROR, LOG} from '../messages';
 import {extractScriptId} from '../urls';
 import {checkIfOnline, getDescriptionFrom, logError, saveProject, spinner} from '../utils';
 import status from './status';
+import {drive_v3 as driveV3} from 'googleapis';
+
+interface CommandOption {
+  readonly rootDir: string;
+}
 
 /**
  * Fetches an Apps Script project.
  * Prompts the user if no script ID is provided.
  * @param scriptId {string} The Apps Script project ID or project URL to fetch.
  * @param versionNumber {string} An optional version to pull the script from.
- * @param cmd.rootDir {string} Specifies the local directory in which clasp will store your project files.
- *                    If not specified, clasp will default to the current directory.
+ * @param options.rootDir {string} Specifies the local directory in which clasp will store your project files.
+ *                        If not specified, clasp will default to the current directory.
  */
-export default async (scriptId: string, versionNumber: number, cmd: {readonly rootDir: string}): Promise<void> => {
+export default async (
+  scriptId: string | undefined,
+  versionNumber: number | undefined,
+  options: CommandOption
+): Promise<void> => {
   await checkIfOnline();
   if (hasProject()) logError(ERROR.FOLDER_EXISTS);
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
-  const {rootDir} = cmd;
+  const {rootDir} = options;
   await saveProject({scriptId, rootDir}, false);
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
@@ -43,7 +52,7 @@ const getScriptId = async (): Promise<string> => {
   if (!data) logError(getDescriptionFrom(list.statusText) ?? 'Unable to use the Drive API.');
   const {files} = data;
   if (files && files.length > 0) {
-    const fileIds: ScriptIdPrompt[] = files.map(file => ({
+    const fileIds: ScriptIdPrompt[] = files.map((file: Readonly<driveV3.Schema$File>) => ({
       name: `${file.name!.padEnd(20)} – ${LOG.SCRIPT_LINK(file.id ?? '')}`,
       value: file.id ?? '',
     }));

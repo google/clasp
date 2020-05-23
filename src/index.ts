@@ -57,6 +57,7 @@ import {logError, spinner} from './utils';
  * Displays clasp version
  */
 commander.version(
+  // TODO: find an alternative to this ugly require
   (require('../../package.json') as Required<PackageJson>).version,
   '-v, --version',
   'output the current version'

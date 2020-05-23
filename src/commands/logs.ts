@@ -11,25 +11,27 @@ import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
 import {checkIfOnline, getDescriptionFrom, getProjectSettings, isValidProjectId, logError, spinner} from '../utils';
 
+interface CommandOption {
+  readonly json?: boolean;
+  readonly open?: boolean;
+  readonly setup?: boolean;
+  readonly watch?: boolean;
+  readonly simplified?: boolean;
+}
+
 /**
  * Prints StackDriver logs from this Apps Script project.
- * @param cmd.json {boolean} If true, the command will output logs as json.
- * @param cmd.open {boolean} If true, the command will open the StackDriver logs website.
- * @param cmd.setup {boolean} If true, the command will help you setup logs.
- * @param cmd.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
- * @param cmd.simplified {boolean} If true, the command will remove timestamps from the logs.
+ * @param options.json {boolean} If true, the command will output logs as json.
+ * @param options.open {boolean} If true, the command will open the StackDriver logs website.
+ * @param options.setup {boolean} If true, the command will help you setup logs.
+ * @param options.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
+ * @param options.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
-export default async (cmd: {
-  readonly json: boolean;
-  readonly open: boolean;
-  readonly setup: boolean;
-  readonly watch: boolean;
-  readonly simplified: boolean;
-}): Promise<void> => {
+export default async (options: CommandOption): Promise<void> => {
   await checkIfOnline();
   // Get project settings.
   let {projectId} = await getProjectSettings();
-  projectId = cmd.setup ? await setupLogs() : projectId;
+  projectId = options.setup ? await setupLogs() : projectId;
   if (!projectId) {
     console.log(LOG.NO_GCLOUD_PROJECT);
     projectId = await setupLogs();
@@ -37,24 +39,25 @@ export default async (cmd: {
   }
 
   // If we're opening the logs, get the URL, open, then quit.
-  if (cmd.open) {
+  if (options.open) {
     const url = URL.LOGS(projectId);
     console.log(`Opening logs: ${url}`);
     await open(url, {wait: false});
     return;
   }
 
+  const {json, simplified} = options as Required<CommandOption>;
   // Otherwise, if not opening StackDriver, load StackDriver logs.
-  if (cmd.watch) {
+  if (options.watch) {
     const POLL_INTERVAL = 6000; // 6s
     setInterval(() => {
       const startDate = new Date();
       startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      fetchAndPrintLogs(cmd.json, cmd.simplified, projectId, startDate);
+      fetchAndPrintLogs(json, simplified, projectId, startDate);
     }, POLL_INTERVAL);
   } else {
-    await fetchAndPrintLogs(cmd.json, cmd.simplified, projectId);
+    await fetchAndPrintLogs(json, simplified, projectId);
   }
 };
 

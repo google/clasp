@@ -4,24 +4,26 @@ import {PROJECT_MANIFEST_BASENAME} from '../constants';
 import {ERROR, LOG} from '../messages';
 import {checkIfOnline, getProjectSettings, logError, spinner} from '../utils';
 
+interface CommandOption {
+  readonly versionNumber?: number;
+  readonly description?: string;
+  readonly deploymentId?: string;
+}
+
 /**
  * Deploys an Apps Script project.
- * @param cmd.versionNumber {string} The project version to deploy at.
- * @param cmd.description   {string} The deployment description.
- * @param cmd.deploymentId  {string} The deployment ID to redeploy.
+ * @param options.versionNumber {string} The project version to deploy at.
+ * @param options.description   {string} The deployment description.
+ * @param options.deploymentId  {string} The deployment ID to redeploy.
  */
-export default async (cmd: {
-  readonly versionNumber: number;
-  readonly description: string;
-  readonly deploymentId: string;
-}): Promise<void> => {
+export default async (options: CommandOption): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (!scriptId) return;
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
-  let {versionNumber} = cmd;
-  const {description = '', deploymentId} = cmd;
+  let {versionNumber} = options;
+  const {description = '', deploymentId} = options;
 
   // If no version, create a new version
   if (!versionNumber) {

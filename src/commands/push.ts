@@ -14,18 +14,23 @@ import {isValidManifest} from '../manifest';
 import {LOG} from '../messages';
 import {checkIfOnline, getProjectSettings, spinner} from '../utils';
 
+interface CommandOption {
+  readonly watch?: boolean;
+  readonly force?: boolean;
+}
+
 /**
  * Uploads all files into the script.google.com filesystem.
  * TODO: Only push the specific files that changed (rather than all files).
- * @param cmd.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
+ * @param options.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export default async (cmd: {readonly watch: boolean; readonly force: boolean}): Promise<void> => {
+export default async (options: CommandOption): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   await isValidManifest();
   const {rootDir} = await getProjectSettings();
 
-  if (cmd.watch) {
+  if (options.watch) {
     console.log(LOG.PUSH_WATCH);
     const patterns = await DOTFILE.IGNORE();
     /**
@@ -42,7 +47,7 @@ export default async (cmd: {readonly watch: boolean; readonly force: boolean}): 
         }
       }
 
-      if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
+      if (!options.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
         console.log('Stopping push…');
         return;
       }
@@ -51,7 +56,7 @@ export default async (cmd: {readonly watch: boolean; readonly force: boolean}): 
       await pushFiles();
     });
   } else {
-    if (!cmd.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
+    if (!options.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
       console.log('Stopping push…');
       return;
     }

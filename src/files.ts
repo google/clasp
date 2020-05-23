@@ -17,9 +17,9 @@ import {ReadonlyDeep} from 'type-fest';
 
 // An Apps Script API File
 interface AppsScriptFile {
-  name: string;
-  type: string;
-  source: string;
+  readonly name: string;
+  readonly type: string;
+  readonly source: string;
 }
 
 // Used to receive files tracked by current project

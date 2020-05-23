@@ -8,25 +8,24 @@ import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
 import {ellipsize, getDescriptionFrom, getProjectSettings, getWebApplicationURL, logError} from '../utils';
 
+interface CommandOption {
+  readonly webapp?: boolean;
+  readonly creds?: boolean;
+  readonly addon?: boolean;
+}
+
 /**
  * Opens an Apps Script project's script.google.com editor.
  * @param scriptId {string} The Apps Script project to open.
- * @param cmd.webapp {boolean} If true, the command will open the webapps URL.
- * @param cmd.creds {boolean} If true, the command will open the credentials URL.
+ * @param options.webapp {boolean} If true, the command will open the webapps URL.
+ * @param options.creds {boolean} If true, the command will open the credentials URL.
  */
-export default async (
-  scriptId: string,
-  cmd: {
-    readonly webapp: boolean;
-    readonly creds: boolean;
-    readonly addon: boolean;
-  }
-): Promise<void> => {
+export default async (scriptId: string, options: CommandOption): Promise<void> => {
   const projectSettings = await getProjectSettings();
   if (!scriptId) scriptId = projectSettings.scriptId;
   if (scriptId.length < 30) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // We've specified to open creds.
-  if (cmd.creds) {
+  if (options.creds) {
     const {projectId} = projectSettings;
     if (projectId) {
       console.log(LOG.OPEN_CREDS(projectId));
@@ -38,7 +37,7 @@ export default async (
   }
 
   // We've specified to print addons and open the first one.
-  if (cmd.addon) {
+  if (options.addon) {
     const {parentId} = projectSettings;
     if (parentId && parentId.length > 0) {
       if (parentId.length > 1) {
@@ -56,7 +55,7 @@ export default async (
   }
 
   // If we're not a web app, open the script URL.
-  if (!cmd.webapp) {
+  if (!options.webapp) {
     console.log(LOG.OPEN_PROJECT(scriptId));
     await open(URL.SCRIPT(scriptId));
     return;
@@ -66,7 +65,7 @@ export default async (
   await loadAPICredentials();
   const deploymentsList = await script.projects.deployments.list({scriptId});
   if (deploymentsList.status !== 200) logError(getDescriptionFrom(deploymentsList.statusText));
-  const deployments = deploymentsList.data.deployments ?? [];
+  const deployments: Array<Readonly<scriptV1.Schema$Deployment>> = deploymentsList.data.deployments ?? [];
   if (deployments.length === 0) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // Order deployments by update time.
   const choices = deployments
