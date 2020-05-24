@@ -1,15 +1,16 @@
 /* eslint-disable new-cap */
 import {GaxiosResponse} from 'gaxios';
-import {serviceusage_v1 as serviceUsageV1, discovery_v1 as discoveryV1} from 'googleapis';
+import {discovery_v1 as discoveryV1, serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';
+import {ReadonlyDeep} from 'type-fest';
 
 import {PUBLIC_ADVANCED_SERVICES} from '../apis';
 import {enableOrDisableAPI} from '../apiutils';
 import {discovery, loadAPICredentials, serviceUsage} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {ERROR} from '../messages';
 import {URL} from '../urls';
 import {checkIfOnline, getProjectId} from '../utils';
-import {ReadonlyDeep} from 'type-fest';
 
 interface CommandOption {
   readonly open?: string;
@@ -34,13 +35,9 @@ export default async (options: CommandOption): Promise<void> => {
   }
 
   // The apis subcommands.
-  const command: {[key: string]: () => void} = {
-    enable: async () => {
-      await enableOrDisableAPI(serviceName, true);
-    },
-    disable: async () => {
-      await enableOrDisableAPI(serviceName, false);
-    },
+  const command: {[key: string]: () => Promise<void>} = {
+    enable: async () => enableOrDisableAPI(serviceName, true),
+    disable: async () => enableOrDisableAPI(serviceName, false),
     list: async () => {
       await checkIfOnline();
       /**
@@ -107,8 +104,8 @@ export default async (options: CommandOption): Promise<void> => {
         console.log(`${api.name.padEnd(25)} - ${api.description.padEnd(60)}`);
       }
     },
-    undefined: () => {
-      command.list();
+    undefined: async () => {
+      await command.list();
 
       console.log(`# Try these commands:
 - clasp apis list
@@ -117,8 +114,8 @@ export default async (options: CommandOption): Promise<void> => {
     },
   };
   if (command[subcommand]) {
-    command[subcommand]();
+    await command[subcommand]();
   } else {
-    throw new Error(ERROR.COMMAND_DNE(`apis ${subcommand}`));
+    throw new ClaspError(ERROR.COMMAND_DNE(`apis ${subcommand}`));
   }
 };

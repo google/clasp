@@ -2,6 +2,7 @@
 import {script_v1 as scriptV1} from 'googleapis';
 
 import {loadAPICredentials, script} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {LOG} from '../messages';
 import {checkIfOnline, getProjectSettings, spinner} from '../utils';
 
@@ -18,7 +19,7 @@ export default async (): Promise<void> => {
     scriptId,
   });
   if (spinner.isSpinning()) spinner.stop(true);
-  if (deployments.status !== 200) throw new Error(deployments.statusText);
+  if (deployments.status !== 200) throw new ClaspError(deployments.statusText);
   const deploymentsList = deployments.data.deployments ?? [];
   const deploymentCount = deploymentsList.length;
   const deploymentWord = deploymentCount === 1 ? 'Deployment' : 'Deployments';

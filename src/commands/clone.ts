@@ -1,12 +1,14 @@
 /* eslint-disable new-cap */
+import {drive_v3 as driveV3} from 'googleapis';
+
 import {drive, loadAPICredentials} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {extractScriptId} from '../urls';
-import {checkIfOnline, getDescriptionFrom, logError, saveProject, spinner} from '../utils';
+import {checkIfOnline, saveProject, spinner} from '../utils';
 import status from './status';
-import {drive_v3 as driveV3} from 'googleapis';
 
 interface CommandOption {
   readonly rootDir: string;
@@ -26,7 +28,7 @@ export default async (
   options: CommandOption
 ): Promise<void> => {
   await checkIfOnline();
-  if (hasProject()) throw new Error(ERROR.FOLDER_EXISTS);
+  if (hasProject()) throw new ClaspError(ERROR.FOLDER_EXISTS);
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
   const {rootDir} = options;
@@ -34,7 +36,6 @@ export default async (
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
   await status();
-  // if (spinner.isSpinning()) spinner.stop(true);
 };
 
 /**
@@ -49,7 +50,7 @@ const getScriptId = async (): Promise<string> => {
     q: 'mimeType="application/vnd.google-apps.script"',
   });
   const {data} = list;
-  if (!data) logError(getDescriptionFrom(list.statusText) ?? 'Unable to use the Drive API.');
+  if (!data) throw new ClaspError(list.statusText ?? 'Unable to use the Drive API.');
   const {files} = data;
   if (files && files.length > 0) {
     const fileIds: ScriptIdPrompt[] = files.map((file: Readonly<driveV3.Schema$File>) => ({
@@ -60,5 +61,5 @@ const getScriptId = async (): Promise<string> => {
     return answers.scriptId;
   }
 
-  return logError(LOG.FINDING_SCRIPTS_DNE);
+  throw new ClaspError(LOG.FINDING_SCRIPTS_DNE);
 };

@@ -2,6 +2,7 @@
 import {Command} from 'commander';
 import {ReadonlyDeep} from 'type-fest';
 
+import {ClaspError} from '../clasp-error';
 import {ERROR} from '../messages';
 
 /**
@@ -9,5 +10,5 @@ import {ERROR} from '../messages';
  * @param command {string} The command that was typed.
  */
 export default async (_: ReadonlyDeep<Command>, command: string): Promise<void> => {
-  throw new Error(ERROR.COMMAND_DNE(command));
+  throw new ClaspError(ERROR.COMMAND_DNE(command));
 };

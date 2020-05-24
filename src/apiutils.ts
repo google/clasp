@@ -1,13 +1,14 @@
 /* eslint-disable new-cap */
 import fuzzy from 'fuzzy';
 import {script_v1 as scriptV1} from 'googleapis';
+import {ReadonlyDeep} from 'type-fest';
 
 import {loadAPICredentials, serviceUsage} from './auth';
+import {ClaspError} from './clasp-error';
 import {functionNamePrompt, functionNameSource} from './inquirer';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest';
 import {ERROR} from './messages';
-import {getDescriptionFrom, getProjectId, logError, spinner} from './utils';
-import {ReadonlyDeep} from 'type-fest';
+import {getProjectId, spinner} from './utils';
 
 /**
  * Prompts for the function name.
@@ -18,7 +19,7 @@ export async function getFunctionNames(script: ReadonlyDeep<scriptV1.Script>, sc
     scriptId,
   });
   if (spinner.isSpinning()) spinner.stop(true);
-  if (content.status !== 200) logError(getDescriptionFrom(content.statusText));
+  if (content.status !== 200) throw new ClaspError(content.statusText);
   const files = content.data.files ?? [];
   type TypeFunction = scriptV1.Schema$GoogleAppsScriptTypeFunction;
   const functionNames: string[] = files
@@ -47,7 +48,7 @@ export async function getFunctionNames(script: ReadonlyDeep<scriptV1.Script>, sc
  */
 async function getProjectIdWithErrors(): Promise<string> {
   const projectId = await getProjectId(); // Will prompt user to set up if required
-  if (!projectId) logError(ERROR.NO_GCLOUD_PROJECT);
+  if (!projectId) throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
   return projectId;
 }
 
@@ -67,7 +68,7 @@ export async function isEnabled(serviceName: string): Promise<boolean> {
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
 export async function enableOrDisableAPI(serviceName: string, enable: boolean): Promise<void> {
-  if (!serviceName) logError('An API name is required. Try sheets');
+  if (!serviceName) throw new ClaspError('An API name is required. Try sheets');
   const projectId = await getProjectIdWithErrors();
   const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
   try {
@@ -80,10 +81,11 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean): 
     await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
     console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName} API.`);
   } catch (error) {
+    if (error instanceof ClaspError) throw error;
     // If given non-existent API (like fakeAPI, it throws 403 permission denied)
     // We will log this for the user instead:
     console.log(error);
-    logError(ERROR.NO_API(enable, serviceName));
+    throw new ClaspError(ERROR.NO_API(enable, serviceName));
   }
 }
 

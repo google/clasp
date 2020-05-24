@@ -6,6 +6,7 @@ import path from 'path';
 import {watchTree} from 'watch';
 
 import {loadAPICredentials} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {FS_OPTIONS, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants';
 import {DOT, DOTFILE} from '../dotfile';
 import {fetchProject, pushFiles} from '../files';
@@ -63,7 +64,6 @@ export default async (options: CommandOption): Promise<void> => {
 
     spinner.setSpinnerTitle(LOG.PUSHING).start();
     await pushFiles();
-    // if (spinner.isSpinning()) spinner.stop(true);
   }
 };
 
@@ -86,6 +86,6 @@ const manifestHasChanges = async (): Promise<boolean> => {
   const localManifest = readFileSync(localManifestPath, FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
-  if (!remoteManifest) throw new Error('remote manifest no found');
+  if (!remoteManifest) throw new ClaspError('remote manifest no found');
   return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);
 };

@@ -1,14 +1,15 @@
 /* eslint-disable new-cap */
+import is from '@sindresorhus/is';
 import fs from 'fs-extra';
 import path from 'path';
-import is from '@sindresorhus/is';
 
 import {PUBLIC_ADVANCED_SERVICES} from './apis';
-import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {enableOrDisableAPI, isEnabled} from './apiutils';
+import {ClaspError} from './clasp-error';
+import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOT} from './dotfile';
 import {ERROR} from './messages';
-import {getProjectSettings, getValidJSON, logError} from './utils';
+import {getProjectSettings, getValidJSON} from './utils';
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -31,8 +32,9 @@ export async function readManifest(): Promise<Manifest> {
   const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
     return fs.readJsonSync(manifest, FS_OPTIONS) as Manifest;
-  } catch {
-    return logError(ERROR.NO_MANIFEST(manifest));
+  } catch (error) {
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(ERROR.NO_MANIFEST(manifest));
   }
 }
 
@@ -46,8 +48,9 @@ async function writeManifest(manifest: Readonly<Manifest>) {
   const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   try {
     fs.writeJsonSync(manifestFilePath, manifest, {encoding: 'utf8', spaces: 2});
-  } catch {
-    logError(ERROR.FS_FILE_WRITE);
+  } catch (error) {
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(ERROR.FS_FILE_WRITE);
   }
 }
 

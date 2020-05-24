@@ -18,6 +18,5 @@ export default async (options: CommandOption): Promise<void> => {
     spinner.setSpinnerTitle(LOG.PULLING);
     const files = await fetchProject(scriptId, options.versionNumber);
     await writeProjectFiles(files, rootDir);
-    // if (spinner.isSpinning()) spinner.stop(true);
   }
 };

@@ -1,11 +1,12 @@
 /* eslint-disable new-cap */
-import cliTruncate from 'cli-truncate';
 import {Spinner} from 'cli-spinner';
+import cliTruncate from 'cli-truncate';
 import fs from 'fs-extra';
 import {script_v1 as scriptV1} from 'googleapis';
 import isOnline from 'is-online';
 import path from 'path';
 
+import {ClaspError} from './clasp-error';
 import {ClaspToken, DOT, DOTFILE, ProjectSettings} from './dotfile';
 import {projectIdPrompt} from './inquirer';
 import {ERROR, LOG} from './messages';
@@ -109,8 +110,7 @@ export function getWebApplicationURL(deployment: Readonly<scriptV1.Schema$Deploy
     (entryPoint: Readonly<scriptV1.Schema$EntryPoint>) => entryPoint.entryPointType === 'WEB_APP'
   );
   if (webEntryPoint) return webEntryPoint.webApp && webEntryPoint.webApp.url;
-  logError(ERROR.NO_WEBAPP(deployment.deploymentId ?? ''));
-  throw new Error('This line should never be executed');
+  throw new ClaspError(ERROR.NO_WEBAPP(deployment.deploymentId ?? ''));
 }
 
 /**
@@ -185,8 +185,7 @@ export async function checkIfOnline() {
     return true;
   }
 
-  logError(ERROR.OFFLINE);
-  throw new Error('This line should never be executed');
+  throw new ClaspError(ERROR.OFFLINE);
 }
 
 /**
@@ -211,7 +210,7 @@ export async function getProjectId(promptUser = true): Promise<string> {
   try {
     const projectSettings: ProjectSettings = await getProjectSettings();
     if (projectSettings.projectId) return projectSettings.projectId;
-    if (!promptUser) throw new Error('Project ID not found.');
+    if (!promptUser) throw new ClaspError('Project ID not found.');
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
     await projectIdPrompt().then(async answers => {
@@ -220,10 +219,9 @@ export async function getProjectId(promptUser = true): Promise<string> {
     });
     return projectSettings.projectId ?? '';
   } catch (error) {
-    logError(error.message);
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(error.message);
   }
-
-  throw new Error('Project ID not found');
 }
 
 /**
@@ -243,7 +241,7 @@ export function getValidJSON<T>(value: string): T {
   try {
     return JSON.parse(value) as T;
   } catch {
-    throw new Error(ERROR.INVALID_JSON);
+    throw new ClaspError(ERROR.INVALID_JSON);
   }
 }
 

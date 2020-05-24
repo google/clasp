@@ -2,8 +2,9 @@
 import {script_v1 as scriptV1} from 'googleapis';
 
 import {loadAPICredentials, script} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {LOG} from '../messages';
-import {checkIfOnline, getDescriptionFrom, getProjectSettings, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, spinner} from '../utils';
 
 /**
  * Lists versions of an Apps Script project.
@@ -42,9 +43,9 @@ export default async (): Promise<void> => {
         console.log(LOG.VERSION_DESCRIPTION(version));
       });
     } else {
-      throw new Error(LOG.DEPLOYMENT_DNE);
+      throw new ClaspError(LOG.DEPLOYMENT_DNE);
     }
   } else {
-    throw new Error(getDescriptionFrom(response.statusText));
+    throw new ClaspError(response.statusText);
   }
 };

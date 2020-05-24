@@ -6,14 +6,15 @@ import multimatch from 'multimatch';
 import path from 'path';
 import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
+import {ReadonlyDeep} from 'type-fest';
 import ts from 'typescript';
 
 import {loadAPICredentials, script} from './auth';
+import {ClaspError} from './clasp-error';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOT, DOTFILE} from './dotfile';
 import {ERROR, LOG} from './messages';
 import {checkIfOnline, getAPIFileType, getDescriptionFrom, getProjectSettings, logError, spinner} from './utils';
-import {ReadonlyDeep} from 'type-fest';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -118,7 +119,7 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         abortPush = true;
         // Only print error once (for .gs)
         if (path.extname(name) === '.gs') {
-          logError(ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
+          throw new ClaspError(ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
         }
       }
     });
@@ -275,16 +276,17 @@ export async function fetchProject(
       versionNumber,
     });
   } catch (error) {
+    if (error instanceof ClaspError) throw error;
     if (error.statusCode === 404) {
-      throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+      throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
 
-    throw new Error(ERROR.SCRIPT_ID);
+    throw new ClaspError(ERROR.SCRIPT_ID);
   }
 
   if (spinner.isSpinning()) spinner.stop(true);
   const {data} = response;
-  if (!data.files) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  if (!data.files) throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   if (!silent) console.log(LOG.CLONE_SUCCESS(data.files.length));
   return data.files as AppsScriptFile[];
 }
@@ -327,7 +329,7 @@ export async function pushFiles(silent = false) {
   await getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
     // Check for edge cases.
     if (err) {
-      logError(getDescriptionFrom(err) ?? LOG.PUSH_FAILURE);
+      throw new ClaspError(getDescriptionFrom(err) ?? LOG.PUSH_FAILURE);
     }
 
     if (!projectFiles) {

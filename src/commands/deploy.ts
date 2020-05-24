@@ -1,5 +1,6 @@
 /* eslint-disable new-cap */
 import {loadAPICredentials, script} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {PROJECT_MANIFEST_BASENAME} from '../constants';
 import {ERROR, LOG} from '../messages';
 import {checkIfOnline, getProjectSettings, spinner} from '../utils';
@@ -33,7 +34,7 @@ export default async (options: CommandOption): Promise<void> => {
         description,
       },
     });
-    if (version.status !== 200) throw new Error(ERROR.ONE_DEPLOYMENT_CREATE);
+    if (version.status !== 200) throw new ClaspError(ERROR.ONE_DEPLOYMENT_CREATE);
     if (spinner.isSpinning()) spinner.stop(true);
     versionNumber = version.data.versionNumber ?? 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
@@ -66,7 +67,7 @@ export default async (options: CommandOption): Promise<void> => {
     });
   }
 
-  if (deployments.status !== 200) throw new Error(ERROR.DEPLOYMENT_COUNT);
+  if (deployments.status !== 200) throw new ClaspError(ERROR.DEPLOYMENT_COUNT);
   if (spinner.isSpinning()) spinner.stop(true);
   console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
 };

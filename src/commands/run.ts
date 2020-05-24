@@ -4,10 +4,11 @@ import readline from 'readline';
 
 import {getFunctionNames} from '../apiutils';
 import {getLocalScript, loadAPICredentials, script} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {addScopeToManifest, isValidRunManifest} from '../manifest';
 import {ERROR} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getProjectSettings, getValidJSON, logError, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, getValidJSON, spinner} from '../utils';
 
 interface CommandOption {
   readonly nondev: boolean;
@@ -71,7 +72,7 @@ async function runFunction(functionName: string, parameters: string[], scriptId:
     });
     if (spinner.isSpinning()) spinner.stop(true);
     if (!response || !response.data.done) {
-      logError(ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
+      throw new ClaspError(ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
     }
 
     const {data} = response;
@@ -92,6 +93,7 @@ async function runFunction(functionName: string, parameters: string[], scriptId:
       );
     }
   } catch (error) {
+    if (error instanceof ClaspError) throw error;
     if (spinner.isSpinning()) spinner.stop(true);
     if (error) {
       // TODO move these to logError when stable?
@@ -137,16 +139,14 @@ https://www.googleapis.com/auth/presentations
           });
           // We probably don't need to show the unauth error
           // since we always prompt the user to fix this now.
-          // logError(ERROR.UNAUTHENTICATED_LOCAL);
+          // throw new ClaspError(ERROR.UNAUTHENTICATED_LOCAL);
           break;
         case 403:
-          logError(ERROR.PERMISSION_DENIED_LOCAL);
-          break;
+          throw new ClaspError(ERROR.PERMISSION_DENIED_LOCAL);
         case 404:
-          logError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
-          break;
+          throw new ClaspError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
         default:
-          logError(`(${error.code}) Error: ${error.message}`);
+          throw new ClaspError(`(${error.code}) Error: ${error.message}`);
       }
     }
   }

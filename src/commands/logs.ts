@@ -5,6 +5,7 @@ import {logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
 import {loadAPICredentials, logger} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {DOTFILE, ProjectSettings} from '../dotfile';
 import {projectIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
@@ -171,7 +172,7 @@ async function setupLogs(): Promise<string> {
         });
     });
   }).catch(error => {
-    return logError(getDescriptionFrom(error)); // Only because tsc doesn't understand logError never return type
+    throw new ClaspError(getDescriptionFrom(error) as string); // TODO get rid of type casting
   });
 }
 
@@ -196,12 +197,11 @@ async function fetchAndPrintLogs(
 
   // Validate projectId
   if (!projectId) {
-    logError(ERROR.NO_GCLOUD_PROJECT);
-    return; // Only because tsc doesn't understand logError never return type
+    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
   }
 
   if (!isValidProjectId(projectId)) {
-    logError(ERROR.PROJECT_ID_INCORRECT(projectId));
+    throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 
   try {
@@ -226,19 +226,18 @@ async function fetchAndPrintLogs(
       } else {
         switch (response.status) {
           case 401:
-            logError(oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
-            break;
+            throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
           case 403:
-            logError(oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
-            break;
+            throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
           default:
-            logError(`(${response.status}) Error: ${response.statusText}`);
+            throw new ClaspError(`(${response.status}) Error: ${response.statusText}`);
         }
       }
     };
 
     parseResponse(logs);
-  } catch {
-    logError(ERROR.PROJECT_ID_INCORRECT(projectId));
+  } catch (error) {
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 }

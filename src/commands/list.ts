@@ -2,9 +2,10 @@
 import {drive_v3 as driveV3} from 'googleapis';
 
 import {drive, loadAPICredentials} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, spinner, ellipsize} from '../utils';
+import {checkIfOnline, ellipsize, spinner} from '../utils';
 
 /**
  * Lists a user's Apps Script projects using Google Drive.
@@ -20,7 +21,7 @@ export default async (): Promise<void> => {
     // fields: 'nextPageToken, files(id, name)',
     q: 'mimeType="application/vnd.google-apps.script"',
   });
-  if (filesList.status !== 200) throw new Error(ERROR.DRIVE);
+  if (filesList.status !== 200) throw new ClaspError(ERROR.DRIVE);
   if (spinner.isSpinning()) spinner.stop(true);
   const files = filesList.data.files ?? [];
   if (files.length === 0) {

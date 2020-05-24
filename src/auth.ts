@@ -8,11 +8,12 @@ import readline from 'readline';
 import {ReadonlyDeep} from 'type-fest';
 import {URL} from 'url';
 
+import {ClaspError} from './clasp-error';
 import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
 import {oauthScopesPrompt, PromptAnswers} from './inquirer';
 import {readManifest} from './manifest';
 import {ERROR, LOG} from './messages';
-import {checkIfOnline, ClaspCredentials, getOAuthSettings, logError} from './utils';
+import {checkIfOnline, ClaspCredentials, getOAuthSettings} from './utils';
 
 /**
  * Authentication with Google's APIs.
@@ -143,7 +144,7 @@ export async function authorize(options: {
         'https://www.googleapis.com/auth/cloud-platform',
       ];
       // TODO formal error
-      // logError('You need to specify scopes in the manifest.' +
+      // throw new ClaspError('You need to specify scopes in the manifest.' +
       // 'View appsscript.json. Add a list of scopes in "oauthScopes"' +
       // 'Tip:' +
       // '1. clasp open' +
@@ -189,7 +190,8 @@ export async function authorize(options: {
     await dotfile.write(claspToken);
     console.log(LOG.SAVED_CREDS(Boolean(options.creds)));
   } catch (error) {
-    logError(`${ERROR.ACCESS_TOKEN}${error}`);
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(`${ERROR.ACCESS_TOKEN}${error}`);
   }
 }
 
@@ -334,7 +336,8 @@ async function setOauthClientCredentials(rc: ClaspToken) {
     // Save the credentials.
     await (rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC).write(rc);
   } catch (error) {
-    logError(`${ERROR.ACCESS_TOKEN}${error}`);
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(`${ERROR.ACCESS_TOKEN}${error}`);
   }
 }
 
@@ -356,7 +359,7 @@ export async function checkOauthScopes(rc: ReadonlyDeep<ClaspToken>) {
 
     await oauthScopesPrompt().then(async (answers: Readonly<PromptAnswers>) => {
       if (answers.doAuth) {
-        if (!rc.isLocalCreds) logError(ERROR.NO_LOCAL_CREDENTIALS);
+        if (!rc.isLocalCreds) throw new ClaspError(ERROR.NO_LOCAL_CREDENTIALS);
         await authorize({
           useLocalhost: answers.localhost,
           scopes: newScopes,
@@ -364,6 +367,7 @@ export async function checkOauthScopes(rc: ReadonlyDeep<ClaspToken>) {
       }
     });
   } catch (error) {
-    logError(ERROR.BAD_REQUEST((error as {message: string}).message));
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(ERROR.BAD_REQUEST((error as {message: string}).message));
   }
 }

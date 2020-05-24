@@ -46,6 +46,7 @@ import version from './commands/version';
 import versions from './commands/versions';
 import {PROJECT_NAME} from './constants';
 import {spinner} from './utils';
+import {ClaspError} from './clasp-error';
 
 // CLI
 
@@ -347,11 +348,14 @@ if (process.argv.slice(2).length === 0) {
     await commander.parseAsync(process.argv);
     if (spinner.isSpinning()) spinner.stop(true);
   } catch (error) {
-    process.exitCode = 1;
     spinner.stop(true);
-    if (error instanceof Error) {
+    if (error instanceof ClaspError) {
+      console.error(error.message);
+    } else if (error instanceof Error) {
+      process.exitCode = 1;
       console.error(error.message);
     } else {
+      process.exitCode = 1;
       console.error('Unknown error', error);
     }
   }

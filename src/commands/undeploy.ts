@@ -1,7 +1,8 @@
 /* eslint-disable new-cap */
 import {loadAPICredentials, script} from '../auth';
+import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getDescriptionFrom, getProjectSettings, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, spinner} from '../utils';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -19,10 +20,10 @@ export default async (deploymentId: string | undefined, options: CommandOption):
 
   if (options.all) {
     const deploymentsList = await script.projects.deployments.list({scriptId});
-    if (deploymentsList.status !== 200) throw new Error(getDescriptionFrom(deploymentsList.statusText));
+    if (deploymentsList.status !== 200) throw new ClaspError(deploymentsList.statusText);
 
     const deployments = deploymentsList.data.deployments ?? [];
-    if (deployments.length === 0) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    if (deployments.length === 0) throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
 
     deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
     for (const deployment of deployments) {
@@ -30,7 +31,7 @@ export default async (deploymentId: string | undefined, options: CommandOption):
       spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(id)).start();
       const result = await script.projects.deployments.delete({scriptId, deploymentId: id});
 
-      if (result.status !== 200) throw new Error(ERROR.READ_ONLY_DELETE);
+      if (result.status !== 200) throw new ClaspError(ERROR.READ_ONLY_DELETE);
 
       if (spinner.isSpinning()) spinner.stop(true);
       console.log(LOG.UNDEPLOYMENT_FINISH(id));
@@ -41,13 +42,13 @@ export default async (deploymentId: string | undefined, options: CommandOption):
 
   if (!deploymentId) {
     const deploymentsList = await script.projects.deployments.list({scriptId});
-    if (deploymentsList.status !== 200) throw new Error(getDescriptionFrom(deploymentsList.statusText));
+    if (deploymentsList.status !== 200) throw new ClaspError(deploymentsList.statusText);
 
     const deployments = deploymentsList.data.deployments ?? [];
-    if (deployments.length === 0) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    if (deployments.length === 0) throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
 
     // @HEAD (Read-only deployments) may not be deleted.
-    if (deployments.length <= 1) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+    if (deployments.length <= 1) throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
 
     deploymentId = deployments[deployments.length - 1].deploymentId ?? '';
   }
@@ -60,6 +61,6 @@ export default async (deploymentId: string | undefined, options: CommandOption):
     if (spinner.isSpinning()) spinner.stop(true);
     console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
   } else {
-    throw new Error(ERROR.READ_ONLY_DELETE);
+    throw new ClaspError(ERROR.READ_ONLY_DELETE);
   }
 };
