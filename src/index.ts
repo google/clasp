@@ -22,6 +22,7 @@
  */
 
 import commander from 'commander';
+import loudRejection from 'loud-rejection';
 import {PackageJson} from 'type-fest';
 
 import apis from './commands/apis';
@@ -49,6 +50,7 @@ import {spinner} from './utils';
 import {ClaspError} from './clasp-error';
 
 // CLI
+loudRejection();
 
 /**
  * Set global CLI configurations

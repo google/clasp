@@ -81,6 +81,7 @@
     "inquirer": "^7.1.0",
     "inquirer-autocomplete-prompt-ipt": "^2.0.0",
     "is-online": "^8.3.1",
+    "loud-rejection": "^2.2.0",
     "mkdirp": "^1.0.4",
     "multimatch": "^4.0.0",
     "normalize-newline": "^3.0.0",
