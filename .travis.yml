@@ -1,12 +1,12 @@
 sudo: enabled
 os:
-# - linux
+- linux
 # - osx
-- windows
+# - windows
 language: node_js
 node_js:
-# - "14"
-# - "12"
+- "14"
+- "12"
 - "10"
 env:
   global:
