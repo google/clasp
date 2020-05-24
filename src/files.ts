@@ -60,7 +60,6 @@ function getTranspileOptions(): ts.TranspileOptions {
     const parsedConfigResult = ts.parseConfigFileTextToJson(tsconfigPath, tsconfigContent);
 
     return {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       compilerOptions: parsedConfigResult.config.compilerOptions,
     };
   }
@@ -87,7 +86,6 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
 
   // Read all filenames as a flattened tree
   // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
   recursive(rootDir, async (err: ReadonlyDeep<Error>, filePaths: string[]) => {
     if (err) return callback(err, null, null);
 

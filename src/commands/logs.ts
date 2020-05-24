@@ -154,8 +154,7 @@ async function setupLogs(): Promise<string> {
     if (!dotfile) throw new ClaspError(ERROR.SETTINGS_DNE);
     const settings = await dotfile.read<ProjectSettings>();
     if (!settings.scriptId) throw new ClaspError(ERROR.SCRIPT_ID_DNE);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    dotfile.write({...settings, ...{projectId}});
+    await dotfile.write({...settings, ...{projectId}});
     return projectId;
   } catch (error) {
     if (error instanceof ClaspError) throw error;
