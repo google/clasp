@@ -49,29 +49,16 @@ export const hasOauthClientSettings = (local = false): boolean =>
  */
 export async function getOAuthSettings(local: boolean): Promise<ClaspToken> {
   const RC = local ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
-  return RC.read<ClaspToken>().catch((error: Error) =>
-    logError(getDescriptionFrom(error) ?? ERROR.NO_CREDENTIALS(local))
-  );
+  try {
+    return await RC.read<ClaspToken>();
+  } catch (error) {
+    throw new ClaspError(getErrorMessage(error) ?? ERROR.NO_CREDENTIALS(local));
+  }
 }
 
 export const spinner = new Spinner();
 
-/**
- * Logs errors to the user such as unauthenticated or permission denied and exits Node.
- *
- * > This function **`never`** returns
- *
- * @param  {object} err         The object from the request's error
- * @param  {string} description The description of the error
- * @param  {number} code        (*optional*) The process exit code. default value is `1`
- */
-export const logError = (description = '', code = 1): never => {
-  if (spinner.isSpinning()) spinner.stop(true);
-  if (description) console.error(description);
-  process.exit(code);
-};
-
-export const getDescriptionFrom = (err: any) => {
+export const getErrorMessage = (err: any) => {
   let description: string | undefined;
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
@@ -128,30 +115,27 @@ export function getDefaultProjectName(): string {
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
 export async function getProjectSettings(failSilently?: boolean): Promise<ProjectSettings> {
-  return new Promise<ProjectSettings>(resolve => {
-    const fail = (silent?: boolean) => (silent ? resolve() : logError(ERROR.SETTINGS_DNE));
+  try {
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
-      dotfile
-        .read<ProjectSettings>()
-        // eslint-disable-next-line promise/prefer-await-to-then
-        .then(settings => {
-          // Settings must have the script ID. Otherwise we err.
-          if (settings.scriptId) {
-            resolve(settings);
-          } else {
-            // TODO: Better error message
-            fail(); // Script ID DNE
-          }
-        })
-        .catch(() => {
-          fail(failSilently); // Failed to read dotfile
-        });
-    } else {
-      fail(); // Never found a dotfile
+      try {
+        const settings = await dotfile.read<ProjectSettings>();
+        // Settings must have the script ID. Otherwise we err.
+        if (settings.scriptId) {
+          return settings;
+        }
+      } catch {
+        if (failSilently) {
+          return ({} as unknown) as ProjectSettings;
+        }
+      }
     }
-  }).catch(error => logError(getDescriptionFrom(error)));
+    throw new ClaspError(ERROR.SETTINGS_DNE); // Never found a dotfile
+  } catch (error) {
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(getErrorMessage(error) as string);
+  }
 }
 
 /**
