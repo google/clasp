@@ -281,15 +281,12 @@ async function authorizeWithoutLocalhost(
   console.log(LOG.AUTHORIZE(authUrl));
   // TODO Add spinner
   const authCode = await new Promise<string>((resolve, reject) => {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
+    const rl = readline.createInterface({input: process.stdin, output: process.stdout});
     rl.question(LOG.AUTH_CODE, (code: string) => {
       if (code && code.length > 0) {
         resolve(code);
       } else {
-        reject(new Error('No authorization code entered.'));
+        reject(new ClaspError('No authorization code entered.'));
       }
 
       rl.close();
