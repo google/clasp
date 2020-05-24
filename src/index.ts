@@ -45,7 +45,7 @@ import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
 import {PROJECT_NAME} from './constants';
-import {logError, spinner} from './utils';
+import {spinner} from './utils';
 
 // CLI
 
