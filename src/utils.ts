@@ -197,10 +197,9 @@ export async function getProjectId(promptUser = true): Promise<string> {
     if (!promptUser) throw new ClaspError('Project ID not found.');
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-    await projectIdPrompt().then(async answers => {
-      projectSettings.projectId = answers.projectId;
-      await DOTFILE.PROJECT().write(projectSettings);
-    });
+    const answers = await projectIdPrompt();
+    projectSettings.projectId = answers.projectId;
+    await DOTFILE.PROJECT().write(projectSettings);
     return projectSettings.projectId ?? '';
   } catch (error) {
     if (error instanceof ClaspError) throw error;

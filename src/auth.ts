@@ -10,7 +10,7 @@ import {URL} from 'url';
 
 import {ClaspError} from './clasp-error';
 import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
-import {oauthScopesPrompt, PromptAnswers} from './inquirer';
+import {oauthScopesPrompt} from './inquirer';
 import {readManifest} from './manifest';
 import {ERROR, LOG} from './messages';
 import {checkIfOnline, ClaspCredentials, getOAuthSettings} from './utils';
@@ -353,16 +353,12 @@ export async function checkOauthScopes(rc: ReadonlyDeep<ClaspToken>) {
     const newScopes = oauthScopes && oauthScopes.length > 1 ? oauthScopes.filter(x => !scopes.includes(x)) : [];
     if (newScopes.length === 0) return;
     console.log('New authorization scopes detected in manifest:\n', newScopes);
+    const answers = await oauthScopesPrompt();
 
-    await oauthScopesPrompt().then(async (answers: Readonly<PromptAnswers>) => {
-      if (answers.doAuth) {
-        if (!rc.isLocalCreds) throw new ClaspError(ERROR.NO_LOCAL_CREDENTIALS);
-        await authorize({
-          useLocalhost: answers.localhost,
-          scopes: newScopes,
-        });
-      }
-    });
+    if (answers.doAuth) {
+      if (!rc.isLocalCreds) throw new ClaspError(ERROR.NO_LOCAL_CREDENTIALS);
+      await authorize({useLocalhost: answers.localhost, scopes: newScopes});
+    }
   } catch (error) {
     if (error instanceof ClaspError) throw error;
     throw new ClaspError(ERROR.BAD_REQUEST((error as {message: string}).message));
