@@ -2,7 +2,7 @@
 import {loadAPICredentials, script} from '../auth';
 import {PROJECT_MANIFEST_BASENAME} from '../constants';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, logError, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, spinner} from '../utils';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -33,8 +33,8 @@ export default async (options: CommandOption): Promise<void> => {
         description,
       },
     });
+    if (version.status !== 200) throw new Error(ERROR.ONE_DEPLOYMENT_CREATE);
     if (spinner.isSpinning()) spinner.stop(true);
-    if (version.status !== 200) logError(ERROR.ONE_DEPLOYMENT_CREATE);
     versionNumber = version.data.versionNumber ?? 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
   }
@@ -66,7 +66,7 @@ export default async (options: CommandOption): Promise<void> => {
     });
   }
 
+  if (deployments.status !== 200) throw new Error(ERROR.DEPLOYMENT_COUNT);
   if (spinner.isSpinning()) spinner.stop(true);
-  if (deployments.status !== 200) logError(ERROR.DEPLOYMENT_COUNT);
   console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
 };

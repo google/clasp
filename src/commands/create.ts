@@ -10,7 +10,6 @@ import {
   getDefaultProjectName,
   getDescriptionFrom,
   getProjectSettings,
-  logError,
   saveProject,
   spinner,
 } from '../utils';
@@ -33,7 +32,7 @@ interface CommandOption {
 export default async (options: CommandOption): Promise<void> => {
   // Handle common errors.
   await checkIfOnline();
-  if (hasProject()) logError(ERROR.FOLDER_EXISTS);
+  if (hasProject()) throw new Error(ERROR.FOLDER_EXISTS);
   await loadAPICredentials();
 
   // Create defaults.
@@ -69,13 +68,15 @@ export default async (options: CommandOption): Promise<void> => {
 
   // CLI Spinner
   spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
-  try {
-    const {scriptId} = await getProjectSettings(true);
-    if (scriptId) logError(ERROR.NO_NESTED_PROJECTS);
-  } catch {
-    // No scriptId (because project doesn't exist)
-    // console.log(error);
-  }
+  // try {
+  //   const {scriptId} = await getProjectSettings(true);
+  //   if (scriptId) throw new Error(ERROR.NO_NESTED_PROJECTS);
+  // } catch {
+  //   // No scriptId (because project doesn't exist)
+  //   // console.log(error);
+  // }
+  const {scriptId} = await getProjectSettings(true);
+  if (scriptId) throw new Error(ERROR.NO_NESTED_PROJECTS);
 
   // Create a new Apps Script project
   const response = await script.projects.create({
@@ -87,7 +88,7 @@ export default async (options: CommandOption): Promise<void> => {
   if (spinner.isSpinning()) spinner.stop(true);
   if (response.status !== 200) {
     if (parentId) console.log(response.statusText, ERROR.CREATE_WITH_PARENT);
-    logError(getDescriptionFrom(response.statusText) ?? ERROR.CREATE);
+    throw new Error(getDescriptionFrom(response.statusText) ?? ERROR.CREATE);
   }
 
   const createdScriptId = response.data.scriptId ?? '';

@@ -6,7 +6,7 @@ import {loadAPICredentials, script} from '../auth';
 import {deploymentIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {ellipsize, getDescriptionFrom, getProjectSettings, getWebApplicationURL, logError} from '../utils';
+import {ellipsize, getDescriptionFrom, getProjectSettings, getWebApplicationURL} from '../utils';
 
 interface CommandOption {
   readonly webapp?: boolean;
@@ -23,7 +23,7 @@ interface CommandOption {
 export default async (scriptId: string, options: CommandOption): Promise<void> => {
   const projectSettings = await getProjectSettings();
   if (!scriptId) scriptId = projectSettings.scriptId;
-  if (scriptId.length < 30) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  if (scriptId.length < 30) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // We've specified to open creds.
   if (options.creds) {
     const {projectId} = projectSettings;
@@ -33,7 +33,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
       return;
     }
 
-    logError(ERROR.NO_GCLOUD_PROJECT);
+    throw new Error(ERROR.NO_GCLOUD_PROJECT);
   }
 
   // We've specified to print addons and open the first one.
@@ -51,7 +51,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
       return;
     }
 
-    logError(ERROR.NO_PARENT_ID);
+    throw new Error(ERROR.NO_PARENT_ID);
   }
 
   // If we're not a web app, open the script URL.
@@ -64,9 +64,9 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
   // Web app: Otherwise, open the latest deployment.
   await loadAPICredentials();
   const deploymentsList = await script.projects.deployments.list({scriptId});
-  if (deploymentsList.status !== 200) logError(getDescriptionFrom(deploymentsList.statusText));
+  if (deploymentsList.status !== 200) throw new Error(getDescriptionFrom(deploymentsList.statusText));
   const deployments: Array<Readonly<scriptV1.Schema$Deployment>> = deploymentsList.data.deployments ?? [];
-  if (deployments.length === 0) logError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+  if (deployments.length === 0) throw new Error(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   // Order deployments by update time.
   const choices = deployments
     .slice()
@@ -100,6 +100,6 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
   if (target) {
     await open(target, {wait: false});
   } else {
-    logError(`Could not open deployment: ${JSON.stringify(deployment)}`);
+    throw new Error(`Could not open deployment: ${JSON.stringify(deployment)}`);
   }
 };

@@ -3,7 +3,7 @@ import {script_v1 as scriptV1} from 'googleapis';
 
 import {loadAPICredentials, script} from '../auth';
 import {LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, logError, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, spinner} from '../utils';
 
 /**
  * Lists a script's deployments.
@@ -18,7 +18,7 @@ export default async (): Promise<void> => {
     scriptId,
   });
   if (spinner.isSpinning()) spinner.stop(true);
-  if (deployments.status !== 200) logError(deployments.statusText);
+  if (deployments.status !== 200) throw new Error(deployments.statusText);
   const deploymentsList = deployments.data.deployments ?? [];
   const deploymentCount = deploymentsList.length;
   const deploymentWord = deploymentCount === 1 ? 'Deployment' : 'Deployments';

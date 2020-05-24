@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
 import {ProjectSettings} from '../dotfile';
 import {ERROR} from '../messages';
-import {getProjectSettings, logError, saveProject} from '../utils';
+import {getProjectSettings, saveProject} from '../utils';
 
 /**
  * Gets or sets a setting in .clasp.json
@@ -30,7 +30,7 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
       // Which interfers with storing the value
       process.stdout.write(keyValue);
     } else {
-      logError(ERROR.UNKNOWN_KEY(settingKey));
+      throw new Error(ERROR.UNKNOWN_KEY(settingKey));
     }
   } else {
     try {
@@ -50,14 +50,15 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
           currentSettings.fileExtension = settingValue;
           break;
         default:
-          logError(ERROR.UNKNOWN_KEY(settingKey));
+          throw new Error(ERROR.UNKNOWN_KEY(settingKey));
       }
       // filePushOrder doesn't work since it requires an array.
       // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
       await saveProject(currentSettings, true);
       console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
     } catch (error) {
-      logError('Unable to update .clasp.json');
+      if (error instanceof Error) throw error;
+      throw new Error('Unable to update .clasp.json');
     }
   }
 };

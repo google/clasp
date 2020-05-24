@@ -3,7 +3,7 @@ import {script_v1 as scriptV1} from 'googleapis';
 
 import {loadAPICredentials, script} from '../auth';
 import {LOG} from '../messages';
-import {checkIfOnline, getDescriptionFrom, getProjectSettings, logError, spinner} from '../utils';
+import {checkIfOnline, getDescriptionFrom, getProjectSettings, spinner} from '../utils';
 
 /**
  * Lists versions of an Apps Script project.
@@ -42,9 +42,9 @@ export default async (): Promise<void> => {
         console.log(LOG.VERSION_DESCRIPTION(version));
       });
     } else {
-      logError(LOG.DEPLOYMENT_DNE);
+      throw new Error(LOG.DEPLOYMENT_DNE);
     }
   } else {
-    logError(getDescriptionFrom(response.statusText));
+    throw new Error(getDescriptionFrom(response.statusText));
   }
 };

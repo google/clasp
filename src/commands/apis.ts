@@ -8,7 +8,7 @@ import {enableOrDisableAPI} from '../apiutils';
 import {discovery, loadAPICredentials, serviceUsage} from '../auth';
 import {ERROR} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getProjectId, logError} from '../utils';
+import {checkIfOnline, getProjectId} from '../utils';
 import {ReadonlyDeep} from 'type-fest';
 
 interface CommandOption {
@@ -119,6 +119,6 @@ export default async (options: CommandOption): Promise<void> => {
   if (command[subcommand]) {
     command[subcommand]();
   } else {
-    logError(ERROR.COMMAND_DNE(`apis ${subcommand}`));
+    throw new Error(ERROR.COMMAND_DNE(`apis ${subcommand}`));
   }
 };

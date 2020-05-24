@@ -26,7 +26,7 @@ export default async (
   options: CommandOption
 ): Promise<void> => {
   await checkIfOnline();
-  if (hasProject()) logError(ERROR.FOLDER_EXISTS);
+  if (hasProject()) throw new Error(ERROR.FOLDER_EXISTS);
   scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
   spinner.setSpinnerTitle(LOG.CLONING);
   const {rootDir} = options;
@@ -34,7 +34,7 @@ export default async (
   const files = await fetchProject(scriptId, versionNumber);
   await writeProjectFiles(files, rootDir);
   await status();
-  if (spinner.isSpinning()) spinner.stop(true);
+  // if (spinner.isSpinning()) spinner.stop(true);
 };
 
 /**
