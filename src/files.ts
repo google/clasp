@@ -14,7 +14,7 @@ import {ClaspError} from './clasp-error';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOT, DOTFILE} from './dotfile';
 import {ERROR, LOG} from './messages';
-import {checkIfOnline, getAPIFileType, getDescriptionFrom, getProjectSettings, logError, spinner} from './utils';
+import {checkIfOnline, getAPIFileType, getErrorMessage, getProjectSettings, spinner} from './utils';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -297,25 +297,26 @@ export async function fetchProject(
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
 export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
-  const {fileExtension} = await getProjectSettings();
-  // ? following statement mutates variable `files`. Is that desirable?
-  files.sort((file1, file2) => file1.name.localeCompare(file2.name));
-  const sortedFiles = files;
-  sortedFiles.forEach(file => {
-    const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
-    const truePath = `${rootDir || '.'}/${filePath}`;
-    mkdirp(path.dirname(truePath))
-      // eslint-disable-next-line promise/prefer-await-to-then
-      .then(() => {
-        if (!file.source) return; // Disallow empty files
-        fs.writeFile(truePath, file.source, (err: Readonly<NodeJS.ErrnoException>) => {
-          if (err) logError(getDescriptionFrom(err) ?? ERROR.FS_FILE_WRITE);
-        });
-        // Log only filename if pulling to root (Code.gs vs ./Code.gs)
-        console.log(`└─ ${rootDir ? truePath : filePath}`);
-      })
-      .catch(error => logError(getDescriptionFrom(error) ?? ERROR.FS_DIR_WRITE));
-  });
+  try {
+    const {fileExtension} = await getProjectSettings();
+    // ? following statement mutates variable `files`. Is that desirable?
+    files.sort((file1, file2) => file1.name.localeCompare(file2.name));
+    const sortedFiles = files;
+    for await (const file of sortedFiles) {
+      const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
+      const truePath = `${rootDir || '.'}/${filePath}`;
+      await mkdirp(path.dirname(truePath));
+      if (!file.source) return; // Disallow empty files
+      fs.writeFile(truePath, file.source, (error: Readonly<NodeJS.ErrnoException>) => {
+        if (error) throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_FILE_WRITE);
+      });
+      // Log only filename if pulling to root (Code.gs vs ./Code.gs)
+      console.log(`└─ ${rootDir ? truePath : filePath}`);
+    }
+  } catch (error) {
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_DIR_WRITE);
+  }
 }
 
 /**
@@ -326,10 +327,11 @@ export async function pushFiles(silent = false) {
   const {scriptId, rootDir} = await getProjectSettings();
   if (!scriptId) return;
   // TODO Make getProjectFiles async
-  await getProjectFiles(rootDir, async (err, projectFiles, files = []) => {
+  await getProjectFiles(rootDir, async (error, projectFiles, files = []) => {
     // Check for edge cases.
-    if (err) {
-      throw new ClaspError(getDescriptionFrom(err) ?? LOG.PUSH_FAILURE);
+    if (error) {
+      if (error instanceof ClaspError) throw error;
+      throw new ClaspError(getErrorMessage(error) ?? LOG.PUSH_FAILURE);
     }
 
     if (!projectFiles) {
