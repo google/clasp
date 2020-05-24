@@ -10,7 +10,7 @@ import {DOTFILE, ProjectSettings} from '../dotfile';
 import {projectIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getDescriptionFrom, getProjectSettings, isValidProjectId, logError, spinner} from '../utils';
+import {checkIfOnline, getErrorMessage, getProjectSettings, isValidProjectId, spinner} from '../utils';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -144,36 +144,23 @@ function printLogs(
 
 async function setupLogs(): Promise<string> {
   let projectId: string;
-  return new Promise<string>((resolve, reject) => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises,promise/prefer-await-to-then
-    getProjectSettings().then((projectSettings: Readonly<ProjectSettings>) => {
-      console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
-      console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-      projectIdPrompt()
-        // eslint-disable-next-line promise/prefer-await-to-then
-        .then(answers => {
-          projectId = answers.projectId;
-          const dotfile = DOTFILE.PROJECT();
-          if (!dotfile) logError(ERROR.SETTINGS_DNE);
-          dotfile
-            .read<ProjectSettings>()
-            // eslint-disable-next-line promise/prefer-await-to-then
-            .then((settings: Readonly<ProjectSettings>) => {
-              if (!settings.scriptId) logError(ERROR.SCRIPT_ID_DNE);
-              // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              dotfile.write({...settings, ...{projectId}});
-              resolve(projectId);
-            })
-            .catch((error: object) => logError(getDescriptionFrom(error)));
-        })
-        .catch((error: Readonly<Error>) => {
-          console.log(error);
-          reject();
-        });
-    });
-  }).catch(error => {
-    throw new ClaspError(getDescriptionFrom(error) as string); // TODO get rid of type casting
-  });
+  try {
+    const projectSettings = await getProjectSettings();
+    console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
+    console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
+    const answers = await projectIdPrompt();
+    projectId = answers.projectId;
+    const dotfile = DOTFILE.PROJECT();
+    if (!dotfile) throw new ClaspError(ERROR.SETTINGS_DNE);
+    const settings = await dotfile.read<ProjectSettings>();
+    if (!settings.scriptId) throw new ClaspError(ERROR.SCRIPT_ID_DNE);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    dotfile.write({...settings, ...{projectId}});
+    return projectId;
+  } catch (error) {
+    if (error instanceof ClaspError) throw error;
+    throw new ClaspError(getErrorMessage(error) as string); // TODO get rid of type casting
+  }
 }
 
 /**
