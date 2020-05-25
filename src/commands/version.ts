@@ -13,8 +13,15 @@ export default async (description?: string): Promise<void> => {
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (!description) {
-    const answers = await descriptionPrompt();
-    description = answers.description;
+    try {
+      const answers = await descriptionPrompt();
+      description = answers.description;
+    } catch (error) {
+      if (error.isTtyError) {
+        return; // We can safely ignore this
+      }
+      throw error;
+    }
   }
 
   spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
