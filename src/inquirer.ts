@@ -1,12 +1,12 @@
 import {script_v1 as scriptV1} from 'googleapis';
 import {prompt, registerPrompt} from 'inquirer';
+import autocomplete from 'inquirer-autocomplete-prompt-ipt';
 import {ReadonlyDeep} from 'type-fest';
 
 import {SCRIPT_TYPES} from './apis';
 import {LOG} from './messages';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-registerPrompt('autocomplete', require('inquirer-autocomplete-prompt-ipt'));
+registerPrompt('autocomplete', autocomplete);
 
 export type functionNameSource = (
   answers: {readonly functionName: string},
