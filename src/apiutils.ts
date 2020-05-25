@@ -52,15 +52,15 @@ async function getProjectIdWithErrors(): Promise<string> {
   return projectId;
 }
 
-/**
- * Returns true if the service is enabled for the Google Cloud Project.
- * @param {string} serviceName The service name.
- * @returns {boolean} True if the service is enabled.
- */
-export async function isEnabled(serviceName: string): Promise<boolean> {
-  const serviceDetails = await serviceUsage.services.get({name: serviceName});
-  return serviceDetails.data.state === 'ENABLED';
-}
+// /**
+//  * Returns true if the service is enabled for the Google Cloud Project.
+//  * @param {string} serviceName The service name.
+//  * @returns {boolean} True if the service is enabled.
+//  */
+// export async function isEnabled(serviceName: string): Promise<boolean> {
+//   const serviceDetails = await serviceUsage.services.get({name: serviceName});
+//   return serviceDetails.data.state === 'ENABLED';
+// }
 
 /**
  * Enables or disables a Google API.

@@ -10,8 +10,8 @@ import {URL} from 'url';
 
 import {ClaspError} from './clasp-error';
 import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
-import {oauthScopesPrompt} from './inquirer';
-import {readManifest} from './manifest';
+// import {oauthScopesPrompt} from './inquirer';
+// import {readManifest} from './manifest';
 import {ERROR, LOG} from './messages';
 import {checkIfOnline, ClaspCredentials, getOAuthSettings} from './utils';
 

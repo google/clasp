@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import path from 'path';
 
 import {PUBLIC_ADVANCED_SERVICES} from './apis';
-import {enableOrDisableAPI, isEnabled} from './apiutils';
+// import {enableOrDisableAPI, isEnabled} from './apiutils';
 import {ClaspError} from './clasp-error';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOT} from './dotfile';

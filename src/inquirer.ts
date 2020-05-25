@@ -66,24 +66,24 @@ export interface PromptAnswers {
   localhost: boolean; // In sync with prompt
 }
 
-/**
- * Inquirer prompt for oauth scopes.
- * @returns {Promise<PromptAnswers>} A promise for an object with the `PromptAnswers` interface.
- */
-export const oauthScopesPrompt = () =>
-  prompt<PromptAnswers>([
-    {
-      message: 'Authorize new scopes?',
-      name: 'doAuth',
-      type: 'confirm',
-    },
-    {
-      message: 'Use localhost?',
-      name: 'localhost',
-      type: 'confirm',
-      when: (answers: Readonly<PromptAnswers>) => answers.doAuth,
-    },
-  ]);
+// /**
+//  * Inquirer prompt for oauth scopes.
+//  * @returns {Promise<PromptAnswers>} A promise for an object with the `PromptAnswers` interface.
+//  */
+// export const oauthScopesPrompt = () =>
+//   prompt<PromptAnswers>([
+//     {
+//       message: 'Authorize new scopes?',
+//       name: 'doAuth',
+//       type: 'confirm',
+//     },
+//     {
+//       message: 'Use localhost?',
+//       name: 'localhost',
+//       type: 'confirm',
+//       when: (answers: Readonly<PromptAnswers>) => answers.doAuth,
+//     },
+//   ]);
 
 /**
  * Inquirer prompt for overwriting a manifest.
