@@ -348,6 +348,7 @@ if (process.argv.slice(2).length === 0) {
     // User input is provided from the process' arguments
     await commander.parseAsync(process.argv);
     if (spinner.isSpinning()) spinner.stop(true);
+    process.exitCode = 0;
   } catch (error) {
     spinner.stop(true);
     if (error instanceof ClaspError) {
