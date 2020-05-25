@@ -324,7 +324,6 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
 export async function pushFiles(silent = false) {
   const {scriptId, rootDir} = await getProjectSettings();
   if (!scriptId) return;
-  // TODO Make getProjectFiles async
   await getProjectFiles(rootDir, async (error, projectFiles, files = []) => {
     // Check for edge cases.
     if (error) {

@@ -21,13 +21,9 @@ import stripBom from 'strip-bom';
 import dotf from 'dotf';
 import splitLines from 'split-lines';
 
-import {FS_OPTIONS} from './constants';
+import {FS_OPTIONS, PROJECT_NAME} from './constants';
 
 export {Dotfile} from 'dotf';
-
-// TEMP CIRCULAR DEPS, TODO REMOVE
-// import { PROJECT_NAME } from './utils';
-const PROJECT_NAME = 'clasp';
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
