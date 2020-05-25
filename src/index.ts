@@ -18,13 +18,14 @@
  */
 
 /**
- * clasp – The Apps Script CLI
+ * clasp - The Apps Script CLI
  */
 
 import commander from 'commander';
 import loudRejection from 'loud-rejection';
-import {PackageJson} from 'type-fest';
+import readPkgUp from 'read-pkg-up';
 
+import {ClaspError} from './clasp-error';
 import apis from './commands/apis';
 import clone from './commands/clone';
 import create from './commands/create';
@@ -47,10 +48,12 @@ import version from './commands/version';
 import versions from './commands/versions';
 import {PROJECT_NAME} from './constants';
 import {spinner} from './utils';
-import {ClaspError} from './clasp-error';
 
-// CLI
+// Ensure any unhandled exception won't go unnoticed
 loudRejection();
+
+const manifest = readPkgUp.sync();
+// CLI
 
 /**
  * Set global CLI configurations
@@ -59,12 +62,7 @@ loudRejection();
 /**
  * Displays clasp version
  */
-commander.version(
-  // TODO: find an alternative to this ugly require
-  (require('../../package.json') as Required<PackageJson>).version,
-  '-v, --version',
-  'output the current version'
-);
+commander.version(manifest ? manifest.packageJson.version : 'unknown');
 
 commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
 
@@ -250,7 +248,7 @@ commander.command('versions').description('List versions of a script').action(ve
 /**
  * Lists your most recent 10 Apps Script projects.
  * @name list
- * @example list # helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
+ * @example list # helloworld1 - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
  * @todo Add --all flag to list all projects.
  */
 commander.command('list').description('List App Scripts projects').action(list);

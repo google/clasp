@@ -4,6 +4,7 @@ import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 import path from 'path';
+import readPkgUp from 'read-pkg-up';
 
 import {getAppsScriptFileName, getFileType} from '../src/files';
 import {ERROR, LOG} from '../src/messages';
@@ -11,6 +12,8 @@ import {extractScriptId, URL} from '../src/urls';
 import {getAPIFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
 import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
 import {cleanup, setup} from './functions';
+
+const manifest = readPkgUp.sync();
 
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
@@ -233,7 +236,7 @@ describe('Test variations of clasp --version', () => {
   const expectVersion = (variation: string) => {
     const result = spawnSync(CLASP, [variation], {encoding: 'utf8'});
     expect(result.status).to.equal(0);
-    expect(result.stdout).to.include(require('../../package.json').version);
+    expect(result.stdout).to.include(manifest ? manifest.packageJson.version : 'unknown');
   };
   it('should show version for clasp --version', () => expectVersion('--version'));
   it('should show version for clasp -v', () => expectVersion('-v'));
