@@ -1,8 +1,8 @@
 # Using clasp as a local dependency
 
-Typically `clasp` is installed as a global package for convinience when using the command line.
+Typically `clasp` is installed as a global package for convenience when using the command line.
 
-Still there may be occassions when you want a project to use a specific version of `clasp` (i.e. to prevent potential breaking changes in future version)
+Still there may be occasions when you want a project to use a specific version of `clasp` (i.e. to prevent potential breaking changes in future version)
 
 This can be achieved by simply adding clasp as a local dependency and a fixed version
 
