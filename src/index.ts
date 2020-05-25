@@ -21,6 +21,7 @@
  * clasp - The Apps Script CLI
  */
 
+import is from '@sindresorhus/is';
 import commander from 'commander';
 import loudRejection from 'loud-rejection';
 import readPkgUp from 'read-pkg-up';
@@ -350,7 +351,8 @@ if (process.argv.slice(2).length === 0) {
   } catch (error) {
     spinner.stop(true);
     if (error instanceof ClaspError) {
-      console.error(error.message);
+      const message = is.string(error.message) && is.nonEmptyString(error.message) ? error.message : error;
+      console.error(message);
     } else if (error instanceof Error) {
       process.exitCode = 1;
       console.error(error.message);

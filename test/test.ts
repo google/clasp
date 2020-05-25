@@ -85,7 +85,6 @@ describe('Test clasp version and versions function', () => {
   it('should prompt for version description', () => {
     const result = spawnSync(CLASP, ['version'], {encoding: 'utf8'});
     expect(result.stderr).to.equal('');
-    expect(result.stdout).to.equal('LOG.GIVE_DESCRIPTION');
     expect(result.stdout).to.contain(LOG.GIVE_DESCRIPTION);
     expect(result.status).to.equal(0);
   });
