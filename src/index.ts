@@ -350,7 +350,7 @@ if (process.argv.slice(2).length === 0) {
   } catch (error) {
     spinner.stop(true);
     if (error instanceof ClaspError) {
-      console.error(message);
+      console.error(error.message);
     } else if (error instanceof Error) {
       process.exitCode = 1;
       console.error(error.message);
