@@ -30,6 +30,6 @@ export default async (): Promise<void> => {
   }
 
   files.forEach((file: Readonly<driveV3.Schema$File>) =>
-    console.log(`${ellipsize(file.name!, 20)} – ${URL.SCRIPT(file.id ?? '')}`)
+    console.log(`${ellipsize(file.name!, 20)} - ${URL.SCRIPT(file.id ?? '')}`)
   );
 };

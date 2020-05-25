@@ -54,7 +54,7 @@ const getScriptId = async (): Promise<string> => {
   const {files} = data;
   if (files && files.length > 0) {
     const fileIds: ScriptIdPrompt[] = files.map((file: Readonly<driveV3.Schema$File>) => ({
-      name: `${file.name!.padEnd(20)} – ${LOG.SCRIPT_LINK(file.id ?? '')}`,
+      name: `${file.name!.padEnd(20)} - ${LOG.SCRIPT_LINK(file.id ?? '')}`,
       value: file.id ?? '',
     }));
     const answers = await scriptIdPrompt(fileIds);
