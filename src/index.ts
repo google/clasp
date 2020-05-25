@@ -62,7 +62,7 @@ const manifest = readPkgUp.sync();
 /**
  * Displays clasp version
  */
-commander.version(manifest ? manifest.packageJson.version : 'unknown');
+commander.version(manifest ? manifest.packageJson.version : 'unknown', '-v, --version', 'output the current version');
 
 commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
 
