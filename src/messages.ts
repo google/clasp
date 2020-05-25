@@ -152,8 +152,7 @@ Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
 *Be sure to never commit this file!* It's basically a password.`
       : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
-  // TODO: `SCRIPT_RUN` is never used
-  SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
+  // SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
   STATUS_IGNORE: 'Ignored files:',
   STATUS_PUSH: 'Not ignored files:',

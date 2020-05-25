@@ -105,28 +105,28 @@ export async function addScopeToManifest(scopes: readonly string[]) {
   await writeManifest(manifest);
 }
 
-/**
- * Enables the Execution API in the Manifest.
- * The Execution API requires the manifest to have the "executionApi.access" field set.
- */
-// TODO: currently unused. Check relevancy
-export async function enableExecutionAPI() {
-  console.log('Writing manifest');
-  const manifest = await readManifest();
-  manifest.executionApi = manifest.executionApi ?? {
-    access: 'ANYONE',
-  };
-  await writeManifest(manifest);
-  console.log('Wrote manifest');
+// /**
+//  * Enables the Execution API in the Manifest.
+//  * The Execution API requires the manifest to have the "executionApi.access" field set.
+//  */
+// // TODO: currently unused. Check relevancy
+// export async function enableExecutionAPI() {
+//   console.log('Writing manifest');
+//   const manifest = await readManifest();
+//   manifest.executionApi = manifest.executionApi ?? {
+//     access: 'ANYONE',
+//   };
+//   await writeManifest(manifest);
+//   console.log('Wrote manifest');
 
-  console.log('Checking Apps Script API');
-  if (!(await isEnabled('script'))) {
-    console.log('Apps Script API is currently disabled. Enabling…');
-    await enableOrDisableAPI('script', true);
-  }
+//   console.log('Checking Apps Script API');
+//   if (!(await isEnabled('script'))) {
+//     console.log('Apps Script API is currently disabled. Enabling…');
+//     await enableOrDisableAPI('script', true);
+//   }
 
-  console.log('Apps Script API is enabled.');
-}
+//   console.log('Apps Script API is enabled.');
+// }
 
 /**
  * Enables or disables a advanced service in the manifest.

@@ -338,29 +338,29 @@ async function setOauthClientCredentials(rc: ClaspToken) {
   }
 }
 
-/**
- * Compare global OAuth client scopes against manifest and prompt user to
- * authorize if new scopes found (local OAuth credentails only).
- * @param {ClaspToken} rc OAuth client settings from rc file.
- */
-// TODO: currently unused. Check relevancy
-export async function checkOauthScopes(rc: ReadonlyDeep<ClaspToken>) {
-  try {
-    await checkIfOnline();
-    await setOauthClientCredentials(rc);
-    const {scopes} = await globalOAuth2Client.getTokenInfo(globalOAuth2Client.credentials.access_token as string);
-    const {oauthScopes} = await readManifest();
-    const newScopes = oauthScopes && oauthScopes.length > 1 ? oauthScopes.filter(x => !scopes.includes(x)) : [];
-    if (newScopes.length === 0) return;
-    console.log('New authorization scopes detected in manifest:\n', newScopes);
-    const answers = await oauthScopesPrompt();
+// /**
+//  * Compare global OAuth client scopes against manifest and prompt user to
+//  * authorize if new scopes found (local OAuth credentails only).
+//  * @param {ClaspToken} rc OAuth client settings from rc file.
+//  */
+// // TODO: currently unused. Check relevancy
+// export async function checkOauthScopes(rc: ReadonlyDeep<ClaspToken>) {
+//   try {
+//     await checkIfOnline();
+//     await setOauthClientCredentials(rc);
+//     const {scopes} = await globalOAuth2Client.getTokenInfo(globalOAuth2Client.credentials.access_token as string);
+//     const {oauthScopes} = await readManifest();
+//     const newScopes = oauthScopes && oauthScopes.length > 1 ? oauthScopes.filter(x => !scopes.includes(x)) : [];
+//     if (newScopes.length === 0) return;
+//     console.log('New authorization scopes detected in manifest:\n', newScopes);
+//     const answers = await oauthScopesPrompt();
 
-    if (answers.doAuth) {
-      if (!rc.isLocalCreds) throw new ClaspError(ERROR.NO_LOCAL_CREDENTIALS);
-      await authorize({useLocalhost: answers.localhost, scopes: newScopes});
-    }
-  } catch (error) {
-    if (error instanceof ClaspError) throw error;
-    throw new ClaspError(ERROR.BAD_REQUEST((error as {message: string}).message));
-  }
-}
+//     if (answers.doAuth) {
+//       if (!rc.isLocalCreds) throw new ClaspError(ERROR.NO_LOCAL_CREDENTIALS);
+//       await authorize({useLocalhost: answers.localhost, scopes: newScopes});
+//     }
+//   } catch (error) {
+//     if (error instanceof ClaspError) throw error;
+//     throw new ClaspError(ERROR.BAD_REQUEST((error as {message: string}).message));
+//   }
+// }
