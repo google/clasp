@@ -351,12 +351,15 @@ if (process.argv.slice(2).length === 0) {
   } catch (error) {
     spinner.stop(true);
     if (error instanceof ClaspError) {
+      console.error('ClaspError');
       const message = is.string(error.message) && is.nonEmptyString(error.message) ? error.message : error;
       console.error(message);
     } else if (error instanceof Error) {
+      console.error('Error');
       process.exitCode = 1;
       console.error(error.message);
     } else {
+      console.error(typeof error);
       process.exitCode = 1;
       console.error('Unknown error', error);
     }
