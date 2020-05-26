@@ -13,7 +13,7 @@ import {getAPIFileType, getDefaultProjectName, getWebApplicationURL, saveProject
 import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
 import {cleanup, setup} from './functions';
 
-const manifest = readPkgUp.sync();
+const manifest = readPkgUp.sync({cwd: require.resolve('.')});
 
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {

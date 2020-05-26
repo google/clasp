@@ -52,7 +52,7 @@ import {spinner} from './utils';
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
 
-const manifest = readPkgUp.sync();
+const manifest = readPkgUp.sync({cwd: require.resolve('.')});
 // CLI
 
 /**
