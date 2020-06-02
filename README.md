@@ -65,7 +65,7 @@ You can also try clasp in Gitpod, a one-click online IDE for GitHub:
 
 - Every ES2019 features (except ES modules)
 - Edit your `appsscript.json` manifest to choose between the **Rhino** and **V8** engines
-- Typescript users should update their `tsconfig.json` with the `"target": "2019"` compiler option
+- Typescript users should update their `tsconfig.json` with the `"target": "ES2019"` compiler option
 
 ## Install
 
