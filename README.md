@@ -342,6 +342,14 @@ Lists your most recent Apps Script projects.
 
 - `clasp list`: Prints `helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...`
 
+### Metrics
+
+Show metrics for a script.
+
+#### Examples
+
+- `clasp metrics`
+
 ## Advanced Commands
 
 > **NOTE**: These commands require Project ID/credentials setup (see below).
