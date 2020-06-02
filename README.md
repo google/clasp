@@ -73,7 +73,7 @@ You can also try clasp in Gitpod, a one-click online IDE for GitHub:
 
 - Every ES2019 features (except ES modules)
 - Edit your `appsscript.json` manifest to choose between the **Rhino** and **V8** engines
-- Typescript users should update their `tsconfig.json` with the `"target": "2019"` compiler option
+- Typescript users should update their `tsconfig.json` with the `"target": "ES2019"` compiler option
 
 ## Install
 
@@ -592,7 +592,7 @@ PRs are very welcome! See the [issues](https://github.com/google/clasp/issues) (
 ### How to Submit a Pull Request
 
 1. Look over the test cases in `tests/test.ts`, try cases that the PR may affect.
-1. Run [tslint](https://palantir.github.io/tslint/): `npm run lint`.
+1. Run [gts linter](https://github.com/google/gts): `npm run lint`.
 1. Submit a pull request after testing your feature to make sure it works.
 
 ⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/api/).
