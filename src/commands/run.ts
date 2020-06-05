@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import chalk from 'chalk';
 import readline from 'readline';
 
@@ -115,7 +114,9 @@ https://www.googleapis.com/auth/presentations
           // https://mail.google.com/
           // https://www.googleapis.com/auth/presentations
           // https://www.googleapis.com/auth/spreadsheets
+          // eslint-disable-next-line no-case-declarations
           const scopes: string[] = [];
+          // eslint-disable-next-line no-case-declarations
           const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,

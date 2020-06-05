@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {Spinner} from 'cli-spinner';
 import cliTruncate from 'cli-truncate';
 import fs from 'fs-extra';
@@ -90,7 +89,6 @@ ${err.error}`;
  * @param  {any} deployment The deployment
  * @return {string}          The URL of the web application in the online script editor.
  */
-// eslint-disable-next-line unicorn/prevent-abbreviations
 export function getWebApplicationURL(deployment: Readonly<scriptV1.Schema$Deployment>) {
   const entryPoints = deployment.entryPoints ?? [];
   const webEntryPoint = entryPoints.find(

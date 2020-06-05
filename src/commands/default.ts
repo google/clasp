@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {Command} from 'commander';
 import {ReadonlyDeep} from 'type-fest';
 

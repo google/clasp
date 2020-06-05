@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import is from '@sindresorhus/is';
 import fs from 'fs-extra';
 import path from 'path';

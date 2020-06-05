@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions} from 'google-auth-library';
 import {google, script_v1 as scriptV1} from 'googleapis';
 import {createServer, IncomingMessage, Server, ServerResponse} from 'http';

@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {expect} from 'chai';
 import {spawnSync} from 'child_process';
 import fs from 'fs-extra';

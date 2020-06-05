@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';

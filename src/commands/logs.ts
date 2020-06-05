@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import chalk from 'chalk';
 import {GaxiosResponse} from 'gaxios';
 import {logging_v2 as loggingV2} from 'googleapis';
@@ -54,7 +53,6 @@ export default async (options: CommandOption): Promise<void> => {
     setInterval(() => {
       const startDate = new Date();
       startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       fetchAndPrintLogs(json, simplified, projectId, startDate);
     }, POLL_INTERVAL);
   } else {
@@ -76,7 +74,6 @@ const logEntryCache: {[key: string]: boolean} = {};
  * @param entries {any[]} StackDriver log entries.
  */
 function printLogs(
-  // eslint-disable-next-line @typescript-eslint/default-param-last
   input: ReadonlyArray<Readonly<loggingV2.Schema$LogEntry>> = [],
   formatJson: boolean,
   simplified: boolean
@@ -130,10 +127,8 @@ function printLogs(
     // If we haven't logged this entry before, log it and mark the cache.
     if (!logEntryCache[insertId!]) {
       if (simplified) {
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         console.log(`${coloredSeverity} ${functionName} ${payloadData}`);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
       }
 

@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import findUp from 'find-up';
 import fs from 'fs-extra';
 import mkdirp from 'mkdirp';
@@ -77,7 +76,6 @@ function getTranspileOptions(): ts.TranspileOptions {
  *   files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
  * @todo Make this function actually return a Promise that can be awaited.
  */
-// eslint-disable-next-line @typescript-eslint/default-param-last
 export async function getProjectFiles(rootDir: string = path.join('.', '/'), callback: FilesCallback) {
   const {filePushOrder} = await getProjectSettings();
 
@@ -161,7 +159,6 @@ export async function getProjectFiles(rootDir: string = path.join('.', '/'), cal
         }
 
         ignoredFilePaths.push(name);
-        // eslint-disable-next-line array-callback-return
         return; // Kludgy. Skip ignored files
       })
       .filter(Boolean); // Remove null values

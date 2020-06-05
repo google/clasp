@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {script_v1 as scriptV1} from 'googleapis';
 
 import {loadAPICredentials, script} from '../auth';
@@ -21,7 +20,6 @@ export default async (): Promise<void> => {
   /** @type {string | null | undefined} */
   let pageToken;
   do {
-    // eslint-disable-next-line no-await-in-loop
     response = await script.projects.versions.list({
       scriptId,
       pageSize: 200,

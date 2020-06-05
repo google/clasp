@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {GaxiosResponse} from 'gaxios';
 import {discovery_v1 as discoveryV1, serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';

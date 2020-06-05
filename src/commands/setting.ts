@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {ClaspError} from '../clasp-error';
 import {ProjectSettings} from '../dotfile';
 import {ERROR} from '../messages';

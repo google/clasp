@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {drive_v3 as driveV3} from 'googleapis';
 
 import {drive, loadAPICredentials} from '../auth';

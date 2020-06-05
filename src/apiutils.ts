@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import fuzzy from 'fuzzy';
 import {script_v1 as scriptV1} from 'googleapis';
 import {ReadonlyDeep} from 'type-fest';

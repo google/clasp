@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import chalk from 'chalk';
 import {script_v1 as scriptV1} from 'googleapis';
 

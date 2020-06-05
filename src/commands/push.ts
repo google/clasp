@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {readFileSync} from 'fs-extra';
 import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
