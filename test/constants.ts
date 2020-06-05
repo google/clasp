@@ -1,11 +1,12 @@
+import {OAuth2ClientOptions} from 'google-auth-library';
 import os from 'os';
 import path from 'path';
-import { OAuth2ClientOptions } from 'google-auth-library';
-import { ClaspToken } from '../src/dotfile';
-import { rndStr } from './functions';
+
+import {ClaspToken} from '../src/dotfile';
+import {randomString} from './functions';
 
 // Sample files
-export const TEST_CODE_JS = 'function test() { Logger.log(\'test\'); }';
+export const TEST_CODE_JS = "function test() { Logger.log('test'); }";
 export const TEST_PAGE_HTML = '<html><body><p>hello there</p></body</html>';
 
 export const TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API = JSON.stringify({
@@ -24,11 +25,11 @@ export const TEST_APPSSCRIPT_JSON_WITH_RUN_API = JSON.stringify({
 });
 
 // Travis Env Variables
-export const IS_PR: boolean = (process.env.TRAVIS_PULL_REQUEST === 'true');
-export const SCRIPT_ID: string = process.env.SCRIPT_ID || '';
-export const PROJECT_ID: string = process.env.PROJECT_ID || '';
-export const PARENT_ID: string[] = [process.env.PROJECT_ID || ''];
-const HOME: string = process.env.HOME || '';
+export const IS_PR: boolean = process.env.TRAVIS_PULL_REQUEST === 'true';
+export const SCRIPT_ID: string = process.env.SCRIPT_ID ?? '';
+export const PROJECT_ID: string = process.env.PROJECT_ID ?? '';
+export const PARENT_ID: string[] = [process.env.PROJECT_ID ?? ''];
+const HOME: string = process.env.HOME ?? '';
 
 // Paths
 export const CLASP_PATHS = {
@@ -39,7 +40,7 @@ export const CLASP_PATHS = {
 };
 
 // Other constants
-export const CLASP: string = (os.type() === 'Windows_NT') ? 'clasp.cmd' : 'clasp';
+export const CLASP: string = os.type() === 'Windows_NT' ? 'clasp.cmd' : 'clasp';
 export const CLASP_USAGE = 'Usage: clasp <command> [options]';
 
 const VALID_CLASP_SETTINGS = {
@@ -50,7 +51,7 @@ const VALID_CLASP_SETTINGS = {
 
 const INVALID_CLASP_SETTINGS = {
   scriptId: SCRIPT_ID,
-  projectId: `project-id-${rndStr()}`,
+  projectId: `project-id-${randomString()}`,
 };
 
 const VALID_CLASP_SETTINGS_WITHOUT_PROJECT_ID = {
@@ -64,16 +65,16 @@ export const CLASP_SETTINGS = {
 };
 
 const FAKE_CLASPRC_TOKEN = {
-  access_token: rndStr(),
-  refresh_token: rndStr(),
+  access_token: randomString(),
+  refresh_token: randomString(),
   scope: 'https://www.googleapis.com/auth/script.projects',
   token_type: 'Bearer',
-  expiry_date: (new Date()).getTime(),
+  expiry_date: new Date().getTime(),
 };
 
 const oAuth2ClientOptions: OAuth2ClientOptions = {
-  clientId: `${rndStr()}.apps.googleusercontent.com`,
-  clientSecret: rndStr(),
+  clientId: `${randomString()}.apps.googleusercontent.com`,
+  clientSecret: randomString(),
 };
 
 const FAKE_CLASPRC_LOCAL: ClaspToken = {
@@ -89,14 +90,14 @@ export const FAKE_CLASPRC = {
 
 const FAKE_CLIENT_CREDS = {
   installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com`,
-    client_secret: rndStr(),
+    client_id: `${randomString()}.apps.googleusercontent.com`,
+    client_secret: randomString(),
   },
 };
 
 const INVALID_CLIENT_CREDS = {
   installed: {
-    client_id: `${rndStr()}.apps.googleusercontent.com`,
+    client_id: `${randomString()}.apps.googleusercontent.com`,
   },
 };
 

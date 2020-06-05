@@ -15,15 +15,17 @@ env:
 cache:
   directories:
   - "$HOME/.npm"
-before_install:
-- npm install -g npm@latest
+# before_install:
+# - npm install -g npm@latest
 install:
 - npm ci
 before_script:
 - npm run build
 - echo -ne $CREDS | sed 's@\\@@g' > $HOME/.clasprc.json
 script:
-- npm run lint
 - npm run test
 after_success:
 - npm run coverage
+# TravisCI on Windows should use unix EOL
+git:
+- autocrlf: input

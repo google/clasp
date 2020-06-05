@@ -1,27 +1,34 @@
 import chalk from 'chalk';
 import readline from 'readline';
 
-import { getFunctionNames } from '../apiutils';
-import { getLocalScript, loadAPICredentials, script } from '../auth';
-import { addScopeToManifest, isValidRunManifest } from '../manifest';
-import { URL } from '../urls';
-import { checkIfOnline, ERROR, getProjectSettings, getValidJSON, logError, spinner } from '../utils';
+import {getFunctionNames} from '../apiutils';
+import {getLocalScript, loadAPICredentials, script} from '../auth';
+import {ClaspError} from '../clasp-error';
+import {addScopeToManifest, isValidRunManifest} from '../manifest';
+import {ERROR} from '../messages';
+import {URL} from '../urls';
+import {checkIfOnline, getProjectSettings, getValidJSON, spinner} from '../utils';
+
+interface CommandOption {
+  readonly nondev: boolean;
+  readonly params: string;
+}
 
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
  * @param functionName {string} The function name within the Apps Script project.
- * @param cmd.nondev {boolean} If we want to run the last deployed version vs the latest code.
- * @param cmd.params {string} JSON string of parameters to be input to function.
+ * @param options.nondev {boolean} If we want to run the last deployed version vs the latest code.
+ * @param options.params {string} JSON string of parameters to be input to function.
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  * @requires `clasp login --creds` to be run beforehand.
  */
-export default async (functionName: string, cmd: { nondev: boolean; params: string }): Promise<void> => {
+export default async (functionName: string, options: CommandOption): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
-  const { scriptId } = await getProjectSettings(true);
-  const devMode = !cmd.nondev; // defaults to true
-  const { params: paramString = '[]' } = cmd;
-  const params = getValidJSON<string[]>(paramString);
+  const {scriptId} = await getProjectSettings(true);
+  const devMode = !options.nondev; // Defaults to true
+  const {params: jsonString = '[]'} = options;
+  const parameters = getValidJSON<string[]>(jsonString);
 
   await isValidRunManifest();
 
@@ -41,32 +48,33 @@ export default async (functionName: string, cmd: { nondev: boolean; params: stri
   // Get the list of functions.
   if (!functionName) functionName = await getFunctionNames(script, scriptId);
 
-  await runFunction(functionName, params, scriptId, devMode);
+  await runFunction(functionName, parameters, scriptId, devMode);
 };
 
 /**
  * Runs a function.
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
  */
-async function runFunction(functionName: string, params: string[], scriptId: string, devMode: boolean) {
+async function runFunction(functionName: string, parameters: string[], scriptId: string, devMode: boolean) {
   try {
     // Load local credentials.
     await loadAPICredentials(true);
     const localScript = await getLocalScript();
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
-    const res = await localScript.scripts.run({
+    const response = await localScript.scripts.run({
       scriptId,
       requestBody: {
         function: functionName,
-        parameters: params,
+        parameters,
         devMode,
       },
     });
     if (spinner.isSpinning()) spinner.stop(true);
-    if (!res || !res.data.done) {
-      logError(null, ERROR.RUN_NODATA, 0); // exit gracefully in case localhost server spun up for authorize
+    if (!response || !response.data.done) {
+      throw new ClaspError(ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
     }
-    const { data } = res;
+
+    const {data} = response;
     // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
     if (data.response) {
       if (data.response.result) {
@@ -80,10 +88,11 @@ async function runFunction(functionName: string, params: string[], scriptId: str
         `${chalk.red('Exception:')}`,
         data.error.details[0].errorType,
         data.error.details[0].errorMessage,
-        data.error.details[0].scriptStackTraceElements || [],
+        data.error.details[0].scriptStackTraceElements || []
       );
     }
   } catch (error) {
+    if (error instanceof ClaspError) throw error;
     if (spinner.isSpinning()) spinner.stop(true);
     if (error) {
       // TODO move these to logError when stable?
@@ -105,7 +114,9 @@ https://www.googleapis.com/auth/presentations
           // https://mail.google.com/
           // https://www.googleapis.com/auth/presentations
           // https://www.googleapis.com/auth/spreadsheets
+          // eslint-disable-next-line no-case-declarations
           const scopes: string[] = [];
+          // eslint-disable-next-line no-case-declarations
           const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
@@ -121,24 +132,22 @@ https://www.googleapis.com/auth/presentations
           });
           rl.on('close', async () => {
             await addScopeToManifest(scopes);
-            const numScopes = scopes.length;
+            const scopeCount = scopes.length;
             console.log(
-              `Added ${numScopes} ${numScopes === 1 ? 'scope' : 'scopes'} to your appsscript.json' oauthScopes`,
+              `Added ${scopeCount} ${scopeCount === 1 ? 'scope' : 'scopes'} to your appsscript.json' oauthScopes`
             );
             console.log('Please `clasp login --creds <file>` to log in with these new scopes.');
           });
           // We probably don't need to show the unauth error
           // since we always prompt the user to fix this now.
-          // logError(null, ERROR.UNAUTHENTICATED_LOCAL);
+          // throw new ClaspError(ERROR.UNAUTHENTICATED_LOCAL);
           break;
         case 403:
-          logError(null, ERROR.PERMISSION_DENIED_LOCAL);
-          break;
+          throw new ClaspError(ERROR.PERMISSION_DENIED_LOCAL);
         case 404:
-          logError(null, ERROR.EXECUTE_ENTITY_NOT_FOUND);
-          break;
+          throw new ClaspError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
         default:
-          logError(null, `(${error.code}) Error: ${error.message}`);
+          throw new ClaspError(`(${error.code}) Error: ${error.message}`);
       }
     }
   }

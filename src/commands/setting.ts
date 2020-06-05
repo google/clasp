@@ -1,5 +1,7 @@
-import { ProjectSettings } from '../dotfile';
-import { ERROR, getProjectSettings, logError, saveProject } from '../utils';
+import {ClaspError} from '../clasp-error';
+import {ProjectSettings} from '../dotfile';
+import {ERROR} from '../messages';
+import {getProjectSettings, saveProject} from '../utils';
 
 /**
  * Gets or sets a setting in .clasp.json
@@ -28,7 +30,7 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
       // Which interfers with storing the value
       process.stdout.write(keyValue);
     } else {
-      logError(null, ERROR.UNKNOWN_KEY(settingKey));
+      throw new ClaspError(ERROR.UNKNOWN_KEY(settingKey));
     }
   } else {
     try {
@@ -48,14 +50,15 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
           currentSettings.fileExtension = settingValue;
           break;
         default:
-          logError(null, ERROR.UNKNOWN_KEY(settingKey));
+          throw new ClaspError(ERROR.UNKNOWN_KEY(settingKey));
       }
       // filePushOrder doesn't work since it requires an array.
       // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
       await saveProject(currentSettings, true);
       console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
     } catch (error) {
-      logError(null, 'Unable to update .clasp.json');
+      if (error instanceof ClaspError) throw error;
+      throw new ClaspError('Unable to update .clasp.json');
     }
   }
 };

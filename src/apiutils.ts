@@ -1,38 +1,39 @@
 import fuzzy from 'fuzzy';
-import { script_v1 } from 'googleapis';
+import {script_v1 as scriptV1} from 'googleapis';
+import {ReadonlyDeep} from 'type-fest';
 
-import { loadAPICredentials, serviceUsage } from './auth';
-import { functionNamePrompt, functionNameSource } from './inquirer';
-import { enableOrDisableAdvanceServiceInManifest } from './manifest';
-import { ERROR, getProjectId, logError, spinner } from './utils';
+import {loadAPICredentials, serviceUsage} from './auth';
+import {ClaspError} from './clasp-error';
+import {functionNamePrompt, functionNameSource} from './inquirer';
+import {enableOrDisableAdvanceServiceInManifest} from './manifest';
+import {ERROR} from './messages';
+import {getProjectId, spinner} from './utils';
 
 /**
  * Prompts for the function name.
  */
-export async function getFunctionNames(script: script_v1.Script, scriptId: string): Promise<string> {
+export async function getFunctionNames(script: ReadonlyDeep<scriptV1.Script>, scriptId: string): Promise<string> {
   spinner.setSpinnerTitle('Getting functions').start();
   const content = await script.projects.getContent({
     scriptId,
   });
   if (spinner.isSpinning()) spinner.stop(true);
-  if (content.status !== 200) logError(content.statusText);
-  const files = content.data.files || [];
-  type TypeFunction = script_v1.Schema$GoogleAppsScriptTypeFunction;
+  if (content.status !== 200) throw new ClaspError(content.statusText);
+  const files = content.data.files ?? [];
+  type TypeFunction = scriptV1.Schema$GoogleAppsScriptTypeFunction;
   const functionNames: string[] = files
-    .reduce((functions: TypeFunction[], file: script_v1.Schema$File) => {
+    .reduce((functions: ReadonlyArray<Readonly<TypeFunction>>, file: Readonly<scriptV1.Schema$File>) => {
       if (!file.functionSet || !file.functionSet.values) return functions;
       return functions.concat(file.functionSet.values);
     }, [])
-    .map((func: TypeFunction) => func.name) as string[];
+    .map((func: Readonly<TypeFunction>) => func.name) as string[];
 
-  const source: functionNameSource = (unused: object, input = '') =>
+  const source: functionNameSource = async (_unused: object, input = '') =>
     // Returns a Promise
     // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
     new Promise(resolve => {
       // Example: https://github.com/ruyadorno/inquirer-autocomplete-prompt/blob/master/example.js#L76
-      const original = fuzzy
-        .filter(input, functionNames)
-        .map((el) => el.original);
+      const original = fuzzy.filter(input, functionNames).map(element => element.original);
 
       resolve(original);
     });
@@ -45,20 +46,20 @@ export async function getFunctionNames(script: script_v1.Script, scriptId: strin
  * Gets the project ID from the manifest. If there is no project ID, it returns an error.
  */
 async function getProjectIdWithErrors(): Promise<string> {
-  const projectId = await getProjectId(); // will prompt user to set up if required
-  if (!projectId) logError(null, ERROR.NO_GCLOUD_PROJECT);
+  const projectId = await getProjectId(); // Will prompt user to set up if required
+  if (!projectId) throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
   return projectId;
 }
 
-/**
- * Returns true if the service is enabled for the Google Cloud Project.
- * @param {string} serviceName The service name.
- * @returns {boolean} True if the service is enabled.
- */
-export async function isEnabled(serviceName: string): Promise<boolean> {
-  const serviceDetails = await serviceUsage.services.get({ name: serviceName });
-  return serviceDetails.data.state === 'ENABLED';
-}
+// /**
+//  * Returns true if the service is enabled for the Google Cloud Project.
+//  * @param {string} serviceName The service name.
+//  * @returns {boolean} True if the service is enabled.
+//  */
+// export async function isEnabled(serviceName: string): Promise<boolean> {
+//   const serviceDetails = await serviceUsage.services.get({name: serviceName});
+//   return serviceDetails.data.state === 'ENABLED';
+// }
 
 /**
  * Enables or disables a Google API.
@@ -66,22 +67,24 @@ export async function isEnabled(serviceName: string): Promise<boolean> {
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
 export async function enableOrDisableAPI(serviceName: string, enable: boolean): Promise<void> {
-  if (!serviceName) logError(null, 'An API name is required. Try sheets');
+  if (!serviceName) throw new ClaspError('An API name is required. Try sheets');
   const projectId = await getProjectIdWithErrors();
   const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
   try {
     if (enable) {
-      await serviceUsage.services.enable({ name });
+      await serviceUsage.services.enable({name});
     } else {
-      await serviceUsage.services.disable({ name });
+      await serviceUsage.services.disable({name});
     }
+
     await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
     console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName} API.`);
   } catch (error) {
+    if (error instanceof ClaspError) throw error;
     // If given non-existent API (like fakeAPI, it throws 403 permission denied)
     // We will log this for the user instead:
     console.log(error);
-    logError(null, ERROR.NO_API(enable, serviceName));
+    throw new ClaspError(ERROR.NO_API(enable, serviceName));
   }
 }
 
@@ -92,5 +95,5 @@ export async function enableAppsScriptAPI(): Promise<void> {
   await loadAPICredentials();
   const projectId = await getProjectIdWithErrors();
   const name = `projects/${projectId}/services/script.googleapis.com`;
-  await serviceUsage.services.enable({ name });
+  await serviceUsage.services.enable({name});
 }

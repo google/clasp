@@ -1,9 +1,6 @@
-import commander from 'commander';
+import {outputHelp} from 'commander';
 
 /**
  * Outputs the help command.
  */
-export default async (): Promise<void> => {
-  commander.outputHelp();
-  // process.exit(0);
-};
+export default async () => outputHelp();

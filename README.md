@@ -4,7 +4,15 @@
   <br>
 </h1>
 
-<p align="center"><a href="https://travis-ci.org/google/clasp"><img src="https://travis-ci.org/google/clasp.svg?branch=master" alt="Build Status"></a> <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/v/@google/clasp.svg" alt="npm Version"></a> <a href="https://npmcharts.com/compare/@google/clasp?minimal=true"><img src="https://img.shields.io/npm/dw/@google/clasp.svg" alt="npm Downloads"></a> <a href="http://packagequality.com/#?package=%40google%2Fclasp"><img src="http://npm.packagequality.com/shield/%40google%2Fclasp.svg" alt="Package Quality"></a> <a href="https://david-dm.org/google/clasp" title="dependencies status"><img src="https://david-dm.org/google/clasp/status.svg"/></a></p>
+<p align="center">
+<a href="https://travis-ci.org/google/clasp"><img src="https://travis-ci.org/google/clasp.svg?branch=master" alt="Build Status"></a>
+<a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a>
+<a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/v/@google/clasp.svg" alt="npm Version"></a>
+<a href="https://npmcharts.com/compare/@google/clasp?minimal=true"><img src="https://img.shields.io/npm/dw/@google/clasp.svg" alt="npm Downloads"></a>
+<a href="https://packagequality.com/#?package=@google%2Fclasp"><img src="https://npm.packagequality.com/shield/@google%2Fclasp.svg" alt="Package Quality"></a>
+<a href="https://david-dm.org/google/clasp" title="dependencies status"><img src="https://david-dm.org/google/clasp/status.svg"/></a>
+<a href="https://github.com/google/gts" title="Code Style: Google"><img src="https://img.shields.io/badge/code%20style-google-blueviolet.svg"/></a>
+</p>
 
 > Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
 
@@ -584,7 +592,7 @@ PRs are very welcome! See the [issues](https://github.com/google/clasp/issues) (
 ### How to Submit a Pull Request
 
 1. Look over the test cases in `tests/test.ts`, try cases that the PR may affect.
-1. Run [tslint](https://palantir.github.io/tslint/): `npm run lint`.
+1. Run [gts linter](https://github.com/google/gts): `npm run lint`.
 1. Submit a pull request after testing your feature to make sure it works.
 
 ⚡ Powered by the [Apps Script API](https://developers.google.com/apps-script/api/).

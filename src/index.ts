@@ -18,15 +18,18 @@
  */
 
 /**
- * clasp – The Apps Script CLI
+ * clasp - The Apps Script CLI
  */
 
 import commander from 'commander';
+import loudRejection from 'loud-rejection';
+import readPkgUp from 'read-pkg-up';
 
+import {ClaspError} from './clasp-error';
 import apis from './commands/apis';
 import clone from './commands/clone';
 import create from './commands/create';
-import defaultCmd from './commands/defaultCmd';
+import defaultCmd from './commands/default';
 import deploy from './commands/deploy';
 import deployments from './commands/deployments';
 import help from './commands/help';
@@ -34,7 +37,7 @@ import list from './commands/list';
 import login from './commands/login';
 import logout from './commands/logout';
 import logs from './commands/logs';
-import openCmd from './commands/openCmd';
+import openCmd from './commands/open';
 import pull from './commands/pull';
 import push from './commands/push';
 import run from './commands/run';
@@ -43,8 +46,13 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
-import { handleError, PROJECT_NAME } from './utils';
+import {PROJECT_NAME} from './constants';
+import {spinner} from './utils';
 
+// Ensure any unhandled exception won't go unnoticed
+loudRejection();
+
+const manifest = readPkgUp.sync({cwd: require.resolve('.')});
 // CLI
 
 /**
@@ -54,13 +62,9 @@ import { handleError, PROJECT_NAME } from './utils';
 /**
  * Displays clasp version
  */
-commander
-  .version(require('../package.json').version, '-v, --version', 'output the current version');
+commander.version(manifest ? manifest.packageJson.version : 'unknown', '-v, --version', 'output the current version');
 
-commander
-  .name(PROJECT_NAME)
-  .usage('<command> [options]')
-  .description(`${PROJECT_NAME} - The Apps Script CLI`);
+commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -77,17 +81,14 @@ commander
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
   .option('--creds <file>', 'Relative path to credentials (from GCP).')
   .option('--status', 'Print who is logged in')
-  .action(handleError(login));
+  .action(login);
 
 /**
  * Logs out the user by deleteing client credentials.
  * @name logout
  * @example logout
  */
-commander
-  .command('logout')
-  .description('Log out')
-  .action(handleError(logout));
+commander.command('logout').description('Log out').action(logout);
 
 /**
  * Creates a new script project.
@@ -109,13 +110,12 @@ commander
   .description('Create a script')
   .option(
     '--type <type>',
-    // tslint:disable-next-line: max-line-length
-    'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, Form, or as a standalone script, web app, or API.',
+    'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, Form, or as a standalone script, web app, or API.'
   )
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
-  .action(handleError(create));
+  .action(create);
 
 /**
  * Fetches a project and saves the script id locally.
@@ -127,7 +127,7 @@ commander
   .command('clone [scriptId] [versionNumber]')
   .description('Clone a project')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
-  .action(handleError(clone));
+  .action(clone);
 
 /**
  * Fetches a project from either a provided or saved script id.
@@ -139,7 +139,7 @@ commander
   .command('pull')
   .description('Fetch a remote project')
   .option('--versionNumber <version>', 'The version number of the project to retrieve.')
-  .action(handleError(pull));
+  .action(pull);
 
 /**
  * Force writes all local files to the script management server.
@@ -157,7 +157,7 @@ commander
   .description('Update the remote project')
   .option('-f, --force', 'Forcibly overwrites the remote manifest.')
   .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changes.')
-  .action(handleError(push));
+  .action(push);
 
 /**
  * Lists files that will be written to the server on `push`.
@@ -172,7 +172,7 @@ commander
   .command('status')
   .description('Lists files that will be pushed by clasp')
   .option('--json', 'Show status in JSON form')
-  .action(handleError(status));
+  .action(status);
 
 /**
  * Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.
@@ -187,17 +187,14 @@ commander
   .option('--webapp', 'Open web application in the browser')
   .option('--creds', 'Open the URL to create credentials')
   .option('--addon', 'List parent IDs and open the URL of the first one')
-  .action(handleError(openCmd));
+  .action(openCmd);
 
 /**
  * List deployments of a script
  * @name deployments
  * @example deployments
  */
-commander
-  .command('deployments')
-  .description('List deployment ids of a script')
-  .action(handleError(deployments));
+commander.command('deployments').description('List deployment ids of a script').action(deployments);
 
 /**
  * Creates a version and deploys a script.
@@ -212,10 +209,10 @@ commander
 commander
   .command('deploy')
   .description('Deploy a project')
-  .option('-V, --versionNumber <version>', 'The project version') // we can't use `version` in subcommand
+  .option('-V, --versionNumber <version>', 'The project version') // We can't use `version` in subcommand
   .option('-d, --description <description>', 'The deployment description')
   .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
-  .action(handleError(deploy));
+  .action(deploy);
 
 /**
  * Undeploys a deployment of a script.
@@ -230,7 +227,7 @@ commander
   .command('undeploy [deploymentId]')
   .description('Undeploy a deployment of a project')
   .option('-a, --all', 'Undeploy all deployments')
-  .action(handleError(undeploy));
+  .action(undeploy);
 
 /**
  * Creates an immutable version of the script.
@@ -239,31 +236,22 @@ commander
  * @example version
  * @example version "Bump the version."
  */
-commander
-  .command('version [description]')
-  .description('Creates an immutable version of the script')
-  .action(handleError(version));
+commander.command('version [description]').description('Creates an immutable version of the script').action(version);
 
 /**
  * List versions of a script.
  * @name versions
  * @example versions
  */
-commander
-  .command('versions')
-  .description('List versions of a script')
-  .action(handleError(versions));
+commander.command('versions').description('List versions of a script').action(versions);
 
 /**
  * Lists your most recent 10 Apps Script projects.
  * @name list
- * @example list # helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
+ * @example list # helloworld1 - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
  * @todo Add --all flag to list all projects.
  */
-commander
-  .command('list')
-  .description('List App Scripts projects')
-  .action(handleError(list));
+commander.command('list').description('List App Scripts projects').action(list);
 
 /**
  * Prints StackDriver logs.
@@ -280,7 +268,7 @@ commander
   .option('--setup', 'Setup StackDriver logs')
   .option('--watch', 'Watch and print new logs')
   .option('--simplified', 'Hide timestamps with logs')
-  .action(handleError(logs));
+  .action(logs);
 
 /**
  * Remotely executes an Apps Script function.
@@ -299,7 +287,7 @@ commander
   .description('Run a function in your Apps Scripts project')
   .option('--nondev', 'Run script function in non-devMode')
   .option('-p, --params [StringArray]', 'Add parameters required for the function as a JSON String Array')
-  .action(handleError(run));
+  .action(run);
 
 /**
  * List, enable, or disable APIs for your project.
@@ -314,20 +302,17 @@ commander
     `List, enable, or disable APIs
   list
   enable <api>
-  disable <api>`,
+  disable <api>`
   )
   .option('--open', 'Open the API Console in the browser')
-  .action(handleError(apis));
+  .action(apis);
 
 /**
  * Displays the help function.
  * @name help
  * @example help
  */
-commander
-  .command('help')
-  .description('Display help')
-  .action(handleError(help));
+commander.command('help').description('Display help').action(help);
 
 /**
  * Update .clasp.json settings file.
@@ -344,20 +329,34 @@ commander
   .command('setting [settingKey] [newValue]')
   .alias('settings')
   .description('Update <settingKey> in .clasp.json')
-  .action(handleError(setting));
+  .action(setting);
 
 /**
  * All other commands are given a help message.
  * @example random
  */
-commander
-  .command('*', { isDefault: true })
-  .description('Any other command is not supported')
-  .action(handleError(defaultCmd));
+commander.command('*', {isDefault: true}).description('Any other command is not supported').action(defaultCmd);
 
-// defaults to help if commands are not provided
+// Defaults to help if commands are not provided
 if (process.argv.slice(2).length === 0) {
   commander.outputHelp();
 }
-// User input is provided from the process' arguments
-commander.parse(process.argv);
+
+(async () => {
+  try {
+    // User input is provided from the process' arguments
+    await commander.parseAsync(process.argv);
+    if (spinner.isSpinning()) spinner.stop(true);
+  } catch (error) {
+    spinner.stop(true);
+    if (error instanceof ClaspError) {
+      console.error(error.message);
+    } else if (error instanceof Error) {
+      process.exitCode = 1;
+      console.error(error.message);
+    } else {
+      process.exitCode = 1;
+      console.error('Unknown error', error);
+    }
+  }
+})();

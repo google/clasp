@@ -349,4 +349,4 @@ If you see outdated TypeScript types, you can help update them by contributing t
 
 ## Further Reading
 
-- Consider using a linter like [`tslint`](https://github.com/palantir/tslint) to increase the quality of your TypeScript projects.
+- Consider using a linter like [`gts`](https://github.com/google/gts) to increase the quality of your TypeScript projects.
