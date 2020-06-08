@@ -31,10 +31,8 @@ describe('Test clasp open function', () => {
     expect(result.stdout).to.contain(LOG.OPEN_FIRST_PARENT(PARENT_ID[0]));
   });
   it('open webapp with deploymentId page correctly', () => {
-    const result = spawnSync(
-      CLASP, ['open', '--webapp', '--deploymentId', 'abcd1234'], {encoding: 'utf8'},
-    );
-    expect(result.stdout).to.not.contain('Open which deployment?');
+    const result = spawnSync(CLASP, ['open', '--webapp', '--deploymentId', 'abcd1234'], {encoding: 'utf8'});
+    expect(result.stdout).to.contain(LOG.OPEN_WEBAPP('abcd1234'));
   });
   after(cleanup);
 });

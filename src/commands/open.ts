@@ -91,10 +91,12 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
       };
     });
 
-  let { deploymentId } = options;
+  let {deploymentId} = options;
   if (!deploymentId) {
-    const { deployment: { deploymentId: depIdFromPrompt } } = await deploymentIdPrompt(choices);
-    deploymentId = (depIdFromPrompt as string);
+    const {
+      deployment: {deploymentId: depIdFromPrompt},
+    } = await deploymentIdPrompt(choices);
+    deploymentId = depIdFromPrompt as string;
   }
 
   const deployment = await script.projects.deployments.get({
