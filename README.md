@@ -267,7 +267,7 @@ Opens the current directory's `clasp` project on script.google.com. Provide a `s
 - `--webapp`: Open web application in a browser.
 - `--creds`: Open the URL to create credentials.
 - `--addon`: List parent IDs and open the URL of the first one.
-- `--deploymentId <id>`: Use custom deployment ID (used only with `--webapp`).
+- `--deploymentId <id>`: Use custom deployment ID with `--webapp`.
 
 #### Examples
 
