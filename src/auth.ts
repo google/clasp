@@ -69,9 +69,8 @@ export const serviceUsage = google.serviceusage({
  * Only the Apps Script API needs to use local credential for the Execution API (script.run).
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  */
-export async function getLocalScript(): Promise<scriptV1.Script> {
-  return google.script({version: 'v1', auth: localOAuth2Client});
-}
+export const getLocalScript = async (): Promise<scriptV1.Script> =>
+  google.script({version: 'v1', auth: localOAuth2Client});
 
 /**
  * Requests authorization to manage Apps Script projects.
@@ -79,11 +78,11 @@ export async function getLocalScript(): Promise<scriptV1.Script> {
  * @param {ClaspCredentials?} creds An optional credentials object.
  * @param {string[]} [scopes=[]] List of OAuth scopes to authorize.
  */
-export async function authorize(options: {
+export const authorize = async (options: {
   readonly useLocalhost: boolean;
   readonly creds?: Readonly<ClaspCredentials>;
   readonly scopes: readonly string[]; // Only used with custom creds.
-}) {
+}) => {
   try {
     // Set OAuth2 Client Options
     let oAuth2ClientOptions: OAuth2ClientOptions;
@@ -189,33 +188,35 @@ export async function authorize(options: {
     await dotfile.write(claspToken);
     console.log(LOG.SAVED_CREDS(Boolean(options.creds)));
   } catch (error) {
-    if (error instanceof ClaspError) throw error;
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+
     throw new ClaspError(`${ERROR.ACCESS_TOKEN}${error}`);
   }
-}
+};
 
-export async function getLoggedInEmail() {
+export const getLoggedInEmail = async () => {
   await loadAPICredentials();
   try {
-    const response = await google.oauth2('v2').userinfo.get({
-      auth: globalOAuth2Client,
-    });
+    const response = await google.oauth2('v2').userinfo.get({auth: globalOAuth2Client});
     return response.data.email;
   } catch {
     return;
   }
-}
+};
 
 /**
  * Loads the Apps Script API credentials for the CLI.
+ *
  * Required before every API call.
  */
-export async function loadAPICredentials(local = false): Promise<ClaspToken> {
+export const loadAPICredentials = async (local = false): Promise<ClaspToken> => {
   // Gets the OAuth settings. May be local or global.
   const rc: ClaspToken = await getOAuthSettings(local);
   await setOauthClientCredentials(rc);
   return rc;
-}
+};
 
 /**
  * Requests authorization to manage Apps Script projects. Spins up
@@ -224,10 +225,10 @@ export async function loadAPICredentials(local = false): Promise<ClaspToken> {
  * @param {GenerateAuthUrlOpts} oAuth2ClientAuthUrlOptions Auth URL options
  * Used for local/global testing.
  */
-async function authorizeWithLocalhost(
+const authorizeWithLocalhost = async (
   oAuth2ClientOptions: Readonly<OAuth2ClientOptions>,
   oAuth2ClientAuthUrlOptions: Readonly<GenerateAuthUrlOpts>
-): Promise<Credentials> {
+): Promise<Credentials> => {
   // Wait until the server is listening, otherwise we don't have
   // the server port needed to set up the Oauth2Client.
   const server = await new Promise<Server>(resolve => {
@@ -260,7 +261,7 @@ async function authorizeWithLocalhost(
   });
   server.close();
   return (await client.getToken(authCode)).tokens;
-}
+};
 
 /**
  * Requests authorization to manage Apps Script projects. Requires the user to
@@ -268,10 +269,10 @@ async function authorizeWithLocalhost(
  * @param {OAuth2ClientOptions} oAuth2ClientOptions The required client options for auth.
  * @param {GenerateAuthUrlOpts} oAuth2ClientAuthUrlOptions Auth URL options
  */
-async function authorizeWithoutLocalhost(
+const authorizeWithoutLocalhost = async (
   oAuth2ClientOptions: Readonly<OAuth2ClientOptions>,
   oAuth2ClientAuthUrlOptions: Readonly<GenerateAuthUrlOpts>
-): Promise<Credentials> {
+): Promise<Credentials> => {
   const client = new OAuth2Client({
     ...oAuth2ClientOptions,
     redirectUri: REDIRECT_URI_OOB,
@@ -292,7 +293,7 @@ async function authorizeWithoutLocalhost(
     });
   });
   return (await client.getToken(authCode)).tokens;
-}
+};
 
 /**
  * Set OAuth client credentails from rc.
@@ -301,16 +302,18 @@ async function authorizeWithoutLocalhost(
  * @param {ClaspToken} rc OAuth client settings from rc file.
  */
 // Because of mutation:
-async function setOauthClientCredentials(rc: ClaspToken) {
+const setOauthClientCredentials = async (rc: ClaspToken) => {
   /**
    * Refreshes the credentials and saves them.
    */
-  async function refreshCredentials(oAuthClient: ReadonlyDeep<OAuth2Client>) {
-    const oldExpiry = (oAuthClient.credentials.expiry_date as number) || 0;
+  const refreshCredentials = async (oAuthClient: ReadonlyDeep<OAuth2Client>) => {
     await oAuthClient.getAccessToken(); // Refreshes expiry date if required
-    if (oAuthClient.credentials.expiry_date === oldExpiry) return;
+    if (oAuthClient.credentials.expiry_date === (oAuthClient.credentials.expiry_date ?? 0)) {
+      return;
+    }
+
     rc.token = oAuthClient.credentials;
-  }
+  };
 
   // Set credentials and refresh them.
   try {
@@ -335,7 +338,7 @@ async function setOauthClientCredentials(rc: ClaspToken) {
     if (error instanceof ClaspError) throw error;
     throw new ClaspError(`${ERROR.ACCESS_TOKEN}${error}`);
   }
-}
+};
 
 // /**
 //  * Compare global OAuth client scopes against manifest and prompt user to

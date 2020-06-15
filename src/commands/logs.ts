@@ -9,7 +9,7 @@ import {DOTFILE, ProjectSettings} from '../dotfile';
 import {projectIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getErrorMessage, getProjectSettings, isValidProjectId, spinner} from '../utils';
+import {checkIfOnline, getErrorMessage, getProjectSettings, isValidProjectId, spinner, stopSpinner} from '../utils';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -73,11 +73,11 @@ const logEntryCache: {[key: string]: boolean} = {};
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-function printLogs(
+const printLogs = (
   input: ReadonlyArray<Readonly<loggingV2.Schema$LogEntry>> = [],
   formatJson: boolean,
   simplified: boolean
-): void {
+): void => {
   const entries = [...input].reverse(); // Print in syslog ascending order
   for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; i += 1) {
     const {
@@ -135,9 +135,9 @@ function printLogs(
       logEntryCache[insertId!] = true;
     }
   }
-}
+};
 
-async function setupLogs(): Promise<string> {
+const setupLogs = async (): Promise<string> => {
   let projectId: string;
   try {
     const projectSettings = await getProjectSettings();
@@ -155,26 +155,23 @@ async function setupLogs(): Promise<string> {
     if (error instanceof ClaspError) throw error;
     throw new ClaspError(getErrorMessage(error) as string); // TODO get rid of type casting
   }
-}
+};
 
 /**
  * Fetches the logs and prints the to the user.
  * @param startDate {Date?} Get logs from this date to now.
  */
-async function fetchAndPrintLogs(
+const fetchAndPrintLogs = async (
   formatJson: boolean,
   simplified: boolean,
   projectId?: string,
   startDate?: Date
-): Promise<void> {
+): Promise<void> => {
   const oauthSettings = await loadAPICredentials();
   spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
   // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
-  let filter = '';
-  if (startDate) {
-    filter = `timestamp >= "${startDate.toISOString()}"`;
-  }
+  const filter = startDate ? `timestamp >= "${startDate.toISOString()}"` : '';
 
   // Validate projectId
   if (!projectId) {
@@ -194,7 +191,7 @@ async function fetchAndPrintLogs(
       },
     });
     // We have an API response. Now, check the API response status.
-    if (spinner.isSpinning()) spinner.stop(true);
+    stopSpinner();
     // Only print filter if provided.
     if (filter.length > 0) {
       console.log(filter);
@@ -202,23 +199,25 @@ async function fetchAndPrintLogs(
 
     // Parse response and print logs or print error message.
     const parseResponse = (response: GaxiosResponse<loggingV2.Schema$ListLogEntriesResponse>) => {
-      if (response.status === 200) {
-        printLogs(response.data.entries, formatJson, simplified);
-      } else {
-        switch (response.status) {
-          case 401:
-            throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
-          case 403:
-            throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
-          default:
-            throw new ClaspError(`(${response.status}) Error: ${response.statusText}`);
-        }
+      switch (response.status) {
+        case 200:
+          printLogs(response.data.entries, formatJson, simplified);
+          break;
+        case 401:
+          throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+        case 403:
+          throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
+        default:
+          throw new ClaspError(`(${response.status}) Error: ${response.statusText}`);
       }
     };
 
     parseResponse(logs);
   } catch (error) {
-    if (error instanceof ClaspError) throw error;
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+
     throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(projectId));
   }
-}
+};

@@ -19,7 +19,7 @@ export enum SCRIPT_TYPES {
 
 // Also see:
 // https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/appsscript.json
-interface AdvancedService {
+export interface AdvancedService {
   readonly userSymbol: string;
   readonly serviceId: string;
   readonly version: string;

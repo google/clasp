@@ -8,7 +8,7 @@ import readPkgUp from 'read-pkg-up';
 import {getAppsScriptFileName, getFileType} from '../src/files';
 import {ERROR, LOG} from '../src/messages';
 import {extractScriptId, URL} from '../src/urls';
-import {getAPIFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
+import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
 import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
 import {cleanup, setup} from './functions';
 
@@ -191,11 +191,11 @@ describe('Test getFileType function from utils', () => {
 
 describe('Test getAPIFileType function from utils', () => {
   it('should return the uppercase file type correctly', () => {
-    expect(getAPIFileType('file.GS')).to.equal('SERVER_JS');
-    expect(getAPIFileType('file.JS')).to.equal('SERVER_JS');
-    expect(getAPIFileType('file.js')).to.equal('SERVER_JS');
-    expect(getAPIFileType('file.jsx')).to.equal('JSX');
-    expect(getAPIFileType('file.js.html')).to.equal('HTML');
+    expect(getApiFileType('file.GS')).to.equal('SERVER_JS');
+    expect(getApiFileType('file.JS')).to.equal('SERVER_JS');
+    expect(getApiFileType('file.js')).to.equal('SERVER_JS');
+    expect(getApiFileType('file.jsx')).to.equal('JSX');
+    expect(getApiFileType('file.js.html')).to.equal('HTML');
   });
 });
 

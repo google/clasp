@@ -7,17 +7,17 @@ import {ClaspError} from './clasp-error';
 import {functionNamePrompt, functionNameSource} from './inquirer';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest';
 import {ERROR} from './messages';
-import {getProjectId, spinner} from './utils';
+import {getProjectId, spinner, stopSpinner} from './utils';
 
 /**
  * Prompts for the function name.
  */
-export async function getFunctionNames(script: ReadonlyDeep<scriptV1.Script>, scriptId: string): Promise<string> {
+export const getFunctionNames = async (script: ReadonlyDeep<scriptV1.Script>, scriptId: string): Promise<string> => {
   spinner.setSpinnerTitle('Getting functions').start();
   const content = await script.projects.getContent({
     scriptId,
   });
-  if (spinner.isSpinning()) spinner.stop(true);
+  stopSpinner();
   if (content.status !== 200) throw new ClaspError(content.statusText);
   const files = content.data.files ?? [];
   type TypeFunction = scriptV1.Schema$GoogleAppsScriptTypeFunction;
@@ -40,16 +40,19 @@ export async function getFunctionNames(script: ReadonlyDeep<scriptV1.Script>, sc
 
   const answers = await functionNamePrompt(source);
   return answers.functionName;
-}
+};
 
 /**
  * Gets the project ID from the manifest. If there is no project ID, it returns an error.
  */
-async function getProjectIdWithErrors(): Promise<string> {
+const getProjectIdWithErrors = async (): Promise<string> => {
   const projectId = await getProjectId(); // Will prompt user to set up if required
-  if (!projectId) throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
+  if (!projectId) {
+    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
+  }
+
   return projectId;
-}
+};
 
 // /**
 //  * Returns true if the service is enabled for the Google Cloud Project.
@@ -66,7 +69,7 @@ async function getProjectIdWithErrors(): Promise<string> {
  * @param {string} serviceName The name of the service. i.e. sheets
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
-export async function enableOrDisableAPI(serviceName: string, enable: boolean): Promise<void> {
+export const enableOrDisableAPI = async (serviceName: string, enable: boolean): Promise<void> => {
   if (!serviceName) throw new ClaspError('An API name is required. Try sheets');
   const projectId = await getProjectIdWithErrors();
   const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
@@ -86,14 +89,14 @@ export async function enableOrDisableAPI(serviceName: string, enable: boolean): 
     console.log(error);
     throw new ClaspError(ERROR.NO_API(enable, serviceName));
   }
-}
+};
 
 /**
  * Enable 'script.googleapis.com' of Google API.
  */
-export async function enableAppsScriptAPI(): Promise<void> {
+export const enableAppsScriptAPI = async (): Promise<void> => {
   await loadAPICredentials();
   const projectId = await getProjectIdWithErrors();
   const name = `projects/${projectId}/services/script.googleapis.com`;
   await serviceUsage.services.enable({name});
-}
+};

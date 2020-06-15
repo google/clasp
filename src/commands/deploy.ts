@@ -2,7 +2,7 @@ import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {PROJECT_MANIFEST_BASENAME} from '../constants';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, spinner, stopSpinner} from '../utils';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -34,7 +34,7 @@ export default async (options: CommandOption): Promise<void> => {
       },
     });
     if (version.status !== 200) throw new ClaspError(ERROR.ONE_DEPLOYMENT_CREATE);
-    if (spinner.isSpinning()) spinner.stop(true);
+    stopSpinner();
     versionNumber = version.data.versionNumber ?? 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
   }
@@ -67,6 +67,6 @@ export default async (options: CommandOption): Promise<void> => {
   }
 
   if (deployments.status !== 200) throw new ClaspError(ERROR.DEPLOYMENT_COUNT);
-  if (spinner.isSpinning()) spinner.stop(true);
+  stopSpinner();
   console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
 };

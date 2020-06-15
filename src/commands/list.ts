@@ -4,7 +4,7 @@ import {drive, loadAPICredentials} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, ellipsize, spinner} from '../utils';
+import {checkIfOnline, ellipsize, spinner, stopSpinner} from '../utils';
 
 /**
  * Lists a user's Apps Script projects using Google Drive.
@@ -21,7 +21,7 @@ export default async (): Promise<void> => {
     q: 'mimeType="application/vnd.google-apps.script"',
   });
   if (filesList.status !== 200) throw new ClaspError(ERROR.DRIVE);
-  if (spinner.isSpinning()) spinner.stop(true);
+  stopSpinner();
   const files = filesList.data.files ?? [];
   if (files.length === 0) {
     console.log(LOG.FINDING_SCRIPTS_DNE);

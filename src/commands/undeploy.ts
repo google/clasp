@@ -1,7 +1,7 @@
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, spinner, stopSpinner} from '../utils';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -32,7 +32,7 @@ export default async (deploymentId: string | undefined, options: CommandOption):
 
       if (result.status !== 200) throw new ClaspError(ERROR.READ_ONLY_DELETE);
 
-      if (spinner.isSpinning()) spinner.stop(true);
+      stopSpinner();
       console.log(LOG.UNDEPLOYMENT_FINISH(id));
     }
     console.log(LOG.UNDEPLOYMENT_ALL_FINISH);
@@ -57,7 +57,7 @@ export default async (deploymentId: string | undefined, options: CommandOption):
     deploymentId,
   });
   if (response.status === 200) {
-    if (spinner.isSpinning()) spinner.stop(true);
+    stopSpinner();
     console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
   } else {
     throw new ClaspError(ERROR.READ_ONLY_DELETE);

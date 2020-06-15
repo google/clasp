@@ -7,7 +7,7 @@ import {ClaspError} from '../clasp-error';
 import {addScopeToManifest, isValidRunManifest} from '../manifest';
 import {ERROR} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getProjectSettings, getValidJSON, spinner} from '../utils';
+import {checkIfOnline, getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils';
 
 interface CommandOption {
   readonly nondev: boolean;
@@ -28,7 +28,7 @@ export default async (functionName: string, options: CommandOption): Promise<voi
   const {scriptId} = await getProjectSettings(true);
   const devMode = !options.nondev; // Defaults to true
   const {params: jsonString = '[]'} = options;
-  const parameters = getValidJSON<string[]>(jsonString);
+  const parameters = parseJsonOrDie<string[]>(jsonString);
 
   await isValidRunManifest();
 
@@ -55,7 +55,7 @@ export default async (functionName: string, options: CommandOption): Promise<voi
  * Runs a function.
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
  */
-async function runFunction(functionName: string, parameters: string[], scriptId: string, devMode: boolean) {
+const runFunction = async (functionName: string, parameters: string[], scriptId: string, devMode: boolean) => {
   try {
     // Load local credentials.
     await loadAPICredentials(true);
@@ -69,7 +69,7 @@ async function runFunction(functionName: string, parameters: string[], scriptId:
         devMode,
       },
     });
-    if (spinner.isSpinning()) spinner.stop(true);
+    stopSpinner();
     if (!response || !response.data.done) {
       throw new ClaspError(ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
     }
@@ -93,7 +93,7 @@ async function runFunction(functionName: string, parameters: string[], scriptId:
     }
   } catch (error) {
     if (error instanceof ClaspError) throw error;
-    if (spinner.isSpinning()) spinner.stop(true);
+    stopSpinner();
     if (error) {
       // TODO move these to logError when stable?
       switch (error.code) {
@@ -151,4 +151,4 @@ https://www.googleapis.com/auth/presentations
       }
     }
   }
-}
+};

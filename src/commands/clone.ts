@@ -27,13 +27,17 @@ export default async (
   options: CommandOption
 ): Promise<void> => {
   await checkIfOnline();
-  if (hasProject()) throw new ClaspError(ERROR.FOLDER_EXISTS);
-  scriptId = scriptId ? extractScriptId(scriptId) : await getScriptId();
+  if (hasProject()) {
+    throw new ClaspError(ERROR.FOLDER_EXISTS);
+  }
+
+  const id = scriptId ? extractScriptId(scriptId) : await getScriptId();
+
   spinner.setSpinnerTitle(LOG.CLONING);
+
   const {rootDir} = options;
-  await saveProject({scriptId, rootDir}, false);
-  const files = await fetchProject(scriptId, versionNumber);
-  await writeProjectFiles(files, rootDir);
+  await saveProject({scriptId: id, rootDir}, false);
+  await writeProjectFiles(await fetchProject(id, versionNumber), rootDir);
   await status();
 };
 
@@ -48,16 +52,20 @@ const getScriptId = async (): Promise<string> => {
     orderBy: 'modifiedByMeTime desc',
     q: 'mimeType="application/vnd.google-apps.script"',
   });
+
   const {data} = list;
-  if (!data) throw new ClaspError(list.statusText ?? 'Unable to use the Drive API.');
+  if (!data) {
+    throw new ClaspError(list.statusText ?? 'Unable to use the Drive API.');
+  }
+
   const {files} = data;
   if (files && files.length > 0) {
     const fileIds: ScriptIdPrompt[] = files.map((file: Readonly<driveV3.Schema$File>) => ({
       name: `${file.name!.padEnd(20)} - ${LOG.SCRIPT_LINK(file.id ?? '')}`,
       value: file.id ?? '',
     }));
-    const answers = await scriptIdPrompt(fileIds);
-    return answers.scriptId;
+
+    return (await scriptIdPrompt(fileIds)).scriptId;
   }
 
   throw new ClaspError(LOG.FINDING_SCRIPTS_DNE);

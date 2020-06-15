@@ -2,13 +2,19 @@ import is from '@sindresorhus/is';
 import fs from 'fs-extra';
 import path from 'path';
 
-import {PUBLIC_ADVANCED_SERVICES} from './apis';
-// import {enableOrDisableAPI, isEnabled} from './apiutils';
+import {AdvancedService, PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis';
 import {ClaspError} from './clasp-error';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
-import {DOT} from './dotfile';
+import {DOT, ProjectSettings} from './dotfile';
 import {ERROR} from './messages';
-import {getProjectSettings, getValidJSON} from './utils';
+import {getProjectSettings, parseJsonOrDie} from './utils';
+
+/*** Gets the path to manifest for given `rootDir` */
+const getManifestPath = (rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME);
+
+/** Gets the `rootDir` from given project */
+const getRootDir = (project: ProjectSettings): string =>
+  typeof project.rootDir === 'string' ? project.rootDir : DOT.PROJECT.DIR;
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -17,48 +23,46 @@ import {getProjectSettings, getValidJSON} from './utils';
  *
  * @return {boolean} True if valid project, false otherwise
  */
-export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean =>
-  fs.existsSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME));
+export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean => fs.existsSync(getManifestPath(rootDir));
 
 /**
  * Reads the appsscript.json manifest file.
  * @returns {Promise<Manifest>} A promise to get the manifest file as object.
  * @see https://developers.google.com/apps-script/concepts/manifests
  */
-export async function readManifest(): Promise<Manifest> {
-  let {rootDir} = await getProjectSettings();
-  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifest = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
+export const readManifest = async (): Promise<Manifest> => {
+  const manifest = getManifestPath(getRootDir(await getProjectSettings()));
   try {
     return fs.readJsonSync(manifest, FS_OPTIONS) as Manifest;
   } catch (error) {
-    if (error instanceof ClaspError) throw error;
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+
     throw new ClaspError(ERROR.NO_MANIFEST(manifest));
   }
-}
+};
 
 /**
  * Writes the appsscript.json manifest file.
  * @param {Manifest} manifest The new manifest to write.
  */
-async function writeManifest(manifest: Readonly<Manifest>) {
-  let {rootDir} = await getProjectSettings();
-  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifestFilePath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
+const writeManifest = async (manifest: Readonly<Manifest>) => {
   try {
-    fs.writeJsonSync(manifestFilePath, manifest, {encoding: 'utf8', spaces: 2});
+    fs.writeJsonSync(getManifestPath(getRootDir(await getProjectSettings())), manifest, {encoding: 'utf8', spaces: 2});
   } catch (error) {
-    if (error instanceof ClaspError) throw error;
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+
     throw new ClaspError(ERROR.FS_FILE_WRITE);
   }
-}
+};
 
 /**
  * Returns true if the manifest is valid.
  */
-export async function isValidManifest(): Promise<boolean> {
-  return !is.nullOrUndefined(await getManifest());
-}
+export const isValidManifest = async (): Promise<boolean> => !is.nullOrUndefined(await getManifest());
 
 /**
  * Ensures the manifest is correct for running a function.
@@ -67,7 +71,7 @@ export async function isValidManifest(): Promise<boolean> {
  *   "access": "MYSELF"
  * }
  */
-export async function isValidRunManifest(): Promise<boolean> {
+export const isValidRunManifest = async (): Promise<boolean> => {
   if (await isValidManifest()) {
     const manifest = await getManifest();
     if (manifest.executionApi && manifest.executionApi.access) {
@@ -76,7 +80,7 @@ export async function isValidRunManifest(): Promise<boolean> {
   }
 
   return false;
-}
+};
 
 /**
  * Reads manifest file from project root dir.
@@ -84,25 +88,18 @@ export async function isValidRunManifest(): Promise<boolean> {
  * - It exists in the project root.
  * - Is valid JSON.
  */
-export async function getManifest(): Promise<Manifest> {
-  let {rootDir} = await getProjectSettings();
-  if (typeof rootDir === 'undefined') rootDir = DOT.PROJECT.DIR;
-  const manifestString = fs.readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
-  return getValidJSON<Manifest>(manifestString);
-}
+export const getManifest = async (): Promise<Manifest> =>
+  parseJsonOrDie<Manifest>(fs.readFileSync(getManifestPath(getRootDir(await getProjectSettings())), FS_OPTIONS));
 
 /**
  * Adds a list of scopes to the manifest.
  * @param {string[]} scopes The list of explicit scopes
  */
-export async function addScopeToManifest(scopes: readonly string[]) {
+export const addScopeToManifest = async (scopes: readonly string[]) => {
   const manifest = await readManifest();
-  const oldScopes = manifest.oauthScopes ?? [];
-  const newScopes = oldScopes.concat(scopes);
-  const uniqueNewScopes = [...new Set(newScopes)];
-  manifest.oauthScopes = uniqueNewScopes;
+  manifest.oauthScopes = [...new Set([...(manifest.oauthScopes ?? []), ...scopes])];
   await writeManifest(manifest);
-}
+};
 
 // /**
 //  * Enables the Execution API in the Manifest.
@@ -128,12 +125,12 @@ export async function addScopeToManifest(scopes: readonly string[]) {
 // }
 
 /**
- * Enables or disables a advanced service in the manifest.
+ * Enables or disables an advanced service in the manifest.
  * @param serviceId {string} The id of the service that should be enabled or disabled.
  * @param enable {boolean} True if you want to enable a service. Disables otherwise.
  * @see PUBLIC_ADVANCED_SERVICES
  */
-export async function enableOrDisableAdvanceServiceInManifest(serviceId: string, enable: boolean) {
+export const enableOrDisableAdvanceServiceInManifest = async (serviceId: string, enable: boolean) => {
   /**
    * "enabledAdvancedServices": [
    *   {
@@ -146,31 +143,26 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
    */
   const manifest = await readManifest();
   // Create objects if they don't exist.
-  if (!manifest.dependencies) manifest.dependencies = {};
-  if (manifest.dependencies && !manifest.dependencies.enabledAdvancedServices) {
-    manifest.dependencies.enabledAdvancedServices = [];
+  if (!manifest.dependencies) {
+    manifest.dependencies = {enabledAdvancedServices: []};
   }
 
   // Copy the list of advanced services:
-  let newEnabledAdvancedServices: EnabledAdvancedService[];
-
   // Disable the service (even if we may enable it)
-  newEnabledAdvancedServices = manifest.dependencies.enabledAdvancedServices ?? [];
-  newEnabledAdvancedServices = newEnabledAdvancedServices.filter(
+  const enabledServices = (manifest.dependencies.enabledAdvancedServices ?? []).filter(
     (service: Readonly<EnabledAdvancedService>) => service.serviceId !== serviceId
   );
 
   // Enable the service
   if (enable) {
     // Add new service (get the first one from the public list)
-    const newAdvancedService = PUBLIC_ADVANCED_SERVICES.filter(service => service.serviceId === serviceId)[0];
-    newEnabledAdvancedServices.push(newAdvancedService);
+    enabledServices.push(publicAdvancedServices.find(service => service.serviceId === serviceId) as AdvancedService);
   }
 
   // Overwrites the old list with the new list.
-  manifest.dependencies.enabledAdvancedServices = newEnabledAdvancedServices;
+  manifest.dependencies.enabledAdvancedServices = enabledServices;
   await writeManifest(manifest);
-}
+};
 
 // Manifest Generator
 // Generated with:
@@ -278,6 +270,7 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
   }
 }
 */
+
 interface EnabledAdvancedService {
   userSymbol: string;
   serviceId: string;
