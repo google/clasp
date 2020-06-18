@@ -5,7 +5,6 @@ import multimatch from 'multimatch';
 import path from 'path';
 import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
-import {ReadonlyDeep} from 'type-fest';
 import ts from 'typescript';
 
 import {loadAPICredentials, script} from './auth';
@@ -22,12 +21,162 @@ interface AppsScriptFile {
   readonly source: string;
 }
 
-// Used to receive files tracked by current project
-type FilesCallback = (
-  error: Error | boolean,
-  result: string[][] | null,
-  files: Array<AppsScriptFile | undefined> | null
-) => void;
+interface ProjectFile {
+  readonly source: string;
+  readonly isIgnored: boolean;
+  readonly name: string;
+  readonly type: string;
+}
+
+const projectFileWithContent = (file: ProjectFile, transpileOptions: ts.TranspileOptions): ProjectFile => {
+  const source = fs.readFileSync(file.name).toString();
+  const type = getApiFileType(file.name);
+
+  return type === 'TS'
+    ? // Transpile TypeScript to Google Apps Script
+      // @see github.com/grant/ts2gas
+      {...file, source: ts2gas(source, transpileOptions), type: 'SERVER_JS'}
+    : {...file, source, type};
+};
+
+const ignoredProjectFile = (file: ProjectFile): ProjectFile => ({...file, source: '', isIgnored: true, type: ''});
+
+const isValidFactory = (rootDir: string) => {
+  const validManifestPath = rootDir ? path.join(rootDir, PROJECT_MANIFEST_FILENAME) : PROJECT_MANIFEST_FILENAME;
+
+  /**
+   * Validates a file:
+   *
+   * - is a manifest file
+   * - type is either `SERVER_JS` or `HTML` @see https://developers.google.com/apps-script/api/reference/rest/v1/File
+   */
+  return (file: ProjectFile): boolean =>
+    Boolean(
+      file.type === 'JSON' // Has a type or is appsscript.json
+        ? (rootDir ? path.normalize(file.name) : file.name) === validManifestPath
+        : file.type === 'SERVER_JS' || file.type === 'HTML'
+    );
+};
+
+/**
+ * Return an array of `ProjectFile` objects
+ *
+ * Recursively finds all files that are part of the current project, including those that are ignored by .claspignore
+ *
+ * > Note: content for each file is not returned. Use `getContentOfProjectFiles()` on the resulting array.
+ *
+ * @param rootDir the project's `rootDir`
+ */
+export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')): Promise<ProjectFile[]> => {
+  try {
+    const ignorePatterns = await DOTFILE.IGNORE();
+    const isIgnored = (file: string) =>
+      multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length !== 0;
+
+    const isValid = isValidFactory(rootDir);
+
+    // Read all filenames as a flattened tree
+    // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
+    const files: ProjectFile[] = (await recursive(rootDir)).map(
+      (filename): ProjectFile => {
+        // Replace OS specific path separator to common '/' char for console output
+        const name = filename.replace(/\\/g, '/');
+
+        return {source: '', isIgnored: isIgnored(name), name, type: ''};
+      }
+    );
+    files.sort((a, b) => a.name.localeCompare(b.name));
+
+    return files.map(
+      (file: ProjectFile): ProjectFile => {
+        // Loop through files that are not ignored from `.claspignore`
+        if (!file.isIgnored) {
+          // Prevent node_modules/@types/
+          if (file.name.includes('node_modules/@types')) {
+            return ignoredProjectFile(file);
+          }
+
+          // Check if there are files that will conflict if renamed .gs to .js.
+          // When pushing to Apps Script, these files will overwrite each other.
+          const parsed = path.parse(file.name);
+          if (parsed.ext === '.gs') {
+            const jsFile = `${parsed.dir}/${parsed.name}.js`;
+            // Can't rename, conflicting files
+            // Only print error once (for .gs)
+            if (files.findIndex(otherFile => !otherFile.isIgnored && otherFile.name === jsFile) !== -1) {
+              throw new ClaspError(ERROR.CONFLICTING_FILE_EXTENSION(`${parsed.dir}/${parsed.name}`));
+            }
+          }
+
+          return isValid(file) ? file : ignoredProjectFile(file);
+        }
+
+        return file;
+      }
+    );
+  } catch (error) {
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+
+    // TODO improve error handling
+    throw error;
+  }
+};
+
+export const splitProjectFiles = (files: ProjectFile[]): [ProjectFile[], ProjectFile[]] => [
+  files.filter(file => !file.isIgnored),
+  files.filter(file => file.isIgnored),
+];
+
+const getContentOfProjectFiles = (files: ProjectFile[]) => {
+  const transpileOpttions = getTranspileOptions();
+
+  return files.map(file => (file.isIgnored ? file : projectFileWithContent(file, transpileOpttions)));
+};
+
+const getAppsScriptFilesFromProjectFiles = (files: ProjectFile[], rootDir: string) =>
+  getContentOfProjectFiles(files).map(
+    (file): AppsScriptFile => {
+      const {source: source, name, type} = file;
+
+      return {
+        name: getAppsScriptFileName(rootDir, name), // The file base name
+        type, // The file extension
+        source: source, // The file contents
+      };
+    }
+  );
+
+// This statement customizes the order in which the files are pushed.
+// It puts the files in the setting's filePushOrder first.
+// This is needed because Apps Script blindly executes files in order of creation time.
+// The Apps Script API updates the creation time of files.
+export const getOrderedProjectFiles = (files: ProjectFile[], filePushOrder: string[] | undefined) => {
+  const orderedFiles = [...files];
+
+  if (filePushOrder && filePushOrder.length > 0) {
+    // stopSpinner();
+
+    console.log('Detected filePushOrder setting. Pushing these files first:');
+    logFileList(filePushOrder);
+    console.log('');
+
+    orderedFiles.sort((a, b) => {
+      // Get the file order index
+      const indexA = filePushOrder.indexOf(a.name);
+      const indexB = filePushOrder.indexOf(b.name);
+
+      // If a file path isn't in the filePushOrder array, set the order to +∞.
+      return (indexA > -1 ? indexA : Number.POSITIVE_INFINITY) - (indexB > -1 ? indexB : Number.POSITIVE_INFINITY);
+    });
+  }
+
+  return orderedFiles;
+};
+
+// // Used to receive files tracked by current project
+// type FilesCallback = (error: Error | boolean, result: [string[], string[]], files: Array<AppsScriptFile>) => void;
 
 /**
  * Gets the local file type from the API FileType.
@@ -35,7 +184,7 @@ type FilesCallback = (
  * @return {string}      The file type
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
  */
-export const getFileType = (type: string, fileExtension?: string): string =>
+export const getLocalFileType = (type: string, fileExtension?: string): string =>
   type === 'SERVER_JS' ? fileExtension ?? 'js' : type.toLowerCase();
 
 /**
@@ -60,147 +209,37 @@ const getTranspileOptions = (): ts.TranspileOptions => {
     : {};
 };
 
-/**
- * Recursively finds all files that are part of the current project, and those that are ignored
- * by .claspignore and calls the passed callback function with the file lists.
- * @param {string} rootDir The project's root directory
- * @param {FilesCallBack} callback The callback will be called with the following paramters
- *   error: Error if there's an error, otherwise null
- *   result: string[][], List of two lists of strings, ie. [nonIgnoredFilePaths,ignoredFilePaths]
- *   files?: Array<AppsScriptFile|undefined> Array of AppsScriptFile objects used by clasp push
- * @todo Make this function actually return a Promise that can be awaited.
- */
-export const getProjectFiles = async (rootDir: string = path.join('.', '/'), callback: FilesCallback) => {
-  const {filePushOrder} = await getProjectSettings();
+// /**
+//  * Recursively finds all files that are part of the current project, and those that are ignored
+//  * by .claspignore and calls the passed callback function with the file lists.
+//  * @param {string} rootDir The project's root directory
+//  * @param {FilesCallBack} callback The callback will be called with the following paramters
+//  *   error: Error if there's an error, otherwise null
+//  *   result: string[][], array of two lists of strings, ie. [validFilePaths,ignoredFilePaths]
+//  *   files?: Array<AppsScriptFile> Array of AppsScriptFile objects used by clasp push
+//  * @todo Make this function actually return a Promise that can be awaited.
+//  */
+// export const getProjectFiles = async (rootDir: string = path.join('.', '/'), callback: FilesCallback) => {
+//   try {
+//     const {filePushOrder} = await getProjectSettings();
 
-  // Load tsconfig
-  const userConf = getTranspileOptions();
+//     const allFiles = await getAllProjectFiles(rootDir);
+//     const [filesToPush, filesToIgnore] = splitProjectFiles(allFiles);
 
-  // Read all filenames as a flattened tree
-  // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-  recursive(rootDir, async (err: ReadonlyDeep<Error>, filePaths: string[]) => {
-    if (err) return callback(err, null, null);
+//     const orderedFiles = getOrderedProjectFiles(filesToPush, filePushOrder);
 
-    // Filter files that aren't allowed.
-    const ignorePatterns = await DOTFILE.IGNORE();
-
-    // Replace OS specific path separator to common '/' char for console output
-    filePaths = filePaths.map(name => name.replace(/\\/g, '/'));
-    filePaths.sort((a, b) => a.localeCompare(b)); // Sort files alphanumerically
-
-    // dispatch with patterns from .claspignore
-    const filesToPush: string[] = [];
-    const filesToIgnore: string[] = [];
-    filePaths.forEach(file => {
-      if (multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length === 0) {
-        filesToPush.push(file);
-      } else {
-        filesToIgnore.push(file);
-      }
-    });
-
-    // Check if there are files that will conflict if renamed .gs to .js.
-    // When pushing to Apps Script, these files will overwrite each other.
-    let abortPush = false;
-    filesToPush.forEach((name: string) => {
-      const fileNameWithoutExt = name.slice(0, -path.extname(name).length);
-      if (filesToPush.includes(`${fileNameWithoutExt}.js`) && filesToPush.includes(`${fileNameWithoutExt}.gs`)) {
-        // Can't rename, conflicting files
-        abortPush = true;
-        // Only print error once (for .gs)
-        if (path.extname(name) === '.gs') {
-          throw new ClaspError(ERROR.CONFLICTING_FILE_EXTENSION(fileNameWithoutExt));
-        }
-      }
-    });
-    if (abortPush) return callback(new Error(), null, null);
-
-    const nonIgnoredFilePaths: string[] = [];
-    const ignoredFilePaths = [...filesToIgnore];
-
-    const file2path: Array<{path: string; file: AppsScriptFile}> = []; // Used by `filePushOrder`
-    // Loop through files that are not ignored
-    let files = filesToPush
-      .map(name => {
-        const normalizedName = path.normalize(name);
-
-        let type = getApiFileType(name);
-
-        // File source
-        let source = fs.readFileSync(name).toString();
-        if (type === 'TS') {
-          // Transpile TypeScript to Google Apps Script
-          // @see github.com/grant/ts2gas
-          source = ts2gas(source, userConf);
-          type = 'SERVER_JS';
-        }
-
-        // Formats rootDir/appsscript.json to appsscript.json.
-        // Preserves subdirectory names in rootDir
-        // (rootDir/foo/Code.js becomes foo/Code.js)
-        const formattedName = getAppsScriptFileName(rootDir, name);
-
-        // If the file is valid, return the file in a format suited for the Apps Script API.
-        if (isValidFileName(name, type, rootDir, normalizedName, filesToIgnore)) {
-          nonIgnoredFilePaths.push(name);
-          const file: AppsScriptFile = {
-            name: formattedName, // The file base name
-            type, // The file extension
-            source, // The file contents
-          };
-          file2path.push({file, path: name}); // Allow matching of nonIgnoredFilePaths and files arrays
-          return file;
-        }
-
-        ignoredFilePaths.push(name);
-        return; // Kludgy. Skip ignored files
-      })
-      .filter(Boolean); // Remove null values
-
-    // This statement customizes the order in which the files are pushed.
-    // It puts the files in the setting's filePushOrder first.
-    // This is needed because Apps Script blindly executes files in order of creation time.
-    // The Apps Script API updates the creation time of files.
-    if (filePushOrder && filePushOrder.length > 0) {
-      // Skip "filePushOrder": []
-      stopSpinner();
-
-      console.log('Detected filePushOrder setting. Pushing these files first:');
-      logFileList(filePushOrder);
-      console.log('');
-
-      nonIgnoredFilePaths.sort((path1, path2) => {
-        // Get the file order index
-        const path1Index = filePushOrder.indexOf(path1);
-        const path2Index = filePushOrder.indexOf(path2);
-
-        // If a file path isn't in the filePushOrder array, set the order to +∞.
-        return (
-          (path1Index === -1 ? Number.POSITIVE_INFINITY : path1Index) -
-          (path2Index === -1 ? Number.POSITIVE_INFINITY : path2Index)
-        );
-      });
-
-      // Apply nonIgnoredFilePaths sort order to files
-      files = (files as AppsScriptFile[]).sort((file1, file2) => {
-        // Get the file path from file2path
-        const path1 = file2path.find(element => element.file === file1);
-        const path2 = file2path.find(element => element.file === file2);
-
-        // If a file path isn't in the nonIgnoredFilePaths array, set the order to +∞.
-        return (
-          (path1 ? nonIgnoredFilePaths.indexOf(path1.path) : Number.POSITIVE_INFINITY) -
-          (path2 ? nonIgnoredFilePaths.indexOf(path2.path) : Number.POSITIVE_INFINITY)
-        );
-      });
-    }
-
-    callback(false, [nonIgnoredFilePaths, ignoredFilePaths], files);
-  });
-};
+//     callback(
+//       false,
+//       [orderedFiles.map(file => file.name), filesToIgnore.map(file => file.name)],
+//       getAppsScriptFilesFromProjectFiles(orderedFiles, rootDir)
+//     );
+//   } catch (error) {
+//     return callback(error, [[], []], []);
+//   }
+// };
 
 /**
- * If the file is valid, add it to our file list.
+ * @deprecated If the file is valid, add it to our file list.
  * We generally want to allow for all file types, including files in node_modules/.
  * However, node_modules/@types/ files should be ignored.
  */
@@ -208,18 +247,18 @@ export const isValidFileName = (
   name: string,
   type: string,
   rootDir: string,
+  // @ts-expect-error
   normalizedName: string,
   ignoreMatches: readonly string[]
-): boolean =>
-  Boolean(
+): boolean => {
+  const isValid = isValidFactory(rootDir);
+
+  return Boolean(
     !name.includes('node_modules/@types') && // Prevent node_modules/@types/
-      (type === 'JSON' // Has a type or is appsscript.json
-        ? rootDir
-          ? normalizedName === path.join(rootDir, PROJECT_MANIFEST_FILENAME)
-          : name === PROJECT_MANIFEST_FILENAME
-        : type === 'SERVER_JS' || type === 'HTML') &&
+      isValid({source: '', isIgnored: false, name: name, type: type}) &&
       !ignoreMatches.includes(name) // Must be SERVER_JS or HTML. https://developers.google.com/apps-script/api/reference/rest/v1/File
   );
+};
 
 /**
  * Gets the name of the file for Apps Script.
@@ -292,7 +331,7 @@ export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') =
     fileList.sort((a, b) => a.name.localeCompare(b.name));
 
     for await (const file of fileList) {
-      const filePath = `${file.name}.${getFileType(file.type, fileExtension)}`;
+      const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension)}`;
       const truePath = `${rootDir || '.'}/${filePath}`;
       await mkdirp(path.dirname(truePath));
       fs.writeFile(truePath, file.source, (error: Readonly<NodeJS.ErrnoException>) => {
@@ -317,48 +356,34 @@ export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') =
  * @param {boolean} silent If true, doesn't console.log any success message.
  */
 export const pushFiles = async (silent = false) => {
-  const {scriptId, rootDir} = await getProjectSettings();
+  const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
-    const asyncCallback: FilesCallback = async (error, projectFiles, files = []) => {
-      // Check for edge cases.
-      if (error) {
-        if (error instanceof ClaspError) {
-          throw error;
-        }
+    const [toPush] = splitProjectFiles(await getAllProjectFiles(rootDir));
 
-        throw new ClaspError(getErrorMessage(error) ?? LOG.PUSH_FAILURE);
-      }
+    if (toPush.length > 0) {
+      const orderedFiles = getOrderedProjectFiles(toPush, filePushOrder);
+      const files = getAppsScriptFilesFromProjectFiles(orderedFiles, rootDir ?? path.join('.', '/'));
+      const filenames = orderedFiles.map(file => file.name);
 
-      if (projectFiles) {
-        // Start pushing.
-        const [nonIgnoredFilePaths] = projectFiles;
-        try {
-          await script.projects.updateContent({
-            scriptId,
-            requestBody: {
-              scriptId,
-              files: files as AppsScriptFile[],
-            },
-          });
-        } catch (error) {
-          console.error(LOG.PUSH_FAILURE);
-          console.error(error);
-        } finally {
-          stopSpinner();
-
-          // No error
-          if (!silent) {
-            logFileList(nonIgnoredFilePaths);
-            console.log(LOG.PUSH_SUCCESS(nonIgnoredFilePaths.length));
-          }
-        }
-      } else {
-        console.log(LOG.PUSH_NO_FILES);
+      // Start pushing.
+      try {
+        await script.projects.updateContent({scriptId, requestBody: {scriptId, files}});
+      } catch (error) {
+        console.error(LOG.PUSH_FAILURE);
+        console.error(error);
+      } finally {
         stopSpinner();
-      }
-    };
 
-    await getProjectFiles(rootDir, asyncCallback);
+        // No error
+        if (!silent) {
+          logFileList(filenames);
+          console.log(LOG.PUSH_SUCCESS(filenames.length));
+        }
+      }
+    } else {
+      stopSpinner();
+      console.log(LOG.PUSH_NO_FILES);
+    }
   }
 };
 
