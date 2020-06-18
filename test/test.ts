@@ -5,7 +5,7 @@ import {after, before, describe, it} from 'mocha';
 import path from 'path';
 import readPkgUp from 'read-pkg-up';
 
-import {getAppsScriptFileName, getFileType} from '../src/files';
+import {getAppsScriptFileName, getLocalFileType} from '../src/files';
 import {ERROR, LOG} from '../src/messages';
 import {extractScriptId, URL} from '../src/urls';
 import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
@@ -173,19 +173,19 @@ describe('Test getDefaultProjectName function from utils', () => {
   });
 });
 
-describe('Test getFileType function from utils', () => {
+describe('Test getLocalFileType function from utils', () => {
   it('should return the lowercase file type correctly', () => {
-    expect(getFileType('SERVER_JS')).to.equal('js');
-    expect(getFileType('GS')).to.equal('gs');
-    expect(getFileType('JS')).to.equal('js');
-    expect(getFileType('HTML')).to.equal('html');
+    expect(getLocalFileType('SERVER_JS')).to.equal('js');
+    expect(getLocalFileType('GS')).to.equal('gs');
+    expect(getLocalFileType('JS')).to.equal('js');
+    expect(getLocalFileType('HTML')).to.equal('html');
   });
 
   it('should return the specified file extention if the file type is SERVER_JS', () => {
-    expect(getFileType('SERVER_JS', 'gs')).to.equal('gs');
-    expect(getFileType('GS', 'js')).to.equal('gs');
-    expect(getFileType('JS', 'gs')).to.equal('js');
-    expect(getFileType('HTML', 'js')).to.equal('html');
+    expect(getLocalFileType('SERVER_JS', 'gs')).to.equal('gs');
+    expect(getLocalFileType('GS', 'js')).to.equal('gs');
+    expect(getLocalFileType('JS', 'gs')).to.equal('js');
+    expect(getLocalFileType('HTML', 'js')).to.equal('html');
   });
 });
 
