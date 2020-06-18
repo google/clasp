@@ -3,7 +3,7 @@ import open from 'open';
 
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
-import {deploymentIdPrompt} from '../inquirer';
+import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
 import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils';
@@ -14,6 +14,14 @@ interface CommandOption {
   readonly addon?: boolean;
   readonly deploymentId?: string;
 }
+
+const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<string> => {
+  const {
+    deployment: {deploymentId: depIdFromPrompt},
+  } = await deploymentIdPrompt(choices);
+
+  return depIdFromPrompt as string;
+};
 
 /**
  * Opens an Apps Script project's script.google.com editor.
@@ -91,13 +99,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
       };
     });
 
-  let {deploymentId} = options;
-  if (!deploymentId) {
-    const {
-      deployment: {deploymentId: depIdFromPrompt},
-    } = await deploymentIdPrompt(choices);
-    deploymentId = depIdFromPrompt as string;
-  }
+  const deploymentId = options.deploymentId ?? (await getDeploymentId(choices));
 
   const deployment = await script.projects.deployments.get({
     scriptId,
