@@ -3,7 +3,7 @@ import open from 'open';
 
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
-import {deploymentIdPrompt} from '../inquirer';
+import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
 import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils';
@@ -12,13 +12,23 @@ interface CommandOption {
   readonly webapp?: boolean;
   readonly creds?: boolean;
   readonly addon?: boolean;
+  readonly deploymentId?: string;
 }
+
+const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<string> => {
+  const {
+    deployment: {deploymentId: depIdFromPrompt},
+  } = await deploymentIdPrompt(choices);
+
+  return depIdFromPrompt as string;
+};
 
 /**
  * Opens an Apps Script project's script.google.com editor.
  * @param scriptId {string} The Apps Script project to open.
  * @param options.webapp {boolean} If true, the command will open the webapps URL.
  * @param options.creds {boolean} If true, the command will open the credentials URL.
+ * @param options.deploymentId {string} Use custom deployment ID with webapp.
  */
 export default async (scriptId: string, options: CommandOption): Promise<void> => {
   const projectSettings = await getProjectSettings();
@@ -89,13 +99,13 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
       };
     });
 
-  const answers = await deploymentIdPrompt(choices);
+  const deploymentId = options.deploymentId ?? (await getDeploymentId(choices));
 
   const deployment = await script.projects.deployments.get({
     scriptId,
-    deploymentId: answers.deployment.deploymentId as string,
+    deploymentId,
   });
-  console.log(LOG.OPEN_WEBAPP(answers.deployment.deploymentId as string));
+  console.log(LOG.OPEN_WEBAPP(deploymentId as string));
   const target = getWebApplicationURL(deployment.data);
   if (target) {
     await open(target, {wait: false});
