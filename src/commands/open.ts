@@ -3,8 +3,7 @@ import open from 'open';
 
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
-import {ProjectSettings} from '../dotfile';
-import {deploymentIdPrompt} from '../inquirer';
+import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
 import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils';
@@ -13,13 +12,23 @@ interface CommandOption {
   readonly webapp?: boolean;
   readonly creds?: boolean;
   readonly addon?: boolean;
+  readonly deploymentId?: string;
 }
+
+const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<string> => {
+  const {
+    deployment: {deploymentId: depIdFromPrompt},
+  } = await deploymentIdPrompt(choices);
+
+  return depIdFromPrompt as string;
+};
 
 /**
  * Opens an Apps Script project's script.google.com editor.
  * @param scriptId {string} The Apps Script project to open.
  * @param options.webapp {boolean} If true, the command will open the webapps URL.
  * @param options.creds {boolean} If true, the command will open the credentials URL.
+ * @param options.deploymentId {string} Use custom deployment ID with webapp.
  */
 export default async (scriptId: string, options: CommandOption): Promise<void> => {
   const projectSettings = await getProjectSettings();
@@ -92,18 +101,13 @@ const openWebApp = async (scriptId: string) => {
   const choices = deployments.slice();
   choices.sort((a, b) => (a.updateTime && b.updateTime ? a.updateTime.localeCompare(b.updateTime) : 0));
 
-  const prompts = choices.map(value => {
-    const {description, versionNumber = 'HEAD'} = value.deploymentConfig!;
-    const name = `${ellipsize(description!, 30)}@${`${versionNumber}`.padEnd(4)} - ${value.deploymentId}`;
+  const deploymentId = options.deploymentId ?? (await getDeploymentId(choices));
 
-    return {name, value};
+  const deployment = await script.projects.deployments.get({
+    scriptId,
+    deploymentId,
   });
-
-  const deploymentId = (await deploymentIdPrompt(prompts)).deployment.deploymentId ?? undefined;
-  const deployment = await script.projects.deployments.get({scriptId, deploymentId});
-
-  console.log(LOG.OPEN_WEBAPP(deploymentId));
-
+  console.log(LOG.OPEN_WEBAPP(deploymentId as string));
   const target = getWebApplicationURL(deployment.data);
   if (!target) {
     throw new ClaspError(`Could not open deployment: ${JSON.stringify(deployment)}`);

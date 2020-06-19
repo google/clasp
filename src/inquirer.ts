@@ -27,17 +27,17 @@ export const functionNamePrompt = (source: functionNameSource) => {
   return prompt<{functionName: string}>([question]);
 };
 
-interface DeploymentIdPrompt {
+export interface DeploymentIdPromptChoice {
   name: string;
   value: scriptV1.Schema$Deployment;
 }
 
 /**
  * Inquirer prompt for a deployment Id.
- * @param {DeploymentIdPrompt[]} choices An array of `DeploymentIdPrompt` objects.
+ * @param {DeploymentIdChoice[]} choices An array of `DeploymentIdChoice` objects.
  * @returns {Promise<{ deploymentId: string }>} A promise for an object with the `deploymentId` property.
  */
-export const deploymentIdPrompt = (choices: ReadonlyArray<ReadonlyDeep<DeploymentIdPrompt>>) =>
+export const deploymentIdPrompt = (choices: ReadonlyArray<ReadonlyDeep<DeploymentIdPromptChoice>>) =>
   prompt<{deployment: scriptV1.Schema$Deployment}>([
     {
       choices,
