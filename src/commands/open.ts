@@ -3,6 +3,7 @@ import open from 'open';
 
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
+import {ProjectSettings} from '../dotfile';
 import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
@@ -58,7 +59,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
   }
 
   if (options.webapp) {
-    await openWebApp(currentScriptId);
+    await openWebApp(currentScriptId, options.deploymentId);
     return;
   }
 
@@ -84,7 +85,7 @@ const openAddon = async (projectSettings: ProjectSettings) => {
   return;
 };
 
-const openWebApp = async (scriptId: string) => {
+const openWebApp = async (scriptId: string, optionsDeploymentId?: string) => {
   // Web app: open the latest deployment.
   await loadAPICredentials();
   const deploymentsList = await script.projects.deployments.list({scriptId});
@@ -100,14 +101,16 @@ const openWebApp = async (scriptId: string) => {
   // Order deployments by update time.
   const choices = deployments.slice();
   choices.sort((a, b) => (a.updateTime && b.updateTime ? a.updateTime.localeCompare(b.updateTime) : 0));
-
-  const deploymentId = options.deploymentId ?? (await getDeploymentId(choices));
-
-  const deployment = await script.projects.deployments.get({
-    scriptId,
-    deploymentId,
+  const prompts = choices.map(value => {
+    const {description, versionNumber = 'HEAD'} = value.deploymentConfig!;
+    const name = `${ellipsize(description!, 30)}@${`${versionNumber}`.padEnd(4)} - ${value.deploymentId}`;
+    return {name, value};
   });
-  console.log(LOG.OPEN_WEBAPP(deploymentId as string));
+
+  const deploymentId = optionsDeploymentId ?? (await getDeploymentId(prompts));
+
+  const deployment = await script.projects.deployments.get({scriptId, deploymentId});
+  console.log(LOG.OPEN_WEBAPP(deploymentId));
   const target = getWebApplicationURL(deployment.data);
   if (!target) {
     throw new ClaspError(`Could not open deployment: ${JSON.stringify(deployment)}`);
