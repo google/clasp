@@ -122,15 +122,15 @@ const printLogs = (
       WARNING: chalk.yellow(severity),
     };
 
-    let coloredSeverity: string = coloredStringMap[severity!] || severity!;
-    coloredSeverity = String(coloredSeverity).padEnd(20);
+    const coloredSeverity = `${coloredStringMap[severity!] || severity!}`.padEnd(20);
+
     // If we haven't logged this entry before, log it and mark the cache.
     if (!logEntryCache[insertId!]) {
-      if (simplified) {
-        console.log(`${coloredSeverity} ${functionName} ${payloadData}`);
-      } else {
-        console.log(`${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`);
-      }
+      console.log(
+        simplified
+          ? `${coloredSeverity} ${functionName} ${payloadData}`
+          : `${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`
+      );
 
       logEntryCache[insertId!] = true;
     }
@@ -138,21 +138,30 @@ const printLogs = (
 };
 
 const setupLogs = async (): Promise<string> => {
-  let projectId: string;
   try {
     const projectSettings = await getProjectSettings();
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-    const answers = await projectIdPrompt();
-    projectId = answers.projectId;
+
     const dotfile = DOTFILE.PROJECT();
-    if (!dotfile) throw new ClaspError(ERROR.SETTINGS_DNE);
+    if (!dotfile) {
+      throw new ClaspError(ERROR.SETTINGS_DNE);
+    }
+
     const settings = await dotfile.read<ProjectSettings>();
-    if (!settings.scriptId) throw new ClaspError(ERROR.SCRIPT_ID_DNE);
+    if (!settings.scriptId) {
+      throw new ClaspError(ERROR.SCRIPT_ID_DNE);
+    }
+
+    const projectId = (await projectIdPrompt()).projectId;
     await dotfile.write({...settings, ...{projectId}});
+
     return projectId;
   } catch (error) {
-    if (error instanceof ClaspError) throw error;
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+
     throw new ClaspError(getErrorMessage(error) as string); // TODO get rid of type casting
   }
 };
@@ -169,6 +178,7 @@ const fetchAndPrintLogs = async (
 ): Promise<void> => {
   const oauthSettings = await loadAPICredentials();
   spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
+
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
   // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
   const filter = startDate ? `timestamp >= "${startDate.toISOString()}"` : '';
@@ -184,14 +194,12 @@ const fetchAndPrintLogs = async (
 
   try {
     const logs = await logger.entries.list({
-      requestBody: {
-        resourceNames: [`projects/${projectId}`],
-        filter,
-        orderBy: 'timestamp desc',
-      },
+      requestBody: {resourceNames: [`projects/${projectId}`], filter, orderBy: 'timestamp desc'},
     });
+
     // We have an API response. Now, check the API response status.
     stopSpinner();
+
     // Only print filter if provided.
     if (filter.length > 0) {
       console.log(filter);
@@ -199,16 +207,18 @@ const fetchAndPrintLogs = async (
 
     // Parse response and print logs or print error message.
     const parseResponse = (response: GaxiosResponse<loggingV2.Schema$ListLogEntriesResponse>) => {
-      switch (response.status) {
+      const {data, status, statusText} = response;
+
+      switch (status) {
         case 200:
-          printLogs(response.data.entries, formatJson, simplified);
+          printLogs(data.entries, formatJson, simplified);
           break;
         case 401:
           throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
         case 403:
           throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
         default:
-          throw new ClaspError(`(${response.status}) Error: ${response.statusText}`);
+          throw new ClaspError(`(${status}) Error: ${statusText}`);
       }
     };
 

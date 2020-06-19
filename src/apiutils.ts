@@ -28,15 +28,11 @@ export const getFunctionNames = async (script: ReadonlyDeep<scriptV1.Script>, sc
     }, [])
     .map((func: Readonly<TypeFunction>) => func.name) as string[];
 
-  const source: functionNameSource = async (_unused: object, input = '') =>
-    // Returns a Promise
-    // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
-    new Promise(resolve => {
-      // Example: https://github.com/ruyadorno/inquirer-autocomplete-prompt/blob/master/example.js#L76
-      const original = fuzzy.filter(input, functionNames).map(element => element.original);
-
-      resolve(original);
-    });
+  // Returns a Promise
+  // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
+  // Example: https://github.com/ruyadorno/inquirer-autocomplete-prompt/blob/master/example.js#L76
+  const source: functionNameSource = async (_answers: object, input = '') =>
+    fuzzy.filter(input, functionNames).map(element => element.original);
 
   const answers = await functionNamePrompt(source);
   return answers.functionName;
@@ -83,10 +79,14 @@ export const enableOrDisableAPI = async (serviceName: string, enable: boolean): 
     await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
     console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName} API.`);
   } catch (error) {
-    if (error instanceof ClaspError) throw error;
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+
     // If given non-existent API (like fakeAPI, it throws 403 permission denied)
     // We will log this for the user instead:
     console.log(error);
+
     throw new ClaspError(ERROR.NO_API(enable, serviceName));
   }
 };

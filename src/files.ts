@@ -138,12 +138,12 @@ const getContentOfProjectFiles = (files: ProjectFile[]) => {
 const getAppsScriptFilesFromProjectFiles = (files: ProjectFile[], rootDir: string) =>
   getContentOfProjectFiles(files).map(
     (file): AppsScriptFile => {
-      const {source: source, name, type} = file;
+      const {source, name, type} = file;
 
       return {
         name: getAppsScriptFileName(rootDir, name), // The file base name
         type, // The file extension
-        source: source, // The file contents
+        source, // The file contents
       };
     }
   );

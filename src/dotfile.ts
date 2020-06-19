@@ -71,6 +71,21 @@ export const DOT = {
   },
 };
 
+const defaultClaspignore = `# ignore all files…
+**/**
+
+# except the extensions…
+!appsscript.json
+!**/*.gs
+!**/*.js
+!**/*.ts
+!**/*.html
+
+# ignore even valid files if in…
+.git/**
+node_modules/**
+`;
+
 // Methods for retrieving dotfiles.
 export const DOTFILE = {
   /**
@@ -78,31 +93,14 @@ export const DOTFILE = {
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: async () => {
-    const projectPath = findUp.sync(DOT.PROJECT.PATH);
-    const ignoreDirectory = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR);
-    return new Promise<string[]>(resolve => {
-      if (fs.existsSync(ignoreDirectory) && fs.existsSync(DOT.IGNORE.PATH)) {
-        const buffer = stripBom(fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS));
-        resolve(splitLines(buffer).filter((name: string) => name));
-      } else {
-        const defaultClaspignore = [
-          '# ignore all files…',
-          '**/**',
-          '',
-          '# except the extensions…',
-          '!appsscript.json',
-          '!**/*.gs',
-          '!**/*.js',
-          '!**/*.ts',
-          '!**/*.html',
-          '',
-          '# ignore even valid files if in…',
-          '.git/**',
-          'node_modules/**',
-        ];
-        resolve(defaultClaspignore);
-      }
-    });
+    const localPath = await findUp(DOT.PROJECT.PATH);
+    const usePath = path.join(localPath ? path.dirname(localPath) : DOT.PROJECT.DIR);
+    const content =
+      fs.existsSync(usePath) && fs.existsSync(DOT.IGNORE.PATH)
+        ? fs.readFileSync(DOT.IGNORE.PATH, FS_OPTIONS)
+        : defaultClaspignore;
+
+    return splitLines(stripBom(content)).filter((name: string) => name.length > 0);
   },
   /**
    * Gets the closest DOT.PROJECT.NAME in the parent directory of the directory
@@ -110,15 +108,17 @@ export const DOTFILE = {
    * @return {Dotf} A dotf with that dotfile. Null if there is no file
    */
   PROJECT: () => {
-    const projectPath = findUp.sync(DOT.PROJECT.PATH);
-    return dotf(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, DOT.PROJECT.NAME);
+    const localPath = findUp.sync(DOT.PROJECT.PATH);
+    const usePath = localPath ? path.dirname(localPath) : DOT.PROJECT.DIR;
+    return dotf(usePath, DOT.PROJECT.NAME);
   },
   // Stores {ClaspCredentials}
   RC: dotf(DOT.RC.DIR, DOT.RC.NAME),
   // Stores {ClaspCredentials}
   RC_LOCAL: () => {
     const localPath = findUp.sync(DOT.PROJECT.PATH);
-    return dotf(localPath ? path.dirname(localPath) : DOT.RC.LOCAL_DIR, DOT.RC.NAME);
+    const usePath = localPath ? path.dirname(localPath) : DOT.RC.LOCAL_DIR;
+    return dotf(usePath, DOT.RC.NAME);
   },
 };
 

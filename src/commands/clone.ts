@@ -58,8 +58,8 @@ const getScriptId = async (): Promise<string> => {
     throw new ClaspError(list.statusText ?? 'Unable to use the Drive API.');
   }
 
-  const {files} = data;
-  if (files && files.length > 0) {
+  const {files = []} = data;
+  if (files.length > 0) {
     const fileIds: ScriptIdPrompt[] = files.map((file: Readonly<driveV3.Schema$File>) => ({
       name: `${file.name!.padEnd(20)} - ${LOG.SCRIPT_LINK(file.id ?? '')}`,
       value: file.id ?? '',

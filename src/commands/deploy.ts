@@ -20,7 +20,10 @@ export default async (options: CommandOption): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
-  if (!scriptId) return;
+  if (!scriptId) {
+    return;
+  }
+
   spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
   let {versionNumber} = options;
   const {description = '', deploymentId} = options;
@@ -33,7 +36,10 @@ export default async (options: CommandOption): Promise<void> => {
         description,
       },
     });
-    if (version.status !== 200) throw new ClaspError(ERROR.ONE_DEPLOYMENT_CREATE);
+    if (version.status !== 200) {
+      throw new ClaspError(ERROR.ONE_DEPLOYMENT_CREATE);
+    }
+
     stopSpinner();
     versionNumber = version.data.versionNumber ?? 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
