@@ -47,7 +47,7 @@ import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
 import {PROJECT_NAME} from './constants';
-import {spinner} from './utils';
+import {spinner, stopSpinner} from './utils';
 
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
@@ -338,8 +338,10 @@ commander
  */
 commander.command('*', {isDefault: true}).description('Any other command is not supported').action(defaultCmd);
 
+// @ts-expect-error
+const [bin, sourcePath, ...args] = process.argv;
 // Defaults to help if commands are not provided
-if (process.argv.slice(2).length === 0) {
+if (args.length === 0) {
   commander.outputHelp();
 }
 
@@ -347,7 +349,7 @@ if (process.argv.slice(2).length === 0) {
   try {
     // User input is provided from the process' arguments
     await commander.parseAsync(process.argv);
-    if (spinner.isSpinning()) spinner.stop(true);
+    stopSpinner();
   } catch (error) {
     spinner.stop(true);
     if (error instanceof ClaspError) {

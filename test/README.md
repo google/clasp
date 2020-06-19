@@ -93,7 +93,7 @@ This section tracks which `clasp` commands are tested. Unchecked checkboxes are 
 - [x] clasp versions
 - [x] saveProject
 - [x] getScriptURL
-- [x] getFileType
+- [x] getLocalFileType
 - [x] getAPIFileType
 
 ### Configs

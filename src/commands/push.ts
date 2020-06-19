@@ -28,7 +28,7 @@ export default async (options: CommandOption): Promise<void> => {
   await checkIfOnline();
   await loadAPICredentials();
   await isValidManifest();
-  const {rootDir} = await getProjectSettings();
+  const {rootDir = '.'} = await getProjectSettings();
 
   if (options.watch) {
     console.log(LOG.PUSH_WATCH);
@@ -37,7 +37,7 @@ export default async (options: CommandOption): Promise<void> => {
      * @see https://www.npmjs.com/package/watch
      */
     // TODO check alternative https://github.com/paulmillr/chokidar
-    watchTree(rootDir ?? '.', async f => {
+    watchTree(rootDir, async f => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
@@ -80,11 +80,14 @@ const confirmManifestUpdate = async (): Promise<boolean> => {
  * @returns {Promise<boolean>}
  */
 const manifestHasChanges = async (): Promise<boolean> => {
-  const {scriptId, rootDir} = await getProjectSettings();
-  const localManifestPath = path.join(rootDir ?? DOT.PROJECT.DIR, PROJECT_MANIFEST_FILENAME);
+  const {scriptId, rootDir = DOT.PROJECT.DIR} = await getProjectSettings();
+  const localManifestPath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(localManifestPath, FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
-  if (!remoteManifest) throw new ClaspError('remote manifest no found');
+  if (!remoteManifest) {
+    throw new ClaspError('remote manifest no found');
+  }
+
   return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);
 };

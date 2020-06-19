@@ -22,21 +22,23 @@ interface CommandOption {
  */
 export default async (options: CommandOption): Promise<void> => {
   await loadAPICredentials();
-  const subcommand: string = process.argv[3]; // Clasp apis list => "list"
-  const serviceName = process.argv[4]; // Clasp apis enable drive => "drive"
 
   // clasp apis --open
   if (options.open) {
-    const apisUrl = URL.APIS(await getProjectId());
-    console.log(apisUrl);
-    await open(apisUrl, {wait: false});
-    return;
+    return await openApiUrl();
   }
 
+  // @ts-expect-error
+  const [bin, sourcePath, ...args] = process.argv;
+  // @ts-expect-error
+  const [command, subCommand, serviceName] = args;
+  // const subCommand: string = process.argv[3]; // Clasp apis list => "list"
+  // const serviceName = process.argv[4]; // Clasp apis enable drive => "drive"
+
   // The apis subcommands.
-  const command: {[key: string]: () => Promise<void>} = {
-    enable: async () => enableOrDisableAPI(serviceName, true),
+  const apiSubCommands: {[key: string]: () => Promise<void>} = {
     disable: async () => enableOrDisableAPI(serviceName, false),
+    enable: async () => enableOrDisableAPI(serviceName, true),
     list: async () => {
       await checkIfOnline();
       /**
@@ -82,39 +84,35 @@ export default async (options: CommandOption): Promise<void> => {
       const publicAdvancedServicesIds = PUBLIC_ADVANCED_SERVICES.map(advancedService => advancedService.serviceId);
 
       // Merge discovery data with public services data.
-      const publicServices = [];
-      for (const publicServiceId of publicAdvancedServicesIds) {
-        const service = services.find(s => s?.name === publicServiceId) as PublicAdvancedService;
-        // For some reason 'youtubePartner' is not in the api list.
-        if (service?.id && service.description) {
-          publicServices.push(service);
-        }
-      }
+      const publicServices = publicAdvancedServicesIds
+        .map(publicServiceId => services.find(s => s?.name === publicServiceId) as PublicAdvancedService)
+        .filter(service => service?.id && service.description);
 
       // Sort the services based on id
-      publicServices.sort((a, b) => {
-        if (a.id < b.id) return -1;
-        if (a.id > b.id) return 1;
-        return 0;
-      });
+      publicServices.sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0));
 
       // Format the list
-      for (const api of publicServices) {
-        console.log(`${api.name.padEnd(25)} - ${api.description.padEnd(60)}`);
-      }
+      publicServices.forEach(service => console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`));
     },
     undefined: async () => {
-      await command.list();
-
+      await apiSubCommands.list();
       console.log(`# Try these commands:
 - clasp apis list
 - clasp apis enable slides
 - clasp apis disable slides`);
     },
   };
-  if (command[subcommand]) {
-    await command[subcommand]();
-  } else {
-    throw new ClaspError(ERROR.COMMAND_DNE(`apis ${subcommand}`));
+
+  if (subCommand in apiSubCommands) {
+    await apiSubCommands[subCommand]();
+    return;
   }
+
+  throw new ClaspError(ERROR.COMMAND_DNE(`apis ${subCommand}`));
+};
+
+const openApiUrl = async () => {
+  const apisUrl = URL.APIS(await getProjectId());
+  console.log(apisUrl);
+  await open(apisUrl, {wait: false});
 };
