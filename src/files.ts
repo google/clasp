@@ -12,7 +12,7 @@ import {ClaspError} from './clasp-error';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOT, DOTFILE} from './dotfile';
 import {ERROR, LOG} from './messages';
-import {checkIfOnline, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils';
+import {checkIfOnlineOrDie, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -286,7 +286,7 @@ export const fetchProject = async (
   versionNumber?: number,
   silent = false
 ): Promise<AppsScriptFile[]> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   spinner.start();
   let response;

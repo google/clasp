@@ -12,7 +12,7 @@ import {fetchProject, pushFiles} from '../files';
 import {overwritePrompt} from '../inquirer';
 import {isValidManifest} from '../manifest';
 import {LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, spinner} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings, spinner} from '../utils';
 
 interface CommandOption {
   readonly watch?: boolean;
@@ -25,7 +25,7 @@ interface CommandOption {
  * @param options.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
 export default async (options: CommandOption): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   await isValidManifest();
   const {rootDir = '.'} = await getProjectSettings();

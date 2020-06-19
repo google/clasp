@@ -3,13 +3,13 @@ import {script_v1 as scriptV1} from 'googleapis';
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
 
 /**
  * Lists versions of an Apps Script project.
  */
 export default async (): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   spinner.setSpinnerTitle('Grabbing versions…').start();
   const {scriptId} = await getProjectSettings();

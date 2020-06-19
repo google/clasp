@@ -12,7 +12,7 @@ import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
 // import {oauthScopesPrompt} from './inquirer';
 // import {readManifest} from './manifest';
 import {ERROR, LOG} from './messages';
-import {checkIfOnline, ClaspCredentials, getOAuthSettings} from './utils';
+import {checkIfOnlineOrDie, ClaspCredentials, getOAuthSettings} from './utils';
 
 /**
  * Authentication with Google's APIs.
@@ -308,7 +308,7 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
 
   // Set credentials and refresh them.
   try {
-    await checkIfOnline();
+    await checkIfOnlineOrDie();
     if (rc.isLocalCreds) {
       const {clientId, clientSecret, redirectUri} = rc.oauth2ClientSettings;
       localOAuth2Client = new OAuth2Client({clientId, clientSecret, redirectUri});

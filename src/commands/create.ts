@@ -5,7 +5,14 @@ import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {scriptTypePrompt} from '../inquirer';
 import {manifestExists} from '../manifest';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getDefaultProjectName, getProjectSettings, saveProject, spinner, stopSpinner} from '../utils';
+import {
+  checkIfOnlineOrDie,
+  getDefaultProjectName,
+  getProjectSettings,
+  saveProject,
+  spinner,
+  stopSpinner,
+} from '../utils';
 
 interface CommandOption {
   readonly type?: string;
@@ -24,7 +31,7 @@ interface CommandOption {
  */
 export default async (options: CommandOption): Promise<void> => {
   // Handle common errors.
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS);
   }

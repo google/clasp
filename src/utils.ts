@@ -177,7 +177,7 @@ export const safeIsOnline = async (): Promise<boolean> =>
 /**
  * Checks if the network is available. Gracefully exits if not.
  */
-export const checkIfOnline = async () => {
+export const checkIfOnlineOrDie = async () => {
   if (await safeIsOnline()) {
     return true;
   }

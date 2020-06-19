@@ -9,7 +9,14 @@ import {DOTFILE, ProjectSettings} from '../dotfile';
 import {projectIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getErrorMessage, getProjectSettings, isValidProjectId, spinner, stopSpinner} from '../utils';
+import {
+  checkIfOnlineOrDie,
+  getErrorMessage,
+  getProjectSettings,
+  isValidProjectId,
+  spinner,
+  stopSpinner,
+} from '../utils';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -28,7 +35,7 @@ interface CommandOption {
  * @param options.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
 export default async (options: CommandOption): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   // Get project settings.
   let {projectId} = await getProjectSettings();
   projectId = options.setup ? await setupLogs() : projectId;

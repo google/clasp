@@ -4,13 +4,13 @@ import {drive, loadAPICredentials} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, ellipsize, spinner, stopSpinner} from '../utils';
+import {checkIfOnlineOrDie, ellipsize, spinner, stopSpinner} from '../utils';
 
 /**
  * Lists a user's Apps Script projects using Google Drive.
  */
 export default async (): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
   const filesList = await drive.files.list({

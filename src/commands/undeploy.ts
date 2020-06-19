@@ -1,7 +1,7 @@
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -12,7 +12,7 @@ interface CommandOption {
  * @param deploymentId {string} The deployment's ID
  */
 export default async (deploymentId: string | undefined, options: CommandOption): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (scriptId) {

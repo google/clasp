@@ -8,7 +8,7 @@ import {authorize, getLoggedInEmail} from '../auth';
 import {FS_OPTIONS} from '../constants';
 import {readManifest} from '../manifest';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, hasOauthClientSettings, safeIsOnline} from '../utils';
+import {checkIfOnlineOrDie, hasOauthClientSettings, safeIsOnline} from '../utils';
 
 interface CommandOption {
   readonly localhost?: boolean;
@@ -45,7 +45,7 @@ export default async (options: CommandOption): Promise<void> => {
     if (isLocalLogin && loggedInLocal) console.error(ERROR.LOGGED_IN_LOCAL);
     if (!isLocalLogin && loggedInGlobal) console.error(ERROR.LOGGED_IN_GLOBAL);
     console.log(LOG.LOGIN(isLocalLogin));
-    await checkIfOnline();
+    await checkIfOnlineOrDie();
 
     // Localhost check
     const useLocalhost = Boolean(options.localhost);

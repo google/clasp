@@ -9,7 +9,7 @@ import {discovery, loadAPICredentials, serviceUsage} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getProjectId} from '../utils';
+import {checkIfOnlineOrDie, getProjectId} from '../utils';
 
 interface CommandOption {
   readonly open?: string;
@@ -40,7 +40,7 @@ export default async (options: CommandOption): Promise<void> => {
     disable: async () => enableOrDisableAPI(serviceName, false),
     enable: async () => enableOrDisableAPI(serviceName, true),
     list: async () => {
-      await checkIfOnline();
+      await checkIfOnlineOrDie();
       /**
        * List currently enabled APIs.
        */

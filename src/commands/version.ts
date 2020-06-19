@@ -2,13 +2,13 @@ import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {descriptionPrompt} from '../inquirer';
 import {LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
 
 /**
  * Creates a new version of an Apps Script project.
  */
 export default async (description?: string): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (!description) {

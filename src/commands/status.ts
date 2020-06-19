@@ -1,7 +1,7 @@
 import {getAllProjectFiles, getOrderedProjectFiles, logFileList, splitProjectFiles} from '../files';
 // import {isValidManifest} from '../manifest';
 import {LOG} from '../messages';
-import {checkIfOnline, getProjectSettings} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings} from '../utils';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -12,7 +12,7 @@ interface CommandOption {
  * @param options.json {boolean} Displays the status in json format.
  */
 export default async (options: CommandOption = {json: false}): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   // await isValidManifest();
   const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {

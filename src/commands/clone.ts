@@ -6,7 +6,7 @@ import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {extractScriptId} from '../urls';
-import {checkIfOnline, saveProject, spinner} from '../utils';
+import {checkIfOnlineOrDie, saveProject, spinner} from '../utils';
 import status from './status';
 
 interface CommandOption {
@@ -26,7 +26,7 @@ export default async (
   versionNumber: number | undefined,
   options: CommandOption
 ): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS);
   }
