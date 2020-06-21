@@ -10,23 +10,17 @@ import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../u
 export default async (description?: string): Promise<void> => {
   await checkIfOnlineOrDie();
   await loadAPICredentials();
+
   const {scriptId} = await getProjectSettings();
-  if (!description) {
-    const answers = await descriptionPrompt();
-    description = answers.description;
-  }
+  description = description ?? (await descriptionPrompt()).description;
 
   spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
-  const versions = await script.projects.versions.create({
-    scriptId,
-    requestBody: {
-      description,
-    },
-  });
-  if (versions.status === 200) {
-    stopSpinner();
-    console.log(LOG.VERSION_CREATED(versions.data.versionNumber ?? -1));
-  } else {
-    throw new ClaspError(versions.statusText);
+
+  const {data, status, statusText} = await script.projects.versions.create({scriptId, requestBody: {description}});
+  if (status !== 200) {
+    throw new ClaspError(statusText);
   }
+
+  stopSpinner();
+  console.log(LOG.VERSION_CREATED(data.versionNumber ?? -1));
 };

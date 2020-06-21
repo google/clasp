@@ -14,7 +14,7 @@ const getManifestPath = (rootDir: string): string => path.join(rootDir, PROJECT_
 
 /** Gets the `rootDir` from given project */
 const getRootDir = (project: ProjectSettings): string =>
-  typeof project.rootDir === 'string' ? project.rootDir : DOT.PROJECT.DIR;
+  is.string(project.rootDir) ? project.rootDir : DOT.PROJECT.DIR;
 
 /**
  * Checks if the rootDir appears to be a valid project.

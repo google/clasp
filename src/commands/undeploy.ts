@@ -27,9 +27,7 @@ export default async (deploymentId: string | undefined, options: CommandOption):
       return;
     }
 
-    if (deploymentId) {
-      await deleteDeployment(scriptId, deploymentId);
-    } else {
+    if (!deploymentId) {
       const deployments = await listDeployments(scriptId);
 
       // @HEAD (Read-only deployments) may not be deleted.
@@ -40,13 +38,16 @@ export default async (deploymentId: string | undefined, options: CommandOption):
         throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
       }
 
-      await deleteDeployment(scriptId, lastDeployment.deploymentId as string);
+      deploymentId = lastDeployment.deploymentId as string;
     }
+
+    await deleteDeployment(scriptId, deploymentId);
   }
 };
 
 const deleteDeployment = async (scriptId: string, deploymentId: string) => {
   spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
+
   const {status} = await script.projects.deployments.delete({scriptId, deploymentId});
   if (status !== 200) {
     throw new ClaspError(ERROR.READ_ONLY_DELETE);
@@ -62,9 +63,10 @@ const listDeployments = async (scriptId: string) => {
     throw new ClaspError(statusText);
   }
 
-  const deployments = data.deployments ?? [];
+  const {deployments = []} = data;
   if (deployments.length === 0) {
     throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
+
   return deployments;
 };

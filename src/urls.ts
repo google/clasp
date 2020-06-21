@@ -16,7 +16,7 @@ export const extractScriptId = (scriptId: string) => {
   if (scriptId.length !== SCRIPT_ID_LENGTH) {
     const ids = scriptId.split('/').filter(s => s.length === SCRIPT_ID_LENGTH);
     if (ids.length > 0) {
-      scriptId = ids[0];
+      return ids[0];
     }
   }
 

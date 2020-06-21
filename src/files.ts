@@ -17,14 +17,14 @@ import {checkIfOnlineOrDie, getApiFileType, getErrorMessage, getProjectSettings,
 // An Apps Script API File
 interface AppsScriptFile {
   readonly name: string;
-  readonly type: string;
   readonly source: string;
+  readonly type: string;
 }
 
 interface ProjectFile {
-  readonly source: string;
   readonly isIgnored: boolean;
   readonly name: string;
+  readonly source: string;
   readonly type: string;
 }
 
@@ -138,12 +138,12 @@ const getContentOfProjectFiles = (files: ProjectFile[]) => {
 const getAppsScriptFilesFromProjectFiles = (files: ProjectFile[], rootDir: string) =>
   getContentOfProjectFiles(files).map(
     (file): AppsScriptFile => {
-      const {source, name, type} = file;
+      const {name, source, type} = file;
 
       return {
         name: getAppsScriptFileName(rootDir, name), // The file base name
-        type, // The file extension
         source, // The file contents
+        type, // The file extension
       };
     }
   );
@@ -195,7 +195,7 @@ export const hasProject = (): boolean => fs.existsSync(DOT.PROJECT.PATH);
 
 /**
  * Returns in tsconfig.json.
- * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
+ * @returns {ts.TranspileOptions} if tsconfig.json not exists, return an empty object.
  */
 const getTranspileOptions = (): ts.TranspileOptions => {
   const projectPath = findUp.sync(DOT.PROJECT.PATH);

@@ -18,16 +18,17 @@ export default async (options: CommandOption = {json: false}): Promise<void> => 
   if (scriptId) {
     const [toPush, toIgnore] = splitProjectFiles(await getAllProjectFiles(rootDir));
     const filesToPush = getOrderedProjectFiles(toPush, filePushOrder).map(file => file.name);
-    const filesToIgnore = toIgnore.map(file => file.name);
+    const untrackedFiles = toIgnore.map(file => file.name);
 
     if (options.json) {
-      console.log(JSON.stringify({filesToPush, untrackedFiles: filesToIgnore}));
-    } else {
-      console.log(LOG.STATUS_PUSH);
-      logFileList(filesToPush);
-      console.log(); // Separate Ignored files list.
-      console.log(LOG.STATUS_IGNORE);
-      logFileList(filesToIgnore);
+      console.log(JSON.stringify({filesToPush, untrackedFiles}));
+      return;
     }
+
+    console.log(LOG.STATUS_PUSH);
+    logFileList(filesToPush);
+    console.log(); // Separate Ignored files list.
+    console.log(LOG.STATUS_IGNORE);
+    logFileList(untrackedFiles);
   }
 };

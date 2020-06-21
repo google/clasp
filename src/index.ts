@@ -353,6 +353,7 @@ if (args.length === 0) {
   } catch (error) {
     spinner.stop(true);
     if (error instanceof ClaspError) {
+      // ClaspError handles process.exitCode
       console.error(error.message);
     } else if (error instanceof Error) {
       process.exitCode = 1;
