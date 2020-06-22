@@ -45,12 +45,7 @@ export default async (functionName: string, options: CommandOption): Promise<voi
     // await pushFiles(true);
   }
 
-  // Get the list of functions.
-  if (!functionName) {
-    functionName = await getFunctionNames(script, scriptId);
-  }
-
-  await runFunction(functionName, parameters, scriptId, devMode);
+  await runFunction(functionName ?? (await getFunctionNames(script, scriptId)), parameters, scriptId, devMode);
 };
 
 /**
@@ -62,12 +57,16 @@ const runFunction = async (functionName: string, parameters: string[], scriptId:
     // Load local credentials.
     await loadAPICredentials(true);
     const localScript = await getLocalScript();
+
     spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
+
     const apiResponse = await localScript.scripts.run({
       scriptId,
       requestBody: {function: functionName, parameters, devMode},
     });
+
     stopSpinner();
+
     if (!apiResponse?.data.done) {
       throw new ClaspError(ERROR.RUN_NODATA, 0); // Exit gracefully in case localhost server spun up for authorize
     }
@@ -87,6 +86,7 @@ const runFunction = async (functionName: string, parameters: string[], scriptId:
     }
 
     stopSpinner();
+
     if (error) {
       // TODO move these to logError when stable?
       switch (error.code) {
@@ -138,7 +138,7 @@ const readScopesFromStdinAndAddToManifest = () => {
     }
   };
 
-  const addToManifest: () => void = async () => {
+  const addToManifest = async (): Promise<void> => {
     await addScopeToManifest(scopes);
     const scopeCount = scopes.length;
     console.log(`Added ${scopeCount} ${scopeCount === 1 ? 'scope' : 'scopes'} to your appsscript.json' oauthScopes`);

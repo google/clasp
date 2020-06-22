@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import {GaxiosResponse} from 'gaxios';
 import {logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
@@ -37,11 +36,12 @@ interface CommandOption {
 export default async (options: CommandOption): Promise<void> => {
   await checkIfOnlineOrDie();
   // Get project settings.
-  let {projectId} = await getProjectSettings();
-  projectId = options.setup ? await setupLogs() : projectId;
+  const projectSettings = await getProjectSettings();
+  let projectId = options.setup ? await setupLogs(projectSettings) : projectSettings.projectId;
+
   if (!projectId) {
     console.log(LOG.NO_GCLOUD_PROJECT);
-    projectId = await setupLogs();
+    projectId = await setupLogs(projectSettings);
     console.log(LOG.LOGS_SETUP);
   }
 
@@ -53,7 +53,7 @@ export default async (options: CommandOption): Promise<void> => {
     return;
   }
 
-  const {json, simplified} = options as Required<CommandOption>;
+  const {json, simplified} = options;
   // Otherwise, if not opening StackDriver, load StackDriver logs.
   if (options.watch) {
     const POLL_INTERVAL = 6000; // 6s
@@ -76,77 +76,78 @@ export default async (options: CommandOption): Promise<void> => {
  */
 const logEntryCache: {[key: string]: boolean} = {};
 
+const severityColor: {[key: string]: chalk.Chalk} = {
+  ERROR: chalk.red,
+  INFO: chalk.cyan,
+  DEBUG: chalk.green, // Includes timeEnd
+  NOTICE: chalk.magenta,
+  WARNING: chalk.yellow,
+};
+
 /**
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
 const printLogs = (
   input: ReadonlyArray<Readonly<loggingV2.Schema$LogEntry>> = [],
-  formatJson: boolean,
-  simplified: boolean
+  formatJson = false,
+  simplified = false
 ): void => {
-  const entries = [...input].reverse(); // Print in syslog ascending order
-  for (let i = 0; i < 50 && entries ? i < entries.length : i < 0; i += 1) {
-    const {
-      severity = '',
-      timestamp = '',
-      resource,
-      textPayload = '',
-      protoPayload = {},
-      jsonPayload = null,
-      insertId = '',
-    } = entries[i];
-    if (!resource || !resource.labels) return;
-    let functionName = resource.labels.function_name;
-    functionName = functionName ? functionName.padEnd(15) : ERROR.NO_FUNCTION_NAME;
-    let payloadData: string | {[key: string]: unknown} = '';
-    if (formatJson) {
-      payloadData = JSON.stringify(entries[i], null, 2);
-    } else {
-      const data = {
-        textPayload,
-        // Chokes on unmatched json payloads
-        // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
-        jsonPayload: jsonPayload ? JSON.stringify(jsonPayload).slice(0, 255) : '',
-        protoPayload,
-      };
-      payloadData = data.textPayload ?? (data.jsonPayload || data.protoPayload) ?? ERROR.PAYLOAD_UNKNOWN;
-      if (payloadData && payloadData['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
-        payloadData = LOG.STACKDRIVER_SETUP;
-        functionName = (protoPayload!.methodName as string).padEnd(15);
+  const entries = [...input].reverse().slice(0, 50); // Print in syslog ascending order
+  for (const entry of entries) {
+    const {severity = '', timestamp = '', resource, insertId = ''} = entry;
+    if (resource?.labels) {
+      let {function_name: functionName = ERROR.NO_FUNCTION_NAME} = resource.labels;
+      functionName = functionName.padEnd(15);
+      let payloadData: string | {[key: string]: unknown} = '';
+      if (formatJson) {
+        payloadData = JSON.stringify(entry, null, 2);
+      } else {
+        const kludge = obscure(entry, functionName);
+        payloadData = kludge.payloadData;
+        functionName = kludge.functionName;
       }
 
-      if (payloadData && typeof payloadData === 'string') {
-        payloadData = payloadData.padEnd(20);
+      const coloredSeverity = `${severityColor[severity!](severity) || severity!}`.padEnd(20);
+
+      // If we haven't logged this entry before, log it and mark the cache.
+      if (!logEntryCache[insertId!]) {
+        console.log(
+          simplified
+            ? `${coloredSeverity} ${functionName} ${payloadData}`
+            : `${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`
+        );
+
+        logEntryCache[insertId!] = true;
       }
-    }
-
-    const coloredStringMap: {[key: string]: string} = {
-      ERROR: chalk.red(severity),
-      INFO: chalk.cyan(severity),
-      DEBUG: chalk.green(severity), // Includes timeEnd
-      NOTICE: chalk.magenta(severity),
-      WARNING: chalk.yellow(severity),
-    };
-
-    const coloredSeverity = `${coloredStringMap[severity!] || severity!}`.padEnd(20);
-
-    // If we haven't logged this entry before, log it and mark the cache.
-    if (!logEntryCache[insertId!]) {
-      console.log(
-        simplified
-          ? `${coloredSeverity} ${functionName} ${payloadData}`
-          : `${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`
-      );
-
-      logEntryCache[insertId!] = true;
     }
   }
 };
 
-const setupLogs = async (): Promise<string> => {
+const obscure = (entry: Readonly<loggingV2.Schema$LogEntry>, functionName: string) => {
+  const {jsonPayload, protoPayload = {}, textPayload} = entry;
+
+  // Chokes on unmatched json payloads
+  // jsonPayload: jsonPayload ? jsonPayload.fields.message.stringValue : '',
+  let payloadData =
+    textPayload ??
+    ((jsonPayload ? JSON.stringify(jsonPayload).slice(0, 255) : '') || protoPayload) ??
+    ERROR.PAYLOAD_UNKNOWN;
+
+  if (typeof payloadData !== 'string' && protoPayload!['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
+    payloadData = LOG.STACKDRIVER_SETUP;
+    functionName = (protoPayload!.methodName as string).padEnd(15);
+  }
+
+  if (payloadData && typeof payloadData === 'string') {
+    payloadData = payloadData.padEnd(20);
+  }
+
+  return {functionName, payloadData};
+};
+
+const setupLogs = async (projectSettings: ProjectSettings): Promise<string> => {
   try {
-    const projectSettings = await getProjectSettings();
     console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
     console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
 
@@ -160,8 +161,8 @@ const setupLogs = async (): Promise<string> => {
       throw new ClaspError(ERROR.SCRIPT_ID_DNE);
     }
 
-    const projectId = (await projectIdPrompt()).projectId;
-    await dotfile.write({...settings, ...{projectId}});
+    const {projectId} = await projectIdPrompt();
+    await dotfile.write({...settings, projectId});
 
     return projectId;
   } catch (error) {
@@ -178,18 +179,11 @@ const setupLogs = async (): Promise<string> => {
  * @param startDate {Date?} Get logs from this date to now.
  */
 const fetchAndPrintLogs = async (
-  formatJson: boolean,
-  simplified: boolean,
+  formatJson = false,
+  simplified = false,
   projectId?: string,
   startDate?: Date
 ): Promise<void> => {
-  const oauthSettings = await loadAPICredentials();
-  spinner.setSpinnerTitle(`${oauthSettings.isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
-
-  // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
-  // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
-  const filter = startDate ? `timestamp >= "${startDate.toISOString()}"` : '';
-
   // Validate projectId
   if (!projectId) {
     throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
@@ -198,6 +192,14 @@ const fetchAndPrintLogs = async (
   if (!isValidProjectId(projectId)) {
     throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(projectId));
   }
+
+  const {isLocalCreds} = await loadAPICredentials();
+
+  spinner.setSpinnerTitle(`${isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
+
+  // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
+  // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
+  const filter = startDate ? `timestamp >= "${startDate.toISOString()}"` : '';
 
   try {
     const logs = await logger.entries.list({
@@ -213,23 +215,19 @@ const fetchAndPrintLogs = async (
     }
 
     // Parse response and print logs or print error message.
-    const parseResponse = (response: GaxiosResponse<loggingV2.Schema$ListLogEntriesResponse>) => {
-      const {data, status, statusText} = response;
+    const {data, status, statusText} = logs;
 
-      switch (status) {
-        case 200:
-          printLogs(data.entries, formatJson, simplified);
-          break;
-        case 401:
-          throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
-        case 403:
-          throw new ClaspError(oauthSettings.isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
-        default:
-          throw new ClaspError(`(${status}) Error: ${statusText}`);
-      }
-    };
-
-    parseResponse(logs);
+    switch (status) {
+      case 200:
+        printLogs(data.entries, formatJson, simplified);
+        break;
+      case 401:
+        throw new ClaspError(isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+      case 403:
+        throw new ClaspError(isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
+      default:
+        throw new ClaspError(`(${status}) Error: ${statusText}`);
+    }
   } catch (error) {
     if (error instanceof ClaspError) {
       throw error;

@@ -1,5 +1,3 @@
-import {drive_v3 as driveV3} from 'googleapis';
-
 import {drive, loadAPICredentials} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
@@ -12,23 +10,31 @@ import {checkIfOnlineOrDie, ellipsize, spinner, stopSpinner} from '../utils';
 export default async (): Promise<void> => {
   await checkIfOnlineOrDie();
   await loadAPICredentials();
+
   spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
-  const filesList = await drive.files.list({
+
+  const {
+    data: {files = []},
+    status,
+  } = await drive.files.list({
     pageSize: 50,
     // Fields isn't currently supported
     // https://github.com/googleapis/google-api-nodejs-client/issues/1374
     // fields: 'nextPageToken, files(id, name)',
     q: 'mimeType="application/vnd.google-apps.script"',
   });
-  if (filesList.status !== 200) throw new ClaspError(ERROR.DRIVE);
-  stopSpinner();
-  const files = filesList.data.files ?? [];
-  if (files.length === 0) {
-    console.log(LOG.FINDING_SCRIPTS_DNE);
-    return;
+
+  if (status !== 200) {
+    throw new ClaspError(ERROR.DRIVE);
   }
 
-  files.forEach((file: Readonly<driveV3.Schema$File>) =>
-    console.log(`${ellipsize(file.name!, 20)} - ${URL.SCRIPT(file.id ?? '')}`)
-  );
+  stopSpinner();
+
+  if (files.length > 0) {
+    for (const file of files) {
+      console.log(`${ellipsize(file.name!, 20)} - ${URL.SCRIPT(file.id ?? '')}`);
+    }
+  } else {
+    console.log(LOG.FINDING_SCRIPTS_DNE);
+  }
 };

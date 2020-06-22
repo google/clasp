@@ -69,11 +69,12 @@ export const serviceUsage = google.serviceusage({version: 'v1', auth: globalOAut
 export const getLocalScript = async (): Promise<scriptV1.Script> =>
   google.script({version: 'v1', auth: localOAuth2Client});
 
-const defaultScopes = [
+export const scopeWebAppDeploy = 'https://www.googleapis.com/auth/script.webapp.deploy'; // Scope needed for script.run
+export const defaultScopes = [
   // Default to clasp scopes
   'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
   'https://www.googleapis.com/auth/script.projects', // Apps Script management
-  'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+  scopeWebAppDeploy, // Apps Script Web Apps
   'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
   'https://www.googleapis.com/auth/drive.file', // Create Drive files
   'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API

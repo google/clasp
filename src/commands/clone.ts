@@ -46,16 +46,14 @@ export default async (
  */
 const getScriptId = async (): Promise<string> => {
   await loadAPICredentials();
-  const list = await drive.files.list({
-    // pageSize: 10,
+  const {data, statusText} = await drive.files.list({
     // fields: 'files(id, name)',
     orderBy: 'modifiedByMeTime desc',
+    // pageSize: 10,
     q: 'mimeType="application/vnd.google-apps.script"',
   });
-
-  const {data} = list;
   if (!data) {
-    throw new ClaspError(list.statusText ?? 'Unable to use the Drive API.');
+    throw new ClaspError(statusText ?? 'Unable to use the Drive API.');
   }
 
   const {files = []} = data;

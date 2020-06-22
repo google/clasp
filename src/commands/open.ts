@@ -1,4 +1,3 @@
-import {script_v1 as scriptV1} from 'googleapis';
 import open from 'open';
 
 import {loadAPICredentials, script} from '../auth';
@@ -18,10 +17,10 @@ interface CommandOption {
 
 const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<string> => {
   const {
-    deployment: {deploymentId: depIdFromPrompt},
+    deployment: {deploymentId},
   } = await deploymentIdPrompt(choices);
 
-  return depIdFromPrompt as string;
+  return deploymentId as string;
 };
 
 /**
@@ -35,7 +34,6 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
   const projectSettings = await getProjectSettings();
 
   const currentScriptId = scriptId ?? projectSettings.scriptId;
-
   if (currentScriptId.length < 30) {
     throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(currentScriptId));
   }
@@ -69,31 +67,33 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
 };
 
 const openAddon = async (projectSettings: ProjectSettings) => {
-  const {parentId} = projectSettings;
-  if (!parentId || parentId.length === 0) {
+  const {parentId: parentIdList = []} = projectSettings;
+  if (parentIdList.length === 0) {
     throw new ClaspError(ERROR.NO_PARENT_ID);
   }
 
-  if (parentId.length > 1) {
-    parentId.forEach(id => {
-      console.log(LOG.FOUND_PARENT(id));
-    });
+  if (parentIdList.length > 1) {
+    parentIdList.forEach(id => console.log(LOG.FOUND_PARENT(id)));
   }
 
-  console.log(LOG.OPEN_FIRST_PARENT(parentId[0]));
-  await open(URL.DRIVE(parentId[0]));
-  return;
+  const parentId = parentIdList[0];
+  console.log(LOG.OPEN_FIRST_PARENT(parentId));
+  await open(URL.DRIVE(parentId));
 };
 
 const openWebApp = async (scriptId: string, optionsDeploymentId?: string) => {
   // Web app: open the latest deployment.
   await loadAPICredentials();
-  const deploymentsList = await script.projects.deployments.list({scriptId});
-  if (deploymentsList.status !== 200) {
-    throw new ClaspError(deploymentsList.statusText);
+  const {
+    data: {deployments = []},
+    status,
+    statusText,
+  } = await script.projects.deployments.list({scriptId});
+  if (status !== 200) {
+    throw new ClaspError(statusText);
   }
 
-  const deployments: Array<Readonly<scriptV1.Schema$Deployment>> = deploymentsList.data.deployments ?? [];
+  // const {deployments = []} = data;
   if (deployments.length === 0) {
     throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }

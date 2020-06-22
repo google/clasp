@@ -1,6 +1,6 @@
 import {fetchProject, writeProjectFiles} from '../files';
 import {LOG} from '../messages';
-import {checkIfOnlineOrDie, getProjectSettings, spinner} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -15,8 +15,11 @@ export default async (options: CommandOption): Promise<void> => {
   await checkIfOnlineOrDie();
   const {scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
-    spinner.setSpinnerTitle(LOG.PULLING);
+    spinner.setSpinnerTitle(LOG.PULLING).start();
+
     const files = await fetchProject(scriptId, options.versionNumber);
     await writeProjectFiles(files, rootDir);
+
+    stopSpinner();
   }
 };

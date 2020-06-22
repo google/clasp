@@ -7,7 +7,7 @@ import {watchTree} from 'watch';
 import {loadAPICredentials} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {FS_OPTIONS, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants';
-import {DOT, DOTFILE} from '../dotfile';
+import {DOT, DOTFILE, ProjectSettings} from '../dotfile';
 import {fetchProject, pushFiles} from '../files';
 import {overwritePrompt} from '../inquirer';
 import {isValidManifest} from '../manifest';
@@ -28,7 +28,8 @@ export default async (options: CommandOption): Promise<void> => {
   await checkIfOnlineOrDie();
   await loadAPICredentials();
   await isValidManifest();
-  const {rootDir = '.'} = await getProjectSettings();
+  const projectSettings = await getProjectSettings();
+  const {rootDir = '.'} = projectSettings;
 
   if (options.watch) {
     console.log(LOG.PUSH_WATCH);
@@ -37,7 +38,8 @@ export default async (options: CommandOption): Promise<void> => {
      * @see https://www.npmjs.com/package/watch
      */
     // TODO check alternative https://github.com/paulmillr/chokidar
-    watchTree(rootDir, async f => {
+    // TODO better use of watchTree api
+    watchTree(rootDir, {}, async f => {
       // The first watch doesn't give a string for some reason.
       if (typeof f === 'string') {
         console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
@@ -47,7 +49,7 @@ export default async (options: CommandOption): Promise<void> => {
         }
       }
 
-      if (!options.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
+      if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
         console.log('Stopping push…');
         return;
       }
@@ -55,39 +57,37 @@ export default async (options: CommandOption): Promise<void> => {
       console.log(LOG.PUSHING);
       await pushFiles();
     });
-  } else {
-    if (!options.force && (await manifestHasChanges()) && !(await confirmManifestUpdate())) {
-      console.log('Stopping push…');
-      return;
-    }
 
-    spinner.setSpinnerTitle(LOG.PUSHING).start();
-    await pushFiles();
+    return;
   }
+
+  if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
+    console.log('Stopping push…');
+    return;
+  }
+
+  spinner.setSpinnerTitle(LOG.PUSHING).start();
+  await pushFiles();
 };
 
 /**
  * Confirms that the manifest file has been updated.
  * @returns {Promise<boolean>}
  */
-const confirmManifestUpdate = async (): Promise<boolean> => {
-  const answers = await overwritePrompt();
-  return answers.overwrite;
-};
+const confirmManifestUpdate = async (): Promise<boolean> => (await overwritePrompt()).overwrite;
 
 /**
  * Checks if the manifest has changes.
  * @returns {Promise<boolean>}
  */
-const manifestHasChanges = async (): Promise<boolean> => {
-  const {scriptId, rootDir = DOT.PROJECT.DIR} = await getProjectSettings();
-  const localManifestPath = path.join(rootDir, PROJECT_MANIFEST_FILENAME);
-  const localManifest = readFileSync(localManifestPath, FS_OPTIONS);
+const manifestHasChanges = async (projectSettings: ProjectSettings): Promise<boolean> => {
+  const {scriptId, rootDir = DOT.PROJECT.DIR} = projectSettings;
+  const localManifest = readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
-  if (!remoteManifest) {
-    throw new ClaspError('remote manifest no found');
+  if (remoteManifest) {
+    return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);
   }
 
-  return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);
+  throw new ClaspError('remote manifest no found');
 };
