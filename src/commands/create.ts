@@ -54,7 +54,7 @@ export default async (options: CommandOption): Promise<void> => {
   };
   const mimeType = DRIVE_FILE_MIMETYPES[filetype];
   if (mimeType) {
-    spinner.setSpinnerTitle(LOG.CREATE_DRIVE_FILE_START(filetype)).start();
+    spinner.start(LOG.CREATE_DRIVE_FILE_START(filetype));
 
     const {
       data: {id: newParentId},
@@ -67,9 +67,16 @@ export default async (options: CommandOption): Promise<void> => {
   }
 
   // CLI Spinner
-  spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(name)).start();
+  spinner.start(LOG.CREATE_PROJECT_START(name));
 
-  if ((await getProjectSettings(true)).scriptId) {
+  let projectExist: boolean;
+  try {
+    projectExist = typeof (await getProjectSettings()).scriptId === 'string';
+  } catch {
+    projectExist = false;
+  }
+
+  if (projectExist) {
     throw new ClaspError(ERROR.NO_NESTED_PROJECTS);
   }
 

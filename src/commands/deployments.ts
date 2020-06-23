@@ -11,7 +11,7 @@ export default async (): Promise<void> => {
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (scriptId) {
-    spinner.setSpinnerTitle(LOG.DEPLOYMENT_LIST(scriptId)).start();
+    spinner.start(LOG.DEPLOYMENT_LIST(scriptId));
 
     const {
       data: {deployments = []},

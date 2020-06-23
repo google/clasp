@@ -15,7 +15,7 @@ export default async (options: CommandOption): Promise<void> => {
   await checkIfOnlineOrDie();
   const {scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
-    spinner.setSpinnerTitle(LOG.PULLING).start();
+    spinner.start(LOG.PULLING);
 
     const files = await fetchProject(scriptId, options.versionNumber);
     await writeProjectFiles(files, rootDir);

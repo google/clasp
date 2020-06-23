@@ -195,7 +195,7 @@ const fetchAndPrintLogs = async (
 
   const {isLocalCreds} = await loadAPICredentials();
 
-  spinner.setSpinnerTitle(`${isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`).start();
+  spinner.start(`${isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`);
 
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
   // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time

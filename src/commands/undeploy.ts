@@ -46,7 +46,7 @@ export default async (deploymentId: string | undefined, options: CommandOption):
 };
 
 const deleteDeployment = async (scriptId: string, deploymentId: string) => {
-  spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
+  spinner.start(LOG.UNDEPLOYMENT_START(deploymentId));
 
   const {status} = await script.projects.deployments.delete({scriptId, deploymentId});
   if (status !== 200) {

@@ -66,7 +66,7 @@ export default async (options: CommandOption): Promise<void> => {
     return;
   }
 
-  spinner.setSpinnerTitle(LOG.PUSHING).start();
+  spinner.start(LOG.PUSHING);
   await pushFiles();
 };
 

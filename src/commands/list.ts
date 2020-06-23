@@ -11,7 +11,7 @@ export default async (): Promise<void> => {
   await checkIfOnlineOrDie();
   await loadAPICredentials();
 
-  spinner.setSpinnerTitle(LOG.FINDING_SCRIPTS).start();
+  spinner.start(LOG.FINDING_SCRIPTS);
 
   const {
     data: {files = []},

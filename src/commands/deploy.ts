@@ -24,7 +24,7 @@ export default async (options: CommandOption): Promise<void> => {
     return;
   }
 
-  spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
+  spinner.start(LOG.DEPLOYMENT_START(scriptId));
 
   let {versionNumber} = options;
   const {deploymentId, description = ''} = options;
@@ -45,7 +45,7 @@ export default async (options: CommandOption): Promise<void> => {
     console.log(LOG.VERSION_CREATED(versionNumber));
   }
 
-  spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
+  spinner.start(LOG.DEPLOYMENT_CREATE);
 
   const deploymentConfig = {description, manifestFileName, versionNumber};
   // If no deploymentId, create a new deployment

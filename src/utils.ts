@@ -1,8 +1,8 @@
-import {Spinner} from 'cli-spinner';
 import cliTruncate from 'cli-truncate';
 import fs from 'fs-extra';
 import {script_v1 as scriptV1} from 'googleapis';
 import isOnline from 'is-online';
+import ora from 'ora';
 import path from 'path';
 
 import {ClaspError} from './clasp-error';
@@ -57,12 +57,12 @@ export const getOAuthSettings = async (local: boolean): Promise<ClaspToken> => {
   }
 };
 
-export const spinner = new Spinner();
+export const spinner = ora(); // new Spinner();
 
 /** Stops the spinner if it is spinning */
 export const stopSpinner = () => {
-  if (spinner.isSpinning()) {
-    spinner.stop(true);
+  if (spinner.isSpinning) {
+    spinner.stop();
   }
 };
 
@@ -120,25 +120,18 @@ export const getDefaultProjectName = (): string => capitalize(path.basename(proc
  * Logs errors.
  *
  * ! Should be used instead of `DOTFILE.PROJECT().read()`
- * @param  {boolean} failSilently Don't throw an error when dot file DNE.
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
-export const getProjectSettings = async (failSilently?: boolean): Promise<ProjectSettings> => {
+export const getProjectSettings = async (): Promise<ProjectSettings> => {
   try {
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
-      try {
-        const settings = await dotfile.read<ProjectSettings>();
+      const settings = await dotfile.read<ProjectSettings>();
 
-        // Settings must have the script ID. Otherwise we err.
-        if (settings.scriptId) {
-          return settings;
-        }
-      } catch {
-        if (failSilently) {
-          return ({} as unknown) as ProjectSettings;
-        }
+      // Settings must have the script ID. Otherwise we err.
+      if (settings.scriptId) {
+        return settings;
       }
     }
 

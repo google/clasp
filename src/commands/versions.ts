@@ -12,7 +12,7 @@ export default async (): Promise<void> => {
   await checkIfOnlineOrDie();
   await loadAPICredentials();
 
-  spinner.setSpinnerTitle('Grabbing versions…').start();
+  spinner.start('Grabbing versions…');
 
   const {scriptId} = await getProjectSettings();
   const versionList = await getVersionList(scriptId);

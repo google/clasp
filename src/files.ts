@@ -1,6 +1,6 @@
 import findUp from 'find-up';
 import fs from 'fs-extra';
-import mkdirp from 'mkdirp';
+import makeDir from 'make-dir';
 import multimatch from 'multimatch';
 import path from 'path';
 import recursive from 'recursive-readdir';
@@ -333,7 +333,7 @@ export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') =
     for await (const file of fileList) {
       const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension)}`;
       const truePath = `${rootDir || '.'}/${filePath}`;
-      await mkdirp(path.dirname(truePath));
+      await makeDir(path.dirname(truePath));
       fs.writeFile(truePath, file.source, (error: Readonly<NodeJS.ErrnoException>) => {
         if (error) {
           throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_FILE_WRITE);

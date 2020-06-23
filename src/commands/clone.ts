@@ -33,7 +33,7 @@ export default async (
 
   const id = scriptId ? extractScriptId(scriptId) : await getScriptId();
 
-  spinner.setSpinnerTitle(LOG.CLONING);
+  spinner.start(LOG.CLONING);
 
   const {rootDir} = options;
   await saveProject({scriptId: id, rootDir}, false);

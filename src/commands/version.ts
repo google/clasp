@@ -14,7 +14,7 @@ export default async (description?: string): Promise<void> => {
   const {scriptId} = await getProjectSettings();
   description = description ?? (await descriptionPrompt()).description;
 
-  spinner.setSpinnerTitle(LOG.VERSION_CREATE).start();
+  spinner.start(LOG.VERSION_CREATE);
 
   const {data, status, statusText} = await script.projects.versions.create({scriptId, requestBody: {description}});
   if (status !== 200) {

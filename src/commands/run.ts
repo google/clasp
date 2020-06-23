@@ -25,7 +25,7 @@ interface CommandOption {
 export default async (functionName: string, options: CommandOption): Promise<void> => {
   await checkIfOnlineOrDie();
   await loadAPICredentials();
-  const {scriptId} = await getProjectSettings(true);
+  const {scriptId} = await getProjectSettings();
   const devMode = !options.nondev; // Defaults to true
   const {params: jsonString = '[]'} = options;
   const parameters = parseJsonOrDie<string[]>(jsonString);
@@ -58,7 +58,7 @@ const runFunction = async (functionName: string, parameters: string[], scriptId:
     await loadAPICredentials(true);
     const localScript = await getLocalScript();
 
-    spinner.setSpinnerTitle(`Running function: ${functionName}`).start();
+    spinner.start(`Running function: ${functionName}`);
 
     const apiResponse = await localScript.scripts.run({
       scriptId,

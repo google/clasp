@@ -15,7 +15,7 @@ type TypeFunction = Readonly<scriptV1.Schema$GoogleAppsScriptTypeFunction>;
  * Prompts for the function name.
  */
 export const getFunctionNames = async (script: ReadonlyDeep<scriptV1.Script>, scriptId: string): Promise<string> => {
-  spinner.setSpinnerTitle('Getting functions').start();
+  spinner.start('Getting functions');
   const content = await script.projects.getContent({scriptId});
   stopSpinner();
   if (content.status !== 200) {
