@@ -127,11 +127,15 @@ export const getProjectSettings = async (): Promise<ProjectSettings> => {
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
-      const settings = await dotfile.read<ProjectSettings>();
+      try {
+        const settings = await dotfile.read<ProjectSettings>();
 
-      // Settings must have the script ID. Otherwise we err.
-      if (settings.scriptId) {
-        return settings;
+        // Settings must have the script ID. Otherwise we err.
+        if (settings.scriptId) {
+          return settings;
+        }
+      } catch (error) {
+        throw new ClaspError(ERROR.SETTINGS_DNE); // Never found a dotfile
       }
     }
 
