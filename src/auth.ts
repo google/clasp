@@ -12,7 +12,7 @@ import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
 // import {oauthScopesPrompt} from './inquirer';
 // import {readManifest} from './manifest';
 import {ERROR, LOG} from './messages';
-import {checkIfOnline, ClaspCredentials, getOAuthSettings} from './utils';
+import {checkIfOnlineOrDie, ClaspCredentials, getOAuthSettings} from './utils';
 
 /**
  * Authentication with Google's APIs.
@@ -69,6 +69,23 @@ export const serviceUsage = google.serviceusage({version: 'v1', auth: globalOAut
 export const getLocalScript = async (): Promise<scriptV1.Script> =>
   google.script({version: 'v1', auth: localOAuth2Client});
 
+export const scopeWebAppDeploy = 'https://www.googleapis.com/auth/script.webapp.deploy'; // Scope needed for script.run
+export const defaultScopes = [
+  // Default to clasp scopes
+  'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+  'https://www.googleapis.com/auth/script.projects', // Apps Script management
+  scopeWebAppDeploy, // Apps Script Web Apps
+  'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+  'https://www.googleapis.com/auth/drive.file', // Create Drive files
+  'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+  'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+  'https://www.googleapis.com/auth/userinfo.email', // User email address
+  'https://www.googleapis.com/auth/userinfo.profile',
+
+  // Extra scope since service.management doesn't work alone
+  'https://www.googleapis.com/auth/cloud-platform',
+];
+
 /**
  * Requests authorization to manage Apps Script projects.
  * @param {boolean} useLocalhost Uses a local HTTP server if true. Manual entry o.w.
@@ -108,37 +125,10 @@ export const authorize = async (options: {
     let scope = (options.creds
       ? // Set scopes to custom scopes
         options.scopes
-      : [
-          // Default to clasp scopes
-          'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
-          'https://www.googleapis.com/auth/script.projects', // Apps Script management
-          'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
-          'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
-          'https://www.googleapis.com/auth/drive.file', // Create Drive files
-          'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
-          'https://www.googleapis.com/auth/logging.read', // StackDriver logs
-          'https://www.googleapis.com/auth/userinfo.email', // User email address
-          'https://www.googleapis.com/auth/userinfo.profile',
+      : defaultScopes) as string[];
 
-          // Extra scope since service.management doesn't work alone
-          'https://www.googleapis.com/auth/cloud-platform',
-        ]) as string[];
     if (options.creds && scope.length === 0) {
-      scope = [
-        // Default to clasp scopes
-        'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
-        'https://www.googleapis.com/auth/script.projects', // Apps Script management
-        'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
-        'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
-        'https://www.googleapis.com/auth/drive.file', // Create Drive files
-        'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
-        'https://www.googleapis.com/auth/logging.read', // StackDriver logs
-        'https://www.googleapis.com/auth/userinfo.email', // User email address
-        'https://www.googleapis.com/auth/userinfo.profile',
-
-        // Extra scope since service.management doesn't work alone
-        'https://www.googleapis.com/auth/cloud-platform',
-      ];
+      scope = defaultScopes;
       // TODO formal error
       // throw new ClaspError('You need to specify scopes in the manifest.' +
       // 'View appsscript.json. Add a list of scopes in "oauthScopes"' +
@@ -161,14 +151,11 @@ export const authorize = async (options: {
     let dotfile: Dotfile;
     if (options.creds) {
       dotfile = DOTFILE.RC_LOCAL();
+      const {client_id: clientId, client_secret: clientSecret, redirect_uris: redirectUri} = options.creds.installed;
       // Save local ClaspCredentials.
       claspToken = {
         token,
-        oauth2ClientSettings: {
-          clientId: options.creds.installed.client_id,
-          clientSecret: options.creds.installed.client_secret,
-          redirectUri: options.creds.installed.redirect_uris[0],
-        },
+        oauth2ClientSettings: {clientId, clientSecret, redirectUri: redirectUri[0]},
         isLocalCreds: true,
       };
     } else {
@@ -195,8 +182,7 @@ export const authorize = async (options: {
 export const getLoggedInEmail = async () => {
   await loadAPICredentials();
   try {
-    const {email} = (await google.oauth2('v2').userinfo.get({auth: globalOAuth2Client})).data;
-    return email;
+    return (await google.oauth2('v2').userinfo.get({auth: globalOAuth2Client})).data.email;
   } catch {
     return;
   }
@@ -299,16 +285,16 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
    */
   const refreshCredentials = async (oAuthClient: ReadonlyDeep<OAuth2Client>) => {
     await oAuthClient.getAccessToken(); // Refreshes expiry date if required
-    if (oAuthClient.credentials.expiry_date === (oAuthClient.credentials.expiry_date ?? 0)) {
-      return;
-    }
+    const {expiry_date = 0} = oAuthClient.credentials;
 
-    rc.token = oAuthClient.credentials;
+    if (expiry_date !== expiry_date) {
+      rc.token = oAuthClient.credentials;
+    }
   };
 
   // Set credentials and refresh them.
   try {
-    await checkIfOnline();
+    await checkIfOnlineOrDie();
     if (rc.isLocalCreds) {
       const {clientId, clientSecret, redirectUri} = rc.oauth2ClientSettings;
       localOAuth2Client = new OAuth2Client({clientId, clientSecret, redirectUri});

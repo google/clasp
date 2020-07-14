@@ -1,7 +1,7 @@
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -12,7 +12,7 @@ interface CommandOption {
  * @param deploymentId {string} The deployment's ID
  */
 export default async (deploymentId: string | undefined, options: CommandOption): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (scriptId) {
@@ -27,9 +27,7 @@ export default async (deploymentId: string | undefined, options: CommandOption):
       return;
     }
 
-    if (deploymentId) {
-      await deleteDeployment(scriptId, deploymentId);
-    } else {
+    if (!deploymentId) {
       const deployments = await listDeployments(scriptId);
 
       // @HEAD (Read-only deployments) may not be deleted.
@@ -40,13 +38,16 @@ export default async (deploymentId: string | undefined, options: CommandOption):
         throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
       }
 
-      await deleteDeployment(scriptId, lastDeployment.deploymentId as string);
+      deploymentId = lastDeployment.deploymentId as string;
     }
+
+    await deleteDeployment(scriptId, deploymentId);
   }
 };
 
 const deleteDeployment = async (scriptId: string, deploymentId: string) => {
-  spinner.setSpinnerTitle(LOG.UNDEPLOYMENT_START(deploymentId)).start();
+  spinner.start(LOG.UNDEPLOYMENT_START(deploymentId));
+
   const {status} = await script.projects.deployments.delete({scriptId, deploymentId});
   if (status !== 200) {
     throw new ClaspError(ERROR.READ_ONLY_DELETE);
@@ -62,9 +63,10 @@ const listDeployments = async (scriptId: string) => {
     throw new ClaspError(statusText);
   }
 
-  const deployments = data.deployments ?? [];
+  const {deployments = []} = data;
   if (deployments.length === 0) {
     throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
+
   return deployments;
 };

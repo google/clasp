@@ -351,8 +351,9 @@ if (args.length === 0) {
     await commander.parseAsync(process.argv);
     stopSpinner();
   } catch (error) {
-    spinner.stop(true);
+    spinner.stop();
     if (error instanceof ClaspError) {
+      // ClaspError handles process.exitCode
       console.error(error.message);
     } else if (error instanceof Error) {
       process.exitCode = 1;

@@ -1,6 +1,6 @@
 import findUp from 'find-up';
 import fs from 'fs-extra';
-import mkdirp from 'mkdirp';
+import makeDir from 'make-dir';
 import multimatch from 'multimatch';
 import path from 'path';
 import recursive from 'recursive-readdir';
@@ -12,19 +12,19 @@ import {ClaspError} from './clasp-error';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOT, DOTFILE} from './dotfile';
 import {ERROR, LOG} from './messages';
-import {checkIfOnline, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils';
+import {checkIfOnlineOrDie, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils';
 
 // An Apps Script API File
 interface AppsScriptFile {
   readonly name: string;
-  readonly type: string;
   readonly source: string;
+  readonly type: string;
 }
 
 interface ProjectFile {
-  readonly source: string;
   readonly isIgnored: boolean;
   readonly name: string;
+  readonly source: string;
   readonly type: string;
 }
 
@@ -138,12 +138,12 @@ const getContentOfProjectFiles = (files: ProjectFile[]) => {
 const getAppsScriptFilesFromProjectFiles = (files: ProjectFile[], rootDir: string) =>
   getContentOfProjectFiles(files).map(
     (file): AppsScriptFile => {
-      const {source, name, type} = file;
+      const {name, source, type} = file;
 
       return {
         name: getAppsScriptFileName(rootDir, name), // The file base name
-        type, // The file extension
         source, // The file contents
+        type, // The file extension
       };
     }
   );
@@ -195,7 +195,7 @@ export const hasProject = (): boolean => fs.existsSync(DOT.PROJECT.PATH);
 
 /**
  * Returns in tsconfig.json.
- * @returns {ts.TranspileOptions} if tsconfig.json not exists, return undefined.
+ * @returns {ts.TranspileOptions} if tsconfig.json not exists, return an empty object.
  */
 const getTranspileOptions = (): ts.TranspileOptions => {
   const projectPath = findUp.sync(DOT.PROJECT.PATH);
@@ -286,7 +286,7 @@ export const fetchProject = async (
   versionNumber?: number,
   silent = false
 ): Promise<AppsScriptFile[]> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   spinner.start();
   let response;
@@ -333,7 +333,7 @@ export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') =
     for await (const file of fileList) {
       const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension)}`;
       const truePath = `${rootDir || '.'}/${filePath}`;
-      await mkdirp(path.dirname(truePath));
+      await makeDir(path.dirname(truePath));
       fs.writeFile(truePath, file.source, (error: Readonly<NodeJS.ErrnoException>) => {
         if (error) {
           throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_FILE_WRITE);

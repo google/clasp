@@ -1,7 +1,7 @@
 import {getAllProjectFiles, getOrderedProjectFiles, logFileList, splitProjectFiles} from '../files';
 // import {isValidManifest} from '../manifest';
 import {LOG} from '../messages';
-import {checkIfOnline, getProjectSettings} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings} from '../utils';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -12,22 +12,23 @@ interface CommandOption {
  * @param options.json {boolean} Displays the status in json format.
  */
 export default async (options: CommandOption = {json: false}): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   // await isValidManifest();
   const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
     const [toPush, toIgnore] = splitProjectFiles(await getAllProjectFiles(rootDir));
     const filesToPush = getOrderedProjectFiles(toPush, filePushOrder).map(file => file.name);
-    const filesToIgnore = toIgnore.map(file => file.name);
+    const untrackedFiles = toIgnore.map(file => file.name);
 
     if (options.json) {
-      console.log(JSON.stringify({filesToPush, untrackedFiles: filesToIgnore}));
-    } else {
-      console.log(LOG.STATUS_PUSH);
-      logFileList(filesToPush);
-      console.log(); // Separate Ignored files list.
-      console.log(LOG.STATUS_IGNORE);
-      logFileList(filesToIgnore);
+      console.log(JSON.stringify({filesToPush, untrackedFiles}));
+      return;
     }
+
+    console.log(LOG.STATUS_PUSH);
+    logFileList(filesToPush);
+    console.log(); // Separate Ignored files list.
+    console.log(LOG.STATUS_IGNORE);
+    logFileList(untrackedFiles);
   }
 };

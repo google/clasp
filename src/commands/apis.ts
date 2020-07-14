@@ -9,7 +9,10 @@ import {discovery, loadAPICredentials, serviceUsage} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR} from '../messages';
 import {URL} from '../urls';
-import {checkIfOnline, getProjectId} from '../utils';
+import {checkIfOnlineOrDie, getProjectId} from '../utils';
+
+type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
+type PublicAdvancedService = ReadonlyDeep<Required<NonNullable<DirectoryItem>>>;
 
 interface CommandOption {
   readonly open?: string;
@@ -32,15 +35,13 @@ export default async (options: CommandOption): Promise<void> => {
   const [bin, sourcePath, ...args] = process.argv;
   // @ts-expect-error
   const [command, subCommand, serviceName] = args;
-  // const subCommand: string = process.argv[3]; // Clasp apis list => "list"
-  // const serviceName = process.argv[4]; // Clasp apis enable drive => "drive"
 
   // The apis subcommands.
   const apiSubCommands: {[key: string]: () => Promise<void>} = {
     disable: async () => enableOrDisableAPI(serviceName, false),
     enable: async () => enableOrDisableAPI(serviceName, true),
     list: async () => {
-      await checkIfOnline();
+      await checkIfOnlineOrDie();
       /**
        * List currently enabled APIs.
        */
@@ -75,9 +76,6 @@ export default async (options: CommandOption): Promise<void> => {
       const {data} = await discovery.apis.list({
         preferred: true,
       });
-
-      type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
-      type PublicAdvancedService = ReadonlyDeep<Required<NonNullable<DirectoryItem>>>;
 
       const services: DirectoryItem[] = data.items ?? [];
       // Only get the public service IDs

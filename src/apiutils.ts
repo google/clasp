@@ -9,24 +9,27 @@ import {enableOrDisableAdvanceServiceInManifest} from './manifest';
 import {ERROR} from './messages';
 import {getProjectId, spinner, stopSpinner} from './utils';
 
+type TypeFunction = Readonly<scriptV1.Schema$GoogleAppsScriptTypeFunction>;
+
 /**
  * Prompts for the function name.
  */
 export const getFunctionNames = async (script: ReadonlyDeep<scriptV1.Script>, scriptId: string): Promise<string> => {
-  spinner.setSpinnerTitle('Getting functions').start();
-  const content = await script.projects.getContent({
-    scriptId,
-  });
+  spinner.start('Getting functions');
+  const content = await script.projects.getContent({scriptId});
   stopSpinner();
-  if (content.status !== 200) throw new ClaspError(content.statusText);
-  const files = content.data.files ?? [];
-  type TypeFunction = scriptV1.Schema$GoogleAppsScriptTypeFunction;
+  if (content.status !== 200) {
+    throw new ClaspError(content.statusText);
+  }
+
+  const {files = []} = content.data;
   const functionNames: string[] = files
-    .reduce((functions: ReadonlyArray<Readonly<TypeFunction>>, file: Readonly<scriptV1.Schema$File>) => {
-      if (!file.functionSet || !file.functionSet.values) return functions;
-      return functions.concat(file.functionSet.values);
-    }, [])
-    .map((func: Readonly<TypeFunction>) => func.name) as string[];
+    .reduce(
+      (functions: ReadonlyArray<TypeFunction>, file: Readonly<scriptV1.Schema$File>) =>
+        file.functionSet && file.functionSet.values ? [...functions, ...file.functionSet.values] : functions,
+      []
+    )
+    .map((func: TypeFunction) => func.name) as string[];
 
   // Returns a Promise
   // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
@@ -34,20 +37,19 @@ export const getFunctionNames = async (script: ReadonlyDeep<scriptV1.Script>, sc
   const source: functionNameSource = async (_answers: object, input = '') =>
     fuzzy.filter(input, functionNames).map(element => element.original);
 
-  const answers = await functionNamePrompt(source);
-  return answers.functionName;
+  return (await functionNamePrompt(source)).functionName;
 };
 
 /**
  * Gets the project ID from the manifest. If there is no project ID, it returns an error.
  */
-const getProjectIdWithErrors = async (): Promise<string> => {
+const getProjectIdOrDie = async (): Promise<string> => {
   const projectId = await getProjectId(); // Will prompt user to set up if required
-  if (!projectId) {
-    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
+  if (projectId) {
+    return projectId;
   }
 
-  return projectId;
+  throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
 };
 
 // /**
@@ -66,9 +68,11 @@ const getProjectIdWithErrors = async (): Promise<string> => {
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
 export const enableOrDisableAPI = async (serviceName: string, enable: boolean): Promise<void> => {
-  if (!serviceName) throw new ClaspError('An API name is required. Try sheets');
-  const projectId = await getProjectIdWithErrors();
-  const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
+  if (!serviceName) {
+    throw new ClaspError('An API name is required. Try sheets');
+  }
+
+  const name = `projects/${await getProjectIdOrDie()}/services/${serviceName}.googleapis.com`;
   try {
     if (enable) {
       await serviceUsage.services.enable({name});
@@ -96,7 +100,6 @@ export const enableOrDisableAPI = async (serviceName: string, enable: boolean): 
  */
 export const enableAppsScriptAPI = async (): Promise<void> => {
   await loadAPICredentials();
-  const projectId = await getProjectIdWithErrors();
-  const name = `projects/${projectId}/services/script.googleapis.com`;
+  const name = `projects/${await getProjectIdOrDie()}/services/script.googleapis.com`;
   await serviceUsage.services.enable({name});
 };

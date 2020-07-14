@@ -17,15 +17,15 @@ export type functionNameSource = (
  * Inquirer prompt for a functionName.
  * @returns {Promise<{ functionName: string }>} A promise for an object with the `functionName` property.
  */
-export const functionNamePrompt = (source: functionNameSource) => {
-  const question = {
-    name: 'functionName',
-    message: 'Select a functionName',
-    type: 'autocomplete',
-    source,
-  };
-  return prompt<{functionName: string}>([question]);
-};
+export const functionNamePrompt = (source: functionNameSource) =>
+  prompt<{functionName: string}>([
+    {
+      name: 'functionName',
+      message: 'Select a functionName',
+      type: 'autocomplete',
+      source,
+    },
+  ]);
 
 export interface DeploymentIdPromptChoice {
   name: string;

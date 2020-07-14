@@ -1,8 +1,8 @@
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
-import {PROJECT_MANIFEST_BASENAME} from '../constants';
+import {PROJECT_MANIFEST_BASENAME as manifestFileName} from '../constants';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -17,62 +17,58 @@ interface CommandOption {
  * @param options.deploymentId  {string} The deployment ID to redeploy.
  */
 export default async (options: CommandOption): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (!scriptId) {
     return;
   }
 
-  spinner.setSpinnerTitle(LOG.DEPLOYMENT_START(scriptId)).start();
+  spinner.start(LOG.DEPLOYMENT_START(scriptId));
+
   let {versionNumber} = options;
-  const {description = '', deploymentId} = options;
+  const {deploymentId, description = ''} = options;
 
   // If no version, create a new version
   if (!versionNumber) {
-    const version = await script.projects.versions.create({
-      scriptId,
-      requestBody: {
-        description,
-      },
-    });
-    if (version.status !== 200) {
+    const {
+      data: {versionNumber: newVersionNumber},
+      status,
+    } = await script.projects.versions.create({requestBody: {description}, scriptId});
+    if (status !== 200) {
       throw new ClaspError(ERROR.ONE_DEPLOYMENT_CREATE);
     }
 
     stopSpinner();
-    versionNumber = version.data.versionNumber ?? 0;
+
+    versionNumber = newVersionNumber ?? 0;
     console.log(LOG.VERSION_CREATED(versionNumber));
   }
 
-  spinner.setSpinnerTitle(LOG.DEPLOYMENT_CREATE);
-  let deployments;
-  if (deploymentId) {
-    // Elseif, update deployment
-    deployments = await script.projects.deployments.update({
-      scriptId,
-      deploymentId,
-      requestBody: {
-        deploymentConfig: {
-          versionNumber,
-          manifestFileName: PROJECT_MANIFEST_BASENAME,
-          description,
-        },
-      },
-    });
-  } else {
-    // If no deploymentId, create a new deployment
-    deployments = await script.projects.deployments.create({
-      scriptId,
-      requestBody: {
-        versionNumber,
-        manifestFileName: PROJECT_MANIFEST_BASENAME,
-        description,
-      },
-    });
+  spinner.start(LOG.DEPLOYMENT_CREATE);
+
+  const deploymentConfig = {description, manifestFileName, versionNumber};
+  // If no deploymentId, create a new deployment
+  // Else, update deployment
+  const {
+    data: {deploymentId: newDeploymentId},
+    status,
+  } = deploymentId
+    ? await script.projects.deployments.update({
+        scriptId,
+        deploymentId,
+        requestBody: {deploymentConfig},
+      })
+    : await script.projects.deployments.create({
+        scriptId,
+        requestBody: deploymentConfig,
+      });
+
+  if (status !== 200) {
+    throw new ClaspError(ERROR.DEPLOYMENT_COUNT);
   }
 
-  if (deployments.status !== 200) throw new ClaspError(ERROR.DEPLOYMENT_COUNT);
   stopSpinner();
-  console.log(`- ${deployments.data.deploymentId} @${versionNumber}.`);
+
+  console.log(`- ${newDeploymentId} @${versionNumber}.`);
 };

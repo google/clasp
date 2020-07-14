@@ -1,4 +1,3 @@
-import is from '@sindresorhus/is';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -62,7 +61,11 @@ const writeManifest = async (manifest: Readonly<Manifest>) => {
 /**
  * Returns true if the manifest is valid.
  */
-export const isValidManifest = async (): Promise<boolean> => !is.nullOrUndefined(await getManifest());
+export const isValidManifest = async (manifest?: Manifest): Promise<boolean> => {
+  const value = manifest ?? (await getManifest());
+
+  return value !== null && typeof value !== undefined;
+};
 
 /**
  * Ensures the manifest is correct for running a function.
@@ -72,14 +75,8 @@ export const isValidManifest = async (): Promise<boolean> => !is.nullOrUndefined
  * }
  */
 export const isValidRunManifest = async (): Promise<boolean> => {
-  if (await isValidManifest()) {
-    const manifest = await getManifest();
-    if (manifest.executionApi && manifest.executionApi.access) {
-      return true;
-    }
-  }
-
-  return false;
+  const value = await getManifest();
+  return Boolean(isValidManifest(value) && value.executionApi && value.executionApi.access);
 };
 
 /**

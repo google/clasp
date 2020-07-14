@@ -5,13 +5,20 @@ import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {scriptTypePrompt} from '../inquirer';
 import {manifestExists} from '../manifest';
 import {ERROR, LOG} from '../messages';
-import {checkIfOnline, getDefaultProjectName, getProjectSettings, saveProject, spinner, stopSpinner} from '../utils';
+import {
+  checkIfOnlineOrDie,
+  getDefaultProjectName,
+  getProjectSettings,
+  saveProject,
+  spinner,
+  stopSpinner,
+} from '../utils';
 
 interface CommandOption {
-  readonly type?: string;
-  readonly title?: string;
   readonly parentId?: string;
   readonly rootDir?: string;
+  readonly title?: string;
+  readonly type?: string;
 }
 
 /**
@@ -24,7 +31,7 @@ interface CommandOption {
  */
 export default async (options: CommandOption): Promise<void> => {
   // Handle common errors.
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS);
   }
@@ -32,13 +39,10 @@ export default async (options: CommandOption): Promise<void> => {
   await loadAPICredentials();
 
   // Create defaults.
-  const title = options.title ?? getDefaultProjectName();
-  let {parentId, type} = options as Required<CommandOption>;
+  const {parentId: optionParentId, title: name = getDefaultProjectName(), type: optionType} = options;
+  let parentId = optionParentId;
 
-  if (!parentId && !type) {
-    const answers = await scriptTypePrompt();
-    type = answers.type;
-  }
+  const filetype = optionType ?? (!optionParentId ? (await scriptTypePrompt()).type : '');
 
   // Create files with MIME type.
   // https://developers.google.com/drive/api/v3/mime-types
@@ -48,46 +52,53 @@ export default async (options: CommandOption): Promise<void> => {
     [SCRIPT_TYPES.SHEETS]: 'application/vnd.google-apps.spreadsheet',
     [SCRIPT_TYPES.SLIDES]: 'application/vnd.google-apps.presentation',
   };
-  const driveFileType = DRIVE_FILE_MIMETYPES[type];
-  if (driveFileType) {
-    spinner.setSpinnerTitle(LOG.CREATE_DRIVE_FILE_START(type)).start();
-    const driveFile = await drive.files.create({
-      requestBody: {
-        mimeType: driveFileType,
-        name: title,
-      },
-    });
-    parentId = driveFile.data.id ?? '';
+  const mimeType = DRIVE_FILE_MIMETYPES[filetype];
+  if (mimeType) {
+    spinner.start(LOG.CREATE_DRIVE_FILE_START(filetype));
+
+    const {
+      data: {id: newParentId},
+    } = await drive.files.create({requestBody: {mimeType, name}});
+    parentId = newParentId as string;
+
     stopSpinner();
-    console.log(LOG.CREATE_DRIVE_FILE_FINISH(type, parentId));
+
+    console.log(LOG.CREATE_DRIVE_FILE_FINISH(filetype, parentId as string));
   }
 
   // CLI Spinner
-  spinner.setSpinnerTitle(LOG.CREATE_PROJECT_START(title)).start();
-  const {scriptId: id} = await getProjectSettings(true);
-  if (id) {
+  spinner.start(LOG.CREATE_PROJECT_START(name));
+
+  let projectExist: boolean;
+  try {
+    projectExist = typeof (await getProjectSettings()).scriptId === 'string';
+  } catch {
+    projectExist = false;
+  }
+
+  if (projectExist) {
     throw new ClaspError(ERROR.NO_NESTED_PROJECTS);
   }
 
   // Create a new Apps Script project
-  const response = await script.projects.create({
-    requestBody: {
-      title,
-      parentId,
-    },
+  const {data, status, statusText} = await script.projects.create({
+    requestBody: {parentId: parentId, title: name},
   });
+
   stopSpinner();
-  if (response.status !== 200) {
+
+  if (status !== 200) {
     if (parentId) {
-      console.log(response.statusText, ERROR.CREATE_WITH_PARENT);
+      console.log(statusText, ERROR.CREATE_WITH_PARENT);
     }
-    throw new ClaspError(response.statusText ?? ERROR.CREATE);
+
+    throw new ClaspError(statusText ?? ERROR.CREATE);
   }
 
-  const scriptId = response.data.scriptId ?? '';
-  console.log(LOG.CREATE_PROJECT_FINISH(type, scriptId));
+  const scriptId = data.scriptId ?? '';
+  console.log(LOG.CREATE_PROJECT_FINISH(filetype, scriptId));
   const {rootDir} = options;
-  await saveProject({scriptId, rootDir, parentId: [parentId]}, false);
+  await saveProject({scriptId, rootDir, parentId: parentId ? [parentId] : undefined}, false);
 
   if (!manifestExists(rootDir)) {
     await writeProjectFiles(await fetchProject(scriptId), rootDir); // Fetches appsscript.json, o.w. `push` breaks

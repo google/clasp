@@ -1,8 +1,8 @@
-import {Spinner} from 'cli-spinner';
 import cliTruncate from 'cli-truncate';
 import fs from 'fs-extra';
 import {script_v1 as scriptV1} from 'googleapis';
 import isOnline from 'is-online';
+import ora from 'ora';
 import path from 'path';
 
 import {ClaspError} from './clasp-error';
@@ -50,45 +50,43 @@ export const hasOauthClientSettings = (local = false): boolean =>
  * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
  */
 export const getOAuthSettings = async (local: boolean): Promise<ClaspToken> => {
-  const RC = local ? DOTFILE.RC_LOCAL() : DOTFILE.RC;
   try {
-    return await RC.read<ClaspToken>();
+    return await (local ? DOTFILE.RC_LOCAL() : DOTFILE.RC).read<ClaspToken>();
   } catch (error) {
     throw new ClaspError(getErrorMessage(error) ?? ERROR.NO_CREDENTIALS(local));
   }
 };
 
-export const spinner = new Spinner();
+export const spinner = ora(); // new Spinner();
 
 /** Stops the spinner if it is spinning */
 export const stopSpinner = () => {
-  if (spinner.isSpinning()) {
-    spinner.stop(true);
+  if (spinner.isSpinning) {
+    spinner.stop();
   }
 };
 
-export const getErrorMessage = (err: any) => {
-  let description: string | undefined;
+export const getErrorMessage = (value: any) => {
   // Errors are weird. The API returns interesting error structures.
   // TODO(timmerman) This will need to be standardized. Waiting for the API to
   // change error model. Don't review this method now.
-  if (err && typeof err.error === 'string') {
-    description = JSON.parse(err.error).error;
-  } else if (err?.statusCode === 401 || (err?.error && err.error.error && err.error.error.code === 401)) {
+  if (value && typeof value.error === 'string') {
+    return JSON.parse(value.error).error;
+  } else if (value?.statusCode === 401 || (value?.error && value.error.error && value.error.error.code === 401)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
-    description = ERROR.UNAUTHENTICATED;
-  } else if (err && ((err.error && err.error.code === 403) || err.code === 403)) {
+    return ERROR.UNAUTHENTICATED;
+  } else if (value && ((value.error && value.error.code === 403) || value.code === 403)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.PERMISSION_DENIED : ERROR.PERMISSION_DENIED_LOCAL
-    description = ERROR.PERMISSION_DENIED;
-  } else if (err && err.code === 429) {
-    description = ERROR.RATE_LIMIT;
-  } else if (err?.error) {
-    description = `~~ API ERROR (${err.statusCode || err.error.code})=\n${err.error}`;
+    return ERROR.PERMISSION_DENIED;
+  } else if (value && value.code === 429) {
+    return ERROR.RATE_LIMIT;
+  } else if (value?.error) {
+    return `~~ API ERROR (${value.statusCode || value.error.code})=\n${value.error}`;
   }
 
-  return description;
+  return undefined;
 };
 
 /**
@@ -99,7 +97,8 @@ export const getErrorMessage = (err: any) => {
  * @return {string}          The URL of the web application in the online script editor.
  */
 export const getWebApplicationURL = (value: Readonly<scriptV1.Schema$Deployment>) => {
-  const entryPoint = (value.entryPoints ?? []).find(
+  const {entryPoints = []} = value;
+  const entryPoint = entryPoints.find(
     (entryPoint: Readonly<scriptV1.Schema$EntryPoint>) => entryPoint.entryPointType === 'WEB_APP'
   );
   if (entryPoint) {
@@ -121,10 +120,9 @@ export const getDefaultProjectName = (): string => capitalize(path.basename(proc
  * Logs errors.
  *
  * ! Should be used instead of `DOTFILE.PROJECT().read()`
- * @param  {boolean} failSilently Don't throw an error when dot file DNE.
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
-export const getProjectSettings = async (failSilently?: boolean): Promise<ProjectSettings> => {
+export const getProjectSettings = async (): Promise<ProjectSettings> => {
   try {
     const dotfile = DOTFILE.PROJECT();
     if (dotfile) {
@@ -136,10 +134,8 @@ export const getProjectSettings = async (failSilently?: boolean): Promise<Projec
         if (settings.scriptId) {
           return settings;
         }
-      } catch {
-        if (failSilently) {
-          return ({} as unknown) as ProjectSettings;
-        }
+      } catch (error) {
+        throw new ClaspError(ERROR.SETTINGS_DNE); // Never found a dotfile
       }
     }
 
@@ -177,7 +173,7 @@ export const safeIsOnline = async (): Promise<boolean> =>
 /**
  * Checks if the network is available. Gracefully exits if not.
  */
-export const checkIfOnline = async () => {
+export const checkIfOnlineOrDie = async () => {
   if (await safeIsOnline()) {
     return true;
   }

@@ -6,7 +6,7 @@ import {fetchProject, hasProject, writeProjectFiles} from '../files';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer';
 import {ERROR, LOG} from '../messages';
 import {extractScriptId} from '../urls';
-import {checkIfOnline, saveProject, spinner} from '../utils';
+import {checkIfOnlineOrDie, saveProject, spinner} from '../utils';
 import status from './status';
 
 interface CommandOption {
@@ -26,14 +26,14 @@ export default async (
   versionNumber: number | undefined,
   options: CommandOption
 ): Promise<void> => {
-  await checkIfOnline();
+  await checkIfOnlineOrDie();
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS);
   }
 
   const id = scriptId ? extractScriptId(scriptId) : await getScriptId();
 
-  spinner.setSpinnerTitle(LOG.CLONING);
+  spinner.start(LOG.CLONING);
 
   const {rootDir} = options;
   await saveProject({scriptId: id, rootDir}, false);
@@ -46,16 +46,14 @@ export default async (
  */
 const getScriptId = async (): Promise<string> => {
   await loadAPICredentials();
-  const list = await drive.files.list({
-    // pageSize: 10,
+  const {data, statusText} = await drive.files.list({
     // fields: 'files(id, name)',
     orderBy: 'modifiedByMeTime desc',
+    // pageSize: 10,
     q: 'mimeType="application/vnd.google-apps.script"',
   });
-
-  const {data} = list;
   if (!data) {
-    throw new ClaspError(list.statusText ?? 'Unable to use the Drive API.');
+    throw new ClaspError(statusText ?? 'Unable to use the Drive API.');
   }
 
   const {files = []} = data;
