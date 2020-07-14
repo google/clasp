@@ -7,9 +7,9 @@
 <p align="center">
 <a href="https://travis-ci.org/google/clasp"><img src="https://travis-ci.org/google/clasp.svg?branch=master" alt="Build Status"></a>
 <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a>
-<a href="https://www.npmjs.com/package/@popgoesthewza/clasp"><img src="https://img.shields.io/npm/v/@popgoesthewza/clasp.svg" alt="npm Version"></a>
-<a href="https://npmcharts.com/compare/@popgoesthewza/clasp?minimal=true"><img src="https://img.shields.io/npm/dw/@popgoesthewza/clasp.svg" alt="npm Downloads"></a>
-<a href="https://packagequality.com/#?package=@popgoesthewza%2Fclasp"><img src="https://npm.packagequality.com/shield/@popgoesthewza%2Fclasp.svg" alt="Package Quality"></a>
+<a href="https://www.npmjs.com/package/forked-clasp"><img src="https://img.shields.io/npm/v/forked-clasp.svg" alt="npm Version"></a>
+<a href="https://npmcharts.com/compare/forked-clasp?minimal=true"><img src="https://img.shields.io/npm/dw/forked-clasp.svg" alt="npm Downloads"></a>
+<a href="https://packagequality.com/#?package=forked-%2Fclasp"><img src="https://npm.packagequality.com/shield/forked-%2Fclasp.svg" alt="Package Quality"></a>
 <a href="https://david-dm.org/google/clasp" title="dependencies status"><img src="https://david-dm.org/google/clasp/status.svg"/></a>
 <a href="https://github.com/google/gts" title="Code Style: Google"><img src="https://img.shields.io/badge/code%20style-google-blueviolet.svg"/></a>
 </p>

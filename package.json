@@ -1,5 +1,5 @@
 {
-  "name": "@popgoesthewza/clasp",
+  "name": "forked-clasp",
   "version": "2.3.0",
   "description": "Develop Apps Script Projects locally",
   "main": "build/src/index.js",
