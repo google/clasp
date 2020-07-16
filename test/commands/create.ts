@@ -11,13 +11,13 @@ describe('Test clasp create function', () => {
   before(setup);
   it('should prompt for a project name correctly', () => {
     spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(CLASP, ['create'], {encoding: 'utf8'});
+    const result = spawnSync(CLASP, ['create'], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain(LOG.CREATE_SCRIPT_QUESTION);
     expect(result.stderr).to.equal('');
   });
   it('should not prompt for project name', () => {
     fs.writeFileSync('.clasp.json', '');
-    const result = spawnSync(CLASP, ['create'], {encoding: 'utf8'});
+    const result = spawnSync(CLASP, ['create'], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
     expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
   });
   after(cleanup);
