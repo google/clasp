@@ -75,7 +75,7 @@ export const restoreSettings = () => {
  */
 export function setupTemporaryDirectory(filepathsAndContents: Array<{file: string; data: string}>) {
   fs.ensureDirSync('tmp');
-  const tmpdir = tmp.dirSync({unsafeCleanup: true, dir: 'tmp/', keep: false}).name;
+  const tmpdir = tmp.dirSync({unsafeCleanup: true, keep: false}).name;
   filepathsAndContents.forEach(({file, data}) => {
     fs.outputFileSync(path.join(tmpdir, file), data);
   });
