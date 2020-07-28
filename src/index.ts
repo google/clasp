@@ -252,7 +252,11 @@ commander.command('versions').description('List versions of a script').action(ve
  * @example list # helloworld1 - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
  * @todo Add --all flag to list all projects.
  */
-commander.command('list').description('List App Scripts projects').action(list);
+commander
+  .command('list')
+  .description('List App Scripts projects')
+  .option('--noShorten', 'Do not shorten long names', false)
+  .action(list);
 
 /**
  * Prints StackDriver logs.
