@@ -78,7 +78,8 @@ const runFunction = async (functionName: string, parameters: string[], scriptId:
     } else if (error?.details) {
       // @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#Status
       const {errorMessage, errorType, scriptStackTraceElements} = error.details[0];
-      console.error(`${chalk.red('Exception:')}`, errorType, errorMessage, scriptStackTraceElements || []);
+      console.error(`${chalk.red('Exception:')}`, errorMessage, scriptStackTraceElements || []);
+      throw new ClaspError(errorType);
     }
   } catch (error) {
     if (error instanceof ClaspError) {
