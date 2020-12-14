@@ -12,9 +12,7 @@ describe('Test clasp push function', () => {
     fs.writeFileSync('Code.js', TEST_CODE_JS);
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
     const result = spawnSync(CLASP, ['push'], {encoding: 'utf8', input: 'y'});
-    expect(result.stdout).to.contain('Pushed');
-    expect(result.stdout).to.contain('files.');
-    expect(result.stderr).to.equal('');
+    expect(result.stdout).to.contain('Pushed 2 files.');
     expect(result.status).to.equal(0);
   });
   // TODO: this test needs to be updated
@@ -43,11 +41,9 @@ describe('Test clasp push with no `.claspignore`', () => {
       cwd: tmpdir,
       input: 'y',
     });
-    expect(result.stdout).to.contain('Pushed');
     expect(result.stdout).to.contain('Code.js');
     expect(result.stdout).to.contain('page.html');
-    expect(result.stdout).to.contain('files.');
-    expect(result.stderr).to.equal('');
+    expect(result.stdout).to.contain('Pushed 3 files.');
     expect(result.status).to.equal(0);
     // TODO: cleanup by del/rimraf tmpdir
   });

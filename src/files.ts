@@ -87,7 +87,7 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
     );
     files.sort((a, b) => a.name.localeCompare(b.name));
 
-    return files.map(
+    return getContentOfProjectFiles(files).map(
       (file: ProjectFile): ProjectFile => {
         // Loop through files that are not ignored from `.claspignore`
         if (!file.isIgnored) {

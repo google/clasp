@@ -13,7 +13,6 @@ describe('Test clasp list function', () => {
     // using clasp list should at least contain this
     // in its output.
     expect(result.stdout).to.contain('https://script.google.com/d/');
-    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   it('does not shorten project names when indicated not to', () => {
