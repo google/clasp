@@ -58,6 +58,7 @@ const manifest = readPkgUp.sync({cwd: require.resolve('.')});
 /**
  * Set global CLI configurations
  */
+commander.storeOptionsAsProperties(false);
 
 /**
  * Displays clasp version
