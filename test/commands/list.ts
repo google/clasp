@@ -16,5 +16,12 @@ describe('Test clasp list function', () => {
     expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
+  it('does not shorten project names when indicated not to', () => {
+    const result = spawnSync(CLASP, ['list', '--noShorten'], {encoding: 'utf8'});
+    expect(result.stdout).to.contain('https://script.google.com/d/');
+    expect(result.stdout).to.not.contain('…');
+    expect(result.stderr).to.equal('');
+    expect(result.status).to.equal(0);
+  });
   after(cleanup);
 });
