@@ -1,6 +1,5 @@
 import fuzzy from 'fuzzy';
 import {script_v1 as scriptV1} from 'googleapis';
-import {ReadonlyDeep} from 'type-fest';
 
 import {loadAPICredentials, serviceUsage} from './auth';
 import {ClaspError} from './clasp-error';
@@ -8,6 +7,8 @@ import {functionNamePrompt, functionNameSource} from './inquirer';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest';
 import {ERROR} from './messages';
 import {getProjectId, spinner, stopSpinner} from './utils';
+
+import type {ReadonlyDeep} from 'type-fest';
 
 type TypeFunction = Readonly<scriptV1.Schema$GoogleAppsScriptTypeFunction>;
 

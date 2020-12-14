@@ -1,7 +1,5 @@
-import {GaxiosResponse} from 'gaxios';
 import {discovery_v1 as discoveryV1, serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';
-import {ReadonlyDeep} from 'type-fest';
 
 import {PUBLIC_ADVANCED_SERVICES} from '../apis';
 import {enableOrDisableAPI} from '../apiutils';
@@ -10,6 +8,9 @@ import {ClaspError} from '../clasp-error';
 import {ERROR} from '../messages';
 import {URL} from '../urls';
 import {checkIfOnlineOrDie, getProjectId} from '../utils';
+
+import type {GaxiosResponse} from 'gaxios';
+import type {ReadonlyDeep} from 'type-fest';
 
 type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
 type PublicAdvancedService = ReadonlyDeep<Required<NonNullable<DirectoryItem>>>;
@@ -31,10 +32,10 @@ export default async (options: CommandOption): Promise<void> => {
     return await openApiUrl();
   }
 
-  // @ts-expect-error
-  const [bin, sourcePath, ...args] = process.argv;
-  // @ts-expect-error
-  const [command, subCommand, serviceName] = args;
+  // @ts-expect-error 'xxx' is declared but its value is never read.
+  const [_bin, _sourcePath, ...args] = process.argv;
+  // @ts-expect-error 'xxx' is declared but its value is never read.
+  const [_command, subCommand, serviceName] = args;
 
   // The apis subcommands.
   const apiSubCommands: {[key: string]: () => Promise<void>} = {
