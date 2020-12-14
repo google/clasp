@@ -252,7 +252,11 @@ commander.command('versions').description('List versions of a script').action(ve
  * @example list # helloworld1 - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
  * @todo Add --all flag to list all projects.
  */
-commander.command('list').description('List App Scripts projects').action(list);
+commander
+  .command('list')
+  .description('List App Scripts projects')
+  .option('--noShorten', 'Do not shorten long names', false)
+  .action(list);
 
 /**
  * Prints StackDriver logs.
@@ -338,8 +342,8 @@ commander
  */
 commander.command('*', {isDefault: true}).description('Any other command is not supported').action(defaultCmd);
 
-// @ts-expect-error
-const [bin, sourcePath, ...args] = process.argv;
+// @ts-expect-error 'xxx' is declared but its value is never read.
+const [_bin, _sourcePath, ...args] = process.argv;
 // Defaults to help if commands are not provided
 if (args.length === 0) {
   commander.outputHelp();

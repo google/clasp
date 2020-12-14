@@ -123,9 +123,10 @@ export const getDefaultProjectName = (): string => capitalize(path.basename(proc
  * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
  */
 export const getProjectSettings = async (): Promise<ProjectSettings> => {
+  const dotfile = DOTFILE.PROJECT();
+
   try {
-    const dotfile = DOTFILE.PROJECT();
-    if (dotfile) {
+    if (dotfile.exists()) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
       try {
         const settings = await dotfile.read<ProjectSettings>();

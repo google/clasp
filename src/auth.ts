@@ -1,18 +1,21 @@
 import {Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions} from 'google-auth-library';
 import {google, script_v1 as scriptV1} from 'googleapis';
-import {createServer, IncomingMessage, Server, ServerResponse} from 'http';
-import {AddressInfo} from 'net';
+import {createServer} from 'http';
 import open from 'open';
 import readline from 'readline';
-import {ReadonlyDeep} from 'type-fest';
 import {URL} from 'url';
 
 import {ClaspError} from './clasp-error';
 import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
+import {ERROR, LOG} from './messages';
+import {checkIfOnlineOrDie, getOAuthSettings} from './utils';
 // import {oauthScopesPrompt} from './inquirer';
 // import {readManifest} from './manifest';
-import {ERROR, LOG} from './messages';
-import {checkIfOnlineOrDie, ClaspCredentials, getOAuthSettings} from './utils';
+
+import type {IncomingMessage, Server, ServerResponse} from 'http';
+import type {AddressInfo} from 'net';
+import type {ReadonlyDeep} from 'type-fest';
+import type {ClaspCredentials} from './utils';
 
 /**
  * Authentication with Google's APIs.

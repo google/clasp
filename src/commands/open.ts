@@ -93,7 +93,6 @@ const openWebApp = async (scriptId: string, optionsDeploymentId?: string) => {
     throw new ClaspError(statusText);
   }
 
-  // const {deployments = []} = data;
   if (deployments.length === 0) {
     throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
@@ -102,8 +101,10 @@ const openWebApp = async (scriptId: string, optionsDeploymentId?: string) => {
   const choices = deployments.slice();
   choices.sort((a, b) => (a.updateTime && b.updateTime ? a.updateTime.localeCompare(b.updateTime) : 0));
   const prompts = choices.map(value => {
-    const {description, versionNumber = 'HEAD'} = value.deploymentConfig!;
-    const name = `${ellipsize(description!, 30)}@${`${versionNumber}`.padEnd(4)} - ${value.deploymentId}`;
+    const {description, versionNumber} = value.deploymentConfig!;
+    const name = `${ellipsize(description ?? '', 30)}@${`${versionNumber ?? 'HEAD'}`.padEnd(4)} - ${
+      value.deploymentId
+    }`;
     return {name, value};
   });
 
