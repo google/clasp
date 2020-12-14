@@ -4,10 +4,15 @@ import {ERROR, LOG} from '../messages';
 import {URL} from '../urls';
 import {checkIfOnlineOrDie, ellipsize, spinner, stopSpinner} from '../utils';
 
+interface CommandOption {
+  readonly noShorten: boolean;
+}
+
 /**
  * Lists a user's Apps Script projects using Google Drive.
+ * @param options.noShorten {boolean}
  */
-export default async (): Promise<void> => {
+export default async (options: CommandOption): Promise<void> => {
   await checkIfOnlineOrDie();
   await loadAPICredentials();
 
@@ -32,7 +37,7 @@ export default async (): Promise<void> => {
 
   if (files.length > 0) {
     for (const file of files) {
-      console.log(`${ellipsize(file.name!, 20)} - ${URL.SCRIPT(file.id ?? '')}`);
+      console.log(`${!options.noShorten ? ellipsize(file.name!, 20) : file.name} - ${URL.SCRIPT(file.id ?? '')}`);
     }
   } else {
     console.log(LOG.FINDING_SCRIPTS_DNE);
