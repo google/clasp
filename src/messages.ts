@@ -1,9 +1,10 @@
-import chalk from 'chalk';
 import {script_v1 as scriptV1} from 'googleapis';
 
+import {Conf} from './conf';
 import {PROJECT_MANIFEST_FILENAME, PROJECT_NAME} from './constants';
-import {DOT} from './dotfile';
 import {URL} from './urls';
+
+const {auth, ignore, project} = Conf.get();
 
 /** Human friendly Google Drive file type name */
 const fileTypeName = new Map<string, string>([
@@ -43,7 +44,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DEPLOYMENT_COUNT: 'Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.',
   DRIVE: 'Something went wrong with the Google Drive API',
   EXECUTE_ENTITY_NOT_FOUND: 'Script API executable not published/deployed.',
-  FOLDER_EXISTS: `Project file (${DOT.PROJECT.PATH}) already exists.`,
+  FOLDER_EXISTS: `Project file (${project.resolve()}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   INVALID_JSON: 'Input params not Valid JSON string. Please fix and try again',
@@ -57,8 +58,8 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   NO_CREDENTIALS: (local: boolean) =>
     `Could not read API credentials. Are you logged in ${local ? 'locally' : 'globally'}?`,
   NO_FUNCTION_NAME: 'N/A',
-  NO_GCLOUD_PROJECT: `No projectId found in your ${DOT.PROJECT.PATH} file.`,
-  NO_PARENT_ID: `No parentId or empty parentId found in your ${DOT.PROJECT.PATH} file.`,
+  NO_GCLOUD_PROJECT: `No projectId found in your ${project.resolve()} file.`,
+  NO_PARENT_ID: `No parentId or empty parentId found in your ${project.resolve()} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local crendetials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
   NO_MANIFEST: (filename: string) => `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
   NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
@@ -75,14 +76,14 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   RUN_NODATA: 'Script execution API returned no data.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
-  SCRIPT_ID_DNE: `No scriptId found in your ${DOT.PROJECT.PATH} file.`,
+  SCRIPT_ID_DNE: `No scriptId found in your ${project.resolve()} file.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
   SCRIPT_ID: `Could not find script.
 Did you provide the correct scriptId?
 Are you logged in to the correct account with the script?`,
   SETTINGS_DNE: `
-No valid ${DOT.PROJECT.PATH} project file. You may need to \`create\` or \`clone\` a project first.`,
+No valid ${project.resolve()} project file. You may need to \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: 'Error: Local client credentials unauthenticated. Check scopes/authorization.',
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
@@ -101,9 +102,9 @@ export const LOG = {
   AUTH_PAGE_SUCCESSFUL: 'Logged in! You may close this page. ', // HTML Redirect Page
   AUTH_SUCCESSFUL: 'Authorization successful.',
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
-  CLONE_SUCCESS: (fileCount: number) => `Warning: files in subfolder are not accounted for unless you set a '${
-    DOT.IGNORE.PATH
-  }' file.
+  CLONE_SUCCESS: (
+    fileCount: number
+  ) => `Warning: files in subfolder are not accounted for unless you set a '${ignore.resolve()}' file.
 Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   CLONING: 'Cloning files…',
   CLONE_SCRIPT_QUESTION: 'Clone which script?',
@@ -128,7 +129,7 @@ Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   GET_PROJECT_ID_INSTRUCTIONS: `Go to *Resource > Cloud Platform Project…* and copy your projectId
 (including "project-id-")`,
   GIVE_DESCRIPTION: 'Give a description: ',
-  LOCAL_CREDS: `Using local credentials: ${DOT.RC.LOCAL_DIR}${DOT.RC.NAME} 🔐 `,
+  LOCAL_CREDS: `Using local credentials: ${auth.resolve()} 🔐 `,
   LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}…`,
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
@@ -147,9 +148,9 @@ Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   PUSHING: 'Pushing files…',
   SAVED_CREDS: (isLocalCreds: boolean) =>
     isLocalCreds
-      ? `Local credentials saved to: ${DOT.RC.LOCAL_DIR}${DOT.RC.ABSOLUTE_LOCAL_PATH}.
+      ? `Local credentials saved to: ${auth.resolve()}.
 *Be sure to never commit this file!* It's basically a password.`
-      : `Default credentials saved to: ${DOT.RC.PATH} (${DOT.RC.ABSOLUTE_PATH}).`,
+      : `Default credentials saved to: ${auth.resolve()}.`,
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   // SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',
@@ -163,15 +164,14 @@ Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   VERSION_DESCRIPTION: ({versionNumber, description}: scriptV1.Schema$Version) =>
     `${versionNumber} - ${description ?? '(no description)'}`,
   VERSION_NUM: (versionsCount: number) => `~ ${versionsCount} ${versionsCount === 1 ? 'Version' : 'Versions'} ~`,
-  // TODO: `SETUP_LOCAL_OAUTH` is never used
-  SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
-    Open this link: ${chalk.blue(URL.CREDS(projectId))}
-    Click ${chalk.cyan('Create credentials')}, then select ${chalk.yellow('OAuth client ID')}.
-    Select ${chalk.yellow('Other')}.
-    Give the client a ${chalk.yellow('name')}.
-    Click ${chalk.cyan('Create')}.
-    Click ${chalk.cyan('Download JSON')} for the new client ID: ${chalk.yellow('name')} (right-hand side).
+  //   SETUP_LOCAL_OAUTH: (projectId: string) => `1. Create a client ID and secret:
+  //     Open this link: ${chalk.blue(URL.CREDS(projectId))}
+  //     Click ${chalk.cyan('Create credentials')}, then select ${chalk.yellow('OAuth client ID')}.
+  //     Select ${chalk.yellow('Other')}.
+  //     Give the client a ${chalk.yellow('name')}.
+  //     Click ${chalk.cyan('Create')}.
+  //     Click ${chalk.cyan('Download JSON')} for the new client ID: ${chalk.yellow('name')} (right-hand side).
 
-2. Authenticate clasp with your credentials json file:
-    clasp login --creds <client_credentials.json>`,
+  // 2. Authenticate clasp with your credentials json file:
+  //     clasp login --creds <client_credentials.json>`,
 };
