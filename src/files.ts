@@ -35,7 +35,7 @@ const projectFileWithContent = (file: ProjectFile, transpileOptions: ts.Transpil
   return type === 'TS'
     ? // Transpile TypeScript to Google Apps Script
       // @see github.com/grant/ts2gas
-      {...file, source: ts2gas(source, transpileOptions), type: 'SERVER_JS'}
+      {...file, source: ts2gas(source, transpileOptions as any), type: 'SERVER_JS'}
     : {...file, source, type};
 };
 
@@ -247,7 +247,7 @@ export const isValidFileName = (
   name: string,
   type: string,
   rootDir: string,
-  // @ts-expect-error
+  // @ts-expect-error 'xxx' is declared but its value is never read.
   normalizedName: string,
   ignoreMatches: readonly string[]
 ): boolean => {

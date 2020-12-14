@@ -1,8 +1,8 @@
-import {Command} from 'commander';
-import {ReadonlyDeep} from 'type-fest';
-
 import {ClaspError} from '../clasp-error';
 import {ERROR} from '../messages';
+
+import type {Command} from 'commander';
+import type {ReadonlyDeep} from 'type-fest';
 
 /**
  * Displays a default message when an unknown command is typed.
