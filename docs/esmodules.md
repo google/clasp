@@ -2,7 +2,7 @@
 
 Currently, Google Apps Script does **not** support ES modules. Hence the typical `export`/`import` pattern cannot be used and will fail.
 
-One way of handling this is to use [rollup.js](https://rollupjs.org/) to bundle your project into on a single JavaScript file.
+One way of handling this is to use [rollup.js](https://rollupjs.org/) to bundle your project into one single JavaScript file.
 
 The trick here is to make sure not to export any functions in your entry point code, e.g. `index.ts`, _and_ to prevent any generation of export statement in the final bundle (see the custom rollup plugin in the `rollup.config.js` below).
 
