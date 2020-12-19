@@ -297,6 +297,8 @@ Here the idea is to use third party tools ([webpack](https://webpack.js.org/), [
 
 > At one of the steps above, transpilling TypeScript into JavaScript must occur (either by using TypeScript or [Babel](https://babeljs.io/)) but which precise step will be defined by the set of third party tools you choose and how you define your build chain.
 
+For an example on how this could be set up using [rollup.js](https://rollupjs.org/), see [esmodules.md](./esmodules.md).
+
 Documenting in detail any solution with third party tools is currently beyond the scope of this document. If you happen to setup such a build chain and want to share it with the community, please open an issue so that it can be reviewed and evaluated for completing the documentation.
 
 ### Apps Script Libraries and TypeScript
