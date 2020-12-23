@@ -60,7 +60,7 @@ module.exports = {
 };
 ```
 
-In the above example, the resulting bundle created by transpiling the entry point in `./src` will end up in the `./build`-folder. To make sure Clasp picks the right files to push, a `.claspignore`-file must be added to the project:
+In the above example, the resulting bundle created by transpiling the entry point, i.e. `./src/index.ts`, will end up as `./build/index.js`. To make sure Clasp picks the right files to push, a `.claspignore`-file must be added to the project:
 
 ```ignore
 # ignore all files…
@@ -68,11 +68,14 @@ In the above example, the resulting bundle created by transpiling the entry poin
 
 # except the extensions…
 !appsscript.json
+# and our transpiled code
 !build/*.js
 
 # ignore even valid files if in…
 .git/**
 node_modules/**
 ```
+
+Now you can push using your normal `clasp push`-command!
 
 This should be enough to start developing a project using ES Modules.
