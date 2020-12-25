@@ -78,4 +78,4 @@ node_modules/**
 
 Now you can push using your normal `clasp push`-command!
 
-This should be enough to start developing a project using ES Modules.
+This should be enough to start developing a project using ES Modules. A complete example repo can be cloned from [atti187/esmodules](https://github.com/atti187/esmodules).
