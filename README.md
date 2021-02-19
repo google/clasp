@@ -14,7 +14,7 @@
 <a href="https://github.com/google/gts" title="Code Style: Google"><img src="https://img.shields.io/badge/code%20style-google-blueviolet.svg"/></a>
 </p>
 
-> Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
+> Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (**C**ommand **L**ine **A**pps **S**cript **P**rojects).
 
 <!-- GIF bash prompt: PS1='\[\033[38;5;9m\]❤  \[$(tput sgr0)\]' -->
 <!-- Width: 888px -->
