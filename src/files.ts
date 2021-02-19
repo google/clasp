@@ -1,4 +1,3 @@
-import findUp from 'find-up';
 import fs from 'fs-extra';
 import makeDir from 'make-dir';
 import multimatch from 'multimatch';
@@ -9,10 +8,13 @@ import ts from 'typescript';
 
 import {loadAPICredentials, script} from './auth';
 import {ClaspError} from './clasp-error';
+import {Conf} from './conf';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
-import {DOT, DOTFILE} from './dotfile';
+import {DOTFILE} from './dotfile';
 import {ERROR, LOG} from './messages';
 import {checkIfOnlineOrDie, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils';
+
+const {project} = Conf.get();
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -35,7 +37,11 @@ const projectFileWithContent = (file: ProjectFile, transpileOptions: ts.Transpil
   return type === 'TS'
     ? // Transpile TypeScript to Google Apps Script
       // @see github.com/grant/ts2gas
-      {...file, source: ts2gas(source, transpileOptions as any), type: 'SERVER_JS'}
+      {
+        ...file,
+        source: ts2gas(source, transpileOptions as any),
+        type: 'SERVER_JS',
+      }
     : {...file, source, type};
 };
 
@@ -191,15 +197,14 @@ export const getLocalFileType = (type: string, fileExtension?: string): string =
  * Returns true if the user has a clasp project.
  * @returns {boolean} If .clasp.json exists.
  */
-export const hasProject = (): boolean => fs.existsSync(DOT.PROJECT.PATH);
+export const hasProject = (): boolean => fs.existsSync(project.resolve());
 
 /**
  * Returns in tsconfig.json.
  * @returns {ts.TranspileOptions} if tsconfig.json not exists, return an empty object.
  */
 const getTranspileOptions = (): ts.TranspileOptions => {
-  const projectPath = findUp.sync(DOT.PROJECT.PATH);
-  const tsconfigPath = path.join(projectPath ? path.dirname(projectPath) : DOT.PROJECT.DIR, 'tsconfig.json');
+  const tsconfigPath = path.join(project.resolvedDir, 'tsconfig.json');
 
   return fs.existsSync(tsconfigPath)
     ? {
