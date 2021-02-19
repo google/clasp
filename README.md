@@ -16,7 +16,7 @@
 
 # This is an unofficial publish for `@google/clasp` package #
 
-> Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (*C*ommand *L*ine *A*pps *S*cript *P*rojects).
+> Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (**C**ommand **L**ine **A**pps **S**cript **P**rojects).
 
 <!-- GIF bash prompt: PS1='\[\033[38;5;9m\]❤  \[$(tput sgr0)\]' -->
 <!-- Width: 888px -->
