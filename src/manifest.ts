@@ -1,24 +1,19 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import {PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis';
+import {AdvancedService, PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis';
 import {ClaspError} from './clasp-error';
-import {Conf} from './conf';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
-import {ProjectSettings} from './dotfile';
+import {DOT, ProjectSettings} from './dotfile';
 import {ERROR} from './messages';
 import {getProjectSettings, parseJsonOrDie} from './utils';
-
-import type {AdvancedService} from './apis';
-
-const {project} = Conf.get();
 
 /*** Gets the path to manifest for given `rootDir` */
 const getManifestPath = (rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME);
 
 /** Gets the `rootDir` from given project */
-const getRootDir = (projectSettings: ProjectSettings): string =>
-  typeof projectSettings.rootDir === 'string' ? projectSettings.rootDir : project.resolvedDir;
+const getRootDir = (project: ProjectSettings): string =>
+  typeof project.rootDir === 'string' ? project.rootDir : DOT.PROJECT.DIR;
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -27,8 +22,7 @@ const getRootDir = (projectSettings: ProjectSettings): string =>
  *
  * @return {boolean} True if valid project, false otherwise
  */
-export const manifestExists = (rootDir: string = project.resolvedDir): boolean =>
-  fs.existsSync(getManifestPath(rootDir));
+export const manifestExists = (rootDir: string = DOT.PROJECT.DIR): boolean => fs.existsSync(getManifestPath(rootDir));
 
 /**
  * Reads the appsscript.json manifest file.
