@@ -387,7 +387,6 @@ commander
     console.log('auth', auth.path, auth.isDefault(), auth.resolve());
   });
 
-// @ts-expect-error 'xxx' is declared but its value is never read.
 const [_bin, _sourcePath, ...args] = process.argv;
 // Defaults to help if commands are not provided
 if (args.length === 0) {

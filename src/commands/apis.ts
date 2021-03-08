@@ -32,9 +32,7 @@ export default async (options: CommandOption): Promise<void> => {
     return await openApiUrl();
   }
 
-  // @ts-expect-error 'xxx' is declared but its value is never read.
   const [_bin, _sourcePath, ...args] = process.argv;
-  // @ts-expect-error 'xxx' is declared but its value is never read.
   const [_command, subCommand, serviceName] = args;
 
   // The apis subcommands.

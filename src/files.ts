@@ -252,8 +252,7 @@ export const isValidFileName = (
   name: string,
   type: string,
   rootDir: string,
-  // @ts-expect-error 'xxx' is declared but its value is never read.
-  normalizedName: string,
+  _normalizedName: string,
   ignoreMatches: readonly string[]
 ): boolean => {
   const isValid = isValidFactory(rootDir);

@@ -22,9 +22,9 @@ import {FS_OPTIONS} from './constants';
 
 import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 
-const {auth, ignore, project} = Conf.get();
+export type {Dotfile} from 'dotf';
 
-export {Dotfile} from 'dotf';
+const {auth, ignore, project} = Conf.get();
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
