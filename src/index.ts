@@ -343,7 +343,6 @@ commander
  */
 commander.command('*', {isDefault: true}).description('Any other command is not supported').action(defaultCmd);
 
-// @ts-expect-error 'xxx' is declared but its value is never read.
 const [_bin, _sourcePath, ...args] = process.argv;
 // Defaults to help if commands are not provided
 if (args.length === 0) {

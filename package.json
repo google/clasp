@@ -1,6 +1,6 @@
 {
-  "name": "@google/clasp",
-  "version": "2.3.0",
+  "name": "forked-clasp",
+  "version": "2.5.0",
   "description": "Develop Apps Script Projects locally",
   "main": "build/src/index.js",
   "scripts": {
@@ -45,7 +45,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/google/clasp"
+    "url": "https://github.com/popgoesthewza/clasp"
   },
   "keywords": [
     "Apps",
@@ -69,12 +69,11 @@
     "chalk": "^4.1.0",
     "cli-truncate": "^2.1.0",
     "commander": "^6.2.1",
-    "dotf": "^1.5.2",
-    "find-up": "^5.0.0",
-    "fs-extra": "^9.0.1",
+    "dotf": "^1.5.3",
+    "fs-extra": "^9.1.0",
     "fuzzy": "^0.1.3",
-    "gaxios": "^4.1.0",
-    "google-auth-library": "^6.1.3",
+    "gaxios": "^4.2.0",
+    "google-auth-library": "^6.1.6",
     "googleapis": "^66.0.0",
     "inquirer": "^7.3.3",
     "inquirer-autocomplete-prompt-ipt": "^2.0.0",
@@ -83,32 +82,32 @@
     "make-dir": "^3.1.0",
     "multimatch": "^5.0.0",
     "normalize-newline": "^3.0.0",
-    "open": "^7.3.0",
-    "ora": "^5.1.0",
+    "open": "^8.0.2",
+    "ora": "^5.3.0",
     "read-pkg-up": "^7.0.1",
     "recursive-readdir": "^2.2.2",
     "split-lines": "^2.0.0",
     "strip-bom": "^4.0.0",
-    "ts2gas": "^3.6.3",
-    "typescript": "^4.1.3",
+    "ts2gas": "^3.6.4",
+    "typescript": "^4.2.3",
     "watch": "^1.0.2"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.14",
-    "@types/fs-extra": "^9.0.5",
+    "@types/chai": "^4.2.15",
+    "@types/fs-extra": "^8.1.1",
     "@types/inquirer": "^7.3.1",
-    "@types/mocha": "^8.2.0",
-    "@types/node": "^12.19.9",
+    "@types/mocha": "^8.2.1",
+    "@types/node": "^10.17.55",
     "@types/recursive-readdir": "^2.2.0",
     "@types/tmp": "^0.2.0",
     "@types/watch": "^1.0.1",
-    "chai": "^4.2.0",
+    "chai": "^4.3.3",
     "coveralls": "^3.1.0",
-    "gts": "^3.0.3",
-    "mocha": "^8.2.1",
+    "gts": "^3.1.0",
+    "mocha": "^8.3.1",
     "nyc": "^15.1.0",
     "prettier": "^2.2.1",
     "tmp": "^0.2.1",
-    "type-fest": "^0.20.2"
+    "type-fest": "^0.21.2"
   }
 }
