@@ -1,6 +1,6 @@
 {
-  "name": "forked-clasp",
-  "version": "2.5.0",
+  "name": "@google/clasp",
+  "version": "2.3.0",
   "description": "Develop Apps Script Projects locally",
   "main": "build/src/index.js",
   "scripts": {
@@ -45,7 +45,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/popgoesthewza/clasp"
+    "url": "https://github.com/google/clasp"
   },
   "keywords": [
     "Apps",
