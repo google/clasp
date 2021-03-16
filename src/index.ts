@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const log = require('why-is-node-running'); // should be your first require
+
 /**
  * @license
  * Copyright Google Inc.
@@ -50,6 +52,8 @@ import {Conf} from './conf';
 import {PROJECT_NAME} from './constants';
 import {spinner, stopSpinner} from './utils';
 
+let onExit = () => {};
+
 // instantiate the config singleton (and loads environment variables as a side effect)
 const {auth, ignore, project} = Conf.get();
 
@@ -97,6 +101,13 @@ commander
   .on('option:project', () => {
     project.path = commander['project'];
   });
+
+/**
+ * Display some debugging info upon exit.
+ */
+commander.option('-W, --why', `Display some debugging info upon exit.`).on('option:why', () => {
+  onExit = log;
+});
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -412,3 +423,5 @@ if (args.length === 0) {
     }
   }
 })();
+
+onExit();
