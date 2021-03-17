@@ -52,6 +52,7 @@ import {Conf} from './conf';
 import {PROJECT_NAME} from './constants';
 import {spinner, stopSpinner} from './utils';
 
+let beforeExit = () => {};
 let onExit = () => {};
 
 // instantiate the config singleton (and loads environment variables as a side effect)
@@ -106,7 +107,14 @@ commander
  * Display some debugging info upon exit.
  */
 commander.option('-W, --why', `Display some debugging info upon exit.`).on('option:why', () => {
-  onExit = log;
+  beforeExit = log;
+});
+
+/**
+ * Display some debugging info upon exit.
+ */
+commander.option('-X, --force-exit', `Force process.exit().`).on('option:force-exit', () => {
+  onExit = process.exit;
 });
 
 /**
@@ -422,6 +430,8 @@ if (args.length === 0) {
       console.error('Unknown error', error);
     }
   }
+  spinner.clear();
 })();
 
+beforeExit();
 onExit();
