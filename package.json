@@ -83,7 +83,7 @@
     "multimatch": "^5.0.0",
     "normalize-newline": "^3.0.0",
     "open": "^8.0.2",
-    "ora": "^5.3.0",
+    "ora": "^5.4.0",
     "read-pkg-up": "^7.0.1",
     "recursive-readdir": "^2.2.2",
     "split-lines": "^2.0.0",
