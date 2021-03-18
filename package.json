@@ -75,7 +75,7 @@
     "gaxios": "^4.2.0",
     "google-auth-library": "^6.1.6",
     "googleapis": "^66.0.0",
-    "inquirer": "^7.3.3",
+    "inquirer": "^8.0.0",
     "inquirer-autocomplete-prompt-ipt": "^2.0.0",
     "is-online": "^9.0.0",
     "loud-rejection": "^2.2.0",
