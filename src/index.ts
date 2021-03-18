@@ -367,4 +367,6 @@ if (args.length === 0) {
       console.error('Unknown error', error);
     }
   }
+  /* eslint-disable no-process-exit*/
+  process.exit();
 })();
