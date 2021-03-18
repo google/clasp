@@ -431,7 +431,7 @@ if (args.length === 0) {
     }
   }
   spinner.clear();
-})();
 
-beforeExit();
-onExit();
+  beforeExit();
+  onExit();
+})();
