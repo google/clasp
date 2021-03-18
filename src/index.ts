@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const log = require('why-is-node-running'); // should be your first require
+const why = require('wtfnode'); // should be your first require
 
 /**
  * @license
@@ -107,7 +107,7 @@ commander
  * Display some debugging info upon exit.
  */
 commander.option('-W, --why', `Display some debugging info upon exit.`).on('option:why', () => {
-  beforeExit = log;
+  beforeExit = why.dump;
 });
 
 /**
