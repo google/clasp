@@ -205,7 +205,7 @@ export const getApiFileType = (value: string): string => {
 export const safeIsOnline = async (): Promise<boolean> =>
   Boolean(process.env.HTTP_PROXY || process.env.HTTPS_PROXY) ||
   isReachable([
-    'www.googleapis.com',
+    // 'www.googleapis.com',
     'script.google.com',
     'console.developers.google.com',
     'console.cloud.google.com',
