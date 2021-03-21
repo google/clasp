@@ -4,7 +4,7 @@ import multimatch from 'multimatch';
 import path from 'path';
 import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
-import ts from 'typescript';
+import {parseConfigFileTextToJson} from 'typescript';
 
 import {loadAPICredentials, script} from './auth';
 import {ClaspError} from './clasp-error';
@@ -13,6 +13,8 @@ import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
 import {DOTFILE} from './dotfile';
 import {ERROR, LOG} from './messages';
 import {checkIfOnlineOrDie, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils';
+
+import type {TranspileOptions} from 'typescript';
 
 const {project} = Conf.get();
 
@@ -30,7 +32,7 @@ interface ProjectFile {
   readonly type: string;
 }
 
-const projectFileWithContent = (file: ProjectFile, transpileOptions: ts.TranspileOptions): ProjectFile => {
+const projectFileWithContent = (file: ProjectFile, transpileOptions: TranspileOptions): ProjectFile => {
   const source = fs.readFileSync(file.name).toString();
   const type = getApiFileType(file.name);
 
@@ -39,7 +41,7 @@ const projectFileWithContent = (file: ProjectFile, transpileOptions: ts.Transpil
       // @see github.com/grant/ts2gas
       {
         ...file,
-        source: ts2gas(source, transpileOptions as any),
+        source: ts2gas(source, transpileOptions),
         type: 'SERVER_JS',
       }
     : {...file, source, type};
@@ -201,14 +203,14 @@ export const hasProject = (): boolean => fs.existsSync(project.resolve());
 
 /**
  * Returns in tsconfig.json.
- * @returns {ts.TranspileOptions} if tsconfig.json not exists, return an empty object.
+ * @returns {TranspileOptions} if tsconfig.json not exists, return an empty object.
  */
-const getTranspileOptions = (): ts.TranspileOptions => {
+const getTranspileOptions = (): TranspileOptions => {
   const tsconfigPath = path.join(project.resolvedDir, 'tsconfig.json');
 
   return fs.existsSync(tsconfigPath)
     ? {
-        compilerOptions: ts.parseConfigFileTextToJson(tsconfigPath, fs.readFileSync(tsconfigPath, FS_OPTIONS)).config
+        compilerOptions: parseConfigFileTextToJson(tsconfigPath, fs.readFileSync(tsconfigPath, FS_OPTIONS)).config
           .compilerOptions,
       }
     : {};

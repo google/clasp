@@ -1,9 +1,10 @@
-import {OAuth2ClientOptions} from 'google-auth-library';
 import os from 'os';
 import path from 'path';
 
 import {ClaspToken} from '../src/dotfile';
 import {randomString} from './functions';
+
+import type {OAuth2ClientOptions} from 'google-auth-library';
 
 // Sample files
 export const TEST_CODE_JS = "function test() { Logger.log('test'); }";
