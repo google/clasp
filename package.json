@@ -1,6 +1,6 @@
 {
   "name": "forked-clasp",
-  "version": "2.11.1",
+  "version": "2.11.2",
   "description": "Develop Apps Script Projects locally",
   "main": "build/src/index.js",
   "scripts": {
