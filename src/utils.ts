@@ -2,6 +2,7 @@ import cliTruncate from 'cli-truncate';
 import fs from 'fs-extra';
 import {script_v1 as scriptV1} from 'googleapis';
 import isReachable from 'is-reachable';
+import logSymbols from 'log-symbols';
 import ora from 'ora';
 import path from 'path';
 
@@ -202,15 +203,31 @@ export const getApiFileType = (value: string): string => {
  */
 // If using a proxy, return true since `isOnline` doesn't work.
 // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
-export const safeIsOnline = async (): Promise<boolean> =>
-  Boolean(process.env.HTTP_PROXY || process.env.HTTPS_PROXY) ||
-  isReachable([
+export const safeIsOnline = async (): Promise<boolean> => {
+  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+    return true;
+  }
+
+  const urls = [
     // 'www.googleapis.com',
     'script.google.com',
     'console.developers.google.com',
     'console.cloud.google.com',
     'drive.google.com',
-  ]);
+  ];
+
+  const promises = urls.map(url => [url, isReachable(url)]);
+
+  let allReachable = true;
+  for (const [url, promise] of promises) {
+    if (!(await promise)) {
+      console.log(url, logSymbols.error);
+      allReachable = false;
+    }
+  }
+
+  return allReachable;
+};
 
 /**
  * Checks if the network is available. Gracefully exits if not.
