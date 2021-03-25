@@ -216,7 +216,7 @@ export const safeIsOnline = async (): Promise<boolean> => {
     'drive.google.com',
   ];
 
-  const promises = urls.map(url => [url, isReachable(url)]);
+  const promises = urls.map<[string, Promise<boolean>]>(url => [url, isReachable(url, {timeout: 10000})]);
 
   let allReachable = true;
   for (const [url, promise] of promises) {
