@@ -5,6 +5,7 @@ import isReachable from 'is-reachable';
 import logSymbols from 'log-symbols';
 import ora from 'ora';
 import path from 'path';
+import pMap from 'p-map';
 
 import {ClaspError} from './clasp-error';
 import {Conf} from './conf';
@@ -198,6 +199,14 @@ export const getApiFileType = (value: string): string => {
   return ['GS', 'JS'].includes(extension) ? 'SERVER_JS' : extension;
 };
 
+const mapper = async (url: string) => {
+  const wasReached = await isReachable(url);
+  if (!wasReached) {
+    console.log(url, logSymbols.error);
+  }
+  return wasReached;
+};
+
 /**
  * Checks if the network is available. Gracefully exits if not.
  */
@@ -216,17 +225,9 @@ export const safeIsOnline = async (): Promise<boolean> => {
     'drive.google.com',
   ];
 
-  const promises = urls.map<[string, Promise<boolean>]>(url => [url, isReachable(url, {timeout: 10000})]);
+  const result = await pMap(urls, mapper, {stopOnError: false});
 
-  let allReachable = true;
-  for (const [url, promise] of promises) {
-    if (!(await promise)) {
-      console.log(url, logSymbols.error);
-      allReachable = false;
-    }
-  }
-
-  return allReachable;
+  return result.every(wasReached => wasReached);
 };
 
 /**

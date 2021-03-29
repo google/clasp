@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import makeDir from 'make-dir';
 import multimatch from 'multimatch';
 import path from 'path';
+import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
 import {parseConfigFileTextToJson} from 'typescript';
@@ -333,21 +334,23 @@ export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') =
   try {
     const {fileExtension} = await getProjectSettings();
 
+    const mapper = async (file: AppsScriptFile) => {
+      const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension)}`;
+      const truePath = `${rootDir || '.'}/${filePath}`;
+      try {
+        await makeDir(path.dirname(truePath));
+        await fs.writeFile(truePath, file.source);
+      } catch (error: unknown) {
+        throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_FILE_WRITE);
+      }
+      // Log only filename if pulling to root (Code.gs vs ./Code.gs)
+      console.log(`└─ ${rootDir ? truePath : filePath}`);
+    };
+
     const fileList = files.filter(file => file.source); // Disallow empty files
     fileList.sort((a, b) => a.name.localeCompare(b.name));
 
-    for await (const file of fileList) {
-      const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension)}`;
-      const truePath = `${rootDir || '.'}/${filePath}`;
-      await makeDir(path.dirname(truePath));
-      fs.writeFile(truePath, file.source, (error: Readonly<NodeJS.ErrnoException>) => {
-        if (error) {
-          throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_FILE_WRITE);
-        }
-      });
-      // Log only filename if pulling to root (Code.gs vs ./Code.gs)
-      console.log(`└─ ${rootDir ? truePath : filePath}`);
-    }
+    await pMap(fileList, mapper);
   } catch (error) {
     if (error instanceof ClaspError) {
       throw error;
