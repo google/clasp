@@ -200,7 +200,7 @@ export const getApiFileType = (value: string): string => {
 };
 
 const mapper = async (url: string) => {
-  const wasReached = await isReachable(url);
+  const wasReached = await isReachable(url, {timeout: 25000});
   if (!wasReached) {
     console.log(url, logSymbols.error);
   }
