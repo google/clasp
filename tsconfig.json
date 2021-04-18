@@ -21,7 +21,7 @@
     "stripInternal": true,
     "suppressExcessPropertyErrors": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es2017",
+    "target": "es2019",
 
     "importHelpers": true // canary: will cause runtime error if `tslib` is necessary
   },

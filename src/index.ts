@@ -25,7 +25,7 @@ const why = require('wtfnode'); // should be your first require
 
 import commander from 'commander';
 import loudRejection from 'loud-rejection';
-import readPkgUp from 'read-pkg-up';
+import {readPackageUpSync} from 'read-pkg-up';
 
 import {ClaspError} from './clasp-error';
 import apis from './commands/apis';
@@ -60,7 +60,7 @@ const {auth, ignore, project} = Conf.get();
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
 
-const manifest = readPkgUp.sync({cwd: require.resolve('.')});
+const manifest = readPackageUpSync({cwd: require.resolve('.')});
 // CLI
 
 /**

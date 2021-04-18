@@ -3,7 +3,7 @@ import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 import path from 'path';
-import readPkgUp from 'read-pkg-up';
+import {readPackageUpSync} from 'read-pkg-up';
 
 import {getAppsScriptFileName, getLocalFileType} from '../src/files';
 import {ERROR, LOG} from '../src/messages';
@@ -12,7 +12,7 @@ import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject
 import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
 import {cleanup, setup} from './functions';
 
-const manifest = readPkgUp.sync({cwd: require.resolve('../src')});
+const manifest = readPackageUpSync({cwd: require.resolve('../src')});
 
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
