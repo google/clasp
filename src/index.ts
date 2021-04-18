@@ -25,7 +25,7 @@ const why = require('wtfnode'); // should be your first require
 
 import commander from 'commander';
 import loudRejection from 'loud-rejection';
-import {readPackageUpSync} from 'read-pkg-up';
+import readPackageUp from 'read-pkg-up';
 
 import {ClaspError} from './clasp-error';
 import apis from './commands/apis';
@@ -51,6 +51,8 @@ import versions from './commands/versions';
 import {Conf} from './conf';
 import {PROJECT_NAME} from './constants';
 import {spinner, stopSpinner} from './utils';
+
+const readPackageUpSync = readPackageUp.sync;
 
 let beforeExit = () => {};
 
