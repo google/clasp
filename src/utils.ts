@@ -8,14 +8,9 @@ import path from 'path';
 import pMap from 'p-map';
 
 import {ClaspError} from './clasp-error';
-import {Conf} from './conf';
-import {DOTFILE} from './dotfile';
+import {ClaspToken, DOT, DOTFILE, ProjectSettings} from './dotfile';
 import {projectIdPrompt} from './inquirer';
 import {ERROR, LOG} from './messages';
-
-import type {ClaspToken, ProjectSettings} from './dotfile';
-
-const {auth} = Conf.get();
 
 /**
  * Returns input string with uppercased first character
@@ -47,23 +42,8 @@ export interface ClaspCredentials {
  * @param  {boolean} local check ./clasprc.json instead of ~/.clasprc.json
  * @return {boolean}
  */
-export const hasOauthClientSettings = (local = false): boolean => {
-  let previousPath: string | undefined;
-
-  if (local && auth.isDefault()) {
-    // if no local auth defined, try current directory
-    previousPath = auth.path;
-    auth.path = '.';
-  }
-
-  const result = (local ? !auth.isDefault() : auth.isDefault()) && fs.existsSync(auth.resolve());
-
-  if (previousPath) {
-    auth.path = previousPath;
-  }
-
-  return result;
-};
+export const hasOauthClientSettings = (local = false): boolean =>
+  fs.existsSync(local ? DOT.RC.ABSOLUTE_LOCAL_PATH : DOT.RC.ABSOLUTE_PATH);
 
 /**
  * Gets the OAuth client settings from rc file.
@@ -73,21 +53,7 @@ export const hasOauthClientSettings = (local = false): boolean => {
  */
 export const getOAuthSettings = async (local: boolean): Promise<ClaspToken> => {
   try {
-    let previousPath: string | undefined;
-
-    if (local && auth.isDefault()) {
-      // if no local auth defined, try current directory
-      previousPath = auth.path;
-      auth.path = '.';
-    }
-
-    const result = DOTFILE.AUTH().read<ClaspToken>();
-
-    if (previousPath) {
-      auth.path = previousPath;
-    }
-
-    return result;
+    return await (local ? DOTFILE.RC_LOCAL() : DOTFILE.RC).read<ClaspToken>();
   } catch (error) {
     throw new ClaspError(getErrorMessage(error) ?? ERROR.NO_CREDENTIALS(local));
   }

@@ -6,18 +6,13 @@ import {watchTree} from 'watch';
 
 import {loadAPICredentials} from '../auth';
 import {ClaspError} from '../clasp-error';
-import {Conf} from '../conf';
 import {FS_OPTIONS, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants';
-import {DOTFILE} from '../dotfile';
+import {DOT, DOTFILE, ProjectSettings} from '../dotfile';
 import {fetchProject, pushFiles} from '../files';
 import {overwritePrompt} from '../inquirer';
 import {isValidManifest} from '../manifest';
 import {LOG} from '../messages';
 import {checkIfOnlineOrDie, getProjectSettings, spinner} from '../utils';
-
-import type {ProjectSettings} from '../dotfile';
-
-const {project} = Conf.get();
 
 interface CommandOption {
   readonly watch?: boolean;
@@ -86,7 +81,7 @@ const confirmManifestUpdate = async (): Promise<boolean> => (await overwriteProm
  * @returns {Promise<boolean>}
  */
 const manifestHasChanges = async (projectSettings: ProjectSettings): Promise<boolean> => {
-  const {scriptId, rootDir = project.resolvedDir} = projectSettings;
+  const {scriptId, rootDir = DOT.PROJECT.DIR} = projectSettings;
   const localManifest = readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);

@@ -1,4 +1,4 @@
-import {OAuth2Client} from 'google-auth-library';
+import {Credentials, GenerateAuthUrlOpts, OAuth2Client, OAuth2ClientOptions} from 'google-auth-library';
 import {google, script_v1 as scriptV1} from 'googleapis';
 import {createServer} from 'http';
 import open from 'open';
@@ -6,16 +6,15 @@ import readline from 'readline';
 import {URL} from 'url';
 
 import {ClaspError} from './clasp-error';
-import {DOTFILE} from './dotfile';
+import {ClaspToken, DOTFILE, Dotfile} from './dotfile';
 import {ERROR, LOG} from './messages';
 import {checkIfOnlineOrDie, getOAuthSettings} from './utils';
+// import {oauthScopesPrompt} from './inquirer';
+// import {readManifest} from './manifest';
 
-import type {Credentials, GenerateAuthUrlOpts, OAuth2ClientOptions} from 'google-auth-library';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
 import type {ReadonlyDeep} from 'type-fest';
-
-import type {ClaspToken} from './dotfile';
 import type {ClaspCredentials} from './utils';
 
 /**
@@ -152,8 +151,9 @@ export const authorize = async (options: {
 
     // Save the token and own creds together.
     let claspToken: ClaspToken;
-    // TODO: deprecate `--creds` option
+    let dotfile: Dotfile;
     if (options.creds) {
+      dotfile = DOTFILE.RC_LOCAL();
       const {client_id: clientId, client_secret: clientSecret, redirect_uris: redirectUri} = options.creds.installed;
       // Save local ClaspCredentials.
       claspToken = {
@@ -162,6 +162,7 @@ export const authorize = async (options: {
         isLocalCreds: true,
       };
     } else {
+      dotfile = DOTFILE.RC;
       // Save global ClaspCredentials.
       claspToken = {
         token,
@@ -170,7 +171,7 @@ export const authorize = async (options: {
       };
     }
 
-    await DOTFILE.AUTH().write(claspToken);
+    await dotfile.write(claspToken);
     console.log(LOG.SAVED_CREDS(Boolean(options.creds)));
   } catch (error) {
     if (error instanceof ClaspError) {
@@ -309,7 +310,7 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
     await refreshCredentials(globalOAuth2Client);
 
     // Save the credentials.
-    await DOTFILE.AUTH().write(rc);
+    await (rc.isLocalCreds ? DOTFILE.RC_LOCAL() : DOTFILE.RC).write(rc);
   } catch (error) {
     if (error instanceof ClaspError) {
       throw error;
