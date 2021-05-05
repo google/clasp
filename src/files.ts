@@ -1,4 +1,3 @@
-import findUp from 'find-up';
 import fs from 'fs-extra';
 import makeDir from 'make-dir';
 import multimatch from 'multimatch';
@@ -10,8 +9,9 @@ import {parseConfigFileTextToJson} from 'typescript';
 
 import {loadAPICredentials, script} from './auth';
 import {ClaspError} from './clasp-error';
+import {Conf} from './conf';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
-import {DOT, DOTFILE} from './dotfile';
+import {DOTFILE} from './dotfile';
 import {ERROR, LOG} from './messages';
 import {checkIfOnlineOrDie, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils';
 
@@ -200,7 +200,7 @@ export const getLocalFileType = (type: string, fileExtension?: string): string =
  * Returns true if the user has a clasp project.
  * @returns {boolean} If .clasp.json exists.
  */
-export const hasProject = (): boolean => fs.existsSync(DOT.PROJECT.PATH);
+export const hasProject = (): boolean => fs.existsSync(project.resolve());
 
 /**
  * Returns in tsconfig.json.

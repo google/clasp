@@ -48,6 +48,7 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
+import {Conf} from './conf';
 import {PROJECT_NAME} from './constants';
 import {spinner, stopSpinner} from './utils';
 
