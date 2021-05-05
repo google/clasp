@@ -5,9 +5,9 @@ os:
 # - windows
 language: node_js
 node_js:
+- "16"
 - "14"
 - "12"
-- "10"
 env:
   global:
   - SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL
