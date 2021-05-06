@@ -38,34 +38,25 @@ export const setupWithRunManifest = () => {
 /** produce a pseudo random string */
 export const randomString = () => Math.random().toString(36).slice(2);
 
+function copyFileIfExists(src: string, dest: string) {
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, dest);
+  }
+}
 /**
  * backup clasp settings. Use `restoreSettings()` to restore these.
  */
 export const backupSettings = () => {
-  if (fs.existsSync(CLASP_PATHS.rcGlobal)) {
-    fs.copyFileSync(CLASP_PATHS.rcGlobal, `${CLASP_PATHS.rcGlobal}~`);
-  }
-  if (fs.existsSync(CLASP_PATHS.rcLocal)) {
-    fs.copyFileSync(CLASP_PATHS.rcLocal, `${CLASP_PATHS.rcLocal}~`);
-  }
-  if (fs.existsSync(CLASP_PATHS.settingsLocal)) {
-    fs.copyFileSync(CLASP_PATHS.settingsLocal, `${CLASP_PATHS.settingsLocal}~`);
-  }
+  const files = [CLASP_PATHS.rcGlobal, CLASP_PATHS.rcLocal, CLASP_PATHS.settingsLocal];
+  files.forEach(path => copyFileIfExists(path, `${path}~`));
 };
 
 /**
  * restore clasp settings backuped up using `backupSettings()`
  */
 export const restoreSettings = () => {
-  if (fs.existsSync(`${CLASP_PATHS.rcGlobal}~`)) {
-    fs.renameSync(`${CLASP_PATHS.rcGlobal}~`, CLASP_PATHS.rcGlobal);
-  }
-  if (fs.existsSync(`${CLASP_PATHS.rcLocal}~`)) {
-    fs.renameSync(`${CLASP_PATHS.rcLocal}~`, CLASP_PATHS.rcLocal);
-  }
-  if (fs.existsSync(`${CLASP_PATHS.settingsLocal}~`)) {
-    fs.renameSync(`${CLASP_PATHS.settingsLocal}~`, CLASP_PATHS.settingsLocal);
-  }
+  const files = [CLASP_PATHS.rcGlobal, CLASP_PATHS.rcLocal, CLASP_PATHS.settingsLocal];
+  files.forEach(path => copyFileIfExists(`${path}~`, path));
 };
 
 /**

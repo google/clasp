@@ -10,7 +10,7 @@ import {ERROR, LOG} from '../src/messages';
 import {extractScriptId, URL} from '../src/urls';
 import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
 import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
-import {cleanup, setup} from './functions';
+import {backupSettings, cleanup, restoreSettings, setup} from './functions';
 
 const manifest = readPkgUp.sync({cwd: require.resolve('../src')});
 
@@ -252,9 +252,11 @@ describe('Test unknown functions', () => {
 
 describe('Test all functions while logged out', () => {
   before(() => {
+    backupSettings();
     if (fs.existsSync(CLASP_PATHS.rcGlobal)) fs.removeSync(CLASP_PATHS.rcGlobal);
     if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
   });
+  after(restoreSettings);
   const expectNoCredentials = (command: string) => {
     const result = spawnSync(CLASP, [command], {encoding: 'utf8'});
     expect(result.status).to.equal(1);
