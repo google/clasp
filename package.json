@@ -75,7 +75,7 @@
     "make-dir": "^3.1.0",
     "multimatch": "^5.0.0",
     "normalize-newline": "^3.0.0",
-    "open": "^8.0.7",
+    "open": "^8.0.8",
     "ora": "^5.4.0",
     "p-map": "^4.0.0",
     "read-pkg-up": "^7.0.1",
@@ -99,10 +99,10 @@
     "chai": "^4.3.4",
     "coveralls": "^3.1.0",
     "gts": "^3.1.0",
-    "mocha": "^8.3.2",
+    "mocha": "^8.4.0",
     "nyc": "^15.1.0",
     "prettier": "^2.2.1",
     "tmp": "^0.2.1",
-    "type-fest": "^1.0.2"
+    "type-fest": "^1.1.0"
   }
 }
