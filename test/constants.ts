@@ -25,7 +25,7 @@ export const TEST_APPSSCRIPT_JSON_WITH_RUN_API = JSON.stringify({
 });
 
 // Travis Env Variables
-export const IS_PR: boolean = process.env.TRAVIS_PULL_REQUEST === 'true';
+export const IS_PR: boolean = process.env.CI === 'true';
 export const SCRIPT_ID: string = process.env.SCRIPT_ID ?? '';
 export const PROJECT_ID: string = process.env.PROJECT_ID ?? '';
 export const PARENT_ID: string[] = [process.env.PROJECT_ID ?? ''];

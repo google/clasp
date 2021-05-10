@@ -17,7 +17,7 @@ jobs:
       PROJECT_ID: project-id-3961473932623644264
     strategy:
       matrix:
-        node-version: [12, 14]
+        node-version: [12]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - uses: actions/checkout@v2
@@ -25,10 +25,10 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Decrypt .clasprc
-        run: echo "$DOT_CLASPRC" >> ~/.clasprc.json
-        env:
-          DOT_CLASPRC: ${{ secrets.DOT_CLASPRC }}
       - run: npm ci
       - run: npm run build --if-present
+      - name: Decrypt .clasprc
+        run: echo "$DOT_CLASPRC" >> $HOME/.clasprc.json
+        env:
+          DOT_CLASPRC: ${{ secrets.DOT_CLASPRC }}
       - run: npm test
