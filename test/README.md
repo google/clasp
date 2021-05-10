@@ -8,7 +8,7 @@
 ## Testing Tools
 
 - Testing framework: [Mocha.js](https://mochajs.org/)
-- Testing CI: [Travis CI](https://travis-ci.org/google/clasp)
+- Testing CI: [GitHub actions](https://docs.github.com/en/actions)
   - Unit tests run for every Pull Request
 - Testing % coverage: [Coveralls](https://coveralls.io/github/google/clasp?branch=master)
 
@@ -17,7 +17,6 @@
 1. Log in: `clasp login`
 1. Rebuild: `npm run build`
 1. Set environmental variables:
-   - `export TRAVIS_PULL_REQUEST=false`
    - `export SCRIPT_ID=1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL`
    - `export PROJECT_ID=project-id-3961473932623644264`
 1. Test: `npm run test`
@@ -26,47 +25,15 @@
 
 > Note: The build may fail due to API quota limits. To solve this, wait 24 hours and then rebuild Travis.
 
-[Travis](https://travis-ci.org/) automatically build and run tests on `clasp` for.
+GitHub automatically build and run tests on `clasp` for.
 
 ### Clasp login
 
-Since Travis cannot `clasp login`, a `.clasprc.json` file is included that was created locally using `clasp login`.
+Since CI can not log in, a `.clasprc.json` file is included that was created locally using `clasp login`.
 
 > Use test account `claspcreds@gmail.com`. Password is private.
 
-To then encrypt the `.clasprc.json` file, use these commands using the [Travis CLI](https://github.com/travis-ci/travis.rb):
-
-```sh
-clasp login
-cp ~/.clasprc.json ./test/.clasprc.json
-travis encrypt-file ./test/.clasprc.json --add
-```
-
-This will add the following line to `.travis.yml`, which decrypts that file:
-
-```sh
-openssl aes-256-cbc -K $encrypted_0f9bbf7a60f4_key -iv $encrypted_0f9bbf7a60f4_iv -in .clasprc.json.enc -out .clasprc.json -d || true
-```
-
-Now move `.clasprc.json.enc` to the `/test/` folder:
-
-```sh
-rm ./test/.clasprc.json.enc
-cp .clasprc.json.enc ./test/.clasprc.json.enc
-rm ./.clasprc.json.enc
-```
-
-And edit the `openssl` command in `.travis.yml` file:
-
-- Change the `-in` file to `./test/.clasprc.json.enc`
-- Change the `-out` file to `.clasprc.json`
-- Add `|| true` to the end of the command
-
-> Note: [Travis will not decrypt files on a Pull Request from a fork.](https://docs.travis-ci.com/user/encrypting-files/)
-
-There are complicated ways around this. [Ideas](https://blog.algolia.com/travis-encrypted-variables-external-contributions/).
-
-> Note: The command ends with `|| true` so Travis doesn't immediately fail on any PR.
+When updating the credentials, save the contents of the file in the github secret `DOT_CLASPRC`.
 
 ## Testing Status
 
