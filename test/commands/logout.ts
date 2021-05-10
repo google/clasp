@@ -10,7 +10,8 @@ import {backupSettings, cleanup, restoreSettings, setup} from '../functions';
 describe('Test clasp logout function', () => {
   before(setup);
   beforeEach(backupSettings);
-  it('should remove global AND local credentails', () => {
+  afterEach(restoreSettings);
+  it('should remove global AND local credentials', () => {
     fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
     fs.writeFileSync(CLASP_PATHS.rcLocal, FAKE_CLASPRC.local);
     const result = spawnSync(CLASP, ['logout'], {encoding: 'utf8'});
@@ -30,8 +31,5 @@ describe('Test clasp logout function', () => {
     expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
-  after(() => {
-    restoreSettings();
-    cleanup();
-  });
+  after(cleanup);
 });
