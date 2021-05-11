@@ -2,9 +2,9 @@ import {expect} from 'chai';
 import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
-import path, { dirname } from 'path';
+import path, {dirname} from 'path';
 import {readPackageUpSync} from 'read-pkg-up';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
 import {getAppsScriptFileName, getLocalFileType} from '../src/files.js';
 import {ERROR, LOG} from '../src/messages.js';
