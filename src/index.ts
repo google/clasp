@@ -36,7 +36,6 @@ import create from './commands/create.js';
 import defaultCmd from './commands/default.js';
 import deploy from './commands/deploy.js';
 import deployments from './commands/deployments.js';
-import help from './commands/help.js';
 import list from './commands/list.js';
 import login from './commands/login.js';
 import logout from './commands/logout.js';
@@ -358,13 +357,6 @@ commander
   )
   .option('--open', 'Open the API Console in the browser')
   .action(apis);
-
-/**
- * Displays the help function.
- * @name help
- * @example help
- */
-commander.command('help').description('Display help').action(help);
 
 /**
  * Update .clasp.json settings file.
