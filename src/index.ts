@@ -81,7 +81,7 @@ commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT
  * Path to an auth file, or to a folder with a '.clasprc.json' file.
  */
 commander
-  .option('-A, --auth <file>', `path to an auth file or a folder with a '.clasprc.json' file.`)
+  .option('-A, --auth <file>', "path to an auth file or a folder with a '.clasprc.json' file.")
   .on('option:auth', () => {
     auth.path = commander['auth'];
   });
@@ -90,7 +90,7 @@ commander
  * Path to an ignore file, or to a folder with a '.claspignore'.
  */
 commander
-  .option('-I, --ignore <file>', `path to an ignore file or a folder with a '.claspignore' file.`)
+  .option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.")
   .on('option:ignore', () => {
     ignore.path = commander['ignore'];
   });
@@ -99,7 +99,7 @@ commander
  * Path to a project file, or to a folder with a '.clasp.json'.
  */
 commander
-  .option('-P, --project <file>', `path to a project file or to a folder with a '.clasp.json' file.`)
+  .option('-P, --project <file>', "path to a project file or to a folder with a '.clasp.json' file.")
   .on('option:project', () => {
     project.path = commander['project'];
   });
@@ -107,7 +107,7 @@ commander
 /**
  * Display some debugging info upon exit.
  */
-commander.option('-W, --why', `Display some debugging info upon exit.`).on('option:why', () => {
+commander.option('-W, --why', 'Display some debugging info upon exit.').on('option:why', () => {
   beforeExit = why.dump;
 });
 
