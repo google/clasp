@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import {ClaspError} from './clasp-error';
+import {ClaspError} from './clasp-error.js';
 
 /** A path broken down into a `dir`ectory and a `base` filename */
 type BrokenPath = Pick<path.ParsedPath, 'dir' | 'base'>;
@@ -31,7 +31,7 @@ export class PathProxy {
    * @returns {string}
    */
   get path(): string {
-    return this._userDefined || path.join(this._default.dir, this._default.base);
+    return this._userDefined ?? path.join(this._default.dir, this._default.base);
   }
 
   /**
@@ -96,7 +96,7 @@ const resolvePath = (pathToResolve: string, baseFilename: string) => {
   const parsedPath = path.parse(pathToResolve);
 
   if (parsedPath.dir === '' || fs.lstatSync(parsedPath.dir).isDirectory()) {
-    return pathToResolve; // assume fullpath to missing file
+    return pathToResolve; // Assume fullpath to missing file
   }
 
   // TODO: improve support for unresolved paths

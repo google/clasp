@@ -3,16 +3,15 @@ import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 import path from 'path';
-import readPackageUp from 'read-pkg-up';
+import {readPackageUpSync} from 'read-pkg-up';
 
-import {getAppsScriptFileName, getLocalFileType} from '../src/files';
-import {ERROR, LOG} from '../src/messages';
-import {extractScriptId, URL} from '../src/urls';
-import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils';
-import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants';
-import {backupSettings, cleanup, restoreSettings, setup} from './functions';
+import {getAppsScriptFileName, getLocalFileType} from '../src/files.js';
+import {ERROR, LOG} from '../src/messages.js';
+import {extractScriptId, URL} from '../src/urls.js';
+import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils.js';
+import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
+import {backupSettings, cleanup, restoreSettings, setup} from './functions.js';
 
-const readPackageUpSync = readPackageUp.sync;
 const manifest = readPackageUpSync({cwd: require.resolve('../src')});
 
 describe.skip('Test --help for each function', () => {

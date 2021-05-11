@@ -1,8 +1,8 @@
-import {drive, loadAPICredentials} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {ERROR, LOG} from '../messages';
-import {URL} from '../urls';
-import {checkIfOnlineOrDie, ellipsize, spinner, stopSpinner} from '../utils';
+import {drive, loadAPICredentials} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {ERROR, LOG} from '../messages.js';
+import {URL} from '../urls.js';
+import {checkIfOnlineOrDie, ellipsize, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly noShorten: boolean;

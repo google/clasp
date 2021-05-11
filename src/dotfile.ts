@@ -17,8 +17,8 @@ import path from 'path';
 import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
 
-import {Conf} from './conf';
-import {FS_OPTIONS} from './constants';
+import {Conf} from './conf.js';
+import {FS_OPTIONS} from './constants.js';
 
 import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 

@@ -2,10 +2,10 @@ import {expect} from 'chai';
 import {spawnSync} from 'child_process';
 import {after, before, describe, it} from 'mocha';
 
-import {URL} from '../../src/urls';
-import {ERROR, LOG} from '../../src/messages';
-import {CLASP, PARENT_ID, PROJECT_ID, SCRIPT_ID} from '../constants';
-import {cleanup, setup} from '../functions';
+import {URL} from '../../src/urls.js';
+import {ERROR, LOG} from '../../src/messages.js';
+import {CLASP, PARENT_ID, PROJECT_ID, SCRIPT_ID} from '../constants.js';
+import {cleanup, setup} from '../functions.js';
 
 describe('Test clasp open function', () => {
   before(setup);

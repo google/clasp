@@ -1,8 +1,8 @@
 import os from 'os';
 import path from 'path';
 
-import {PROJECT_NAME} from './constants';
-import {PathProxy} from './path-proxy';
+import {PROJECT_NAME} from './constants.js';
+import {PathProxy} from './path-proxy.js';
 
 /**
  * supported environment variables

@@ -1,12 +1,12 @@
 import open from 'open';
 
-import {loadAPICredentials, script} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {ProjectSettings} from '../dotfile';
-import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer';
-import {ERROR, LOG} from '../messages';
-import {URL} from '../urls';
-import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils';
+import {loadAPICredentials, script} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {ProjectSettings} from '../dotfile.js';
+import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer.js';
+import {ERROR, LOG} from '../messages.js';
+import {URL} from '../urls.js';
+import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils.js';
 
 interface CommandOption {
   readonly webapp?: boolean;

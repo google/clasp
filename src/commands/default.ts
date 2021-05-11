@@ -1,5 +1,5 @@
-import {ClaspError} from '../clasp-error';
-import {ERROR} from '../messages';
+import {ClaspError} from '../clasp-error.js';
+import {ERROR} from '../messages.js';
 
 import type {Command} from 'commander';
 import type {ReadonlyDeep} from 'type-fest';

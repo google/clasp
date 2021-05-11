@@ -7,13 +7,13 @@ import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
 import {parseConfigFileTextToJson} from 'typescript';
 
-import {loadAPICredentials, script} from './auth';
-import {ClaspError} from './clasp-error';
-import {Conf} from './conf';
-import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
+import {loadAPICredentials, script} from './auth.js';
+import {ClaspError} from './clasp-error.js';
+import {Conf} from './conf.js';
+import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants.js';
 import {DOTFILE} from './dotfile';
-import {ERROR, LOG} from './messages';
-import {checkIfOnlineOrDie, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils';
+import {ERROR, LOG} from './messages.js';
+import {checkIfOnlineOrDie, getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils.js';
 
 import type {TranspileOptions} from 'typescript';
 

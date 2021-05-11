@@ -1,6 +1,6 @@
-import {fetchProject, writeProjectFiles} from '../files';
-import {LOG} from '../messages';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {fetchProject, writeProjectFiles} from '../files.js';
+import {LOG} from '../messages.js';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly versionNumber?: number;

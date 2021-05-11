@@ -1,8 +1,8 @@
 import {script_v1 as scriptV1} from 'googleapis';
 
-import {Conf} from './conf';
-import {PROJECT_MANIFEST_FILENAME, PROJECT_NAME} from './constants';
-import {URL} from './urls';
+import {Conf} from './conf.js';
+import {PROJECT_MANIFEST_FILENAME, PROJECT_NAME} from './constants.js';
+import {URL} from './urls.js';
 
 const {auth, ignore, project} = Conf.get();
 

@@ -3,9 +3,9 @@ import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 
-import {LOG} from '../../src/messages';
-import {CLASP, CLASP_PATHS, CLASP_SETTINGS} from '../constants';
-import {cleanup, setup} from '../functions';
+import {LOG} from '../../src/messages.js';
+import {CLASP, CLASP_PATHS, CLASP_SETTINGS} from '../constants.js';
+import {cleanup, setup} from '../functions.js';
 
 describe('Test clasp run function', () => {
   before(setup);

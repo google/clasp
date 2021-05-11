@@ -1,8 +1,8 @@
-import {loadAPICredentials, script} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {PROJECT_MANIFEST_BASENAME as manifestFileName} from '../constants';
-import {ERROR, LOG} from '../messages';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {loadAPICredentials, script} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {PROJECT_MANIFEST_BASENAME as manifestFileName} from '../constants.js';
+import {ERROR, LOG} from '../messages.js';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly versionNumber?: number;

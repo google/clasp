@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "lib": ["ESNext"],
-    "module": "CommonJS",
+    "module": "ES2020",
     "moduleResolution": "Node",
     "newLine": "lf",
     "noImplicitAny": true,

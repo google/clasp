@@ -3,8 +3,8 @@ import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 
-import {CLASP, CLASP_SETTINGS, TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API, TEST_CODE_JS, TEST_PAGE_HTML} from '../constants';
-import {cleanup, setup, setupTemporaryDirectory} from '../functions';
+import {CLASP, CLASP_SETTINGS, TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API, TEST_CODE_JS, TEST_PAGE_HTML} from '../constants.js';
+import {cleanup, setup, setupTemporaryDirectory} from '../functions.js';
 
 describe('Test clasp push function', () => {
   before(setup);

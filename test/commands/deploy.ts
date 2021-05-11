@@ -2,8 +2,8 @@ import {expect} from 'chai';
 import {spawnSync} from 'child_process';
 import {after, before, describe, it} from 'mocha';
 
-import {CLASP} from '../constants';
-import {cleanup, setup} from '../functions';
+import {CLASP} from '../constants.js';
+import {cleanup, setup} from '../functions.js';
 
 describe('Test clasp deploy function', () => {
   before(setup);

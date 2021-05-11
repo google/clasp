@@ -1,7 +1,6 @@
-import {getAllProjectFiles, getOrderedProjectFiles, logFileList, splitProjectFiles} from '../files';
-// import {isValidManifest} from '../manifest';
-import {LOG} from '../messages';
-import {checkIfOnlineOrDie, getProjectSettings} from '../utils';
+import {getAllProjectFiles, getOrderedProjectFiles, logFileList, splitProjectFiles} from '../files.js';
+import {LOG} from '../messages.js';
+import {checkIfOnlineOrDie, getProjectSettings} from '../utils.js';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -13,7 +12,6 @@ interface CommandOption {
  */
 export default async (options: CommandOption = {json: false}): Promise<void> => {
   await checkIfOnlineOrDie();
-  // await isValidManifest();
   const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
     const [toPush, toIgnore] = splitProjectFiles(await getAllProjectFiles(rootDir));

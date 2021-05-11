@@ -2,9 +2,11 @@
   "name": "@google/clasp",
   "version": "2.3.1",
   "description": "Develop Apps Script Projects locally",
+  "type": "module",
+  "exports": "./build/src/index.js",
   "main": "build/src/index.js",
   "engines": {
-    "node": ">= 12.4.0"
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   },
   "bin": {
     "clasp": "build/src/index.js"
@@ -70,18 +72,18 @@
     "inquirer": "^8.0.0",
     "inquirer-autocomplete-prompt-ipt": "^2.0.0",
     "is-reachable": "^5.0.0",
-    "log-symbols": "^4.1.0",
+    "log-symbols": "^5.0.0",
     "loud-rejection": "^2.2.0",
     "make-dir": "^3.1.0",
     "multimatch": "^5.0.0",
-    "normalize-newline": "^3.0.0",
+    "normalize-newline": "^4.1.0",
     "open": "^8.0.8",
     "ora": "^5.4.0",
-    "p-map": "^4.0.0",
-    "read-pkg-up": "^7.0.1",
+    "p-map": "^5.0.0",
+    "read-pkg-up": "^8.0.0",
     "recursive-readdir": "^2.2.2",
-    "split-lines": "^2.1.0",
-    "strip-bom": "^4.0.0",
+    "split-lines": "^3.0.0",
+    "strip-bom": "^5.0.0",
     "ts2gas": "^3.6.4",
     "typescript": "^4.2.4",
     "watch": "^0.13.0",
@@ -101,7 +103,7 @@
     "gts": "^3.1.0",
     "mocha": "^8.4.0",
     "nyc": "^15.1.0",
-    "prettier": "^2.2.1",
+    "prettier": "^2.3.0",
     "tmp": "^0.2.1",
     "type-fest": "^1.1.1"
   }

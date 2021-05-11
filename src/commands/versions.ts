@@ -1,9 +1,9 @@
 import {script_v1 as scriptV1} from 'googleapis';
 
-import {loadAPICredentials, script} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {LOG} from '../messages';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {loadAPICredentials, script} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {LOG} from '../messages.js';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 /**
  * Lists versions of an Apps Script project.
