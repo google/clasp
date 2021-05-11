@@ -73,7 +73,9 @@ const openAddon = async (projectSettings: ProjectSettings) => {
   }
 
   if (parentIdList.length > 1) {
-    parentIdList.forEach(id => console.log(LOG.FOUND_PARENT(id)));
+    for (const id of parentIdList) {
+      console.log(LOG.FOUND_PARENT(id));
+    }
   }
 
   const parentId = parentIdList[0];

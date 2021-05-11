@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const why = require('wtfnode'); // should be your first require
+
 /**
  * @license
  * Copyright Google Inc.
@@ -23,7 +25,7 @@
 
 import commander from 'commander';
 import loudRejection from 'loud-rejection';
-import readPkgUp from 'read-pkg-up';
+import readPackageUp from 'read-pkg-up';
 
 import {ClaspError} from './clasp-error';
 import apis from './commands/apis';
@@ -46,13 +48,21 @@ import status from './commands/status';
 import undeploy from './commands/undeploy';
 import version from './commands/version';
 import versions from './commands/versions';
+import {Conf} from './conf';
 import {PROJECT_NAME} from './constants';
 import {spinner, stopSpinner} from './utils';
+
+const readPackageUpSync = readPackageUp.sync;
+
+let beforeExit = () => {};
+
+// instantiate the config singleton (and loads environment variables as a side effect)
+const {auth, ignore, project} = Conf.get();
 
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
 
-const manifest = readPkgUp.sync({cwd: require.resolve('.')});
+const manifest = readPackageUpSync({cwd: require.resolve('.')});
 // CLI
 
 /**
@@ -66,6 +76,40 @@ commander.storeOptionsAsProperties(false);
 commander.version(manifest ? manifest.packageJson.version : 'unknown', '-v, --version', 'output the current version');
 
 commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
+
+/**
+ * Path to an auth file, or to a folder with a '.clasprc.json' file.
+ */
+commander
+  .option('-A, --auth <file>', `path to an auth file or a folder with a '.clasprc.json' file.`)
+  .on('option:auth', () => {
+    auth.path = commander['auth'];
+  });
+
+/**
+ * Path to an ignore file, or to a folder with a '.claspignore'.
+ */
+commander
+  .option('-I, --ignore <file>', `path to an ignore file or a folder with a '.claspignore' file.`)
+  .on('option:ignore', () => {
+    ignore.path = commander['ignore'];
+  });
+
+/**
+ * Path to a project file, or to a folder with a '.clasp.json'.
+ */
+commander
+  .option('-P, --project <file>', `path to a project file or to a folder with a '.clasp.json' file.`)
+  .on('option:project', () => {
+    project.path = commander['project'];
+  });
+
+/**
+ * Display some debugging info upon exit.
+ */
+commander.option('-W, --why', `Display some debugging info upon exit.`).on('option:why', () => {
+  beforeExit = why.dump;
+});
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -343,6 +387,19 @@ commander
  */
 commander.command('*', {isDefault: true}).description('Any other command is not supported').action(defaultCmd);
 
+/**
+ * @internal
+ * Displays clasp paths
+ */
+commander
+  .command('paths')
+  .description('List current config files path')
+  .action(() => {
+    console.log('project', project.path, project.isDefault(), project.resolve());
+    console.log('ignore', ignore.path, ignore.isDefault(), ignore.resolve());
+    console.log('auth', auth.path, auth.isDefault(), auth.resolve());
+  });
+
 const [_bin, _sourcePath, ...args] = process.argv;
 // Defaults to help if commands are not provided
 if (args.length === 0) {
@@ -367,4 +424,7 @@ if (args.length === 0) {
       console.error('Unknown error', error);
     }
   }
+  spinner.clear();
+
+  beforeExit();
 })();

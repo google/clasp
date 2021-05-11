@@ -1,17 +1,40 @@
-import fs from 'fs-extra';
-
-import {DOT} from '../dotfile';
+import {Conf} from '../conf';
+import {DOTFILE} from '../dotfile';
 import {hasOauthClientSettings} from '../utils';
+
+const {auth} = Conf.get();
 
 /**
  * Logs out the user by deleting credentials.
  */
 export default async (): Promise<void> => {
+  let previousPath: string | undefined;
+
   if (hasOauthClientSettings(true)) {
-    fs.unlinkSync(DOT.RC.ABSOLUTE_LOCAL_PATH);
+    if (auth.isDefault()) {
+      // if no local auth defined, try current directory
+      previousPath = auth.path;
+      auth.path = '.';
+    }
+
+    await DOTFILE.AUTH().delete();
+
+    if (previousPath) {
+      auth.path = previousPath;
+    }
   }
 
   if (hasOauthClientSettings()) {
-    fs.unlinkSync(DOT.RC.ABSOLUTE_PATH);
+    if (!auth.isDefault()) {
+      // if local auth defined, try with default (global)
+      previousPath = auth.path;
+      auth.path = '';
+    }
+
+    await DOTFILE.AUTH().delete();
+
+    if (previousPath) {
+      auth.path = previousPath;
+    }
   }
 };
