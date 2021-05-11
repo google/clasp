@@ -9,7 +9,6 @@ import {ERROR} from '../messages';
 import {URL} from '../urls';
 import {checkIfOnlineOrDie, getProjectId} from '../utils';
 
-import type {GaxiosResponse} from 'gaxios';
 import type {ReadonlyDeep} from 'type-fest';
 
 type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
@@ -47,7 +46,7 @@ export default async (options: CommandOption): Promise<void> => {
       console.log('\n# Currently enabled APIs:');
       const projectId = await getProjectId(); // Will prompt user to set up if required
       const MAX_PAGE_SIZE = 200; // This is the max page size according to the docs.
-      const list: GaxiosResponse<serviceUsageV1.Schema$ListServicesResponse> = await serviceUsage.services.list({
+      const list = await serviceUsage.services.list({
         parent: `projects/${projectId}`,
         filter: 'state:ENABLED',
         pageSize: MAX_PAGE_SIZE,

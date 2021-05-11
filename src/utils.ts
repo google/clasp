@@ -1,14 +1,21 @@
 import cliTruncate from 'cli-truncate';
 import fs from 'fs-extra';
 import {script_v1 as scriptV1} from 'googleapis';
-import isOnline from 'is-online';
+import isReachable from 'is-reachable';
+import logSymbols from 'log-symbols';
 import ora from 'ora';
 import path from 'path';
+import pMap from 'p-map';
 
 import {ClaspError} from './clasp-error';
-import {ClaspToken, DOT, DOTFILE, ProjectSettings} from './dotfile';
+import {Conf} from './conf';
+import {DOTFILE} from './dotfile';
 import {projectIdPrompt} from './inquirer';
 import {ERROR, LOG} from './messages';
+
+import type {ClaspToken, ProjectSettings} from './dotfile';
+
+const {auth} = Conf.get();
 
 /**
  * Returns input string with uppercased first character
@@ -40,8 +47,23 @@ export interface ClaspCredentials {
  * @param  {boolean} local check ./clasprc.json instead of ~/.clasprc.json
  * @return {boolean}
  */
-export const hasOauthClientSettings = (local = false): boolean =>
-  fs.existsSync(local ? DOT.RC.ABSOLUTE_LOCAL_PATH : DOT.RC.ABSOLUTE_PATH);
+export const hasOauthClientSettings = (local = false): boolean => {
+  let previousPath: string | undefined;
+
+  if (local && auth.isDefault()) {
+    // if no local auth defined, try current directory
+    previousPath = auth.path;
+    auth.path = '.';
+  }
+
+  const result = (local ? !auth.isDefault() : auth.isDefault()) && fs.existsSync(auth.resolve());
+
+  if (previousPath) {
+    auth.path = previousPath;
+  }
+
+  return result;
+};
 
 /**
  * Gets the OAuth client settings from rc file.
@@ -51,7 +73,21 @@ export const hasOauthClientSettings = (local = false): boolean =>
  */
 export const getOAuthSettings = async (local: boolean): Promise<ClaspToken> => {
   try {
-    return await (local ? DOTFILE.RC_LOCAL() : DOTFILE.RC).read<ClaspToken>();
+    let previousPath: string | undefined;
+
+    if (local && auth.isDefault()) {
+      // if no local auth defined, try current directory
+      previousPath = auth.path;
+      auth.path = '.';
+    }
+
+    const result = DOTFILE.AUTH().read<ClaspToken>();
+
+    if (previousPath) {
+      auth.path = previousPath;
+    }
+
+    return result;
   } catch (error) {
     throw new ClaspError(getErrorMessage(error) ?? ERROR.NO_CREDENTIALS(local));
   }
@@ -163,13 +199,36 @@ export const getApiFileType = (value: string): string => {
   return ['GS', 'JS'].includes(extension) ? 'SERVER_JS' : extension;
 };
 
+const mapper = async (url: string) => {
+  const wasReached = await isReachable(url, {timeout: 25000});
+  if (!wasReached) {
+    console.log(url, logSymbols.error);
+  }
+  return wasReached;
+};
+
 /**
  * Checks if the network is available. Gracefully exits if not.
  */
 // If using a proxy, return true since `isOnline` doesn't work.
 // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
-export const safeIsOnline = async (): Promise<boolean> =>
-  Boolean(process.env.HTTP_PROXY || process.env.HTTPS_PROXY) || isOnline();
+export const safeIsOnline = async (): Promise<boolean> => {
+  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+    return true;
+  }
+
+  const urls = [
+    // 'www.googleapis.com',
+    'script.google.com',
+    'console.developers.google.com',
+    'console.cloud.google.com',
+    'drive.google.com',
+  ];
+
+  const result = await pMap(urls, mapper, {stopOnError: false});
+
+  return result.every(wasReached => wasReached);
+};
 
 /**
  * Checks if the network is available. Gracefully exits if not.

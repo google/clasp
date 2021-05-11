@@ -26,9 +26,9 @@ export default async (): Promise<void> => {
 
   console.log(LOG.VERSION_NUM(count));
   versionList.reverse();
-  versionList.forEach((version: Readonly<scriptV1.Schema$Version>) => {
+  for (const version of versionList) {
     console.log(LOG.VERSION_DESCRIPTION(version));
-  });
+  }
 };
 
 const getVersionList = async (scriptId: string) => {

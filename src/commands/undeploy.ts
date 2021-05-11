@@ -1,3 +1,6 @@
+import {script_v1 as scriptV1} from 'googleapis';
+import pMap from 'p-map';
+
 import {loadAPICredentials, script} from '../auth';
 import {ClaspError} from '../clasp-error';
 import {ERROR, LOG} from '../messages';
@@ -17,12 +20,13 @@ export default async (deploymentId: string | undefined, options: CommandOption):
   const {scriptId} = await getProjectSettings();
   if (scriptId) {
     if (options.all) {
-      const deployments = await listDeployments(scriptId);
+      const mapper = async ({deploymentId}: scriptV1.Schema$Deployment) => deleteDeployment(scriptId, deploymentId!);
 
+      const deployments = await listDeployments(scriptId);
       deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
-      for (const {deploymentId} of deployments) {
-        await deleteDeployment(scriptId, deploymentId as string);
-      }
+
+      await pMap(deployments, mapper);
+
       console.log(LOG.UNDEPLOYMENT_ALL_FINISH);
       return;
     }
