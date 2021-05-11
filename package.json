@@ -98,6 +98,7 @@
     "@types/recursive-readdir": "^2.2.0",
     "@types/tmp": "^0.2.0",
     "@types/watch": "^1.0.1",
+    "@types/wtfnode": "^0.7.0",
     "chai": "^4.3.4",
     "coveralls": "^3.1.0",
     "gts": "^3.1.0",

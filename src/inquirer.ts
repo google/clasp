@@ -1,11 +1,13 @@
 import {script_v1 as scriptV1} from 'googleapis';
-import {prompt, registerPrompt} from 'inquirer';
+import inquirer from 'inquirer';
 import autocomplete from 'inquirer-autocomplete-prompt-ipt';
 
 import {SCRIPT_TYPES} from './apis.js';
 import {LOG} from './messages.js';
 
 import type {ReadonlyDeep} from 'type-fest';
+
+const {prompt, registerPrompt} = inquirer;
 
 registerPrompt('autocomplete', autocomplete);
 

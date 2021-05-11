@@ -1,4 +1,4 @@
-import {readFileSync} from 'fs-extra';
+import fs from 'fs-extra';
 import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
 import path from 'path';
@@ -17,6 +17,7 @@ import {checkIfOnlineOrDie, getProjectSettings, spinner} from '../utils.js';
 
 import type {ProjectSettings} from '../dotfile';
 
+const {readFileSync} = fs;
 const {project} = Conf.get();
 
 interface CommandOption {

@@ -5,13 +5,13 @@ import path from 'path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
-import {parseConfigFileTextToJson} from 'typescript';
+import typescript from 'typescript';
 
 import {loadAPICredentials, script} from './auth.js';
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants.js';
-import {DOTFILE} from './dotfile';
+import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
 import {
   checkIfOnlineOrDie,
@@ -24,6 +24,7 @@ import {
 
 import type {TranspileOptions} from 'typescript';
 
+const {parseConfigFileTextToJson} = typescript;
 const {project} = Conf.get();
 
 // An Apps Script API File

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const why = require('wtfnode'); // should be your first require
+import why from 'wtfnode'; // should be your first require
 
 /**
  * @license
@@ -25,7 +25,9 @@ const why = require('wtfnode'); // should be your first require
 
 import commander from 'commander';
 import loudRejection from 'loud-rejection';
+import {dirname} from 'path';
 import {readPackageUpSync} from 'read-pkg-up';
+import {fileURLToPath} from 'url';
 
 import {ClaspError} from './clasp-error.js';
 import apis from './commands/apis.js';
@@ -52,6 +54,8 @@ import {Conf} from './conf.js';
 import {PROJECT_NAME} from './constants.js';
 import {spinner, stopSpinner} from './utils.js';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 let beforeExit = () => {};
 
 // instantiate the config singleton (and loads environment variables as a side effect)
@@ -60,7 +64,7 @@ const {auth, ignore, project} = Conf.get();
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
 
-const manifest = readPackageUpSync({cwd: require.resolve('.')});
+const manifest = readPackageUpSync({cwd: __dirname});
 // CLI
 
 /**

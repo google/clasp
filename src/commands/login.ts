@@ -1,7 +1,7 @@
 /**
  * Clasp command method bodies.
  */
-import {readJsonSync} from 'fs-extra';
+import fs from 'fs-extra';
 
 import {enableAppsScriptAPI} from '../apiutils.js';
 import {authorize, defaultScopes, getLoggedInEmail, scopeWebAppDeploy} from '../auth.js';
@@ -9,6 +9,8 @@ import {FS_OPTIONS} from '../constants.js';
 import {readManifest} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {checkIfOnlineOrDie, hasOauthClientSettings, safeIsOnline} from '../utils.js';
+
+const {readJsonSync} = fs;
 
 interface CommandOption {
   readonly localhost?: boolean;
