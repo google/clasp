@@ -47,7 +47,7 @@ export default async (options: CommandOption): Promise<void> => {
       return pushFiles();
     }, WATCH_DEBOUNCE_MS);
     const patterns = await DOTFILE.IGNORE();
-    const watchCallback = async (_event: string, filePath: string) => {
+    const watchCallback = async (filePath: string) => {
       if (multimatch([filePath], patterns, {dot: true}).length > 0) {
         // The file matches the ignored files patterns so we do nothing
         return;
@@ -61,7 +61,9 @@ export default async (options: CommandOption): Promise<void> => {
     };
     const watcher = chokidar.watch(rootDir, {persistent: true, ignoreInitial: true});
     watcher.on('ready', pushFiles); // Push on start
-    watcher.on('all', watchCallback);
+    watcher.on('add', watchCallback);
+    watcher.on('change', watchCallback);
+    watcher.on('unlink', watchCallback);
 
     return;
   }
