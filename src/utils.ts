@@ -7,11 +7,11 @@ import ora from 'ora';
 import path from 'path';
 import pMap from 'p-map';
 
-import {ClaspError} from './clasp-error';
-import {Conf} from './conf';
-import {DOTFILE} from './dotfile';
-import {projectIdPrompt} from './inquirer';
-import {ERROR, LOG} from './messages';
+import {ClaspError} from './clasp-error.js';
+import {Conf} from './conf.js';
+import {DOTFILE} from './dotfile.js';
+import {projectIdPrompt} from './inquirer.js';
+import {ERROR, LOG} from './messages.js';
 
 import type {ClaspToken, ProjectSettings} from './dotfile';
 

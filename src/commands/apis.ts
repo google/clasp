@@ -1,13 +1,13 @@
 import {discovery_v1 as discoveryV1, serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';
 
-import {PUBLIC_ADVANCED_SERVICES} from '../apis';
-import {enableOrDisableAPI} from '../apiutils';
-import {discovery, loadAPICredentials, serviceUsage} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {ERROR} from '../messages';
-import {URL} from '../urls';
-import {checkIfOnlineOrDie, getProjectId} from '../utils';
+import {PUBLIC_ADVANCED_SERVICES} from '../apis.js';
+import {enableOrDisableAPI} from '../apiutils.js';
+import {discovery, loadAPICredentials, serviceUsage} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {ERROR} from '../messages.js';
+import {URL} from '../urls.js';
+import {checkIfOnlineOrDie, getProjectId} from '../utils.js';
 
 import type {ReadonlyDeep} from 'type-fest';
 

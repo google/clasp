@@ -1,6 +1,6 @@
-import {Conf} from '../conf';
-import {DOTFILE} from '../dotfile';
-import {hasOauthClientSettings} from '../utils';
+import {Conf} from '../conf.js';
+import {DOTFILE} from '../dotfile.js';
+import {hasOauthClientSettings} from '../utils.js';
 
 const {auth} = Conf.get();
 
@@ -12,7 +12,7 @@ export default async (): Promise<void> => {
 
   if (hasOauthClientSettings(true)) {
     if (auth.isDefault()) {
-      // if no local auth defined, try current directory
+      // If no local auth defined, try current directory
       previousPath = auth.path;
       auth.path = '.';
     }
@@ -26,7 +26,7 @@ export default async (): Promise<void> => {
 
   if (hasOauthClientSettings()) {
     if (!auth.isDefault()) {
-      // if local auth defined, try with default (global)
+      // If local auth defined, try with default (global)
       previousPath = auth.path;
       auth.path = '';
     }

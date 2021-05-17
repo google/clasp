@@ -1,4 +1,4 @@
-import {SCRIPT_ID_LENGTH} from './apis';
+import {SCRIPT_ID_LENGTH} from './apis.js';
 
 /**
  * Extracts scriptId from URL if given in URL form.

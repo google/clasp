@@ -2,9 +2,9 @@ import {expect} from 'chai';
 import {spawnSync} from 'child_process';
 import {after, before, describe, it} from 'mocha';
 
-import {LOG} from '../../src/messages';
-import {CLASP} from '../constants';
-import {cleanup, setup, setupWithoutGCPProject} from '../functions';
+import {LOG} from '../../src/messages.js';
+import {CLASP} from '../constants.js';
+import {cleanup, setup, setupWithoutGCPProject} from '../functions.js';
 
 describe('Test clasp logs setup', () => {
   before(setupWithoutGCPProject);

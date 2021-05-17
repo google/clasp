@@ -5,10 +5,10 @@ import open from 'open';
 import readline from 'readline';
 import {URL} from 'url';
 
-import {ClaspError} from './clasp-error';
-import {DOTFILE} from './dotfile';
-import {ERROR, LOG} from './messages';
-import {checkIfOnlineOrDie, getOAuthSettings} from './utils';
+import {ClaspError} from './clasp-error.js';
+import {DOTFILE} from './dotfile.js';
+import {ERROR, LOG} from './messages.js';
+import {checkIfOnlineOrDie, getOAuthSettings} from './utils.js';
 
 import type {Credentials, GenerateAuthUrlOpts, OAuth2ClientOptions} from 'google-auth-library';
 import type {IncomingMessage, Server, ServerResponse} from 'http';

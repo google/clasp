@@ -1,8 +1,8 @@
 import os from 'os';
 import path from 'path';
 
-import {ClaspToken} from '../src/dotfile';
-import {randomString} from './functions';
+import {ClaspToken} from '../src/dotfile.js';
+import {randomString} from './functions.js';
 
 import type {OAuth2ClientOptions} from 'google-auth-library';
 

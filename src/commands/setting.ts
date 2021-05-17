@@ -1,7 +1,7 @@
-import {ClaspError} from '../clasp-error';
-import {ProjectSettings} from '../dotfile';
-import {ERROR} from '../messages';
-import {getProjectSettings, saveProject} from '../utils';
+import {ClaspError} from '../clasp-error.js';
+import {ProjectSettings} from '../dotfile.js';
+import {ERROR} from '../messages.js';
+import {getProjectSettings, saveProject} from '../utils.js';
 
 /**
  * Gets or sets a setting in .clasp.json

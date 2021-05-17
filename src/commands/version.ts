@@ -1,8 +1,8 @@
-import {loadAPICredentials, script} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {descriptionPrompt} from '../inquirer';
-import {LOG} from '../messages';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {loadAPICredentials, script} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {descriptionPrompt} from '../inquirer.js';
+import {LOG} from '../messages.js';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 /**
  * Creates a new version of an Apps Script project.

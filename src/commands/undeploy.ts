@@ -1,10 +1,10 @@
 import {script_v1 as scriptV1} from 'googleapis';
 import pMap from 'p-map';
 
-import {loadAPICredentials, script} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {ERROR, LOG} from '../messages';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils';
+import {loadAPICredentials, script} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {ERROR, LOG} from '../messages.js';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -42,7 +42,7 @@ export default async (deploymentId: string | undefined, options: CommandOption):
         throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
       }
 
-      deploymentId = lastDeployment.deploymentId as string;
+      deploymentId = lastDeployment.deploymentId!;
     }
 
     await deleteDeployment(scriptId, deploymentId);

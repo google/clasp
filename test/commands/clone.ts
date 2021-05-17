@@ -3,10 +3,10 @@ import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 
-import {URL} from '../../src/urls';
-import {ERROR, LOG} from '../../src/messages';
-import {CLASP, SCRIPT_ID} from '../constants';
-import {cleanup, setup} from '../functions';
+import {URL} from '../../src/urls.js';
+import {ERROR, LOG} from '../../src/messages.js';
+import {CLASP, SCRIPT_ID} from '../constants.js';
+import {cleanup, setup} from '../functions.js';
 
 describe('Test clasp clone <scriptId> function', () => {
   before(setup);

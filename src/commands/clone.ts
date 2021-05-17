@@ -1,13 +1,13 @@
 import {drive_v3 as driveV3} from 'googleapis';
 
-import {drive, loadAPICredentials} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {fetchProject, hasProject, writeProjectFiles} from '../files';
-import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer';
-import {ERROR, LOG} from '../messages';
-import {extractScriptId} from '../urls';
-import {checkIfOnlineOrDie, saveProject, spinner} from '../utils';
-import status from './status';
+import {drive, loadAPICredentials} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
+import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer.js';
+import {ERROR, LOG} from '../messages.js';
+import {extractScriptId} from '../urls.js';
+import {checkIfOnlineOrDie, saveProject, spinner} from '../utils.js';
+import status from './status.js';
 
 interface CommandOption {
   readonly rootDir: string;

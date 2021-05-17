@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {spawnSync} from 'child_process';
 import {describe, it} from 'mocha';
 
-import {CLASP} from '../constants';
+import {CLASP} from '../constants.js';
 
 describe('Test missing command function', () => {
   it('should report missing command correctly', () => {

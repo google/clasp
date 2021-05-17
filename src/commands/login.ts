@@ -1,14 +1,16 @@
 /**
  * Clasp command method bodies.
  */
-import {readJsonSync} from 'fs-extra';
+import fs from 'fs-extra';
 
-import {enableAppsScriptAPI} from '../apiutils';
-import {authorize, defaultScopes, getLoggedInEmail, scopeWebAppDeploy} from '../auth';
-import {FS_OPTIONS} from '../constants';
-import {readManifest} from '../manifest';
-import {ERROR, LOG} from '../messages';
-import {checkIfOnlineOrDie, hasOauthClientSettings, safeIsOnline} from '../utils';
+import {enableAppsScriptAPI} from '../apiutils.js';
+import {authorize, defaultScopes, getLoggedInEmail, scopeWebAppDeploy} from '../auth.js';
+import {FS_OPTIONS} from '../constants.js';
+import {readManifest} from '../manifest.js';
+import {ERROR, LOG} from '../messages.js';
+import {checkIfOnlineOrDie, hasOauthClientSettings, safeIsOnline} from '../utils.js';
+
+const {readJsonSync} = fs;
 
 interface CommandOption {
   readonly localhost?: boolean;
@@ -62,6 +64,7 @@ export default async (options: CommandOption): Promise<void> => {
     for (const scope of scopes) {
       console.log(scope);
     }
+
     console.log(`\nNOTE: The full list of scopes your project may need can be found at script.google.com under:
 File > Project Properties > Scopes\n`);
 

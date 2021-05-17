@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {describe, it} from 'mocha';
 import path from 'path';
 
-import {isValidFileName} from '../src/files';
+import {isValidFileName} from '../src/files.js';
 
 describe('Test files isValidFileName function', () => {
   const validFileName = 'testFile';

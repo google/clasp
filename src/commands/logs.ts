@@ -2,12 +2,12 @@ import chalk from 'chalk';
 import {logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
-import {loadAPICredentials, logger} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {DOTFILE, ProjectSettings} from '../dotfile';
-import {projectIdPrompt} from '../inquirer';
-import {ERROR, LOG} from '../messages';
-import {URL} from '../urls';
+import {loadAPICredentials, logger} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {DOTFILE, ProjectSettings} from '../dotfile.js';
+import {projectIdPrompt} from '../inquirer.js';
+import {ERROR, LOG} from '../messages.js';
+import {URL} from '../urls.js';
 import {
   checkIfOnlineOrDie,
   getErrorMessage,
@@ -15,7 +15,7 @@ import {
   isValidProjectId,
   spinner,
   stopSpinner,
-} from '../utils';
+} from '../utils.js';
 
 interface CommandOption {
   readonly json?: boolean;

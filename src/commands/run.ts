@@ -1,13 +1,13 @@
 import chalk from 'chalk';
 import readline from 'readline';
 
-import {getFunctionNames} from '../apiutils';
-import {getLocalScript, loadAPICredentials, script} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {addScopeToManifest, isValidRunManifest} from '../manifest';
-import {ERROR} from '../messages';
-import {URL} from '../urls';
-import {checkIfOnlineOrDie, getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils';
+import {getFunctionNames} from '../apiutils.js';
+import {getLocalScript, loadAPICredentials, script} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {addScopeToManifest, isValidRunManifest} from '../manifest.js';
+import {ERROR} from '../messages.js';
+import {URL} from '../urls.js';
+import {checkIfOnlineOrDie, getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly nondev: boolean;

@@ -7,7 +7,7 @@ import {
   CLASP_SETTINGS,
   TEST_APPSSCRIPT_JSON_WITH_RUN_API,
   TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
-} from './constants';
+} from './constants.js';
 
 /** basic cleanup after tests */
 export const cleanup = () => {

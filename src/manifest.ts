@@ -1,13 +1,13 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import {PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis';
-import {ClaspError} from './clasp-error';
-import {Conf} from './conf';
-import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants';
-import {ProjectSettings} from './dotfile';
-import {ERROR} from './messages';
-import {getProjectSettings, parseJsonOrDie} from './utils';
+import {PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis.js';
+import {ClaspError} from './clasp-error.js';
+import {Conf} from './conf.js';
+import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants.js';
+import {ProjectSettings} from './dotfile.js';
+import {ERROR} from './messages.js';
+import {getProjectSettings, parseJsonOrDie} from './utils.js';
 
 import type {AdvancedService} from './apis';
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const why = require('wtfnode'); // should be your first require
+import why from 'wtfnode'; // should be your first require
 
 /**
  * @license
@@ -25,34 +25,35 @@ const why = require('wtfnode'); // should be your first require
 
 import commander from 'commander';
 import loudRejection from 'loud-rejection';
-import readPackageUp from 'read-pkg-up';
+import {dirname} from 'path';
+import {readPackageUpSync} from 'read-pkg-up';
+import {fileURLToPath} from 'url';
 
-import {ClaspError} from './clasp-error';
-import apis from './commands/apis';
-import clone from './commands/clone';
-import create from './commands/create';
-import defaultCmd from './commands/default';
-import deploy from './commands/deploy';
-import deployments from './commands/deployments';
-import help from './commands/help';
-import list from './commands/list';
-import login from './commands/login';
-import logout from './commands/logout';
-import logs from './commands/logs';
-import openCmd from './commands/open';
-import pull from './commands/pull';
-import push from './commands/push';
-import run from './commands/run';
-import setting from './commands/setting';
-import status from './commands/status';
-import undeploy from './commands/undeploy';
-import version from './commands/version';
-import versions from './commands/versions';
-import {Conf} from './conf';
-import {PROJECT_NAME} from './constants';
-import {spinner, stopSpinner} from './utils';
+import {ClaspError} from './clasp-error.js';
+import apis from './commands/apis.js';
+import clone from './commands/clone.js';
+import create from './commands/create.js';
+import defaultCmd from './commands/default.js';
+import deploy from './commands/deploy.js';
+import deployments from './commands/deployments.js';
+import list from './commands/list.js';
+import login from './commands/login.js';
+import logout from './commands/logout.js';
+import logs from './commands/logs.js';
+import openCmd from './commands/open.js';
+import pull from './commands/pull.js';
+import push from './commands/push.js';
+import run from './commands/run.js';
+import setting from './commands/setting.js';
+import status from './commands/status.js';
+import undeploy from './commands/undeploy.js';
+import version from './commands/version.js';
+import versions from './commands/versions.js';
+import {Conf} from './conf.js';
+import {PROJECT_NAME} from './constants.js';
+import {spinner, stopSpinner} from './utils.js';
 
-const readPackageUpSync = readPackageUp.sync;
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let beforeExit = () => {};
 
@@ -62,7 +63,7 @@ const {auth, ignore, project} = Conf.get();
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
 
-const manifest = readPackageUpSync({cwd: require.resolve('.')});
+const manifest = readPackageUpSync({cwd: __dirname});
 // CLI
 
 /**
@@ -356,13 +357,6 @@ commander
   )
   .option('--open', 'Open the API Console in the browser')
   .action(apis);
-
-/**
- * Displays the help function.
- * @name help
- * @example help
- */
-commander.command('help').description('Display help').action(help);
 
 /**
  * Update .clasp.json settings file.

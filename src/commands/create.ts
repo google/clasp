@@ -1,10 +1,10 @@
-import {SCRIPT_TYPES} from '../apis';
-import {drive, loadAPICredentials, script} from '../auth';
-import {ClaspError} from '../clasp-error';
-import {fetchProject, hasProject, writeProjectFiles} from '../files';
-import {scriptTypePrompt} from '../inquirer';
-import {manifestExists} from '../manifest';
-import {ERROR, LOG} from '../messages';
+import {SCRIPT_TYPES} from '../apis.js';
+import {drive, loadAPICredentials, script} from '../auth.js';
+import {ClaspError} from '../clasp-error.js';
+import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
+import {scriptTypePrompt} from '../inquirer.js';
+import {manifestExists} from '../manifest.js';
+import {ERROR, LOG} from '../messages.js';
 import {
   checkIfOnlineOrDie,
   getDefaultProjectName,
@@ -12,7 +12,7 @@ import {
   saveProject,
   spinner,
   stopSpinner,
-} from '../utils';
+} from '../utils.js';
 
 interface CommandOption {
   readonly parentId?: string;
