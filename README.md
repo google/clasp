@@ -1,17 +1,11 @@
-<h1 align="center">
-  <br>
-  clasp
-  <br>
-</h1>
+# Clasp
 
-<p align="center">
-<a href="https://github.com/google/clasp/actions/workflows/ci.yaml/badge.svg" alt="Build Status"></a>
+![build status](https://github.com/google/clasp/actions/workflows/ci.yaml/badge.svg)
 <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a>
 <a href="https://www.npmjs.com/package/@google/clasp"><img src="https://img.shields.io/npm/v/@google/clasp.svg" alt="npm Version"></a>
 <a href="https://npmcharts.com/compare/@google/clasp?minimal=true"><img src="https://img.shields.io/npm/dw/@google/clasp.svg" alt="npm Downloads"></a>
 <a href="https://david-dm.org/google/clasp" title="dependencies status"><img src="https://david-dm.org/google/clasp/status.svg"/></a>
 <a href="https://github.com/google/gts" title="Code Style: Google"><img src="https://img.shields.io/badge/code%20style-google-blueviolet.svg"/></a>
-</p>
 
 > Develop [Apps Script](https://developers.google.com/apps-script/) projects locally using clasp (**C**ommand **L**ine **A**pps **S**cript **P**rojects).
 
