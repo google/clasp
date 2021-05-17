@@ -54,9 +54,9 @@ export default async (options: CommandOption): Promise<void> => {
 
       console.log(LOG.PUSHING);
       await pushFiles();
-    }
+    };
     const watcher = chokidar.watch(rootDir, {persistent: true, awaitWriteFinish: true, ignoreInitial: true});
-    watcher.on('ready', pushFiles);
+    watcher.on('ready', pushFiles); // Push on start
     watcher.on('all', watchCallback);
 
     return;
