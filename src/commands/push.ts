@@ -3,7 +3,7 @@ import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
 import path from 'path';
 import chokidar from 'chokidar';
-
+import debouncePkg from 'debounce';
 import {loadAPICredentials} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
@@ -17,8 +17,10 @@ import {checkIfOnlineOrDie, getProjectSettings, spinner} from '../utils.js';
 
 import type {ProjectSettings} from '../dotfile';
 
+const {debounce} = debouncePkg;
 const {readFileSync} = fs;
 const {project} = Conf.get();
+const WATCH_DEBOUNCE_MS = 1000;
 
 interface CommandOption {
   readonly watch?: boolean;
@@ -39,23 +41,25 @@ export default async (options: CommandOption): Promise<void> => {
 
   if (options.watch) {
     console.log(LOG.PUSH_WATCH);
+    // Debounce calls to push to coalesce 'save all' actions from editors
+    const debouncedPushFiles = debounce(() => {
+      console.log(LOG.PUSHING);
+      return pushFiles();
+    }, WATCH_DEBOUNCE_MS);
     const patterns = await DOTFILE.IGNORE();
     const watchCallback = async (_event: string, filePath: string) => {
-      console.log(`\n${LOG.PUSH_WATCH_UPDATED(filePath)}\n`);
       if (multimatch([filePath], patterns, {dot: true}).length > 0) {
         // The file matches the ignored files patterns so we do nothing
         return;
       }
-
+      console.log(`\n${LOG.PUSH_WATCH_UPDATED(filePath)}\n`);
       if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
         console.log('Stopping push…');
         return;
       }
-
-      console.log(LOG.PUSHING);
-      await pushFiles();
+      return debouncedPushFiles();
     };
-    const watcher = chokidar.watch(rootDir, {persistent: true, awaitWriteFinish: true, ignoreInitial: true});
+    const watcher = chokidar.watch(rootDir, {persistent: true, ignoreInitial: true});
     watcher.on('ready', pushFiles); // Push on start
     watcher.on('all', watchCallback);
 
