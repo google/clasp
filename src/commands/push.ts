@@ -1,8 +1,8 @@
+import chokidar from 'chokidar';
 import fs from 'fs-extra';
 import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
 import path from 'path';
-import {watchTree} from 'watch';
 
 import {loadAPICredentials} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
@@ -43,25 +43,20 @@ export default async (options: CommandOption): Promise<void> => {
     /**
      * @see https://www.npmjs.com/package/watch
      */
-    // TODO check alternative https://github.com/paulmillr/chokidar
-    // TODO better use of watchTree api
-    watchTree(rootDir, {}, async f => {
-      // The first watch doesn't give a string for some reason.
-      if (typeof f === 'string') {
-        console.log(`\n${LOG.PUSH_WATCH_UPDATED(f)}\n`);
-        if (multimatch([f], patterns, {dot: true}).length > 0) {
-          // The file matches the ignored files patterns so we do nothing
-          return;
+    const watcher = chokidar.watch(rootDir);
+    watcher.on('all', async (event, path) => {
+      if (event === 'add' || event === 'change') {
+        console.log(`\n${LOG.PUSH_WATCH_UPDATED(path)}\n`);
+        // The file does not match the ignored files patterns
+        if (multimatch([path], patterns, {dot: true}).length === 0) {
+          if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
+            console.log('Stopping push…');
+          } else {
+            console.log(LOG.PUSHING);
+            await pushFiles();
+          }
         }
       }
-
-      if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
-        console.log('Stopping push…');
-        return;
-      }
-
-      console.log(LOG.PUSHING);
-      await pushFiles();
     });
 
     return;
