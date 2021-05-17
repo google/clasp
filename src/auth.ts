@@ -126,10 +126,12 @@ export const authorize = async (options: {
     }
 
     // Set scopes
-    let scope = (options.creds
-      ? // Set scopes to custom scopes
-        options.scopes
-      : defaultScopes) as string[];
+    let scope = (
+      options.creds
+        ? // Set scopes to custom scopes
+          options.scopes
+        : defaultScopes
+    ) as string[];
 
     if (options.creds && scope.length === 0) {
       scope = defaultScopes;
