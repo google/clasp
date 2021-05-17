@@ -94,39 +94,43 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
 
     // Read all filenames as a flattened tree
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-    const files: ProjectFile[] = (await recursive(rootDir)).map((filename): ProjectFile => {
-      // Replace OS specific path separator to common '/' char for console output
-      const name = filename.replace(/\\/g, '/');
+    const files: ProjectFile[] = (await recursive(rootDir)).map(
+      (filename): ProjectFile => {
+        // Replace OS specific path separator to common '/' char for console output
+        const name = filename.replace(/\\/g, '/');
 
-      return {source: '', isIgnored: isIgnored(name), name, type: ''};
-    });
+        return {source: '', isIgnored: isIgnored(name), name, type: ''};
+      }
+    );
     files.sort((a, b) => a.name.localeCompare(b.name));
 
-    return getContentOfProjectFiles(files).map((file: ProjectFile): ProjectFile => {
-      // Loop through files that are not ignored from `.claspignore`
-      if (!file.isIgnored) {
-        // Prevent node_modules/@types/
-        if (file.name.includes('node_modules/@types')) {
-          return ignoredProjectFile(file);
-        }
-
-        // Check if there are files that will conflict if renamed .gs to .js.
-        // When pushing to Apps Script, these files will overwrite each other.
-        const parsed = path.parse(file.name);
-        if (parsed.ext === '.gs') {
-          const jsFile = `${parsed.dir}/${parsed.name}.js`;
-          // Can't rename, conflicting files
-          // Only print error once (for .gs)
-          if (files.findIndex(otherFile => !otherFile.isIgnored && otherFile.name === jsFile) !== -1) {
-            throw new ClaspError(ERROR.CONFLICTING_FILE_EXTENSION(`${parsed.dir}/${parsed.name}`));
+    return getContentOfProjectFiles(files).map(
+      (file: ProjectFile): ProjectFile => {
+        // Loop through files that are not ignored from `.claspignore`
+        if (!file.isIgnored) {
+          // Prevent node_modules/@types/
+          if (file.name.includes('node_modules/@types')) {
+            return ignoredProjectFile(file);
           }
+
+          // Check if there are files that will conflict if renamed .gs to .js.
+          // When pushing to Apps Script, these files will overwrite each other.
+          const parsed = path.parse(file.name);
+          if (parsed.ext === '.gs') {
+            const jsFile = `${parsed.dir}/${parsed.name}.js`;
+            // Can't rename, conflicting files
+            // Only print error once (for .gs)
+            if (files.findIndex(otherFile => !otherFile.isIgnored && otherFile.name === jsFile) !== -1) {
+              throw new ClaspError(ERROR.CONFLICTING_FILE_EXTENSION(`${parsed.dir}/${parsed.name}`));
+            }
+          }
+
+          return isValid(file) ? file : ignoredProjectFile(file);
         }
 
-        return isValid(file) ? file : ignoredProjectFile(file);
+        return file;
       }
-
-      return file;
-    });
+    );
   } catch (error) {
     if (error instanceof ClaspError) {
       throw error;
@@ -149,15 +153,17 @@ const getContentOfProjectFiles = (files: ProjectFile[]) => {
 };
 
 const getAppsScriptFilesFromProjectFiles = (files: ProjectFile[], rootDir: string) =>
-  getContentOfProjectFiles(files).map((file): AppsScriptFile => {
-    const {name, source, type} = file;
+  getContentOfProjectFiles(files).map(
+    (file): AppsScriptFile => {
+      const {name, source, type} = file;
 
-    return {
-      name: getAppsScriptFileName(rootDir, name), // The file base name
-      source, // The file contents
-      type, // The file extension
-    };
-  });
+      return {
+        name: getAppsScriptFileName(rootDir, name), // The file base name
+        source, // The file contents
+        type, // The file extension
+      };
+    }
+  );
 
 // This statement customizes the order in which the files are pushed.
 // It puts the files in the setting's filePushOrder first.
