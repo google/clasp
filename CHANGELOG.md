@@ -1,6 +1,12 @@
 # Changelog
 
-### [2.3.1](https://www.github.com/google/clasp/compare/v2.5.0...v2.3.1) (2021-05-11)
+### [2.3.2](https://www.github.com/google/clasp/compare/v2.3.0...v2.3.2) (2021-05-17)
+
+### Miscellaneous Chores
+
+* Republish 2.3.0 as 2.3.2 due to unintended breaking changes in 2.3.1
+
+### [2.3.1](https://www.github.com/google/clasp/compare/v2.3.0...v2.3.1) (2021-05-11)
 
 
 ### Features
