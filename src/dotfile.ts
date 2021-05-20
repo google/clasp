@@ -24,7 +24,7 @@ import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 
 export type {Dotfile} from 'dotf';
 
-const {auth, ignore, project} = Conf.get();
+const {auth, authLocal, ignore, project} = Conf.get();
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
@@ -77,9 +77,10 @@ export const DOTFILE = {
     throw new Error('Project file must start with a dot (i.e. .clasp.json)');
   },
   // Stores {ClaspCredentials}
-  AUTH: () => {
+  AUTH: (local?: boolean) => {
+    const configPath = local ? authLocal : auth;
     // ! TODO: currently limited if filename doesn't start with a dot '.'
-    const {dir, base} = path.parse(auth.resolve());
+    const {dir, base} = path.parse(configPath.resolve());
     if (base[0] === '.') {
       return dotf(dir || '.', base.slice(1));
     }

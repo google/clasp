@@ -154,7 +154,6 @@ export const authorize = async (options: {
 
     // Save the token and own creds together.
     let claspToken: ClaspToken;
-    // TODO: deprecate `--creds` option
     if (options.creds) {
       const {client_id: clientId, client_secret: clientSecret, redirect_uris: redirectUri} = options.creds.installed;
       // Save local ClaspCredentials.
@@ -171,8 +170,7 @@ export const authorize = async (options: {
         isLocalCreds: false,
       };
     }
-
-    await DOTFILE.AUTH().write(claspToken);
+    await DOTFILE.AUTH(claspToken.isLocalCreds).write(claspToken);
     console.log(LOG.SAVED_CREDS(Boolean(options.creds)));
   } catch (error) {
     if (error instanceof ClaspError) {
@@ -304,14 +302,12 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
       localOAuth2Client = new OAuth2Client({clientId, clientSecret, redirectUri});
       localOAuth2Client.setCredentials(rc.token);
       await refreshCredentials(localOAuth2Client);
+    } else {
+      globalOAuth2Client.setCredentials(rc.token);
+      await refreshCredentials(globalOAuth2Client);
     }
-
-    // Always use the global credentials too for non-run functions.
-    globalOAuth2Client.setCredentials(rc.token);
-    await refreshCredentials(globalOAuth2Client);
-
     // Save the credentials.
-    await DOTFILE.AUTH().write(rc);
+    await DOTFILE.AUTH(rc.isLocalCreds).write(rc);
   } catch (error) {
     if (error instanceof ClaspError) {
       throw error;

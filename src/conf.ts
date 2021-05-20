@@ -37,6 +37,8 @@ export class Conf {
    * @see {ClaspToken}
    */
   readonly auth: AuthFile;
+  // Local auth for backwards compatibility
+  readonly authLocal: AuthFile;
   // readonly manifest: PathProxy;
 
   /**
@@ -63,13 +65,15 @@ export class Conf {
     this.ignore = new IgnoreFile({dir: os.homedir(), base: `.${PROJECT_NAME}ignore`});
 
     // default `auth` path is `~/.clasprc.json`
-    // Default Auth is global. Any other implies local auth
+    // default local auth path is './.clasprc.json'
     this.auth = new AuthFile({dir: os.homedir(), base: `.${PROJECT_NAME}rc.json`});
+    this.authLocal = new AuthFile({dir: '.', base: `.${PROJECT_NAME}rc.json`});
 
     // resolve environment variables
     setPathWithEnvVar(ENV.DOT_CLASP_PROJECT, this.project);
     setPathWithEnvVar(ENV.DOT_CLASP_IGNORE, this.ignore);
     setPathWithEnvVar(ENV.DOT_CLASP_AUTH, this.auth);
+    setPathWithEnvVar(ENV.DOT_CLASP_AUTH, this.authLocal);
   }
 
   /**
