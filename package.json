@@ -20,7 +20,6 @@
     "build-fresh": "npm cache clean --force && npm i && npm run build",
     "watch": "tsc --project tsconfig.json --watch",
     "prepare": "npm run compile",
-    "publish": "npm publish --access public",
     "lint": "npm run check",
     "test": "nyc mocha --cache false --timeout 100000 --recursive build/test",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",

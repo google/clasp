@@ -73,20 +73,7 @@ export const hasOauthClientSettings = (local = false): boolean => {
  */
 export const getOAuthSettings = async (local: boolean): Promise<ClaspToken> => {
   try {
-    let previousPath: string | undefined;
-
-    if (local && auth.isDefault()) {
-      // if no local auth defined, try current directory
-      previousPath = auth.path;
-      auth.path = '.';
-    }
-
-    const result = DOTFILE.AUTH().read<ClaspToken>();
-
-    if (previousPath) {
-      auth.path = previousPath;
-    }
-
+    const result = DOTFILE.AUTH(local).read<ClaspToken>();
     return result;
   } catch (error) {
     throw new ClaspError(getErrorMessage(error) ?? ERROR.NO_CREDENTIALS(local));
