@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.4.0](https://www.github.com/google/clasp/compare/v2.3.1...v2.4.0) (2021-06-11)
+
+
+### Features
+
+* switch from cjs to esm ([5055865](https://www.github.com/google/clasp/commit/5055865a28e48a654ffbb3b28212e53f484f76a4))
+
+
+### Bug Fixes
+
+* handle cjs specifics ([8063851](https://www.github.com/google/clasp/commit/8063851829a7ff2a07bfa0d808e8425363dde9fc))
+* support legacy cjs config files ([b9aed32](https://www.github.com/google/clasp/commit/b9aed322af1b99f50429d7d9a49abe6d15d18a1d))
+* unnecessary code caused `help` command to crash ([3741f71](https://www.github.com/google/clasp/commit/3741f71d744a2db8c5f1304c3426b253f8e742bd))
+
 ### [2.3.2](https://www.github.com/google/clasp/compare/v2.3.0...v2.3.2) (2021-05-17)
 
 ### Miscellaneous Chores
