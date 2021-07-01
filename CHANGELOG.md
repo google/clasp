@@ -1,10 +1,30 @@
 # Changelog
 
+## [2.4.0](https://www.github.com/google/clasp/compare/v2.3.1...v2.4.0) (2021-06-11)
+
+
+### Features
+
+* env & option based config files ([1b68374](https://www.github.com/google/clasp/commit/1b6837480b2e22cb8728cb80b2d8cfa36381d982))
+
+
+### Bug Fixes
+
+* unnecessary code caused `help` command to crash ([3741f71](https://www.github.com/google/clasp/commit/3741f71d744a2db8c5f1304c3426b253f8e742bd))
+
+
+### Miscellaneous Chores
+
+* switch from cjs to esm ([5055865](https://www.github.com/google/clasp/commit/5055865a28e48a654ffbb3b28212e53f484f76a4))
+
+
 ### [2.3.2](https://www.github.com/google/clasp/compare/v2.3.0...v2.3.2) (2021-05-17)
+
 
 ### Miscellaneous Chores
 
 * Republish 2.3.0 as 2.3.2 due to unintended breaking changes in 2.3.1
+
 
 ### [2.3.1](https://www.github.com/google/clasp/compare/v2.3.0...v2.3.1) (2021-05-11)
 
