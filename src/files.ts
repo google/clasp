@@ -6,6 +6,7 @@ import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 import ts2gas from 'ts2gas';
 import typescript from 'typescript';
+import {GaxiosError} from 'gaxios';
 
 import {loadAPICredentials, script} from './auth.js';
 import {ClaspError} from './clasp-error.js';
@@ -379,16 +380,19 @@ export const pushFiles = async (silent = false) => {
       // Start pushing.
       try {
         await script.projects.updateContent({scriptId, requestBody: {scriptId, files}});
-      } catch (error) {
-        console.error(LOG.PUSH_FAILURE);
-        console.error(error);
-      } finally {
-        stopSpinner();
-
         // No error
+        stopSpinner();
         if (!silent) {
           logFileList(filenames);
           console.log(LOG.PUSH_SUCCESS(filenames.length));
+        }
+      } catch (error) {
+        stopSpinner();
+        console.error(LOG.PUSH_FAILURE);
+        if (error instanceof GaxiosError) {
+          console.error(error.message);
+        } else {
+          console.error(error);
         }
       }
     } else {

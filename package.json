@@ -68,6 +68,7 @@
     "dotf": "^2.0.0",
     "fs-extra": "^10.0.0",
     "fuzzy": "^0.1.3",
+    "gaxios": "^4.2.1",
     "google-auth-library": "^7.1.2",
     "googleapis": "^76.0.0",
     "inquirer": "^8.1.0",
