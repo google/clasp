@@ -23,8 +23,8 @@ import why from 'wtfnode'; // should be your first require
  * clasp - The Apps Script CLI
  */
 
- import {program} from 'commander';
- import type {Command} from 'commander';
+import {program} from 'commander';
+import type {Command} from 'commander';
 import loudRejection from 'loud-rejection';
 import {dirname} from 'path';
 import {readPackageUpSync} from 'read-pkg-up';
