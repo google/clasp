@@ -287,11 +287,7 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
    */
   const refreshCredentials = async (oAuthClient: ReadonlyDeep<OAuth2Client>) => {
     await oAuthClient.getAccessToken(); // Refreshes expiry date if required
-    const {expiry_date = 0} = oAuthClient.credentials;
-
-    if (expiry_date !== expiry_date) {
-      rc.token = oAuthClient.credentials;
-    }
+    rc.token = oAuthClient.credentials;
   };
 
   // Set credentials and refresh them.
