@@ -42,7 +42,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
   if (options.creds) {
     const {projectId} = projectSettings;
     if (!projectId) {
-      throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
+      throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
     }
 
     console.log(LOG.OPEN_CREDS(projectId));
@@ -69,7 +69,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
 const openAddon = async (projectSettings: ProjectSettings) => {
   const {parentId: parentIdList = []} = projectSettings;
   if (parentIdList.length === 0) {
-    throw new ClaspError(ERROR.NO_PARENT_ID);
+    throw new ClaspError(ERROR.NO_PARENT_ID());
   }
 
   if (parentIdList.length > 1) {

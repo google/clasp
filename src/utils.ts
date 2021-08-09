@@ -15,7 +15,7 @@ import {ERROR, LOG} from './messages.js';
 
 import type {ClaspToken, ProjectSettings} from './dotfile';
 
-const {auth} = Conf.get();
+const config = Conf.get();
 
 /**
  * Returns input string with uppercased first character
@@ -48,21 +48,10 @@ export interface ClaspCredentials {
  * @return {boolean}
  */
 export const hasOauthClientSettings = (local = false): boolean => {
-  let previousPath: string | undefined;
-
-  if (local && auth.isDefault()) {
-    // if no local auth defined, try current directory
-    previousPath = auth.path;
-    auth.path = '.';
+  if (local) {
+    return config.authLocal !== undefined && fs.existsSync(config.authLocal);
   }
-
-  const result = (local ? !auth.isDefault() : auth.isDefault()) && fs.existsSync(auth.resolve());
-
-  if (previousPath) {
-    auth.path = previousPath;
-  }
-
-  return result;
+  return config.auth !== undefined && fs.existsSync(config.auth);
 };
 
 /**
@@ -135,7 +124,7 @@ export const getWebApplicationURL = (value: Readonly<scriptV1.Schema$Deployment>
  * Gets default project name.
  * @return {string} default project name.
  */
-export const getDefaultProjectName = (): string => capitalize(path.basename(process.cwd()));
+export const getDefaultProjectName = (): string => capitalize(path.basename(config.projectRootDirectory!));
 
 /**
  * Gets the project settings from the project dotfile.
@@ -159,11 +148,11 @@ export const getProjectSettings = async (): Promise<ProjectSettings> => {
           return settings;
         }
       } catch (error) {
-        throw new ClaspError(ERROR.SETTINGS_DNE); // Never found a dotfile
+        throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
       }
     }
 
-    throw new ClaspError(ERROR.SETTINGS_DNE); // Never found a dotfile
+    throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
   } catch (error) {
     if (error instanceof ClaspError) {
       throw error;

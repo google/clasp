@@ -153,12 +153,12 @@ const setupLogs = async (projectSettings: ProjectSettings): Promise<string> => {
 
     const dotfile = DOTFILE.PROJECT();
     if (!dotfile) {
-      throw new ClaspError(ERROR.SETTINGS_DNE);
+      throw new ClaspError(ERROR.SETTINGS_DNE());
     }
 
     const settings = await dotfile.read<ProjectSettings>();
     if (!settings.scriptId) {
-      throw new ClaspError(ERROR.SCRIPT_ID_DNE);
+      throw new ClaspError(ERROR.SCRIPT_ID_DNE());
     }
 
     const {projectId} = await projectIdPrompt();
@@ -186,7 +186,7 @@ const fetchAndPrintLogs = async (
 ): Promise<void> => {
   // Validate projectId
   if (!projectId) {
-    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
+    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
   }
 
   if (!isValidProjectId(projectId)) {
@@ -195,7 +195,7 @@ const fetchAndPrintLogs = async (
 
   const {isLocalCreds} = await loadAPICredentials();
 
-  spinner.start(`${isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`);
+  spinner.start(`${isLocalCreds ? LOG.LOCAL_CREDS() : ''}${LOG.GRAB_LOGS}`);
 
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
   // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time

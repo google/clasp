@@ -11,14 +11,14 @@ import {getProjectSettings, parseJsonOrDie} from './utils.js';
 
 import type {AdvancedService} from './apis';
 
-const {project} = Conf.get();
+const config = Conf.get();
 
 /*** Gets the path to manifest for given `rootDir` */
 const getManifestPath = (rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME);
 
 /** Gets the `rootDir` from given project */
 const getRootDir = (projectSettings: ProjectSettings): string =>
-  typeof projectSettings.rootDir === 'string' ? projectSettings.rootDir : project.resolvedDir;
+  typeof projectSettings.rootDir === 'string' ? projectSettings.rootDir : config.projectRootDirectory!;
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -27,8 +27,8 @@ const getRootDir = (projectSettings: ProjectSettings): string =>
  *
  * @return {boolean} True if valid project, false otherwise
  */
-export const manifestExists = (rootDir: string = project.resolvedDir): boolean =>
-  fs.existsSync(getManifestPath(rootDir));
+export const manifestExists = (rootDir = config.projectRootDirectory): boolean =>
+  rootDir !== undefined && fs.existsSync(getManifestPath(rootDir));
 
 /**
  * Reads the appsscript.json manifest file.

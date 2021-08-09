@@ -52,13 +52,14 @@ import versions from './commands/versions.js';
 import {Conf} from './conf.js';
 import {PROJECT_NAME} from './constants.js';
 import {spinner, stopSpinner} from './utils.js';
+import fs from "fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let beforeExit = () => {};
 
 // instantiate the config singleton (and loads environment variables as a side effect)
-const {auth, ignore, project} = Conf.get();
+const config = Conf.get();
 
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
@@ -83,8 +84,8 @@ commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT
  */
 commander
   .option('-A, --auth <file>', "path to an auth file or a folder with a '.clasprc.json' file.")
-  .on('option:auth', () => {
-    auth.path = commander['auth'];
+  .on('option:auth', (auth) => {
+    config.auth = auth;
   });
 
 /**
@@ -92,8 +93,8 @@ commander
  */
 commander
   .option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.")
-  .on('option:ignore', () => {
-    ignore.path = commander['ignore'];
+  .on('option:ignore', (ignore) => {
+    config.ignore = ignore;
   });
 
 /**
@@ -101,8 +102,13 @@ commander
  */
 commander
   .option('-P, --project <file>', "path to a project file or to a folder with a '.clasp.json' file.")
-  .on('option:project', () => {
-    project.path = commander['project'];
+  .on('option:project', (path) => {
+    const stats = fs.lstatSync(path);
+    if (stats.isDirectory()) {
+      config.projectRootDirectory = path;
+    } else {
+      config.projectConfig = path;
+    }
   });
 
 /**
@@ -389,9 +395,9 @@ commander
   .command('paths')
   .description('List current config files path')
   .action(() => {
-    console.log('project', project.path, project.isDefault(), project.resolve());
-    console.log('ignore', ignore.path, ignore.isDefault(), ignore.resolve());
-    console.log('auth', auth.path, auth.isDefault(), auth.resolve());
+    console.log('project', config.projectConfig);
+    console.log('ignore', config.ignore);
+    console.log('auth', config.auth);
   });
 
 const [_bin, _sourcePath, ...args] = process.argv;

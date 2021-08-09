@@ -13,6 +13,9 @@ import {
   spinner,
   stopSpinner,
 } from '../utils.js';
+import {Conf} from '../conf.js';
+
+const config = Conf.get();
 
 interface CommandOption {
   readonly parentId?: string;
@@ -30,10 +33,14 @@ interface CommandOption {
  *                        If not specified, clasp will default to the current directory.
  */
 export default async (options: CommandOption): Promise<void> => {
+  if (options.rootDir) {
+    config.projectRootDirectory = options.rootDir;
+  }
+
   // Handle common errors.
   await checkIfOnlineOrDie();
   if (hasProject()) {
-    throw new ClaspError(ERROR.FOLDER_EXISTS);
+    throw new ClaspError(ERROR.FOLDER_EXISTS());
   }
 
   await loadAPICredentials();
@@ -98,10 +105,9 @@ export default async (options: CommandOption): Promise<void> => {
 
   const scriptId = data.scriptId ?? '';
   console.log(LOG.CREATE_PROJECT_FINISH(filetype, scriptId));
-  const {rootDir} = options;
-  await saveProject({scriptId, rootDir, parentId: parentId ? [parentId] : undefined}, false);
+  await saveProject({scriptId, rootDir: config.projectRootDirectory, parentId: parentId ? [parentId] : undefined}, false);
 
-  if (!manifestExists(rootDir)) {
-    await writeProjectFiles(await fetchProject(scriptId), rootDir); // Fetches appsscript.json, o.w. `push` breaks
+  if (!manifestExists(config.projectRootDirectory)) {
+    await writeProjectFiles(await fetchProject(scriptId), config.projectRootDirectory); // Fetches appsscript.json, o.w. `push` breaks
   }
 };

@@ -24,7 +24,7 @@ import {
 import type {TranspileOptions} from 'typescript';
 
 const {parseConfigFileTextToJson} = typescript;
-const {project} = Conf.get();
+const config = Conf.get();
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -207,14 +207,16 @@ export const getLocalFileType = (type: string, fileExtension?: string): string =
  * Returns true if the user has a clasp project.
  * @returns {boolean} If .clasp.json exists.
  */
-export const hasProject = (): boolean => fs.existsSync(project.resolve());
+export const hasProject = (): boolean => {
+  return config.projectConfig !== undefined && fs.existsSync(config.projectConfig);
+};
 
 /**
  * Returns in tsconfig.json.
  * @returns {TranspileOptions} if tsconfig.json not exists, return an empty object.
  */
 const getTranspileOptions = (): TranspileOptions => {
-  const tsconfigPath = path.join(project.resolvedDir, 'tsconfig.json');
+  const tsconfigPath = path.join(config.projectRootDirectory!, 'tsconfig.json');
 
   return fs.existsSync(tsconfigPath)
     ? {

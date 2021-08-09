@@ -8,6 +8,9 @@ import {ERROR, LOG} from '../messages.js';
 import {extractScriptId} from '../urls.js';
 import {checkIfOnlineOrDie, saveProject, spinner} from '../utils.js';
 import status from './status.js';
+import {Conf} from '../conf.js';
+
+const config = Conf.get();
 
 interface CommandOption {
   readonly rootDir: string;
@@ -26,18 +29,20 @@ export default async (
   versionNumber: number | undefined,
   options: CommandOption
 ): Promise<void> => {
+  if (options.rootDir) {
+    config.projectRootDirectory = options.rootDir;
+  }
   await checkIfOnlineOrDie();
   if (hasProject()) {
-    throw new ClaspError(ERROR.FOLDER_EXISTS);
+    throw new ClaspError(ERROR.FOLDER_EXISTS());
   }
 
   const id = scriptId ? extractScriptId(scriptId) : await getScriptId();
 
   spinner.start(LOG.CLONING);
 
-  const {rootDir} = options;
-  await saveProject({scriptId: id, rootDir}, false);
-  await writeProjectFiles(await fetchProject(id, versionNumber), rootDir);
+  await saveProject({scriptId: id, rootDir: config.projectRootDirectory}, false);
+  await writeProjectFiles(await fetchProject(id, versionNumber), config.projectRootDirectory);
   await status();
 };
 
