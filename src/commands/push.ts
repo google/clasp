@@ -19,8 +19,9 @@ import type {ProjectSettings} from '../dotfile';
 
 const {debounce} = debouncePkg;
 const {readFileSync} = fs;
-const {project} = Conf.get();
 const WATCH_DEBOUNCE_MS = 1000;
+
+const config = Conf.get();
 
 interface CommandOption {
   readonly watch?: boolean;
@@ -88,8 +89,8 @@ const confirmManifestUpdate = async (): Promise<boolean> => (await overwriteProm
  * @returns {Promise<boolean>}
  */
 const manifestHasChanges = async (projectSettings: ProjectSettings): Promise<boolean> => {
-  const {scriptId, rootDir = project.resolvedDir} = projectSettings;
-  const localManifest = readFileSync(path.join(rootDir, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
+  const {scriptId, rootDir = config.projectRootDirectory} = projectSettings;
+  const localManifest = readFileSync(path.join(rootDir!, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (remoteManifest) {

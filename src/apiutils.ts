@@ -50,7 +50,7 @@ const getProjectIdOrDie = async (): Promise<string> => {
     return projectId;
   }
 
-  throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
+  throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
 };
 
 // /**

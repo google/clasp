@@ -279,20 +279,20 @@ describe('Test all functions while logged out', () => {
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
+    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE());
   });
   it('should fail to open (no .clasp.json file)', () => {
     const result = spawnSync(CLASP, ['open'], {encoding: 'utf8'});
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
+    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE());
   });
   it('should fail to show logs (no .clasp.json file)', () => {
     const result = spawnSync(CLASP, ['logs'], {encoding: 'utf8'});
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE);
+    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE());
   });
 });
