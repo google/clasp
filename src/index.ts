@@ -52,7 +52,7 @@ import versions from './commands/versions.js';
 import {Conf} from './conf.js';
 import {PROJECT_NAME} from './constants.js';
 import {spinner, stopSpinner} from './utils.js';
-import fs from "fs";
+import fs from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -84,7 +84,7 @@ commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT
  */
 commander
   .option('-A, --auth <file>', "path to an auth file or a folder with a '.clasprc.json' file.")
-  .on('option:auth', (auth) => {
+  .on('option:auth', auth => {
     config.auth = auth;
   });
 
@@ -93,7 +93,7 @@ commander
  */
 commander
   .option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.")
-  .on('option:ignore', (ignore) => {
+  .on('option:ignore', ignore => {
     config.ignore = ignore;
   });
 
@@ -102,7 +102,7 @@ commander
  */
 commander
   .option('-P, --project <file>', "path to a project file or to a folder with a '.clasp.json' file.")
-  .on('option:project', (path) => {
+  .on('option:project', path => {
     const stats = fs.lstatSync(path);
     if (stats.isDirectory()) {
       config.projectRootDirectory = path;

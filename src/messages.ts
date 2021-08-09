@@ -129,7 +129,7 @@ Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   GET_PROJECT_ID_INSTRUCTIONS: `Go to *Resource > Cloud Platform Project…* and copy your projectId
 (including "project-id-")`,
   GIVE_DESCRIPTION: 'Give a description: ',
-  LOCAL_CREDS: () =>`Using local credentials: ${config.authLocal} 🔐 `,
+  LOCAL_CREDS: () => `Using local credentials: ${config.authLocal} 🔐 `,
   LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}…`,
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,

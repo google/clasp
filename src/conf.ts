@@ -66,7 +66,11 @@ export class Conf {
 
   get projectConfig() {
     if (this._projectConfig === undefined && this.projectRootDirectory) {
-      this._projectConfig = this.buildPathOrUseEnv(`.${PROJECT_NAME}.json`, this.projectRootDirectory, ENV.DOT_CLASP_PROJECT);
+      this._projectConfig = this.buildPathOrUseEnv(
+        `.${PROJECT_NAME}.json`,
+        this.projectRootDirectory,
+        ENV.DOT_CLASP_PROJECT
+      );
     }
     return this._projectConfig;
   }
@@ -99,7 +103,11 @@ export class Conf {
 
   get authLocal() {
     if (this._authLocal === undefined && this.projectRootDirectory) {
-      this._authLocal = this.buildPathOrUseEnv(`.${PROJECT_NAME}rc.json`, this.projectRootDirectory, ENV.DOT_CLASP_AUTH);
+      this._authLocal = this.buildPathOrUseEnv(
+        `.${PROJECT_NAME}rc.json`,
+        this.projectRootDirectory,
+        ENV.DOT_CLASP_AUTH
+      );
     }
     return this._authLocal;
   }

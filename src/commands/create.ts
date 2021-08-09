@@ -105,7 +105,10 @@ export default async (options: CommandOption): Promise<void> => {
 
   const scriptId = data.scriptId ?? '';
   console.log(LOG.CREATE_PROJECT_FINISH(filetype, scriptId));
-  await saveProject({scriptId, rootDir: config.projectRootDirectory, parentId: parentId ? [parentId] : undefined}, false);
+  await saveProject(
+    {scriptId, rootDir: config.projectRootDirectory, parentId: parentId ? [parentId] : undefined},
+    false
+  );
 
   if (!manifestExists(config.projectRootDirectory)) {
     await writeProjectFiles(await fetchProject(scriptId), config.projectRootDirectory); // Fetches appsscript.json, o.w. `push` breaks
