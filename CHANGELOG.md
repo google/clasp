@@ -1,5 +1,13 @@
 # Changelog
 
+### [2.4.1](https://www.github.com/google/clasp/compare/v2.4.0...v2.4.1) (2021-08-09)
+
+
+### Bug Fixes
+
+* Don't require package.json for simple commands ([#840](https://www.github.com/google/clasp/issues/840)) ([#862](https://www.github.com/google/clasp/issues/862)) ([ad5d045](https://www.github.com/google/clasp/commit/ad5d045c431f1341cf79bcf18f150f0e9d11db55))
+* Fix saving credentials when refreshed. ([#863](https://www.github.com/google/clasp/issues/863)) ([48e6fa3](https://www.github.com/google/clasp/commit/48e6fa3354de635a3ea1ce089d481847b2e939e9))
+
 ## [2.4.0](https://www.github.com/google/clasp/compare/v2.3.1...v2.4.0) (2021-06-11)
 
 
