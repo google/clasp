@@ -52,7 +52,7 @@ import versions from './commands/versions.js';
 import {Conf} from './conf.js';
 import {PROJECT_NAME} from './constants.js';
 import {spinner, stopSpinner} from './utils.js';
-import fs from 'fs';
+import fs from 'fs-extra';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
