@@ -17,6 +17,7 @@ import type {ReadonlyDeep} from 'type-fest';
 
 import type {ClaspToken} from './dotfile';
 import type {ClaspCredentials} from './utils';
+import enableDestroy from 'server-destroy';
 
 /**
  * Authentication with Google's APIs.
@@ -217,6 +218,7 @@ const authorizeWithLocalhost = async (
   // the server port needed to set up the Oauth2Client.
   const server = await new Promise<Server>(resolve => {
     const s = createServer();
+    enableDestroy(s);
     s.listen(0, () => resolve(s));
   });
   const {port} = server.address() as AddressInfo;
@@ -240,7 +242,7 @@ const authorizeWithLocalhost = async (
     console.log(LOG.AUTHORIZE(authUrl));
     (async () => await open(authUrl))();
   });
-  server.close();
+  server.destroy();
 
   return (await client.getToken(authCode)).tokens;
 };
