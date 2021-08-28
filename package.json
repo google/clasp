@@ -105,38 +105,10 @@
     "chai": "^4.3.4",
     "coveralls": "^3.1.1",
     "gts": "^3.1.0",
-    "mocha": "^9.1.0",
+    "mocha": "^9.1.1",
     "nyc": "^15.1.0",
     "prettier": "^2.3.2",
     "tmp": "^0.2.1",
-    "type-fest": "^2.1.0",
-    "xo": "^0.44.0"
-  },
-  "xo": {
-    "ignores": [
-      "**.js"
-    ],
-    "space": 2,
-    "rules": {
-      "capitalized-comments": "warn",
-      "new-cap": "off",
-      "@typescript-eslint/comma-dangle": ["warn", {
-        "arrays": "always-multiline",
-        "objects": "always-multiline",
-        "imports": "always-multiline",
-        "exports": "always-multiline",
-        "functions": "never"
-    }],
-      "@typescript-eslint/indent": "off",
-      "@typescript-eslint/no-base-to-string": "warn",
-      "@typescript-eslint/no-implicit-any-catch": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-      "@typescript-eslint/restrict-template-expressions": "warn",
-      "import/no-anonymous-default-export": "off",
-      "node/prefer-global/process": "off",
-      "unicorn/no-nested-ternary": "off",
-      "unicorn/prefer-node-protocol": "warn"
-    },
-    "prettier": true
+    "type-fest": "^2.1.0"
   }
 }
