@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import why from 'wtfnode'; // should be your first require
-
 /**
  * @license
  * Copyright Google Inc.
@@ -28,6 +26,7 @@ import loudRejection from 'loud-rejection';
 import {dirname} from 'path';
 import {readPackageUpSync} from 'read-pkg-up';
 import {fileURLToPath} from 'url';
+import fs from 'fs-extra';
 
 import {ClaspError} from './clasp-error.js';
 import apis from './commands/apis.js';
@@ -52,11 +51,8 @@ import versions from './commands/versions.js';
 import {Conf} from './conf.js';
 import {PROJECT_NAME} from './constants.js';
 import {spinner, stopSpinner} from './utils.js';
-import fs from 'fs-extra';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
-let beforeExit = () => {};
 
 // instantiate the config singleton (and loads environment variables as a side effect)
 const config = Conf.get();
@@ -84,7 +80,7 @@ program.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_N
  */
 program
   .option('-A, --auth <file>', "path to an auth file or a folder with a '.clasprc.json' file.")
-  .on('option:auth', auth => {
+  .on('option:auth', (auth: string) => {
     config.auth = auth;
   });
 
@@ -93,7 +89,7 @@ program
  */
 program
   .option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.")
-  .on('option:ignore', ignore => {
+  .on('option:ignore', (ignore: string) => {
     config.ignore = ignore;
   });
 
@@ -102,7 +98,7 @@ program
  */
 program
   .option('-P, --project <file>', "path to a project file or to a folder with a '.clasp.json' file.")
-  .on('option:project', path => {
+  .on('option:project', (path: string) => {
     const stats = fs.lstatSync(path);
     if (stats.isDirectory()) {
       config.projectRootDirectory = path;
@@ -110,13 +106,6 @@ program
       config.projectConfig = path;
     }
   });
-
-/**
- * Display some debugging info upon exit.
- */
-program.option('-W, --why', 'Display some debugging info upon exit.').on('option:why', () => {
-  beforeExit = why.dump;
-});
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -424,7 +413,6 @@ if (args.length === 0) {
       console.error('Unknown error', error);
     }
   }
-  spinner.clear();
 
-  beforeExit();
+  spinner.clear();
 })();
