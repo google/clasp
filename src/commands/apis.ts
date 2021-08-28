@@ -1,5 +1,6 @@
 import {discovery_v1 as discoveryV1, serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';
+import type {ReadonlyDeep} from 'type-fest';
 
 import {PUBLIC_ADVANCED_SERVICES} from '../apis.js';
 import {enableOrDisableAPI} from '../apiutils.js';
@@ -8,8 +9,6 @@ import {ClaspError} from '../clasp-error.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
 import {checkIfOnlineOrDie, getProjectId} from '../utils.js';
-
-import type {ReadonlyDeep} from 'type-fest';
 
 type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
 type PublicAdvancedService = ReadonlyDeep<Required<NonNullable<DirectoryItem>>>;
@@ -28,14 +27,14 @@ export default async (options: CommandOption): Promise<void> => {
 
   // clasp apis --open
   if (options.open) {
-    return await openApiUrl();
+    return openApiUrl();
   }
 
   const [_bin, _sourcePath, ...args] = process.argv;
   const [_command, subCommand, serviceName] = args;
 
   // The apis subcommands.
-  const apiSubCommands: {[key: string]: () => Promise<void>} = {
+  const apiSubCommands: Record<string, () => Promise<void>> = {
     disable: async () => enableOrDisableAPI(serviceName, false),
     enable: async () => enableOrDisableAPI(serviceName, true),
     list: async () => {
@@ -60,10 +59,10 @@ export default async (options: CommandOption): Promise<void> => {
       const enabledAPIs = serviceList.filter(
         (service: Readonly<serviceUsageV1.Schema$GoogleApiServiceusageV1Service>) => service.state === 'ENABLED'
       );
-      for (const enabledAPI of enabledAPIs) {
-        if (enabledAPI.config && enabledAPI.config.documentation) {
-          const name = enabledAPI.config.name ?? 'Unknown name.';
-          console.log(`${name.slice(0, name.indexOf('.'))} - ${enabledAPI.config.documentation.summary}`);
+      for (const {config} of enabledAPIs) {
+        if (config?.documentation) {
+          const name = config.name ?? 'Unknown name.';
+          console.log(`${name.slice(0, name.indexOf('.'))} - ${config.documentation.summary!}`);
         }
       }
 
@@ -88,7 +87,9 @@ export default async (options: CommandOption): Promise<void> => {
       publicServices.sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0));
 
       // Format the list
-      publicServices.forEach(service => console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`));
+      for (const service of publicServices) {
+        console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`);
+      }
     },
     undefined: async () => {
       await apiSubCommands.list();

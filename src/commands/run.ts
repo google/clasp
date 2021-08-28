@@ -90,7 +90,7 @@ const runFunction = async (functionName: string, parameters: string[], scriptId:
 
     if (error) {
       // TODO move these to logError when stable?
-      switch (error.code) {
+      switch ((error as any).code) {
         case 401:
           // The 401 is probably due to this error:
           // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
@@ -116,7 +116,7 @@ https://www.googleapis.com/auth/presentations
         case 404:
           throw new ClaspError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
         default:
-          throw new ClaspError(`(${error.code}) Error: ${error.message}`);
+          throw new ClaspError(`(${(error as any).code}) Error: ${(error as any).message}`);
       }
     }
   }

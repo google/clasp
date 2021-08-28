@@ -1,5 +1,6 @@
 import fuzzy from 'fuzzy';
 import {script_v1 as scriptV1} from 'googleapis';
+import type {ReadonlyDeep} from 'type-fest';
 
 import {loadAPICredentials, serviceUsage} from './auth.js';
 import {ClaspError} from './clasp-error.js';
@@ -7,10 +8,6 @@ import {functionNamePrompt, functionNameSource} from './inquirer.js';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest.js';
 import {ERROR} from './messages.js';
 import {getProjectId, spinner, stopSpinner} from './utils.js';
-
-import type {ReadonlyDeep} from 'type-fest';
-
-type TypeFunction = Readonly<scriptV1.Schema$GoogleAppsScriptTypeFunction>;
 
 /**
  * Prompts for the function name.
@@ -24,18 +21,15 @@ export const getFunctionNames = async (script: ReadonlyDeep<scriptV1.Script>, sc
   }
 
   const {files = []} = content.data;
-  const functionNames: string[] = files
-    .reduce(
-      (functions: ReadonlyArray<TypeFunction>, file: Readonly<scriptV1.Schema$File>) =>
-        file.functionSet && file.functionSet.values ? [...functions, ...file.functionSet.values] : functions,
-      []
-    )
-    .map((func: TypeFunction) => func.name) as string[];
+  const functionNames = files
+    .filter(file => file.functionSet?.values)
+    .flatMap(file => file.functionSet!.values!)
+    .map(func => func.name!);
 
   // Returns a Promise
   // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
   // Example: https://github.com/ruyadorno/inquirer-autocomplete-prompt/blob/master/example.js#L76
-  const source: functionNameSource = async (_answers: object, input = '') =>
+  const source: functionNameSource = async (_answers: unknown, input = '') =>
     fuzzy.filter(input, functionNames).map(element => element.original);
 
   return (await functionNamePrompt(source)).functionName;
@@ -75,12 +69,7 @@ export const enableOrDisableAPI = async (serviceName: string, enable: boolean): 
 
   const name = `projects/${await getProjectIdOrDie()}/services/${serviceName}.googleapis.com`;
   try {
-    if (enable) {
-      await serviceUsage.services.enable({name});
-    } else {
-      await serviceUsage.services.disable({name});
-    }
-
+    await (enable ? serviceUsage.services.enable({name}) : serviceUsage.services.disable({name}));
     await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
     console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName} API.`);
   } catch (error) {

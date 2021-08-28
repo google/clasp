@@ -20,7 +20,7 @@ const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<str
     deployment: {deploymentId},
   } = await deploymentIdPrompt(choices);
 
-  return deploymentId as string;
+  return deploymentId!;
 };
 
 /**
@@ -100,7 +100,7 @@ const openWebApp = async (scriptId: string, optionsDeploymentId?: string) => {
   }
 
   // Order deployments by update time.
-  const choices = deployments.slice();
+  const choices = [...deployments];
   choices.sort((a, b) => (a.updateTime && b.updateTime ? a.updateTime.localeCompare(b.updateTime) : 0));
   const prompts = choices.map(value => {
     const {description, versionNumber} = value.deploymentConfig!;

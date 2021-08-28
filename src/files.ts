@@ -89,7 +89,7 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
   try {
     const ignorePatterns = await DOTFILE.IGNORE();
     const isIgnored = (file: string) =>
-      multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length !== 0;
+      multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length > 0;
 
     const isValid = isValidFactory(rootDir);
 
@@ -207,9 +207,7 @@ export const getLocalFileType = (type: string, fileExtension?: string): string =
  * Returns true if the user has a clasp project.
  * @returns {boolean} If .clasp.json exists.
  */
-export const hasProject = (): boolean => {
-  return config.projectConfig !== undefined && fs.existsSync(config.projectConfig);
-};
+export const hasProject = (): boolean => config.projectConfig !== undefined && fs.existsSync(config.projectConfig);
 
 /**
  * Returns in tsconfig.json.
@@ -271,7 +269,7 @@ export const isValidFileName = (
 
   return Boolean(
     !name.includes('node_modules/@types') && // Prevent node_modules/@types/
-      isValid({source: '', isIgnored: false, name: name, type: type}) &&
+      isValid({source: '', isIgnored: false, name, type}) &&
       !ignoreMatches.includes(name) // Must be SERVER_JS or HTML. https://developers.google.com/apps-script/api/reference/rest/v1/File
   );
 };
@@ -313,7 +311,7 @@ export const fetchProject = async (
       throw error;
     }
 
-    if (error.statusCode === 404) {
+    if ((error as any).statusCode === 404) {
       throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
 

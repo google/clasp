@@ -63,7 +63,7 @@ export const hasOauthClientSettings = (local = false): boolean => {
 export const getOAuthSettings = async (local: boolean): Promise<ClaspToken> => {
   try {
     const result = DOTFILE.AUTH(local).read<ClaspToken>();
-    return result;
+    return await result;
   } catch (error) {
     throw new ClaspError(getErrorMessage(error) ?? ERROR.NO_CREDENTIALS(local));
   }
@@ -84,17 +84,25 @@ export const getErrorMessage = (value: any) => {
   // change error model. Don't review this method now.
   if (value && typeof value.error === 'string') {
     return JSON.parse(value.error).error;
-  } else if (value?.statusCode === 401 || (value?.error && value.error.error && value.error.error.code === 401)) {
+  }
+
+  if (value?.statusCode === 401 || (value?.error && value.error.error && value.error.error.code === 401)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
     return ERROR.UNAUTHENTICATED;
-  } else if (value && ((value.error && value.error.code === 403) || value.code === 403)) {
+  }
+
+  if (value && ((value.error && value.error.code === 403) || value.code === 403)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.PERMISSION_DENIED : ERROR.PERMISSION_DENIED_LOCAL
     return ERROR.PERMISSION_DENIED;
-  } else if (value && value.code === 429) {
+  }
+
+  if (value && value.code === 429) {
     return ERROR.RATE_LIMIT;
-  } else if (value?.error) {
+  }
+
+  if (value?.error) {
     return `~~ API ERROR (${value.statusCode || value.error.code})=\n${value.error}`;
   }
 
@@ -114,7 +122,7 @@ export const getWebApplicationURL = (value: Readonly<scriptV1.Schema$Deployment>
     (entryPoint: Readonly<scriptV1.Schema$EntryPoint>) => entryPoint.entryPointType === 'WEB_APP'
   );
   if (entryPoint) {
-    return entryPoint.webApp && entryPoint.webApp.url;
+    return entryPoint.webApp?.url;
   }
 
   throw new ClaspError(ERROR.NO_WEBAPP(value.deploymentId ?? ''));
@@ -138,7 +146,7 @@ export const getProjectSettings = async (): Promise<ProjectSettings> => {
   const dotfile = DOTFILE.PROJECT();
 
   try {
-    if (dotfile.exists()) {
+    if (await dotfile.exists()) {
       // Found a dotfile, but does it have the settings, or is it corrupted?
       try {
         const settings = await dotfile.read<ProjectSettings>();
@@ -176,7 +184,7 @@ export const getApiFileType = (value: string): string => {
 };
 
 const mapper = async (url: string) => {
-  const wasReached = await isReachable(url, {timeout: 25000});
+  const wasReached = await isReachable(url, {timeout: 25_000});
   if (!wasReached) {
     console.log(url, logSymbols.error);
   }
@@ -251,7 +259,8 @@ export const getProjectId = async (promptUser = true): Promise<string> => {
       throw error;
     }
 
-    throw new ClaspError(error.message);
+    // TODO: better error handling
+    throw new ClaspError((error as any).message);
   }
 };
 
