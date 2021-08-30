@@ -1,3 +1,4 @@
+import is from '@sindresorhus/is';
 import {SCRIPT_TYPES} from '../apis.js';
 import {drive, loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
@@ -49,11 +50,11 @@ export default async (options: CommandOption): Promise<void> => {
   const {parentId: optionParentId, title: name = getDefaultProjectName(), type: optionType} = options;
   let parentId = optionParentId;
 
-  const filetype = optionType ?? (!optionParentId ? (await scriptTypePrompt()).type : '');
+  const filetype = optionType ?? (optionParentId ? '' : (await scriptTypePrompt()).type);
 
   // Create files with MIME type.
   // https://developers.google.com/drive/api/v3/mime-types
-  const DRIVE_FILE_MIMETYPES: {[key: string]: string} = {
+  const DRIVE_FILE_MIMETYPES: Record<string, string> = {
     [SCRIPT_TYPES.DOCS]: 'application/vnd.google-apps.document',
     [SCRIPT_TYPES.FORMS]: 'application/vnd.google-apps.form',
     [SCRIPT_TYPES.SHEETS]: 'application/vnd.google-apps.spreadsheet',
@@ -66,11 +67,11 @@ export default async (options: CommandOption): Promise<void> => {
     const {
       data: {id: newParentId},
     } = await drive.files.create({requestBody: {mimeType, name}});
-    parentId = newParentId as string;
+    parentId = newParentId!;
 
     stopSpinner();
 
-    console.log(LOG.CREATE_DRIVE_FILE_FINISH(filetype, parentId as string));
+    console.log(LOG.CREATE_DRIVE_FILE_FINISH(filetype, parentId));
   }
 
   // CLI Spinner
@@ -78,7 +79,7 @@ export default async (options: CommandOption): Promise<void> => {
 
   let projectExist: boolean;
   try {
-    projectExist = typeof (await getProjectSettings()).scriptId === 'string';
+    projectExist = is.string((await getProjectSettings()).scriptId);
   } catch {
     process.exitCode = 0; // To reset `exitCode` that was overriden in ClaspError constructor.
     projectExist = false;
@@ -90,7 +91,7 @@ export default async (options: CommandOption): Promise<void> => {
 
   // Create a new Apps Script project
   const {data, status, statusText} = await script.projects.create({
-    requestBody: {parentId: parentId, title: name},
+    requestBody: {parentId, title: name},
   });
 
   stopSpinner();

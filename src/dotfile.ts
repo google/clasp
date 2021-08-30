@@ -72,7 +72,7 @@ export const DOTFILE = {
   PROJECT: () => {
     // ! TODO: currently limited if filename doesn't start with a dot '.'
     const {dir, base} = path.parse(config.projectConfig!);
-    if (base[0] === '.') {
+    if (base.startsWith('.')) {
       return dotf(dir || '.', base.slice(1));
     }
     throw new Error('Project file must start with a dot (i.e. .clasp.json)');
@@ -82,7 +82,7 @@ export const DOTFILE = {
     const configPath = local ? config.authLocal : config.auth;
     // ! TODO: currently limited if filename doesn't start with a dot '.'
     const {dir, base} = path.parse(configPath!);
-    if (base[0] === '.') {
+    if (base.startsWith('.')) {
       return dotf(dir || '.', base.slice(1));
     }
     throw new Error('Auth file must start with a dot (i.e. .clasp.json)');

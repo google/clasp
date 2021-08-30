@@ -33,7 +33,7 @@ export default async (): Promise<void> => {
 
 const getVersionList = async (scriptId: string) => {
   let maxPages = 5;
-  let pageToken: string | null | undefined = undefined;
+  let pageToken: string | undefined;
   let list: scriptV1.Schema$Version[] = [];
 
   do {
@@ -42,10 +42,10 @@ const getVersionList = async (scriptId: string) => {
       throw new ClaspError(statusText);
     }
 
-    const {nextPageToken, versions} = data as scriptV1.Schema$ListVersionsResponse;
+    const {nextPageToken, versions} = data;
     if (versions) {
       list = [...list, ...(versions ?? [])];
-      pageToken = nextPageToken;
+      pageToken = nextPageToken ?? undefined;
     }
   } while (pageToken && --maxPages);
 

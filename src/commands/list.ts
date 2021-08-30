@@ -37,7 +37,7 @@ export default async (options: CommandOption): Promise<void> => {
 
   if (files.length > 0) {
     for (const file of files) {
-      console.log(`${!options.noShorten ? ellipsize(file.name!, 20) : file.name} - ${URL.SCRIPT(file.id ?? '')}`);
+      console.log(`${options.noShorten ? file.name! : ellipsize(file.name!, 20)} - ${URL.SCRIPT(file.id ?? '')}`);
     }
   } else {
     console.log(LOG.FINDING_SCRIPTS_DNE);

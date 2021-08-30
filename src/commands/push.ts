@@ -43,7 +43,7 @@ export default async (options: CommandOption): Promise<void> => {
   if (options.watch) {
     console.log(LOG.PUSH_WATCH);
     // Debounce calls to push to coalesce 'save all' actions from editors
-    const debouncedPushFiles = debounce(() => {
+    const debouncedPushFiles = debounce(async () => {
       console.log(LOG.PUSHING);
       return pushFiles();
     }, WATCH_DEBOUNCE_MS);

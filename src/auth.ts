@@ -3,21 +3,18 @@ import {google, script_v1 as scriptV1} from 'googleapis';
 import {createServer} from 'http';
 import open from 'open';
 import readline from 'readline';
-import {URL} from 'url';
-
-import {ClaspError} from './clasp-error.js';
-import {DOTFILE} from './dotfile.js';
-import {ERROR, LOG} from './messages.js';
-import {checkIfOnlineOrDie, getOAuthSettings} from './utils.js';
-
+import enableDestroy from 'server-destroy';
 import type {Credentials, GenerateAuthUrlOpts, OAuth2ClientOptions} from 'google-auth-library';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
 import type {ReadonlyDeep} from 'type-fest';
 
+import {ClaspError} from './clasp-error.js';
+import {DOTFILE} from './dotfile.js';
+import {ERROR, LOG} from './messages.js';
+import {checkIfOnlineOrDie, getOAuthSettings} from './utils.js';
 import type {ClaspToken} from './dotfile';
 import type {ClaspCredentials} from './utils';
-import enableDestroy from 'server-destroy';
 
 /**
  * Authentication with Google's APIs.
@@ -240,7 +237,7 @@ const authorizeWithLocalhost = async (
     });
     const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOptions);
     console.log(LOG.AUTHORIZE(authUrl));
-    (async () => await open(authUrl))();
+    (async () => open(authUrl))();
   });
   server.destroy();
 

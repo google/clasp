@@ -1,11 +1,11 @@
 import os from 'os';
 import path from 'path';
+import {findUpSync} from 'find-up';
 
 import {PROJECT_NAME} from './constants.js';
-import findUp from 'find-up';
 
 /**
- * supported environment variables
+ * Supported environment variables
  */
 enum ENV {
   DOT_CLASP_AUTH = 'clasp_config_auth',
@@ -47,12 +47,8 @@ export class Conf {
 
   get projectRootDirectory() {
     if (this._root === undefined) {
-      const configPath = findUp.sync(`.${PROJECT_NAME}.json`);
-      if (configPath !== undefined) {
-        this._root = path.dirname(configPath);
-      } else {
-        this._root = process.cwd();
-      }
+      const configPath = findUpSync(`.${PROJECT_NAME}.json`);
+      this._root = configPath ? path.dirname(configPath) : process.cwd();
     }
     return this._root;
   }

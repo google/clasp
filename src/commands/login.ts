@@ -9,6 +9,7 @@ import {FS_OPTIONS} from '../constants.js';
 import {readManifest} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {checkIfOnlineOrDie, hasOauthClientSettings, safeIsOnline} from '../utils.js';
+import type {ClaspCredentials} from '../utils.js';
 
 const {readJsonSync} = fs;
 
@@ -69,7 +70,7 @@ export default async (options: CommandOption): Promise<void> => {
 File > Project Properties > Scopes\n`);
 
     // Read credentials file.
-    const creds = readJsonSync(options.creds, FS_OPTIONS);
+    const creds = readJsonSync(options.creds, FS_OPTIONS) as Readonly<ClaspCredentials>;
     await authorize({creds, scopes, useLocalhost});
     await enableAppsScriptAPI();
 
