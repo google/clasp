@@ -22,6 +22,10 @@ describe('Test clasp open function', () => {
     const result = spawnSync(CLASP, ['open', '--creds'], {encoding: 'utf8'});
     expect(result.stdout).to.contain(LOG.OPEN_CREDS(PROJECT_ID));
   });
+  it('open credentials setup page correctly', () => {
+    const result = spawnSync(CLASP, ['open', '--creds-setup'], {encoding: 'utf8'});
+    expect(result.stdout).to.contain(LOG.OPEN_CREDS_SETUP(PROJECT_ID));
+  });
   it('open webapp page correctly', () => {
     const result = spawnSync(CLASP, ['open', '--webapp'], {encoding: 'utf8'});
     expect(result.stdout).to.contain('Open which deployment?');

@@ -11,6 +11,7 @@ import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils.js';
 interface CommandOption {
   readonly webapp?: boolean;
   readonly creds?: boolean;
+  readonly credsSetup?: boolean;
   readonly addon?: boolean;
   readonly deploymentId?: string;
 }
@@ -28,6 +29,7 @@ const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<str
  * @param scriptId {string} The Apps Script project to open.
  * @param options.webapp {boolean} If true, the command will open the webapps URL.
  * @param options.creds {boolean} If true, the command will open the credentials URL.
+ * @param options.credsSetup {boolean} If true, the command will open the OAuth consent screen URL.
  * @param options.deploymentId {string} Use custom deployment ID with webapp.
  */
 export default async (scriptId: string, options: CommandOption): Promise<void> => {
@@ -47,6 +49,18 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
 
     console.log(LOG.OPEN_CREDS(projectId));
     await open(URL.CREDS(projectId));
+    return;
+  }
+
+  // We've specified to open creds setup.
+  if (options.creds) {
+    const {projectId} = projectSettings;
+    if (!projectId) {
+      throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
+    }
+
+    console.log(LOG.OPEN_CREDS_SETUP(projectId));
+    await open(URL.CREDS_SETUP(projectId));
     return;
   }
 

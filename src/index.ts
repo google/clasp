@@ -238,6 +238,7 @@ program
   .description('Open a script')
   .option('--webapp', 'Open web application in the browser')
   .option('--creds', 'Open the URL to create credentials')
+  .option('--creds-setup', 'Open the URL to configure the OAuth consent screen before creating credentials')
   .option('--addon', 'List parent IDs and open the URL of the first one')
   .option('--deploymentId <id>', 'Use custom deployment ID with webapp')
   .action(openCmd);
