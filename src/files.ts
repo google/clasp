@@ -46,6 +46,7 @@ async function transpile(source: string, transpileOptions: TranspileOptions): Pr
 }
 
 async function projectFileWithContent(file: ProjectFile, transpileOptions: TranspileOptions): Promise<ProjectFile> {
+  const {fileExtension, htmlExtension} = await getProjectSettings();
   const content = await fs.readFile(file.name);
   let source = content.toString();
   let type = getApiFileType(file.name);
@@ -54,6 +55,15 @@ async function projectFileWithContent(file: ProjectFile, transpileOptions: Trans
     source = await transpile(source, transpileOptions);
     type = 'SERVER_JS';
   }
+  else if(fileExtension && type === fileExtension.toUpperCase())
+  {
+    type = 'SERVER_JS';
+  }
+  else if(htmlExtension && type === htmlExtension.toUpperCase())
+  {
+    type = 'HTML';
+  }
+  
   return {...file, source, type};
 }
 
@@ -200,8 +210,18 @@ export const getOrderedProjectFiles = (files: ProjectFile[], filePushOrder: stri
  * @return {string}      The file type
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
  */
-export const getLocalFileType = (type: string, fileExtension?: string): string =>
-  type === 'SERVER_JS' ? fileExtension ?? 'js' : type.toLowerCase();
+export const getLocalFileType = (type: string, fileExtension?: string, htmlExtension?: string): string => {
+  let fileType = type.toLowerCase();
+
+  switch (type)
+  {
+    case 'SERVER_JS': fileType = fileExtension ?? 'js'; break;
+    case 'HTML': fileType = htmlExtension ?? 'html'; break;
+    default: type.toLowerCase();
+  }
+
+  return fileType;
+}
 
 /**
  * Returns true if the user has a clasp project.
@@ -339,10 +359,10 @@ export const fetchProject = async (
  */
 export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') => {
   try {
-    const {fileExtension} = await getProjectSettings();
+    const {fileExtension, htmlExtension} = await getProjectSettings();
 
     const mapper = async (file: AppsScriptFile) => {
-      const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension)}`;
+      const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension, htmlExtension)}`;
       const truePath = `${rootDir || '.'}/${filePath}`;
       try {
         await makeDir(path.dirname(truePath));
