@@ -493,6 +493,8 @@ If no `.claspignore` is specified, a default set of patterns is applied. This de
 node_modules/**
 ```
 
+_Note_: The `fileExtension` and `htmlExtension` settings from `.clasp.json` are automatically included as allowed/included to ensure your local files with their custom file extension are included in the push.
+
 ## Project Settings File (`.clasp.json`)
 
 When running `clone` or `create`, a file named `.clasp.json` is created in the current directory to describe `clasp`'s configuration for the current project. Example `.clasp.json`:
@@ -503,6 +505,7 @@ When running `clone` or `create`, a file named `.clasp.json` is created in the c
   "rootDir": "build/",
   "projectId": "project-id-xxxxxxxxxxxxxxxxxxx",
   "fileExtension": "ts",
+  "htmlExtension": "ghtml",
   "filePushOrder": ["file1.ts", "file2.ts"]
 }
 ```
@@ -535,6 +538,10 @@ Even if you do not set this manually, clasp will ask this via a prompt to you at
 ### `fileExtension` (optional)
 
 Specifies the file extension for **local** script files in your Apps Script project.
+
+### `htmlExtension` (optional)
+
+Specifies the file extension for **local** html files in your Apps Script project.
 
 ### `filePushOrder` (optional)
 

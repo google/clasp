@@ -21,7 +21,7 @@ import stripBom from 'strip-bom';
 import {Conf} from './conf.js';
 import {FS_OPTIONS} from './constants.js';
 
-import type { Credentials, OAuth2ClientOptions } from 'google-auth-library';
+import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 
 import {getProjectSettings} from './utils.js';
 
@@ -67,12 +67,10 @@ export const DOTFILE = {
     let content =
       ignorePath && fs.existsSync(ignorePath) ? fs.readFileSync(ignorePath, FS_OPTIONS) : defaultClaspignore;
 
-    if(fileExtension)
-    {
+    if (fileExtension) {
       content = content.replace(/!/, '!**/*.' + fileExtension.toLowerCase() + '\n!');
     }
-    if(htmlExtension)
-    {
+    if (htmlExtension) {
       content = content.replace(/!/, '!**/*.' + htmlExtension.toLowerCase() + '\n!');
     }
     return splitLines(stripBom(content)).filter((name: string) => name.length > 0);

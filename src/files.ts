@@ -54,16 +54,11 @@ async function projectFileWithContent(file: ProjectFile, transpileOptions: Trans
   if (type === 'TS') {
     source = await transpile(source, transpileOptions);
     type = 'SERVER_JS';
-  }
-  else if(fileExtension && type === fileExtension.toUpperCase())
-  {
+  } else if (fileExtension && type === fileExtension.toUpperCase()) {
     type = 'SERVER_JS';
-  }
-  else if(htmlExtension && type === htmlExtension.toUpperCase())
-  {
+  } else if (htmlExtension && type === htmlExtension.toUpperCase()) {
     type = 'HTML';
   }
-  
   return {...file, source, type};
 }
 
@@ -213,15 +208,19 @@ export const getOrderedProjectFiles = (files: ProjectFile[], filePushOrder: stri
 export const getLocalFileType = (type: string, fileExtension?: string, htmlExtension?: string): string => {
   let fileType = type.toLowerCase();
 
-  switch (type)
-  {
-    case 'SERVER_JS': fileType = fileExtension ?? 'js'; break;
-    case 'HTML': fileType = htmlExtension ?? 'html'; break;
-    default: type.toLowerCase();
+  switch (type) {
+    case 'SERVER_JS':
+      fileType = fileExtension ?? 'js';
+      break;
+    case 'HTML':
+      fileType = htmlExtension ?? 'html';
+      break;
+    default:
+      type.toLowerCase();
   }
 
   return fileType;
-}
+};
 
 /**
  * Returns true if the user has a clasp project.
