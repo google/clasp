@@ -28,6 +28,7 @@ describe.skip('Test --help for each function', () => {
   it('should logout --help', () => expectHelp('logout', 'Log out'));
   it('should create --help', () => expectHelp('create', 'Create a script'));
   it('should clone --help', () => expectHelp('clone', 'Clone a project'));
+  it('should delete --help', () => expectHelp('delete', 'Delete a project'));
   it('should pull --help', () => expectHelp('pull', 'Fetch a remote project'));
   it('should push --help', () => expectHelp('push', 'Update the remote project'));
   it('should status --help', () => expectHelp('status', 'Lists files that will be pushed by clasp'));
@@ -266,6 +267,7 @@ describe('Test all functions while logged out', () => {
   };
   it('should fail to list (no credentials)', () => expectNoCredentials('list'));
   it('should fail to clone (no credentials)', () => expectNoCredentials('clone'));
+  it('should fail to delete (no credentials)', () => expectNoCredentials('delete'));
   it('should fail to push (no credentials)', () => expectNoCredentials('push'));
   it('should fail to deployments (no credentials)', () => expectNoCredentials('deployments'));
   it('should fail to deploy (no credentials)', () => expectNoCredentials('deploy'));
