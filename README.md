@@ -205,8 +205,8 @@ Interactively deletes a script or a project and the `.clasp.json` file. Prompt t
 
 #### Examples
 
-- `clasp delete 
-- `clasp delete -f
+- `clasp delete`
+- `clasp delete -f`
 
 ### Pull
 
