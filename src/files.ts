@@ -395,7 +395,25 @@ export const pushFiles = async (silent = false) => {
         stopSpinner();
         console.error(LOG.PUSH_FAILURE);
         if (error instanceof GaxiosError) {
-          console.error(error.message);
+          let message = error.message;
+          const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
+          const [match, errorName, lineNum, fileName] = re.exec(error.message) || [];
+          if (null !== match) {
+            let filePath = path.resolve('.', fileName);
+            const parsedFilePath = path.parse(filePath);
+            // Check if the file exists locally as any supported type
+            for (const ext of ['gs', 'js', 'ts']) {
+              const filePath_ext = path.join(parsedFilePath.dir, `${parsedFilePath.name}.${ext}`);
+              if (fs.existsSync(filePath_ext)) {
+                filePath = filePath_ext;
+                break;
+              }
+            }
+            message = `${errorName} - "${filePath}:${lineNum}"`;
+          }
+          const errorStyle = '\x1b[31m';
+          const resetStyle = '\x1b[0m';
+          console.error(errorStyle + message + resetStyle);
         } else {
           console.error(error);
         }
