@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import why from 'wtfnode'; // should be your first require
-
 /**
  * @license
  * Copyright Google Inc.
@@ -23,11 +21,12 @@ import why from 'wtfnode'; // should be your first require
  * clasp - The Apps Script CLI
  */
 
-import commander from 'commander';
+import {program} from 'commander';
 import loudRejection from 'loud-rejection';
 import {dirname} from 'path';
 import {readPackageUpSync} from 'read-pkg-up';
 import {fileURLToPath} from 'url';
+import fs from 'fs-extra';
 
 import {ClaspError} from './clasp-error.js';
 import apis from './commands/apis.js';
@@ -55,10 +54,8 @@ import {spinner, stopSpinner} from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-let beforeExit = () => {};
-
 // instantiate the config singleton (and loads environment variables as a side effect)
-const {auth, ignore, project} = Conf.get();
+const config = Conf.get();
 
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
@@ -69,48 +66,46 @@ const manifest = readPackageUpSync({cwd: __dirname});
 /**
  * Set global CLI configurations
  */
-commander.storeOptionsAsProperties(false);
+program.storeOptionsAsProperties(false);
 
 /**
  * Displays clasp version
  */
-commander.version(manifest ? manifest.packageJson.version : 'unknown', '-v, --version', 'output the current version');
+program.version(manifest ? manifest.packageJson.version : 'unknown', '-v, --version', 'output the current version');
 
-commander.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
+program.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
 
 /**
  * Path to an auth file, or to a folder with a '.clasprc.json' file.
  */
-commander
+program
   .option('-A, --auth <file>', "path to an auth file or a folder with a '.clasprc.json' file.")
-  .on('option:auth', () => {
-    auth.path = commander['auth'];
+  .on('option:auth', (auth: string) => {
+    config.auth = auth;
   });
 
 /**
  * Path to an ignore file, or to a folder with a '.claspignore'.
  */
-commander
+program
   .option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.")
-  .on('option:ignore', () => {
-    ignore.path = commander['ignore'];
+  .on('option:ignore', (ignore: string) => {
+    config.ignore = ignore;
   });
 
 /**
  * Path to a project file, or to a folder with a '.clasp.json'.
  */
-commander
+program
   .option('-P, --project <file>', "path to a project file or to a folder with a '.clasp.json' file.")
-  .on('option:project', () => {
-    project.path = commander['project'];
+  .on('option:project', (path: string) => {
+    const stats = fs.lstatSync(path);
+    if (stats.isDirectory()) {
+      config.projectRootDirectory = path;
+    } else {
+      config.projectConfig = path;
+    }
   });
-
-/**
- * Display some debugging info upon exit.
- */
-commander.option('-W, --why', 'Display some debugging info upon exit.').on('option:why', () => {
-  beforeExit = why.dump;
-});
 
 /**
  * Logs the user in. Saves the client credentials to an rc file.
@@ -121,7 +116,7 @@ commander.option('-W, --why', 'Display some debugging info upon exit.').on('opti
  * @example login --creds credentials.json (uses your credentials file).
  * @see test
  */
-commander
+program
   .command('login')
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
@@ -134,7 +129,7 @@ commander
  * @name logout
  * @example logout
  */
-commander.command('logout').description('Log out').action(logout);
+program.command('logout').description('Log out').action(logout);
 
 /**
  * Creates a new script project.
@@ -151,7 +146,7 @@ commander.command('logout').description('Log out').action(logout);
  * @example create "My Script" "1D_Gxyv*****************************NXO7o"
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/projects/create
  */
-commander
+program
   .command('create')
   .description('Create a script')
   .option(
@@ -169,7 +164,7 @@ commander
  * @param {string?} [versionNumber] The version of the script to clone.
  * @param {string?} [--rootDir] Local root directory that store your project files.
  */
-commander
+program
   .command('clone [scriptId] [versionNumber]')
   .description('Clone a project')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
@@ -181,7 +176,7 @@ commander
  * @name pull
  * @example pull
  */
-commander
+program
   .command('pull')
   .description('Fetch a remote project')
   .option('--versionNumber <version>', 'The version number of the project to retrieve.')
@@ -198,7 +193,7 @@ commander
  * @example push --force
  * @example push --watch
  */
-commander
+program
   .command('push')
   .description('Update the remote project')
   .option('-f, --force', 'Forcibly overwrites the remote manifest.')
@@ -214,7 +209,7 @@ commander
  * - That are ignored (filename matches a glob pattern in the ignore file)
  * @example status
  */
-commander
+program
   .command('status')
   .description('Lists files that will be pushed by clasp')
   .option('--json', 'Show status in JSON form')
@@ -227,7 +222,7 @@ commander
  * @example open
  * @example open [scriptId]
  */
-commander
+program
   .command('open [scriptId]')
   .description('Open a script')
   .option('--webapp', 'Open web application in the browser')
@@ -241,7 +236,7 @@ commander
  * @name deployments
  * @example deployments
  */
-commander.command('deployments').description('List deployment ids of a script').action(deployments);
+program.command('deployments').description('List deployment ids of a script').action(deployments);
 
 /**
  * Creates a version and deploys a script.
@@ -253,7 +248,7 @@ commander.command('deployments').description('List deployment ids of a script').
  * @example deploy --deploymentId 123 (create new version)
  * @example deploy -V 7 -d "Updates sidebar logo." -i 456
  */
-commander
+program
   .command('deploy')
   .description('Deploy a project')
   .option('-V, --versionNumber <version>', 'The project version') // We can't use `version` in subcommand
@@ -270,7 +265,7 @@ commander
  * @example "undeploy 123"
  * @example "undeploy --all"
  */
-commander
+program
   .command('undeploy [deploymentId]')
   .description('Undeploy a deployment of a project')
   .option('-a, --all', 'Undeploy all deployments')
@@ -283,14 +278,14 @@ commander
  * @example version
  * @example version "Bump the version."
  */
-commander.command('version [description]').description('Creates an immutable version of the script').action(version);
+program.command('version [description]').description('Creates an immutable version of the script').action(version);
 
 /**
  * List versions of a script.
  * @name versions
  * @example versions
  */
-commander.command('versions').description('List versions of a script').action(versions);
+program.command('versions').description('List versions of a script').action(versions);
 
 /**
  * Lists your most recent 10 Apps Script projects.
@@ -298,7 +293,7 @@ commander.command('versions').description('List versions of a script').action(ve
  * @example list # helloworld1 - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...
  * @todo Add --all flag to list all projects.
  */
-commander
+program
   .command('list')
   .description('List App Scripts projects')
   .option('--noShorten', 'Do not shorten long names', false)
@@ -311,7 +306,7 @@ commander
  * @param {boolean?} open Open StackDriver logs in a browser.
  * @param {boolean?} setup Setup StackDriver logs.
  */
-commander
+program
   .command('logs')
   .description('Shows the StackDriver logs')
   .option('--json', 'Show logs in JSON form')
@@ -333,7 +328,7 @@ commander
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run
  * @requires `clasp login --creds` to be run beforehand.
  */
-commander
+program
   .command('run [functionName]')
   .description('Run a function in your Apps Scripts project')
   .option('--nondev', 'Run script function in non-devMode')
@@ -347,7 +342,7 @@ commander
  * @example apis list
  * @example apis enable drive
  */
-commander
+program
   .command('apis')
   .description(
     `List, enable, or disable APIs
@@ -369,7 +364,7 @@ commander
  * @example setting scriptId
  * @example setting scriptId new-id
  */
-commander
+program
   .command('setting [settingKey] [newValue]')
   .alias('settings')
   .description('Update <settingKey> in .clasp.json')
@@ -379,31 +374,31 @@ commander
  * All other commands are given a help message.
  * @example random
  */
-commander.command('*', {isDefault: true}).description('Any other command is not supported').action(defaultCmd);
+program.command('*', {isDefault: true}).description('Any other command is not supported').action(defaultCmd);
 
 /**
  * @internal
  * Displays clasp paths
  */
-commander
+program
   .command('paths')
   .description('List current config files path')
   .action(() => {
-    console.log('project', project.path, project.isDefault(), project.resolve());
-    console.log('ignore', ignore.path, ignore.isDefault(), ignore.resolve());
-    console.log('auth', auth.path, auth.isDefault(), auth.resolve());
+    console.log('project', config.projectConfig);
+    console.log('ignore', config.ignore);
+    console.log('auth', config.auth);
   });
 
 const [_bin, _sourcePath, ...args] = process.argv;
 // Defaults to help if commands are not provided
 if (args.length === 0) {
-  commander.outputHelp();
+  program.outputHelp();
 }
 
 (async () => {
   try {
     // User input is provided from the process' arguments
-    await commander.parseAsync(process.argv);
+    await program.parseAsync(process.argv);
     stopSpinner();
   } catch (error) {
     spinner.stop();
@@ -418,7 +413,6 @@ if (args.length === 0) {
       console.error('Unknown error', error);
     }
   }
-  spinner.clear();
 
-  beforeExit();
+  spinner.clear();
 })();

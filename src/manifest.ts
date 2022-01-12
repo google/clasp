@@ -1,5 +1,6 @@
-import fs from 'fs-extra';
 import path from 'path';
+import is from '@sindresorhus/is';
+import fs from 'fs-extra';
 
 import {PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis.js';
 import {ClaspError} from './clasp-error.js';
@@ -9,16 +10,14 @@ import {ProjectSettings} from './dotfile.js';
 import {ERROR} from './messages.js';
 import {getProjectSettings, parseJsonOrDie} from './utils.js';
 
-import type {AdvancedService} from './apis';
+const config = Conf.get();
 
-const {project} = Conf.get();
-
-/*** Gets the path to manifest for given `rootDir` */
+/** Gets the path to manifest for given `rootDir` */
 const getManifestPath = (rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME);
 
 /** Gets the `rootDir` from given project */
-const getRootDir = (projectSettings: ProjectSettings): string =>
-  typeof projectSettings.rootDir === 'string' ? projectSettings.rootDir : project.resolvedDir;
+const getRootDir = ({rootDir}: ProjectSettings): string =>
+  is.string(rootDir) ? rootDir : config.projectRootDirectory!;
 
 /**
  * Checks if the rootDir appears to be a valid project.
@@ -27,8 +26,8 @@ const getRootDir = (projectSettings: ProjectSettings): string =>
  *
  * @return {boolean} True if valid project, false otherwise
  */
-export const manifestExists = (rootDir: string = project.resolvedDir): boolean =>
-  fs.existsSync(getManifestPath(rootDir));
+export const manifestExists = (rootDir = config.projectRootDirectory): boolean =>
+  rootDir !== undefined && fs.existsSync(getManifestPath(rootDir));
 
 /**
  * Reads the appsscript.json manifest file.
@@ -67,11 +66,8 @@ const writeManifest = async (manifest: Readonly<Manifest>) => {
 /**
  * Returns true if the manifest is valid.
  */
-export const isValidManifest = async (manifest?: Manifest): Promise<boolean> => {
-  const value = manifest ?? (await getManifest());
-
-  return value !== null && typeof value !== undefined;
-};
+export const isValidManifest = async (manifest?: Manifest): Promise<boolean> =>
+  !is.nullOrUndefined(manifest ?? (await getManifest()));
 
 /**
  * Ensures the manifest is correct for running a function.
@@ -82,7 +78,7 @@ export const isValidManifest = async (manifest?: Manifest): Promise<boolean> => 
  */
 export const isValidRunManifest = async (): Promise<boolean> => {
   const value = await getManifest();
-  return Boolean(isValidManifest(value) && value.executionApi && value.executionApi.access);
+  return Boolean((await isValidManifest(value)) && value.executionApi && value.executionApi.access);
 };
 
 /**
@@ -159,7 +155,7 @@ export const enableOrDisableAdvanceServiceInManifest = async (serviceId: string,
   // Enable the service
   if (enable) {
     // Add new service (get the first one from the public list)
-    enabledServices.push(publicAdvancedServices.find(service => service.serviceId === serviceId) as AdvancedService);
+    enabledServices.push(publicAdvancedServices.find(service => service.serviceId === serviceId)!);
   }
 
   // Overwrites the old list with the new list.

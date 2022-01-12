@@ -24,7 +24,7 @@ import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 
 export type {Dotfile} from 'dotf';
 
-const {auth, authLocal, ignore, project} = Conf.get();
+const config = Conf.get();
 
 // Project settings file (Saved in .clasp.json)
 export interface ProjectSettings {
@@ -58,8 +58,9 @@ export const DOTFILE = {
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: async () => {
-    const ignorePath = ignore.resolve();
-    const content = fs.existsSync(ignorePath) ? fs.readFileSync(ignorePath, FS_OPTIONS) : defaultClaspignore;
+    const ignorePath = config.ignore;
+    const content =
+      ignorePath && fs.existsSync(ignorePath) ? fs.readFileSync(ignorePath, FS_OPTIONS) : defaultClaspignore;
 
     return splitLines(stripBom(content)).filter((name: string) => name.length > 0);
   },
@@ -70,18 +71,18 @@ export const DOTFILE = {
    */
   PROJECT: () => {
     // ! TODO: currently limited if filename doesn't start with a dot '.'
-    const {dir, base} = path.parse(project.resolve());
-    if (base[0] === '.') {
+    const {dir, base} = path.parse(config.projectConfig!);
+    if (base.startsWith('.')) {
       return dotf(dir || '.', base.slice(1));
     }
     throw new Error('Project file must start with a dot (i.e. .clasp.json)');
   },
   // Stores {ClaspCredentials}
   AUTH: (local?: boolean) => {
-    const configPath = local ? authLocal : auth;
+    const configPath = local ? config.authLocal : config.auth;
     // ! TODO: currently limited if filename doesn't start with a dot '.'
-    const {dir, base} = path.parse(configPath.resolve());
-    if (base[0] === '.') {
+    const {dir, base} = path.parse(configPath!);
+    if (base.startsWith('.')) {
       return dotf(dir || '.', base.slice(1));
     }
     throw new Error('Auth file must start with a dot (i.e. .clasp.json)');

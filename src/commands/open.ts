@@ -20,7 +20,7 @@ const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<str
     deployment: {deploymentId},
   } = await deploymentIdPrompt(choices);
 
-  return deploymentId as string;
+  return deploymentId!;
 };
 
 /**
@@ -42,7 +42,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
   if (options.creds) {
     const {projectId} = projectSettings;
     if (!projectId) {
-      throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
+      throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
     }
 
     console.log(LOG.OPEN_CREDS(projectId));
@@ -69,7 +69,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
 const openAddon = async (projectSettings: ProjectSettings) => {
   const {parentId: parentIdList = []} = projectSettings;
   if (parentIdList.length === 0) {
-    throw new ClaspError(ERROR.NO_PARENT_ID);
+    throw new ClaspError(ERROR.NO_PARENT_ID());
   }
 
   if (parentIdList.length > 1) {
@@ -100,7 +100,7 @@ const openWebApp = async (scriptId: string, optionsDeploymentId?: string) => {
   }
 
   // Order deployments by update time.
-  const choices = deployments.slice();
+  const choices = [...deployments];
   choices.sort((a, b) => (a.updateTime && b.updateTime ? a.updateTime.localeCompare(b.updateTime) : 0));
   const prompts = choices.map(value => {
     const {description, versionNumber} = value.deploymentConfig!;

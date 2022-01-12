@@ -4,7 +4,6 @@ import multimatch from 'multimatch';
 import path from 'path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
-import ts2gas from 'ts2gas';
 import typescript from 'typescript';
 import {GaxiosError} from 'gaxios';
 
@@ -26,7 +25,7 @@ import {
 import type {TranspileOptions} from 'typescript';
 
 const {parseConfigFileTextToJson} = typescript;
-const {project} = Conf.get();
+const config = Conf.get();
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -42,20 +41,22 @@ interface ProjectFile {
   readonly type: string;
 }
 
-const projectFileWithContent = (file: ProjectFile, transpileOptions: TranspileOptions): ProjectFile => {
-  const source = fs.readFileSync(file.name).toString();
-  const type = getApiFileType(file.name);
+async function transpile(source: string, transpileOptions: TranspileOptions): Promise<string> {
+  const ts2gas = await import('ts2gas');
+  return ts2gas.default(source, transpileOptions);
+}
 
-  return type === 'TS'
-    ? // Transpile TypeScript to Google Apps Script
-      // @see github.com/grant/ts2gas
-      {
-        ...file,
-        source: ts2gas(source, transpileOptions),
-        type: 'SERVER_JS',
-      }
-    : {...file, source, type};
-};
+async function projectFileWithContent(file: ProjectFile, transpileOptions: TranspileOptions): Promise<ProjectFile> {
+  const content = await fs.readFile(file.name);
+  let source = content.toString();
+  let type = getApiFileType(file.name);
+
+  if (type === 'TS') {
+    source = await transpile(source, transpileOptions);
+    type = 'SERVER_JS';
+  }
+  return {...file, source, type};
+}
 
 const ignoredProjectFile = (file: ProjectFile): ProjectFile => ({...file, source: '', isIgnored: true, type: ''});
 
@@ -89,7 +90,7 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
   try {
     const ignorePatterns = await DOTFILE.IGNORE();
     const isIgnored = (file: string) =>
-      multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length !== 0;
+      multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length > 0;
 
     const isValid = isValidFactory(rootDir);
 
@@ -103,7 +104,8 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
     });
     files.sort((a, b) => a.name.localeCompare(b.name));
 
-    return getContentOfProjectFiles(files).map((file: ProjectFile): ProjectFile => {
+    const filesWithContent = await getContentOfProjectFiles(files);
+    return filesWithContent.map((file: ProjectFile): ProjectFile => {
       // Loop through files that are not ignored from `.claspignore`
       if (!file.isIgnored) {
         // Prevent node_modules/@types/
@@ -143,14 +145,16 @@ export const splitProjectFiles = (files: ProjectFile[]): [ProjectFile[], Project
   files.filter(file => file.isIgnored),
 ];
 
-const getContentOfProjectFiles = (files: ProjectFile[]) => {
+async function getContentOfProjectFiles(files: ProjectFile[]) {
   const transpileOpttions = getTranspileOptions();
 
-  return files.map(file => (file.isIgnored ? file : projectFileWithContent(file, transpileOpttions)));
-};
+  const getContent = (file: ProjectFile) => (file.isIgnored ? file : projectFileWithContent(file, transpileOpttions));
+  return Promise.all(files.map(getContent));
+}
 
-const getAppsScriptFilesFromProjectFiles = (files: ProjectFile[], rootDir: string) =>
-  getContentOfProjectFiles(files).map((file): AppsScriptFile => {
+async function getAppsScriptFilesFromProjectFiles(files: ProjectFile[], rootDir: string) {
+  const filesWithContent = await getContentOfProjectFiles(files);
+  return filesWithContent.map(file => {
     const {name, source, type} = file;
 
     return {
@@ -159,6 +163,7 @@ const getAppsScriptFilesFromProjectFiles = (files: ProjectFile[], rootDir: strin
       type, // The file extension
     };
   });
+}
 
 // This statement customizes the order in which the files are pushed.
 // It puts the files in the setting's filePushOrder first.
@@ -203,14 +208,14 @@ export const getLocalFileType = (type: string, fileExtension?: string): string =
  * Returns true if the user has a clasp project.
  * @returns {boolean} If .clasp.json exists.
  */
-export const hasProject = (): boolean => fs.existsSync(project.resolve());
+export const hasProject = (): boolean => config.projectConfig !== undefined && fs.existsSync(config.projectConfig);
 
 /**
  * Returns in tsconfig.json.
  * @returns {TranspileOptions} if tsconfig.json not exists, return an empty object.
  */
 const getTranspileOptions = (): TranspileOptions => {
-  const tsconfigPath = path.join(project.resolvedDir, 'tsconfig.json');
+  const tsconfigPath = path.join(config.projectRootDirectory!, 'tsconfig.json');
 
   return fs.existsSync(tsconfigPath)
     ? {
@@ -265,7 +270,7 @@ export const isValidFileName = (
 
   return Boolean(
     !name.includes('node_modules/@types') && // Prevent node_modules/@types/
-      isValid({source: '', isIgnored: false, name: name, type: type}) &&
+      isValid({source: '', isIgnored: false, name, type}) &&
       !ignoreMatches.includes(name) // Must be SERVER_JS or HTML. https://developers.google.com/apps-script/api/reference/rest/v1/File
   );
 };
@@ -307,7 +312,7 @@ export const fetchProject = async (
       throw error;
     }
 
-    if (error.statusCode === 404) {
+    if ((error as any).statusCode === 404) {
       throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
 
@@ -374,7 +379,7 @@ export const pushFiles = async (silent = false) => {
 
     if (toPush.length > 0) {
       const orderedFiles = getOrderedProjectFiles(toPush, filePushOrder);
-      const files = getAppsScriptFilesFromProjectFiles(orderedFiles, rootDir ?? path.join('.', '/'));
+      const files = await getAppsScriptFilesFromProjectFiles(orderedFiles, rootDir ?? path.join('.', '/'));
       const filenames = orderedFiles.map(file => file.name);
 
       // Start pushing.

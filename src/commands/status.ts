@@ -10,7 +10,7 @@ interface CommandOption {
  * Displays the status of which Apps Script files are ignored from .claspignore
  * @param options.json {boolean} Displays the status in json format.
  */
-export default async (options: CommandOption = {json: false}): Promise<void> => {
+export default async ({json}: CommandOption = {json: false}): Promise<void> => {
   await checkIfOnlineOrDie();
   const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
@@ -18,7 +18,7 @@ export default async (options: CommandOption = {json: false}): Promise<void> => 
     const filesToPush = getOrderedProjectFiles(toPush, filePushOrder).map(file => file.name);
     const untrackedFiles = toIgnore.map(file => file.name);
 
-    if (options.json) {
+    if (json) {
       console.log(JSON.stringify({filesToPush, untrackedFiles}));
       return;
     }

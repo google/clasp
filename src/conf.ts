@@ -1,11 +1,11 @@
 import os from 'os';
 import path from 'path';
+import {findUpSync} from 'find-up';
 
 import {PROJECT_NAME} from './constants.js';
-import {PathProxy} from './path-proxy.js';
 
 /**
- * supported environment variables
+ * Supported environment variables
  */
 enum ENV {
   DOT_CLASP_AUTH = 'clasp_config_auth',
@@ -18,62 +18,101 @@ enum ENV {
 /**
  * A Singleton class to hold configuration related objects.
  * Use the `get()` method to access the unique singleton instance.
+ *
+ * Resolution order for paths is:
+ * - Explicitly set paths (via CLI option)
+ * - Env var
+ * - Well-known location
+ *
+ *
  */
 export class Conf {
+  private _root: string | undefined;
+  private _projectConfig: string | undefined;
+  private _ignore: string | undefined;
+  private _auth: string | undefined;
+  private _authLocal: string | undefined;
+
   private static _instance: Conf;
-  /**
-   * This dotfile saves clasp project information, local to project directory.
-   */
-  readonly project: PathProxy;
-  /**
-   * This dotfile stores information about ignoring files on `push`. Like .gitignore.
-   */
-  readonly ignore: IgnoreFile;
-  /**
-   * This dotfile saves auth information. Should never be committed.
-   * There are 2 types: personal & global:
-   * - Global: In the $HOME directory.
-   * - Personal: In the local directory.
-   * @see {ClaspToken}
-   */
-  readonly auth: AuthFile;
-  // Local auth for backwards compatibility
-  readonly authLocal: AuthFile;
-  // readonly manifest: PathProxy;
 
   /**
    * Private to prevent direct construction calls with the `new` operator.
    */
-  private constructor() {
-    /**
-     * Helper to set the PathProxy path if an environment variables is set.
-     *
-     * *Note: Empty values (i.e. '') are not accounted for.*
-     */
-    const setPathWithEnvVar = (varName: string, file: PathProxy) => {
-      const envVar = process.env[varName];
-      if (envVar) {
-        file.path = envVar;
-      }
-    };
+  private constructor() {}
 
-    // default `project` path is `./.clasp.json`
-    this.project = new PathProxy({dir: '.', base: `.${PROJECT_NAME}.json`});
+  set projectRootDirectory(path: string | undefined) {
+    this._root = path;
+    this._projectConfig = undefined; // Force recalculation of path if root chanaged
+  }
 
-    // default `ignore` path is `~/.claspignore`
-    // IgnoreFile class implements custom `.resolve()` rules
-    this.ignore = new IgnoreFile({dir: os.homedir(), base: `.${PROJECT_NAME}ignore`});
+  get projectRootDirectory() {
+    if (this._root === undefined) {
+      const configPath = findUpSync(`.${PROJECT_NAME}.json`);
+      this._root = configPath ? path.dirname(configPath) : process.cwd();
+    }
+    return this._root;
+  }
 
-    // default `auth` path is `~/.clasprc.json`
-    // default local auth path is './.clasprc.json'
-    this.auth = new AuthFile({dir: os.homedir(), base: `.${PROJECT_NAME}rc.json`});
-    this.authLocal = new AuthFile({dir: '.', base: `.${PROJECT_NAME}rc.json`});
+  set projectConfig(filePath: string | undefined) {
+    this._projectConfig = filePath;
+    if (filePath) {
+      this._root = path.dirname(filePath); // Root dir must be same dir as config
+    }
+  }
 
-    // resolve environment variables
-    setPathWithEnvVar(ENV.DOT_CLASP_PROJECT, this.project);
-    setPathWithEnvVar(ENV.DOT_CLASP_IGNORE, this.ignore);
-    setPathWithEnvVar(ENV.DOT_CLASP_AUTH, this.auth);
-    setPathWithEnvVar(ENV.DOT_CLASP_AUTH, this.authLocal);
+  get projectConfig() {
+    if (this._projectConfig === undefined && this.projectRootDirectory) {
+      this._projectConfig = this.buildPathOrUseEnv(
+        `.${PROJECT_NAME}.json`,
+        this.projectRootDirectory,
+        ENV.DOT_CLASP_PROJECT
+      );
+    }
+    return this._projectConfig;
+  }
+
+  set ignore(path: string | undefined) {
+    this._ignore = path;
+  }
+
+  get ignore() {
+    if (this._ignore === undefined && this.projectRootDirectory) {
+      this._ignore = this.buildPathOrUseEnv(`.${PROJECT_NAME}ignore`, this.projectRootDirectory, ENV.DOT_CLASP_IGNORE);
+    }
+    return this._ignore;
+  }
+
+  set auth(path: string | undefined) {
+    this._auth = path;
+  }
+
+  get auth() {
+    if (this._auth === undefined) {
+      this._auth = this.buildPathOrUseEnv(`.${PROJECT_NAME}rc.json`, os.homedir(), ENV.DOT_CLASP_AUTH);
+    }
+    return this._auth;
+  }
+
+  set authLocal(path: string | undefined) {
+    this._authLocal = path;
+  }
+
+  get authLocal() {
+    if (this._authLocal === undefined && this.projectRootDirectory) {
+      this._authLocal = this.buildPathOrUseEnv(
+        `.${PROJECT_NAME}rc.json`,
+        this.projectRootDirectory,
+        ENV.DOT_CLASP_AUTH
+      );
+    }
+    return this._authLocal;
+  }
+
+  private buildPathOrUseEnv(filename: string, root: string, envName?: string): string {
+    if (envName && process.env[envName] !== undefined) {
+      return process.env[envName]!;
+    }
+    return path.join(root, filename);
   }
 
   /**
@@ -89,33 +128,3 @@ export class Conf {
     return Conf._instance;
   }
 }
-
-class AuthFile extends PathProxy {
-  /**
-   * Rules to resolves path:
-   *
-   * - if default path, use as is
-   * - otherwise use super.resolve()
-   *
-   * @returns {string}
-   */
-  resolve(): string {
-    return this.isDefault() ? path.join(this._default.dir, this._default.base) : super.resolve();
-  }
-}
-
-class IgnoreFile extends PathProxy {
-  /**
-   * Rules to resolves path:
-   *
-   * - if default, use the **project** directory and the default base filename
-   * - otherwise use super.resolve()
-   *
-   * @returns {string}
-   */
-  resolve(): string {
-    return this.isDefault() ? path.join(Conf.get().project.resolvedDir, this._default.base) : super.resolve();
-  }
-}
-
-// TODO: add more subclasses if necessary

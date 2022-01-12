@@ -1,3 +1,4 @@
+import is from '@sindresorhus/is';
 import {SCRIPT_TYPES} from '../apis.js';
 import {drive, loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
@@ -13,6 +14,9 @@ import {
   spinner,
   stopSpinner,
 } from '../utils.js';
+import {Conf} from '../conf.js';
+
+const config = Conf.get();
 
 interface CommandOption {
   readonly parentId?: string;
@@ -30,10 +34,14 @@ interface CommandOption {
  *                        If not specified, clasp will default to the current directory.
  */
 export default async (options: CommandOption): Promise<void> => {
+  if (options.rootDir) {
+    config.projectRootDirectory = options.rootDir;
+  }
+
   // Handle common errors.
   await checkIfOnlineOrDie();
   if (hasProject()) {
-    throw new ClaspError(ERROR.FOLDER_EXISTS);
+    throw new ClaspError(ERROR.FOLDER_EXISTS());
   }
 
   await loadAPICredentials();
@@ -42,11 +50,11 @@ export default async (options: CommandOption): Promise<void> => {
   const {parentId: optionParentId, title: name = getDefaultProjectName(), type: optionType} = options;
   let parentId = optionParentId;
 
-  const filetype = optionType ?? (!optionParentId ? (await scriptTypePrompt()).type : '');
+  const filetype = optionType ?? (optionParentId ? '' : (await scriptTypePrompt()).type);
 
   // Create files with MIME type.
   // https://developers.google.com/drive/api/v3/mime-types
-  const DRIVE_FILE_MIMETYPES: {[key: string]: string} = {
+  const DRIVE_FILE_MIMETYPES: Record<string, string> = {
     [SCRIPT_TYPES.DOCS]: 'application/vnd.google-apps.document',
     [SCRIPT_TYPES.FORMS]: 'application/vnd.google-apps.form',
     [SCRIPT_TYPES.SHEETS]: 'application/vnd.google-apps.spreadsheet',
@@ -59,11 +67,11 @@ export default async (options: CommandOption): Promise<void> => {
     const {
       data: {id: newParentId},
     } = await drive.files.create({requestBody: {mimeType, name}});
-    parentId = newParentId as string;
+    parentId = newParentId!;
 
     stopSpinner();
 
-    console.log(LOG.CREATE_DRIVE_FILE_FINISH(filetype, parentId as string));
+    console.log(LOG.CREATE_DRIVE_FILE_FINISH(filetype, parentId));
   }
 
   // CLI Spinner
@@ -71,7 +79,7 @@ export default async (options: CommandOption): Promise<void> => {
 
   let projectExist: boolean;
   try {
-    projectExist = typeof (await getProjectSettings()).scriptId === 'string';
+    projectExist = is.string((await getProjectSettings()).scriptId);
   } catch {
     process.exitCode = 0; // To reset `exitCode` that was overriden in ClaspError constructor.
     projectExist = false;
@@ -83,7 +91,7 @@ export default async (options: CommandOption): Promise<void> => {
 
   // Create a new Apps Script project
   const {data, status, statusText} = await script.projects.create({
-    requestBody: {parentId: parentId, title: name},
+    requestBody: {parentId, title: name},
   });
 
   stopSpinner();
@@ -98,10 +106,12 @@ export default async (options: CommandOption): Promise<void> => {
 
   const scriptId = data.scriptId ?? '';
   console.log(LOG.CREATE_PROJECT_FINISH(filetype, scriptId));
-  const {rootDir} = options;
-  await saveProject({scriptId, rootDir, parentId: parentId ? [parentId] : undefined}, false);
+  await saveProject(
+    {scriptId, rootDir: config.projectRootDirectory, parentId: parentId ? [parentId] : undefined},
+    false
+  );
 
-  if (!manifestExists(rootDir)) {
-    await writeProjectFiles(await fetchProject(scriptId), rootDir); // Fetches appsscript.json, o.w. `push` breaks
+  if (!manifestExists(config.projectRootDirectory)) {
+    await writeProjectFiles(await fetchProject(scriptId), config.projectRootDirectory); // Fetches appsscript.json, o.w. `push` breaks
   }
 };

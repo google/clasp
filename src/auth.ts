@@ -3,18 +3,16 @@ import {google, script_v1 as scriptV1} from 'googleapis';
 import {createServer} from 'http';
 import open from 'open';
 import readline from 'readline';
-import {URL} from 'url';
-
-import {ClaspError} from './clasp-error.js';
-import {DOTFILE} from './dotfile.js';
-import {ERROR, LOG} from './messages.js';
-import {checkIfOnlineOrDie, getOAuthSettings} from './utils.js';
-
+import enableDestroy from 'server-destroy';
 import type {Credentials, GenerateAuthUrlOpts, OAuth2ClientOptions} from 'google-auth-library';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
 import type {ReadonlyDeep} from 'type-fest';
 
+import {ClaspError} from './clasp-error.js';
+import {DOTFILE} from './dotfile.js';
+import {ERROR, LOG} from './messages.js';
+import {checkIfOnlineOrDie, getOAuthSettings} from './utils.js';
 import type {ClaspToken} from './dotfile';
 import type {ClaspCredentials} from './utils';
 
@@ -217,6 +215,7 @@ const authorizeWithLocalhost = async (
   // the server port needed to set up the Oauth2Client.
   const server = await new Promise<Server>(resolve => {
     const s = createServer();
+    enableDestroy(s);
     s.listen(0, () => resolve(s));
   });
   const {port} = server.address() as AddressInfo;
@@ -238,9 +237,9 @@ const authorizeWithLocalhost = async (
     });
     const authUrl = client.generateAuthUrl(oAuth2ClientAuthUrlOptions);
     console.log(LOG.AUTHORIZE(authUrl));
-    (async () => await open(authUrl))();
+    (async () => open(authUrl))();
   });
-  server.close();
+  server.destroy();
 
   return (await client.getToken(authCode)).tokens;
 };
@@ -287,11 +286,7 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
    */
   const refreshCredentials = async (oAuthClient: ReadonlyDeep<OAuth2Client>) => {
     await oAuthClient.getAccessToken(); // Refreshes expiry date if required
-    const {expiry_date = 0} = oAuthClient.credentials;
-
-    if (expiry_date !== expiry_date) {
-      rc.token = oAuthClient.credentials;
-    }
+    rc.token = oAuthClient.credentials;
   };
 
   // Set credentials and refresh them.

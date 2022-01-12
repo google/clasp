@@ -1,3 +1,4 @@
+import is from '@sindresorhus/is';
 import chalk from 'chalk';
 import {logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
@@ -57,10 +58,10 @@ export default async (options: CommandOption): Promise<void> => {
   // Otherwise, if not opening StackDriver, load StackDriver logs.
   if (options.watch) {
     const POLL_INTERVAL = 6000; // 6s
-    setInterval(() => {
+    setInterval(async () => {
       const startDate = new Date();
       startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
-      fetchAndPrintLogs(json, simplified, projectId, startDate);
+      await fetchAndPrintLogs(json, simplified, projectId, startDate);
     }, POLL_INTERVAL);
   } else {
     await fetchAndPrintLogs(json, simplified, projectId);
@@ -74,9 +75,9 @@ export default async (options: CommandOption): Promise<void> => {
  * rather than filter server-side.
  * @see logs.data.entries[0].insertId
  */
-const logEntryCache: {[key: string]: boolean} = {};
+const logEntryCache: Record<string, boolean> = {};
 
-const severityColor: {[key: string]: chalk.Chalk} = {
+const severityColor: Record<string, chalk.Chalk> = {
   ERROR: chalk.red,
   INFO: chalk.cyan,
   DEBUG: chalk.green, // Includes timeEnd
@@ -99,7 +100,7 @@ const printLogs = (
     if (resource?.labels) {
       let {function_name: functionName = ERROR.NO_FUNCTION_NAME} = resource.labels;
       functionName = functionName.padEnd(15);
-      let payloadData: string | {[key: string]: unknown} = '';
+      let payloadData: string | Record<string, unknown> = '';
       if (formatJson) {
         payloadData = JSON.stringify(entry, null, 2);
       } else {
@@ -134,12 +135,12 @@ const obscure = (entry: Readonly<loggingV2.Schema$LogEntry>, functionName: strin
     ((jsonPayload ? JSON.stringify(jsonPayload).slice(0, 255) : '') || protoPayload) ??
     ERROR.PAYLOAD_UNKNOWN;
 
-  if (typeof payloadData !== 'string' && protoPayload!['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
+  if (!is.string(payloadData) && protoPayload!['@type'] === 'type.googleapis.com/google.cloud.audit.AuditLog') {
     payloadData = LOG.STACKDRIVER_SETUP;
     functionName = (protoPayload!.methodName as string).padEnd(15);
   }
 
-  if (payloadData && typeof payloadData === 'string') {
+  if (is.string(payloadData)) {
     payloadData = payloadData.padEnd(20);
   }
 
@@ -153,12 +154,12 @@ const setupLogs = async (projectSettings: ProjectSettings): Promise<string> => {
 
     const dotfile = DOTFILE.PROJECT();
     if (!dotfile) {
-      throw new ClaspError(ERROR.SETTINGS_DNE);
+      throw new ClaspError(ERROR.SETTINGS_DNE());
     }
 
     const settings = await dotfile.read<ProjectSettings>();
     if (!settings.scriptId) {
-      throw new ClaspError(ERROR.SCRIPT_ID_DNE);
+      throw new ClaspError(ERROR.SCRIPT_ID_DNE());
     }
 
     const {projectId} = await projectIdPrompt();
@@ -186,7 +187,7 @@ const fetchAndPrintLogs = async (
 ): Promise<void> => {
   // Validate projectId
   if (!projectId) {
-    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT);
+    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
   }
 
   if (!isValidProjectId(projectId)) {
@@ -195,7 +196,7 @@ const fetchAndPrintLogs = async (
 
   const {isLocalCreds} = await loadAPICredentials();
 
-  spinner.start(`${isLocalCreds ? LOG.LOCAL_CREDS : ''}${LOG.GRAB_LOGS}`);
+  spinner.start(`${isLocalCreds ? LOG.LOCAL_CREDS() : ''}${LOG.GRAB_LOGS}`);
 
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
   // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time

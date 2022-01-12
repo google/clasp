@@ -1,40 +1,19 @@
-import {Conf} from '../conf.js';
-import {DOTFILE} from '../dotfile.js';
-import {hasOauthClientSettings} from '../utils.js';
+import fs from 'fs-extra';
 
-const {auth} = Conf.get();
+import {Conf} from '../conf.js';
+
+const config = Conf.get();
+
+const deleteIfExists = (file: string | undefined) => {
+  if (file && fs.existsSync(file)) {
+    fs.unlinkSync(file);
+  }
+};
 
 /**
  * Logs out the user by deleting credentials.
  */
 export default async (): Promise<void> => {
-  let previousPath: string | undefined;
-
-  if (hasOauthClientSettings(true)) {
-    if (auth.isDefault()) {
-      // If no local auth defined, try current directory
-      previousPath = auth.path;
-      auth.path = '.';
-    }
-
-    await DOTFILE.AUTH().delete();
-
-    if (previousPath) {
-      auth.path = previousPath;
-    }
-  }
-
-  if (hasOauthClientSettings()) {
-    if (!auth.isDefault()) {
-      // If local auth defined, try with default (global)
-      previousPath = auth.path;
-      auth.path = '';
-    }
-
-    await DOTFILE.AUTH().delete();
-
-    if (previousPath) {
-      auth.path = previousPath;
-    }
-  }
+  deleteIfExists(config.auth);
+  deleteIfExists(config.authLocal);
 };
