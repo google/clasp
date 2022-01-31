@@ -44,6 +44,10 @@ export default async (options: CommandOption): Promise<void> => {
     console.log(LOG.PUSH_WATCH);
     // Debounce calls to push to coalesce 'save all' actions from editors
     const debouncedPushFiles = debounce(async () => {
+      if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
+        console.log('Stopping push…');
+        return;
+      }
       console.log(LOG.PUSHING);
       return pushFiles();
     }, WATCH_DEBOUNCE_MS);
@@ -54,10 +58,6 @@ export default async (options: CommandOption): Promise<void> => {
         return;
       }
       console.log(`\n${LOG.PUSH_WATCH_UPDATED(filePath)}\n`);
-      if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
-        console.log('Stopping push…');
-        return;
-      }
       return debouncedPushFiles();
     };
     const watcher = chokidar.watch(rootDir, {persistent: true, ignoreInitial: true});
