@@ -397,9 +397,9 @@ export const pushFiles = async (silent = false) => {
         if (error instanceof GaxiosError) {
           let message = error.message;
           const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
-          const [match, errorName, lineNum, fileName] = re.exec(error.message) || [];
-          if (null !== match) {
-            let filePath = path.resolve('.', fileName);
+          const [, errorName, lineNum, fileName] = re.exec(error.message) ?? [];
+          if (fileName !== undefined) {
+            let filePath = path.resolve(rootDir ?? '.', fileName);
             const parsedFilePath = path.parse(filePath);
             // Check if the file exists locally as any supported type
             for (const ext of ['gs', 'js', 'ts']) {
