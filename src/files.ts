@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import fs from 'fs-extra';
 import makeDir from 'make-dir';
 import multimatch from 'multimatch';
@@ -411,9 +412,7 @@ export const pushFiles = async (silent = false) => {
             }
             message = `${errorName} - "${filePath}:${lineNum}"`;
           }
-          const errorStyle = '\x1b[31m';
-          const resetStyle = '\x1b[0m';
-          console.error(errorStyle + message + resetStyle);
+          console.error(chalk.red(message));
         } else {
           console.error(error);
         }
