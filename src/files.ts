@@ -397,6 +397,7 @@ export const pushFiles = async (silent = false) => {
         console.error(LOG.PUSH_FAILURE);
         if (error instanceof GaxiosError) {
           let message = error.message;
+          let snippet = '';
           const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
           const [, errorName, lineNum, fileName] = re.exec(error.message) ?? [];
           if (fileName !== undefined) {
@@ -414,8 +415,29 @@ export const pushFiles = async (silent = false) => {
               }
             }
             message = `${errorName} - "${filePath}:${lineNum}"`;
+
+            // Get formatted code snippet
+            const contextCount = 4;
+            const parsedFileName = path.parse(fileName);
+            const fileNameKey = path.join(parsedFileName.dir, parsedFileName.name);
+            const reqFiles: ProjectFile[] = JSON.parse(error.config.body).files;
+            const errFile = reqFiles.find((x: ProjectFile) => x.name === fileNameKey && x.type === 'SERVER_JS');
+            if (errFile !== undefined) {
+              const srcLines = errFile.source.split('\n');
+
+              const errIndex = Math.max(parseInt(lineNum) - 1, 0);
+              const preIndex = Math.max(errIndex - contextCount, 0);
+              const postIndex = Math.min(errIndex + contextCount + 1, srcLines.length);
+
+              const preLines = chalk.dim(`  ${srcLines.slice(preIndex, errIndex).join('\n  ')}`);
+              const errLine = chalk.bold(`⇒ ${srcLines[errIndex]}`);
+              const postLines = chalk.dim(`  ${srcLines.slice(errIndex + 1, postIndex).join('\n  ')}`);
+
+              snippet = preLines + '\n' + errLine + '\n' + postLines;
+            }
           }
           console.error(chalk.red(message));
+          console.log(snippet);
         } else {
           console.error(error);
         }
