@@ -403,7 +403,10 @@ export const pushFiles = async (silent = false) => {
             let filePath = path.resolve(rootDir ?? '.', fileName);
             const parsedFilePath = path.parse(filePath);
             // Check if the file exists locally as any supported type
-            for (const ext of ['gs', 'js', 'ts']) {
+            const {fileExtension} = await getProjectSettings();
+            const extensions = ['gs', 'js', 'ts'];
+            if (fileExtension !== undefined) extensions.push(fileExtension);
+            for (const ext of extensions) {
               const filePath_ext = path.join(parsedFilePath.dir, `${parsedFilePath.name}.${ext}`);
               if (fs.existsSync(filePath_ext)) {
                 filePath = filePath_ext;
