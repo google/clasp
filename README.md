@@ -586,7 +586,7 @@ PRs are very welcome! See the [issues](https://github.com/google/clasp/issues) (
 
 ### How to Submit a Pull Request
 
-1. Look over the test cases in `tests/test.ts`, try cases that the PR may affect.
+1. Look over the test cases in [test/test.ts](test/test.ts), try cases that the PR may affect.
 1. Run [gts linter](https://github.com/google/gts): `npm run lint`.
 1. Submit a pull request after testing your feature to make sure it works.
 
