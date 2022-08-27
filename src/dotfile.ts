@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /**
  * Manages dotfiles. There are 2 types of dotfiles:
  *
@@ -22,6 +23,8 @@ import {FS_OPTIONS} from './constants.js';
 
 import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 
+import {getProjectSettings} from './utils.js';
+
 export type {Dotfile} from 'dotf';
 
 const config = Conf.get();
@@ -34,6 +37,7 @@ export interface ProjectSettings {
   fileExtension?: string;
   filePushOrder?: string[];
   parentId?: string[];
+  htmlExtension?: string;
 }
 
 const defaultClaspignore = `# ignore all files…
@@ -58,10 +62,17 @@ export const DOTFILE = {
    * @return {Promise<string[]>} A list of file glob patterns
    */
   IGNORE: async () => {
+    const {fileExtension, htmlExtension} = await getProjectSettings();
     const ignorePath = config.ignore;
-    const content =
+    let content =
       ignorePath && fs.existsSync(ignorePath) ? fs.readFileSync(ignorePath, FS_OPTIONS) : defaultClaspignore;
 
+    if (fileExtension) {
+      content = content.replace(/!/, '!**/*.' + fileExtension.toLowerCase() + '\n!');
+    }
+    if (htmlExtension) {
+      content = content.replace(/!/, '!**/*.' + htmlExtension.toLowerCase() + '\n!');
+    }
     return splitLines(stripBom(content)).filter((name: string) => name.length > 0);
   },
   /**

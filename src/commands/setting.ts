@@ -39,7 +39,7 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
     const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
     // filePushOrder doesn't work since it requires an array.
     // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
-    if (['fileExtension', 'projectId', 'rootDir', 'scriptId'].includes(settingKey)) {
+    if (['fileExtension', 'projectId', 'rootDir', 'scriptId', 'htmlExtension'].includes(settingKey)) {
       Reflect.set(currentSettings, settingKey, settingValue);
       await saveProject(currentSettings, true);
       console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
