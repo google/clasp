@@ -9,13 +9,7 @@ import {DOTFILE, ProjectSettings} from '../dotfile.js';
 import {projectIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
-import {
-  getErrorMessage,
-  getProjectSettings,
-  isValidProjectId,
-  spinner,
-  stopSpinner,
-} from '../utils.js';
+import {getErrorMessage, getProjectSettings, isValidProjectId, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly json?: boolean;

@@ -12,13 +12,7 @@ import {Conf} from './conf.js';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants.js';
 import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
-import {
-  getApiFileType,
-  getErrorMessage,
-  getProjectSettings,
-  spinner,
-  stopSpinner,
-} from './utils.js';
+import {getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils.js';
 
 import type {TranspileOptions} from 'typescript';
 
