@@ -10,7 +10,6 @@ import {projectIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
 import {
-  checkIfOnlineOrDie,
   getErrorMessage,
   getProjectSettings,
   isValidProjectId,
@@ -35,7 +34,6 @@ interface CommandOption {
  * @param options.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
 export default async (options: CommandOption): Promise<void> => {
-  await checkIfOnlineOrDie();
   // Get project settings.
   const projectSettings = await getProjectSettings();
   let projectId = options.setup ? await setupLogs(projectSettings) : projectSettings.projectId;

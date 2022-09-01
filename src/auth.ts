@@ -12,7 +12,7 @@ import type {ReadonlyDeep} from 'type-fest';
 import {ClaspError} from './clasp-error.js';
 import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
-import {checkIfOnlineOrDie, getOAuthSettings} from './utils.js';
+import {getOAuthSettings} from './utils.js';
 import type {ClaspToken} from './dotfile';
 import type {ClaspCredentials} from './utils';
 
@@ -291,7 +291,6 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
 
   // Set credentials and refresh them.
   try {
-    await checkIfOnlineOrDie();
     if (rc.isLocalCreds) {
       const {clientId, clientSecret, redirectUri} = rc.oauth2ClientSettings;
       localOAuth2Client = new OAuth2Client({clientId, clientSecret, redirectUri});

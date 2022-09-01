@@ -1,6 +1,6 @@
 import {getAllProjectFiles, getOrderedProjectFiles, logFileList, splitProjectFiles} from '../files.js';
 import {LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings} from '../utils.js';
+import {getProjectSettings} from '../utils.js';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -11,7 +11,6 @@ interface CommandOption {
  * @param options.json {boolean} Displays the status in json format.
  */
 export default async ({json}: CommandOption = {json: false}): Promise<void> => {
-  await checkIfOnlineOrDie();
   const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
     const [toPush, toIgnore] = splitProjectFiles(await getAllProjectFiles(rootDir));

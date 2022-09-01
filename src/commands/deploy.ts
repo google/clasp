@@ -2,7 +2,7 @@ import {loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {PROJECT_MANIFEST_BASENAME as manifestFileName} from '../constants.js';
 import {ERROR, LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -17,7 +17,6 @@ interface CommandOption {
  * @param options.deploymentId  {string} The deployment ID to redeploy.
  */
 export default async (options: CommandOption): Promise<void> => {
-  await checkIfOnlineOrDie();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (!scriptId) {

@@ -6,7 +6,7 @@ import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {extractScriptId} from '../urls.js';
-import {checkIfOnlineOrDie, saveProject, spinner} from '../utils.js';
+import {saveProject, spinner} from '../utils.js';
 import status from './status.js';
 import {Conf} from '../conf.js';
 
@@ -32,7 +32,6 @@ export default async (
   if (options.rootDir) {
     config.projectRootDirectory = options.rootDir;
   }
-  await checkIfOnlineOrDie();
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS());
   }

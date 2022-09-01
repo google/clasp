@@ -1,13 +1,12 @@
 import {loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 /**
  * Lists a script's deployments.
  */
 export default async (): Promise<void> => {
-  await checkIfOnlineOrDie();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (scriptId) {

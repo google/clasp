@@ -7,7 +7,6 @@ import {scriptTypePrompt} from '../inquirer.js';
 import {manifestExists} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {
-  checkIfOnlineOrDie,
   getDefaultProjectName,
   getProjectSettings,
   saveProject,
@@ -39,7 +38,6 @@ export default async (options: CommandOption): Promise<void> => {
   }
 
   // Handle common errors.
-  await checkIfOnlineOrDie();
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS());
   }

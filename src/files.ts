@@ -13,7 +13,6 @@ import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants.js';
 import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
 import {
-  checkIfOnlineOrDie,
   getApiFileType,
   getErrorMessage,
   getProjectSettings,
@@ -300,7 +299,6 @@ export const fetchProject = async (
   versionNumber?: number,
   silent = false
 ): Promise<AppsScriptFile[]> => {
-  await checkIfOnlineOrDie();
   await loadAPICredentials();
   spinner.start();
   let response;
