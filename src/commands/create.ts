@@ -6,14 +6,7 @@ import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
 import {scriptTypePrompt} from '../inquirer.js';
 import {manifestExists} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
-import {
-  checkIfOnlineOrDie,
-  getDefaultProjectName,
-  getProjectSettings,
-  saveProject,
-  spinner,
-  stopSpinner,
-} from '../utils.js';
+import {getDefaultProjectName, getProjectSettings, saveProject, spinner, stopSpinner} from '../utils.js';
 import {Conf} from '../conf.js';
 
 const config = Conf.get();
@@ -39,7 +32,6 @@ export default async (options: CommandOption): Promise<void> => {
   }
 
   // Handle common errors.
-  await checkIfOnlineOrDie();
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS());
   }

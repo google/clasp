@@ -1,6 +1,6 @@
 import {fetchProject, writeProjectFiles} from '../files.js';
 import {LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -12,7 +12,6 @@ interface CommandOption {
  *                              If not provided, the project's HEAD version is returned.
  */
 export default async (options: CommandOption): Promise<void> => {
-  await checkIfOnlineOrDie();
   const {scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
     spinner.start(LOG.PULLING);

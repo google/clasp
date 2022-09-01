@@ -4,7 +4,7 @@ import pMap from 'p-map';
 import {loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ERROR, LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -15,7 +15,6 @@ interface CommandOption {
  * @param deploymentId {string} The deployment's ID
  */
 export default async (deploymentId: string | undefined, options: CommandOption): Promise<void> => {
-  await checkIfOnlineOrDie();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (scriptId) {

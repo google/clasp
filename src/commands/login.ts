@@ -8,7 +8,7 @@ import {authorize, defaultScopes, getLoggedInEmail, scopeWebAppDeploy} from '../
 import {FS_OPTIONS} from '../constants.js';
 import {readManifest} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
-import {checkIfOnlineOrDie, hasOauthClientSettings, safeIsOnline} from '../utils.js';
+import {hasOauthClientSettings, safeIsOnline} from '../utils.js';
 import type {ClaspCredentials} from '../utils.js';
 
 const {readJsonSync} = fs;
@@ -49,8 +49,6 @@ export default async (options: CommandOption): Promise<void> => {
   }
 
   console.log(LOG.LOGIN(isLocalLogin));
-  await checkIfOnlineOrDie();
-
   // Localhost check
   const useLocalhost = Boolean(options.localhost);
 

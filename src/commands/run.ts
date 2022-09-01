@@ -7,7 +7,7 @@ import {ClaspError} from '../clasp-error.js';
 import {addScopeToManifest, isValidRunManifest} from '../manifest.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
-import {checkIfOnlineOrDie, getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils.js';
+import {getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly nondev: boolean;
@@ -23,7 +23,6 @@ interface CommandOption {
  * @requires `clasp login --creds` to be run beforehand.
  */
 export default async (functionName: string, options: CommandOption): Promise<void> => {
-  await checkIfOnlineOrDie();
   await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   const devMode = !options.nondev; // Defaults to true

@@ -8,7 +8,7 @@ import {discovery, loadAPICredentials, serviceUsage} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
-import {checkIfOnlineOrDie, getProjectId} from '../utils.js';
+import {getProjectId} from '../utils.js';
 
 type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
 type PublicAdvancedService = ReadonlyDeep<Required<NonNullable<DirectoryItem>>>;
@@ -38,7 +38,6 @@ export default async (options: CommandOption): Promise<void> => {
     disable: async () => enableOrDisableAPI(serviceName, false),
     enable: async () => enableOrDisableAPI(serviceName, true),
     list: async () => {
-      await checkIfOnlineOrDie();
       /**
        * List currently enabled APIs.
        */
