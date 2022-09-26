@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.2](https://github.com/google/clasp/compare/v2.4.1...v2.4.2) (2022-09-26)
+
+
+### Bug Fixes
+
+* remove online check ([#936](https://github.com/google/clasp/issues/936)) ([6775d9f](https://github.com/google/clasp/commit/6775d9f674886ac11ee2a23d59cbe62dd141d97b))
+
 ### [2.4.1](https://www.github.com/google/clasp/compare/v2.4.0...v2.4.1) (2021-08-09)
 
 
