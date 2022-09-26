@@ -544,7 +544,7 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 ### NodeJS Version
 
-The library requires **NodeJS version >= 10.3.0**.
+The library requires **NodeJS version >= 12.20.0**.
 
 You can check your version of NodeJS with this command.
 
