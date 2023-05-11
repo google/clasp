@@ -22,6 +22,7 @@ clasp deploy
 rm .clasp.json appsscript.json hello.js
 clear
 -->
+
 ![clasp](https://user-images.githubusercontent.com/744973/42856573-a5d96d7c-89fa-11e8-9d69-8d2c66f00d8d.gif)
 
 **To get started, try out the [codelab](https://g.co/codelabs/clasp)!**
@@ -493,6 +494,13 @@ If no `.claspignore` is specified, a default set of patterns is applied. This de
 node_modules/**
 ```
 
+### How to use a service account
+
+1. Create a service account in GCP with `Service Usage` role
+2. Create a key for the service account and download
+3. Ensure the script is shared with the service account
+4. Login using `clasp login --creds <path-to-downloaded-key>`
+
 ## Project Settings File (`.clasp.json`)
 
 When running `clone` or `create`, a file named `.clasp.json` is created in the current directory to describe `clasp`'s configuration for the current project. Example `.clasp.json`:
@@ -511,11 +519,10 @@ The following configuration values can be used:
 
 ### `scriptId` (required)
 
-Specifies the id of the Google Script project that clasp will target. 
+Specifies the id of the Google Script project that clasp will target.
 
 1. Open script url.
 1. File > Project properties > Script ID
-
 
 ### `rootDir` (optional)
 

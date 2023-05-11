@@ -307,7 +307,7 @@ export const fetchProject = async (
       throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
 
-    throw new ClaspError(ERROR.SCRIPT_ID);
+    throw new ClaspError(`${ERROR.SCRIPT_ID}:${error}`);
   }
 
   stopSpinner();

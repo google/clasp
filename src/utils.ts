@@ -1,6 +1,6 @@
 import cliTruncate from 'cli-truncate';
 import fs from 'fs-extra';
-import {script_v1 as scriptV1} from 'googleapis';
+import {script_v1 as scriptV1, Auth} from 'googleapis';
 import isReachable from 'is-reachable';
 import logSymbols from 'log-symbols';
 import ora from 'ora';
@@ -38,9 +38,11 @@ interface ClaspCredentialsInstalled {
   redirect_uris: string[];
 }
 
-export interface ClaspCredentials {
+export interface ClaspOauthCredentials {
   installed: ClaspCredentialsInstalled;
 }
+
+export type ClaspCredentials = ClaspOauthCredentials | Auth.JWTInput;
 
 /**
  * Checks if OAuth client settings rc file exists.

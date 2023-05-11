@@ -4,7 +4,7 @@ import path from 'path';
 import {ClaspToken} from '../src/dotfile.js';
 import {randomString} from './functions.js';
 
-import type {OAuth2ClientOptions} from 'google-auth-library';
+import type {Auth} from 'googleapis';
 
 // Sample files
 export const TEST_CODE_JS = "function test() { Logger.log('test'); }";
@@ -73,7 +73,7 @@ const FAKE_CLASPRC_TOKEN = {
   expiry_date: new Date().getTime(),
 };
 
-const oAuth2ClientOptions: OAuth2ClientOptions = {
+const oAuth2ClientOptions: Auth.OAuth2ClientOptions = {
   clientId: `${randomString()}.apps.googleusercontent.com`,
   clientSecret: randomString(),
 };
