@@ -294,18 +294,19 @@ export const pushFiles = async (silent = false) => {
             // Start pushing.
             try {
                 await script.projects.updateContent({ scriptId, requestBody: { scriptId, files } });
-            }
-            catch (error) {
-                console.error(LOG.PUSH_FAILURE);
-                console.error(error);
-            }
-            finally {
-                stopSpinner();
                 // No error
                 if (!silent) {
                     logFileList(filenames);
                     console.log(LOG.PUSH_SUCCESS(filenames.length));
                 }
+            }
+            catch (error) {
+                console.error(LOG.PUSH_FAILURE);
+                console.error(error);
+                throw error;
+            }
+            finally {
+                stopSpinner();
             }
         }
         else {
