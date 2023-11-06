@@ -14,6 +14,8 @@
 
 ## How to Run Tests
 
+Make sure you have completed the [development setup](/docs/develop.md#setup).
+
 1. Log in: `clasp login`
 1. Rebuild: `npm run build`
 1. Set environmental variables:
