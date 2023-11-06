@@ -2,6 +2,7 @@ import os from 'os';
 import path from 'path';
 
 import {ClaspToken} from '../src/dotfile.js';
+import {ClaspError} from '../src/clasp-error.js';
 import {randomString} from './functions.js';
 
 import type {OAuth2ClientOptions} from 'google-auth-library';
@@ -27,9 +28,15 @@ export const TEST_APPSSCRIPT_JSON_WITH_RUN_API = JSON.stringify({
 
 // Travis Env Variables
 export const IS_PR: boolean = process.env.CI === 'true';
-export const SCRIPT_ID: string = process.env.SCRIPT_ID ?? '';
-export const PROJECT_ID: string = process.env.PROJECT_ID ?? '';
-export const PARENT_ID: string[] = [process.env.PROJECT_ID ?? ''];
+if (process.env.SCRIPT_ID === undefined) {
+  throw new ClaspError('Environment variable SCRIPT_ID is not defined.');
+}
+export const SCRIPT_ID: string = process.env.SCRIPT_ID;
+if (process.env.PROJECT_ID === undefined) {
+  throw new ClaspError('Environment variable PROJECT_ID is not defined.');
+}
+export const PROJECT_ID: string = process.env.PROJECT_ID;
+export const PARENT_ID: string[] = [process.env.PROJECT_ID];
 const HOME: string = process.env.HOME ?? '';
 
 // Paths
