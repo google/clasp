@@ -37,12 +37,11 @@ if (process.env.PROJECT_ID === undefined) {
 }
 export const PROJECT_ID: string = process.env.PROJECT_ID;
 export const PARENT_ID: string[] = [process.env.PROJECT_ID];
-const HOME: string = process.env.HOME ?? '';
 
 // Paths
 export const CLASP_PATHS = {
   clientCredsLocal: 'client_credentials.json',
-  rcGlobal: path.join(HOME, '.clasprc.json'),
+  rcGlobal: path.join(os.homedir(), '.clasprc.json'),
   rcLocal: '.clasprc.json',
   settingsLocal: '.clasp.json',
 };
