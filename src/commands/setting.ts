@@ -1,5 +1,5 @@
 import {ClaspError} from '../clasp-error.js';
-import {ProjectSettings} from '../dotfile.js';
+import {type ProjectSettings} from '../dotfile.js';
 import {ERROR} from '../messages.js';
 import {getProjectSettings, saveProject} from '../utils.js';
 

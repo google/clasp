@@ -2,12 +2,12 @@ import is from '@sindresorhus/is';
 import {SCRIPT_TYPES} from '../apis.js';
 import {drive, loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
+import {Conf} from '../conf.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
 import {scriptTypePrompt} from '../inquirer.js';
 import {manifestExists} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {getDefaultProjectName, getProjectSettings, saveProject, spinner, stopSpinner} from '../utils.js';
-import {Conf} from '../conf.js';
 
 const config = Conf.get();
 

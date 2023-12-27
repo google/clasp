@@ -1,6 +1,5 @@
-import chalk from 'chalk';
 import readline from 'readline';
-
+import chalk from 'chalk';
 import {getFunctionNames} from '../apiutils.js';
 import {getLocalScript, loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
@@ -90,7 +89,7 @@ const runFunction = async (functionName: string, parameters: string[], scriptId:
     if (error) {
       // TODO move these to logError when stable?
       switch ((error as any).code) {
-        case 401:
+        case 401: {
           // The 401 is probably due to this error:
           // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
           // This is probably due to the OAuth client not having authorized scopes.
@@ -110,12 +109,19 @@ https://www.googleapis.com/auth/presentations
           // since we always prompt the user to fix this now.
           // throw new ClaspError(ERROR.UNAUTHENTICATED_LOCAL);
           break;
-        case 403:
+        }
+
+        case 403: {
           throw new ClaspError(ERROR.PERMISSION_DENIED_LOCAL);
-        case 404:
+        }
+
+        case 404: {
           throw new ClaspError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
-        default:
+        }
+
+        default: {
           throw new ClaspError(`(${(error as any).code}) Error: ${(error as any).message}`);
+        }
       }
     }
   }

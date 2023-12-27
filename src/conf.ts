@@ -1,7 +1,6 @@
 import os from 'os';
 import path from 'path';
 import {findUpSync} from 'find-up';
-
 import {PROJECT_NAME} from './constants.js';
 
 /**
@@ -50,6 +49,7 @@ export class Conf {
       const configPath = findUpSync(`.${PROJECT_NAME}.json`);
       this._root = configPath ? path.dirname(configPath) : process.cwd();
     }
+
     return this._root;
   }
 
@@ -68,6 +68,7 @@ export class Conf {
         ENV.DOT_CLASP_PROJECT
       );
     }
+
     return this._projectConfig;
   }
 
@@ -79,6 +80,7 @@ export class Conf {
     if (this._ignore === undefined && this.projectRootDirectory) {
       this._ignore = this.buildPathOrUseEnv(`.${PROJECT_NAME}ignore`, this.projectRootDirectory, ENV.DOT_CLASP_IGNORE);
     }
+
     return this._ignore;
   }
 
@@ -90,6 +92,7 @@ export class Conf {
     if (this._auth === undefined) {
       this._auth = this.buildPathOrUseEnv(`.${PROJECT_NAME}rc.json`, os.homedir(), ENV.DOT_CLASP_AUTH);
     }
+
     return this._auth;
   }
 
@@ -105,6 +108,7 @@ export class Conf {
         ENV.DOT_CLASP_AUTH
       );
     }
+
     return this._authLocal;
   }
 
@@ -112,6 +116,7 @@ export class Conf {
     if (envName && process.env[envName] !== undefined) {
       return process.env[envName]!;
     }
+
     return path.join(root, filename);
   }
 

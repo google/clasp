@@ -1,11 +1,10 @@
 import is from '@sindresorhus/is';
 import chalk from 'chalk';
-import {logging_v2 as loggingV2} from 'googleapis';
+import {type logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
-
 import {loadAPICredentials, logger} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
-import {DOTFILE, ProjectSettings} from '../dotfile.js';
+import {DOTFILE, type ProjectSettings} from '../dotfile.js';
 import {projectIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
@@ -211,15 +210,22 @@ const fetchAndPrintLogs = async (
     const {data, status, statusText} = logs;
 
     switch (status) {
-      case 200:
+      case 200: {
         printLogs(data.entries, formatJson, simplified);
         break;
-      case 401:
+      }
+
+      case 401: {
         throw new ClaspError(isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
-      case 403:
+      }
+
+      case 403: {
         throw new ClaspError(isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
-      default:
+      }
+
+      default: {
         throw new ClaspError(`(${status}) Error: ${statusText}`);
+      }
     }
   } catch (error) {
     if (error instanceof ClaspError) {

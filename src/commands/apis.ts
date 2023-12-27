@@ -1,7 +1,6 @@
-import {discovery_v1 as discoveryV1, serviceusage_v1 as serviceUsageV1} from 'googleapis';
+import {type discovery_v1 as discoveryV1, type serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';
-import type {ReadonlyDeep} from 'type-fest';
-
+import {type ReadonlyDeep} from 'type-fest';
 import {PUBLIC_ADVANCED_SERVICES} from '../apis.js';
 import {enableOrDisableAPI} from '../apiutils.js';
 import {discovery, loadAPICredentials, serviceUsage} from '../auth.js';

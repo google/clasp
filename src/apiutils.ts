@@ -1,10 +1,9 @@
 import fuzzy from 'fuzzy';
-import {script_v1 as scriptV1} from 'googleapis';
-import type {ReadonlyDeep} from 'type-fest';
-
+import {type script_v1 as scriptV1} from 'googleapis';
+import {type ReadonlyDeep} from 'type-fest';
 import {loadAPICredentials, serviceUsage} from './auth.js';
 import {ClaspError} from './clasp-error.js';
-import {functionNamePrompt, functionNameSource} from './inquirer.js';
+import {functionNamePrompt, type functionNameSource} from './inquirer.js';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest.js';
 import {ERROR} from './messages.js';
 import {getProjectId, spinner, stopSpinner} from './utils.js';

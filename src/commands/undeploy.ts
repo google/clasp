@@ -1,6 +1,5 @@
-import {script_v1 as scriptV1} from 'googleapis';
+import {type script_v1 as scriptV1} from 'googleapis';
 import pMap from 'p-map';
-
 import {loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ERROR, LOG} from '../messages.js';

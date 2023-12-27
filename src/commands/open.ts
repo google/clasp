@@ -1,9 +1,8 @@
 import open from 'open';
-
 import {loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
-import {ProjectSettings} from '../dotfile.js';
-import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer.js';
+import {type ProjectSettings} from '../dotfile.js';
+import {deploymentIdPrompt, type DeploymentIdPromptChoice} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
 import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils.js';

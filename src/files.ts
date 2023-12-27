@@ -1,13 +1,13 @@
+/* eslint-disable max-depth */
+import path from 'path';
 import chalk from 'chalk';
 import fs from 'fs-extra';
+import {GaxiosError} from 'gaxios';
 import makeDir from 'make-dir';
 import multimatch from 'multimatch';
-import path from 'path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
-import typescript from 'typescript';
-import {GaxiosError} from 'gaxios';
-
+import typescript, {type TranspileOptions} from 'typescript';
 import {loadAPICredentials, script} from './auth.js';
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
@@ -15,8 +15,6 @@ import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants.js';
 import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
 import {getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils.js';
-
-import type {TranspileOptions} from 'typescript';
 
 const {parseConfigFileTextToJson} = typescript;
 const config = Conf.get();
@@ -49,6 +47,7 @@ async function projectFileWithContent(file: ProjectFile, transpileOptions: Trans
     source = await transpile(source, transpileOptions);
     type = 'SERVER_JS';
   }
+
   return {...file, source, type};
 }
 
@@ -92,7 +91,7 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
     const files: ProjectFile[] = (await recursive(rootDir)).map((filename): ProjectFile => {
       // Replace OS specific path separator to common '/' char for console output
-      const name = filename.replace(/\\/g, '/');
+      const name = filename.replaceAll('\\', '/');
 
       return {source: '', isIgnored: isIgnored(name), name, type: ''};
     });
@@ -142,7 +141,8 @@ export const splitProjectFiles = (files: ProjectFile[]): [ProjectFile[], Project
 async function getContentOfProjectFiles(files: ProjectFile[]) {
   const transpileOpttions = getTranspileOptions();
 
-  const getContent = (file: ProjectFile) => (file.isIgnored ? file : projectFileWithContent(file, transpileOpttions));
+  const getContent = async (file: ProjectFile) =>
+    file.isIgnored ? file : projectFileWithContent(file, transpileOpttions);
   return Promise.all(files.map(getContent));
 }
 
@@ -281,7 +281,7 @@ export const getAppsScriptFileName = (rootDir: string, filePath: string) => {
   const nameWithoutExt = filePath.slice(0, -path.extname(filePath).length);
 
   // Replace OS specific path separator to common '/' char
-  return (rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt).replace(/\\/g, '/');
+  return (rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt).replaceAll('\\', '/');
 };
 
 /**
@@ -344,6 +344,7 @@ export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') =
       } catch (error: unknown) {
         throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_FILE_WRITE);
       }
+
       // Log only filename if pulling to root (Code.gs vs ./Code.gs)
       console.log(`└─ ${rootDir ? truePath : filePath}`);
     };
@@ -388,7 +389,7 @@ export const pushFiles = async (silent = false) => {
         stopSpinner();
         console.error(LOG.PUSH_FAILURE);
         if (error instanceof GaxiosError) {
-          let message = error.message;
+          let {message} = error;
           let snippet = '';
           const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
           const [, errorName, lineNum, fileName] = re.exec(error.message) ?? [];
@@ -406,6 +407,7 @@ export const pushFiles = async (silent = false) => {
                 break;
               }
             }
+
             message = `${errorName} - "${filePath}:${lineNum}"`;
 
             // Get formatted code snippet
@@ -417,7 +419,7 @@ export const pushFiles = async (silent = false) => {
             if (errFile !== undefined) {
               const srcLines = errFile.source.split('\n');
 
-              const errIndex = Math.max(parseInt(lineNum) - 1, 0);
+              const errIndex = Math.max(Number.parseInt(lineNum, 10) - 1, 0);
               const preIndex = Math.max(errIndex - contextCount, 0);
               const postIndex = Math.min(errIndex + contextCount + 1, srcLines.length);
 
@@ -428,6 +430,7 @@ export const pushFiles = async (silent = false) => {
               snippet = preLines + '\n' + errLine + '\n' + postLines;
             }
           }
+
           console.error(chalk.red(message));
           console.log(snippet);
         } else {
@@ -441,4 +444,6 @@ export const pushFiles = async (silent = false) => {
   }
 };
 
-export const logFileList = (files: readonly string[]) => console.log(files.map(file => `└─ ${file}`).join('\n'));
+export const logFileList = (files: readonly string[]) => {
+  console.log(files.map(file => `└─ ${file}`).join('\n'));
+};

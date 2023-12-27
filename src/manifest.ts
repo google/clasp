@@ -1,12 +1,11 @@
 import path from 'path';
 import is from '@sindresorhus/is';
 import fs from 'fs-extra';
-
 import {PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis.js';
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
 import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants.js';
-import {ProjectSettings} from './dotfile.js';
+import {type ProjectSettings} from './dotfile.js';
 import {ERROR} from './messages.js';
 import {getProjectSettings, parseJsonOrDie} from './utils.js';
 
@@ -78,7 +77,7 @@ export const isValidManifest = async (manifest?: Manifest): Promise<boolean> =>
  */
 export const isValidRunManifest = async (): Promise<boolean> => {
   const value = await getManifest();
-  return Boolean((await isValidManifest(value)) && value.executionApi && value.executionApi.access);
+  return Boolean((await isValidManifest(value)) && value.executionApi?.access);
 };
 
 /**
