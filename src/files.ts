@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import fs from 'fs-extra';
 import makeDir from 'make-dir';
 import multimatch from 'multimatch';
@@ -5,6 +6,7 @@ import path from 'path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 import typescript from 'typescript';
+import {GaxiosError} from 'gaxios';
 
 import {loadAPICredentials, script} from './auth.js';
 import {ClaspError} from './clasp-error.js';
@@ -376,16 +378,60 @@ export const pushFiles = async (silent = false) => {
       // Start pushing.
       try {
         await script.projects.updateContent({scriptId, requestBody: {scriptId, files}});
-      } catch (error) {
-        console.error(LOG.PUSH_FAILURE);
-        console.error(error);
-      } finally {
-        stopSpinner();
-
         // No error
+        stopSpinner();
         if (!silent) {
           logFileList(filenames);
           console.log(LOG.PUSH_SUCCESS(filenames.length));
+        }
+      } catch (error) {
+        stopSpinner();
+        console.error(LOG.PUSH_FAILURE);
+        if (error instanceof GaxiosError) {
+          let message = error.message;
+          let snippet = '';
+          const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
+          const [, errorName, lineNum, fileName] = re.exec(error.message) ?? [];
+          if (fileName !== undefined) {
+            let filePath = path.resolve(rootDir ?? '.', fileName);
+            const parsedFilePath = path.parse(filePath);
+            // Check if the file exists locally as any supported type
+            const {fileExtension} = await getProjectSettings();
+            const extensions = ['gs', 'js', 'ts'];
+            if (fileExtension !== undefined) extensions.push(fileExtension);
+            for (const ext of extensions) {
+              const filePath_ext = path.join(parsedFilePath.dir, `${parsedFilePath.name}.${ext}`);
+              if (fs.existsSync(filePath_ext)) {
+                filePath = filePath_ext;
+                break;
+              }
+            }
+            message = `${errorName} - "${filePath}:${lineNum}"`;
+
+            // Get formatted code snippet
+            const contextCount = 4;
+            const parsedFileName = path.parse(fileName);
+            const fileNameKey = path.join(parsedFileName.dir, parsedFileName.name);
+            const reqFiles: ProjectFile[] = JSON.parse(error.config.body).files;
+            const errFile = reqFiles.find((x: ProjectFile) => x.name === fileNameKey && x.type === 'SERVER_JS');
+            if (errFile !== undefined) {
+              const srcLines = errFile.source.split('\n');
+
+              const errIndex = Math.max(parseInt(lineNum) - 1, 0);
+              const preIndex = Math.max(errIndex - contextCount, 0);
+              const postIndex = Math.min(errIndex + contextCount + 1, srcLines.length);
+
+              const preLines = chalk.dim(`  ${srcLines.slice(preIndex, errIndex).join('\n  ')}`);
+              const errLine = chalk.bold(`⇒ ${srcLines[errIndex]}`);
+              const postLines = chalk.dim(`  ${srcLines.slice(errIndex + 1, postIndex).join('\n  ')}`);
+
+              snippet = preLines + '\n' + errLine + '\n' + postLines;
+            }
+          }
+          console.error(chalk.red(message));
+          console.log(snippet);
+        } else {
+          console.error(error);
         }
       }
     } else {
