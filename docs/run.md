@@ -37,6 +37,15 @@ To use `clasp run`, you need to complete 4 steps:
     - **Create** > **OK**
     - Download the file (⬇), move it to your directory, and name it `creds.json`. Please keep this file secret!
 1. Call `clasp login --creds creds.json`
+1. Add the following to `appsscript.json`:
+  ```json
+  "executionApi": {
+    "access": "ANYONE"
+  }
+  ```
+1. If you use Google Workspace, enable `Apps Script API`
+    - Open `https://console.cloud.google.com/marketplace/product/google/script.googleapis.com?project=[PROJECT_ID]`
+    - Press ENABLE button
 
 ### Run a function
 
