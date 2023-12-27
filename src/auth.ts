@@ -60,6 +60,7 @@ let localOAuth2Client: OAuth2Client; // Must be set up after authorize.
 
 export const discovery = google.discovery({version: 'v1'});
 export const drive = google.drive({version: 'v3', auth: globalOAuth2Client});
+export const driveV2 = google.drive({version: 'v2', auth: globalOAuth2Client});
 export const logger = google.logging({version: 'v2', auth: globalOAuth2Client});
 export const script = google.script({version: 'v1', auth: globalOAuth2Client});
 export const serviceUsage = google.serviceusage({version: 'v1', auth: globalOAuth2Client});
@@ -78,6 +79,7 @@ export const defaultScopes = [
   'https://www.googleapis.com/auth/script.projects', // Apps Script management
   scopeWebAppDeploy, // Apps Script Web Apps
   'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+  'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/drive.file', // Create Drive files
   'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
   'https://www.googleapis.com/auth/logging.read', // StackDriver logs

@@ -32,6 +32,7 @@ import {ClaspError} from './clasp-error.js';
 import apis from './commands/apis.js';
 import clone from './commands/clone.js';
 import create from './commands/create.js';
+import deleteCmd from './commands/delete.js';
 import defaultCmd from './commands/default.js';
 import deploy from './commands/deploy.js';
 import deployments from './commands/deployments.js';
@@ -157,6 +158,21 @@ program
   .option('--parentId <id>', 'A project parent Id.')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
   .action(create);
+
+/**
+ * Delete a clasp project
+ * @name delete
+ * @param {boolean?} force Bypass any confirmation messages. It’s not a good idea to do this unless you want to run clasp from a script.
+ * @example delete
+ */
+program
+  .command('delete')
+  .description('Delete a project')
+  .option(
+    '-f, --force',
+    'Bypass any confirmation messages. It’s not a good idea to do this unless you want to run clasp from a script.'
+  )
+  .action(deleteCmd);
 
 /**
  * Fetches a project and saves the script id locally.
