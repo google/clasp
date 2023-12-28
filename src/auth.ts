@@ -1,20 +1,15 @@
-import {OAuth2Client} from 'google-auth-library';
-import {google, script_v1 as scriptV1} from 'googleapis';
-import {createServer} from 'http';
-import open from 'open';
+import {createServer, type IncomingMessage, type Server, type ServerResponse} from 'http';
+import {type AddressInfo} from 'net';
 import readline from 'readline';
+import {OAuth2Client, type Credentials, type GenerateAuthUrlOpts, type OAuth2ClientOptions} from 'google-auth-library';
+import {google, type script_v1 as scriptV1} from 'googleapis';
+import open from 'open';
 import enableDestroy from 'server-destroy';
-import type {Credentials, GenerateAuthUrlOpts, OAuth2ClientOptions} from 'google-auth-library';
-import type {IncomingMessage, Server, ServerResponse} from 'http';
-import type {AddressInfo} from 'net';
-import type {ReadonlyDeep} from 'type-fest';
-
+import {type ReadonlyDeep} from 'type-fest';
+import {DOTFILE, type ClaspToken} from './dotfile.js';
 import {ClaspError} from './clasp-error.js';
-import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
-import {getOAuthSettings} from './utils.js';
-import type {ClaspToken} from './dotfile';
-import type {ClaspCredentials} from './utils';
+import {getOAuthSettings, type ClaspCredentials} from './utils.js';
 
 /**
  * Authentication with Google's APIs.
@@ -168,6 +163,7 @@ export const authorize = async (options: {
         isLocalCreds: false,
       };
     }
+
     await DOTFILE.AUTH(claspToken.isLocalCreds).write(claspToken);
     console.log(LOG.SAVED_CREDS(Boolean(options.creds)));
   } catch (error) {
@@ -216,7 +212,9 @@ const authorizeWithLocalhost = async (
   const server = await new Promise<Server>(resolve => {
     const s = createServer();
     enableDestroy(s);
-    s.listen(0, () => resolve(s));
+    s.listen(0, () => {
+      resolve(s);
+    });
   });
   const {port} = server.address() as AddressInfo;
   const client = new OAuth2Client({...oAuth2ClientOptions, redirectUri: `http://localhost:${port}`});
@@ -300,6 +298,7 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
       globalOAuth2Client.setCredentials(rc.token);
       await refreshCredentials(globalOAuth2Client);
     }
+
     // Save the credentials.
     await DOTFILE.AUTH(rc.isLocalCreds).write(rc);
   } catch (error) {

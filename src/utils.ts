@@ -1,19 +1,16 @@
+import path from 'path';
 import cliTruncate from 'cli-truncate';
 import fs from 'fs-extra';
-import {script_v1 as scriptV1} from 'googleapis';
+import {type script_v1 as scriptV1} from 'googleapis';
 import isReachable from 'is-reachable';
 import logSymbols from 'log-symbols';
 import ora from 'ora';
-import path from 'path';
 import pMap from 'p-map';
-
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
-import {DOTFILE} from './dotfile.js';
+import {DOTFILE, type ClaspToken, type ProjectSettings} from './dotfile.js';
 import {projectIdPrompt} from './inquirer.js';
 import {ERROR, LOG} from './messages.js';
-
-import type {ClaspToken, ProjectSettings} from './dotfile';
 
 const config = Conf.get();
 
@@ -51,6 +48,7 @@ export const hasOauthClientSettings = (local = false): boolean => {
   if (local) {
     return config.authLocal !== undefined && fs.existsSync(config.authLocal);
   }
+
   return config.auth !== undefined && fs.existsSync(config.auth);
 };
 
@@ -86,7 +84,7 @@ export const getErrorMessage = (value: any) => {
     return JSON.parse(value.error).error;
   }
 
-  if (value?.statusCode === 401 || (value?.error && value.error.error && value.error.error.code === 401)) {
+  if (value?.statusCode === 401 || (value?.error?.error && value.error.error.code === 401)) {
     // TODO check if local creds exist:
     //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
     return ERROR.UNAUTHENTICATED;
@@ -155,7 +153,7 @@ export const getProjectSettings = async (): Promise<ProjectSettings> => {
         if (settings.scriptId) {
           return settings;
         }
-      } catch (error) {
+      } catch {
         throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
       }
     }
@@ -188,6 +186,7 @@ const mapper = async (url: string) => {
   if (!wasReached) {
     console.log(url, logSymbols.error);
   }
+
   return wasReached;
 };
 
@@ -197,7 +196,7 @@ const mapper = async (url: string) => {
 // If using a proxy, return true since `isOnline` doesn't work.
 // @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
 export const safeIsOnline = async (): Promise<boolean> => {
-  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+  if (process.env.HTTP_PROXY ?? process.env.HTTPS_PROXY) {
     return true;
   }
 
@@ -211,7 +210,7 @@ export const safeIsOnline = async (): Promise<boolean> => {
 
   const result = await pMap(urls, mapper, {stopOnError: false});
 
-  return result.every(wasReached => wasReached);
+  return result.every(Boolean);
 };
 
 /**

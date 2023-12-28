@@ -1,5 +1,4 @@
 import fs from 'fs-extra';
-
 import {Conf} from '../conf.js';
 
 const config = Conf.get();

@@ -1,5 +1,4 @@
-import {script_v1 as scriptV1} from 'googleapis';
-
+import {type script_v1 as scriptV1} from 'googleapis';
 import {loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {LOG} from '../messages.js';

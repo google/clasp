@@ -2,14 +2,12 @@
  * Clasp command method bodies.
  */
 import fs from 'fs-extra';
-
 import {enableAppsScriptAPI} from '../apiutils.js';
 import {authorize, defaultScopes, getLoggedInEmail, scopeWebAppDeploy} from '../auth.js';
 import {FS_OPTIONS} from '../constants.js';
 import {readManifest} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
-import {hasOauthClientSettings, safeIsOnline} from '../utils.js';
-import type {ClaspCredentials} from '../utils.js';
+import {hasOauthClientSettings, safeIsOnline, type ClaspCredentials} from '../utils.js';
 
 const {readJsonSync} = fs;
 

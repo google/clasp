@@ -20,8 +20,8 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "stripInternal": true,
-    "suppressExcessPropertyErrors": true,
-    "suppressImplicitAnyIndexErrors": true,
+    // "suppressExcessPropertyErrors": true,
+    // "suppressImplicitAnyIndexErrors": true,
     "target": "es2019",
 
     "importHelpers": true // canary: will cause runtime error if `tslib` is necessary

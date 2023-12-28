@@ -1,14 +1,13 @@
-import {drive_v3 as driveV3} from 'googleapis';
-
+import {type drive_v3 as driveV3} from 'googleapis';
 import {drive, loadAPICredentials} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
+import {Conf} from '../conf.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
-import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer.js';
+import {type ScriptIdPrompt, scriptIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {extractScriptId} from '../urls.js';
 import {saveProject, spinner} from '../utils.js';
 import status from './status.js';
-import {Conf} from '../conf.js';
 
 const config = Conf.get();
 
@@ -32,6 +31,7 @@ export default async (
   if (options.rootDir) {
     config.projectRootDirectory = options.rootDir;
   }
+
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS());
   }

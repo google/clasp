@@ -1,6 +1,5 @@
 import type {Command} from 'commander';
 import type {ReadonlyDeep} from 'type-fest';
-
 import {ClaspError} from '../clasp-error.js';
 import {ERROR} from '../messages.js';
 

@@ -1,8 +1,7 @@
-import {script_v1 as scriptV1} from 'googleapis';
+import {type script_v1 as scriptV1} from 'googleapis';
 import inquirer from 'inquirer';
 import autocomplete from 'inquirer-autocomplete-prompt-ipt';
-import type {ReadonlyDeep} from 'type-fest';
-
+import {type ReadonlyDeep} from 'type-fest';
 import {SCRIPT_TYPES} from './apis.js';
 import {LOG} from './messages.js';
 
@@ -19,7 +18,7 @@ export type functionNameSource = (
  * Inquirer prompt for a functionName.
  * @returns {Promise<{ functionName: string }>} A promise for an object with the `functionName` property.
  */
-export const functionNamePrompt = (source: functionNameSource) =>
+export const functionNamePrompt = async (source: functionNameSource) =>
   prompt<{functionName: string}>([
     {
       name: 'functionName',
@@ -39,7 +38,7 @@ export interface DeploymentIdPromptChoice {
  * @param {DeploymentIdChoice[]} choices An array of `DeploymentIdChoice` objects.
  * @returns {Promise<{ deploymentId: string }>} A promise for an object with the `deploymentId` property.
  */
-export const deploymentIdPrompt = (choices: ReadonlyArray<ReadonlyDeep<DeploymentIdPromptChoice>>) =>
+export const deploymentIdPrompt = async (choices: ReadonlyArray<ReadonlyDeep<DeploymentIdPromptChoice>>) =>
   prompt<{deployment: scriptV1.Schema$Deployment}>([
     {
       choices,
@@ -53,7 +52,7 @@ export const deploymentIdPrompt = (choices: ReadonlyArray<ReadonlyDeep<Deploymen
  * Inquirer prompt for a project description.
  * @returns {Promise<{ description: string }>} A promise for an object with the `description` property.
  */
-export const descriptionPrompt = () =>
+export const descriptionPrompt = async () =>
   prompt<{description: string}>([
     {
       default: '',
@@ -91,7 +90,7 @@ export interface PromptAnswers {
  * Inquirer prompt for overwriting a manifest.
  * @returns {Promise<{ overwrite: boolean }>} A promise for an object with the `overwrite` property.
  */
-export const overwritePrompt = () =>
+export const overwritePrompt = async () =>
   prompt<{overwrite: boolean}>([
     {
       default: false,
@@ -105,7 +104,7 @@ export const overwritePrompt = () =>
  * Inquirer prompt for project Id.
  * @returns {Promise<{ projectId: string }>} A promise for an object with the `projectId` property.
  */
-export const projectIdPrompt = () =>
+export const projectIdPrompt = async () =>
   prompt<{readonly projectId: string}>([
     {
       message: `${LOG.ASK_PROJECT_ID}`,
@@ -124,7 +123,7 @@ export interface ScriptIdPrompt {
  * @param {ScriptIdPrompt[]} fileIds An array of `ScriptIdPrompt` objects.
  * @returns {Promise<{scriptId: string;}>} A promise for an object with the `scriptId` property.
  */
-export const scriptIdPrompt = (fileIds: ReadonlyArray<Readonly<ScriptIdPrompt>>) =>
+export const scriptIdPrompt = async (fileIds: ReadonlyArray<Readonly<ScriptIdPrompt>>) =>
   prompt<{scriptId: string}>([
     {
       choices: fileIds,
@@ -139,7 +138,7 @@ export const scriptIdPrompt = (fileIds: ReadonlyArray<Readonly<ScriptIdPrompt>>)
  * Inquirer prompt for script type.
  * @returns {Promise<{ type: string }>} A promise for an object with the `type` property.
  */
-export const scriptTypePrompt = () =>
+export const scriptTypePrompt = async () =>
   prompt<{type: string}>([
     {
       choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as keyof typeof SCRIPT_TYPES]),

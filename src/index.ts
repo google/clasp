@@ -21,13 +21,12 @@
  * clasp - The Apps Script CLI
  */
 
+import {dirname} from 'path';
+import {fileURLToPath} from 'url';
 import {program} from 'commander';
 import loudRejection from 'loud-rejection';
-import {dirname} from 'path';
 import {readPackageUpSync} from 'read-pkg-up';
-import {fileURLToPath} from 'url';
 import fs from 'fs-extra';
-
 import {ClaspError} from './clasp-error.js';
 import apis from './commands/apis.js';
 import clone from './commands/clone.js';

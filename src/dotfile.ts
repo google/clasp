@@ -11,16 +11,14 @@
  *
  * This should be the only file that uses DOTFILE.
  */
+import path from 'path';
 import dotf from 'dotf';
 import fs from 'fs-extra';
-import path from 'path';
+import {type Credentials, type OAuth2ClientOptions} from 'google-auth-library';
 import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
-
 import {Conf} from './conf.js';
 import {FS_OPTIONS} from './constants.js';
-
-import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 
 export type {Dotfile} from 'dotf';
 
@@ -57,7 +55,7 @@ export const DOTFILE = {
    * Reads ignore.resolve() to get a glob pattern of ignored paths.
    * @return {Promise<string[]>} A list of file glob patterns
    */
-  IGNORE: async () => {
+  async IGNORE() {
     const ignorePath = config.ignore;
     const content =
       ignorePath && fs.existsSync(ignorePath) ? fs.readFileSync(ignorePath, FS_OPTIONS) : defaultClaspignore;
@@ -69,22 +67,24 @@ export const DOTFILE = {
    * that the command was run in.
    * @return {Dotf} A dotf with that dotfile. Null if there is no file
    */
-  PROJECT: () => {
+  PROJECT() {
     // ! TODO: currently limited if filename doesn't start with a dot '.'
     const {dir, base} = path.parse(config.projectConfig!);
     if (base.startsWith('.')) {
       return dotf(dir || '.', base.slice(1));
     }
+
     throw new Error('Project file must start with a dot (i.e. .clasp.json)');
   },
   // Stores {ClaspCredentials}
-  AUTH: (local?: boolean) => {
+  AUTH(local?: boolean) {
     const configPath = local ? config.authLocal : config.auth;
     // ! TODO: currently limited if filename doesn't start with a dot '.'
     const {dir, base} = path.parse(configPath!);
     if (base.startsWith('.')) {
       return dotf(dir || '.', base.slice(1));
     }
+
     throw new Error('Auth file must start with a dot (i.e. .clasp.json)');
   },
 };

@@ -1,21 +1,19 @@
-import fs from 'fs-extra';
-import multimatch from 'multimatch';
-import normalizeNewline from 'normalize-newline';
 import path from 'path';
 import chokidar from 'chokidar';
 import debouncePkg from 'debounce';
+import fs from 'fs-extra';
+import multimatch from 'multimatch';
+import normalizeNewline from 'normalize-newline';
 import {loadAPICredentials} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
 import {FS_OPTIONS, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants.js';
-import {DOTFILE} from '../dotfile.js';
+import {DOTFILE, type ProjectSettings} from '../dotfile.js';
 import {fetchProject, pushFiles} from '../files.js';
 import {overwritePrompt} from '../inquirer.js';
 import {isValidManifest} from '../manifest.js';
 import {LOG} from '../messages.js';
 import {getProjectSettings, spinner} from '../utils.js';
-
-import type {ProjectSettings} from '../dotfile';
 
 const {debounce} = debouncePkg;
 const {readFileSync} = fs;
@@ -57,9 +55,11 @@ export default async (options: CommandOption): Promise<void> => {
         // The file matches the ignored files patterns so we do nothing
         return;
       }
+
       console.log(`\n${LOG.PUSH_WATCH_UPDATED(filePath)}\n`);
       return debouncedPushFiles();
     };
+
     const watcher = chokidar.watch(rootDir, {persistent: true, ignoreInitial: true});
     watcher.on('ready', pushFiles); // Push on start
     watcher.on('add', watchCallback);
