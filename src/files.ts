@@ -91,7 +91,7 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
     const files: ProjectFile[] = (await recursive(rootDir)).map((filename): ProjectFile => {
       // Replace OS specific path separator to common '/' char for console output
-      const name = filename.replaceAll('\\', '/');
+      const name = filename.replace('\\', '/');
 
       return {source: '', isIgnored: isIgnored(name), name, type: ''};
     });
@@ -281,7 +281,7 @@ export const getAppsScriptFileName = (rootDir: string, filePath: string) => {
   const nameWithoutExt = filePath.slice(0, -path.extname(filePath).length);
 
   // Replace OS specific path separator to common '/' char
-  return (rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt).replaceAll('\\', '/');
+  return (rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt).replace('\\', '/');
 };
 
 /**
