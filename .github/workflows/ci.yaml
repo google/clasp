@@ -17,7 +17,7 @@ jobs:
       PROJECT_ID: project-id-3961473932623644264
     strategy:
       matrix:
-        node-version: [14, 16, 18, 20]
+        node-version: [12, 14, 16, 18, 20]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - uses: actions/checkout@v2
