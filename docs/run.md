@@ -68,6 +68,6 @@ To run functions that use these scopes, you must add the scopes to your Apps Scr
 - `clasp open`
 - At the left, click **Overview**.
   - View the scopes under "Project OAuth Scopes."
-- Add these scopes to your `appsscript.json`.
+- Add these scopes to your `appsscript.json` in the `oauthScopes` property array.
 - Log in again: `clasp login --creds creds.json`. This will add these scopes to your credentials.
 - `clasp run sendMail`
