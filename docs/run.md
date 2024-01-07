@@ -62,9 +62,6 @@ Many Apps Script functions require special OAuth Scopes (Gmail, Drive, etc.).
 
 To run functions that use these scopes, you must add the scopes to your Apps Script manifest and `clasp login` again.
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-<span class="material-symbols-outlined">info</span>
-
 - `clasp open`
 - At the left, click **Overview**.
   - View the scopes under "Project OAuth Scopes."
