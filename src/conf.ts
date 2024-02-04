@@ -42,7 +42,7 @@ export class Conf {
 
   set projectRootDirectory(path: string | undefined) {
     this._root = path;
-    this._projectConfig = undefined; // Force recalculation of path if root chanaged
+    this._projectConfig = undefined; // Force recalculation of path if root changed
   }
 
   get projectRootDirectory() {

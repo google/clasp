@@ -26,7 +26,7 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
       }
 
       // We don't use console.log as it automatically adds a new line
-      // Which interfers with storing the value
+      // Which interferes with storing the value
       process.stdout.write(keyValue);
     } else {
       throw new ClaspError(ERROR.UNKNOWN_KEY(settingKey));
