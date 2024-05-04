@@ -274,7 +274,7 @@ const authorizeWithoutLocalhost = async (
 };
 
 /**
- * Set OAuth client credentails from rc.
+ * Set OAuth client credentials from rc.
  * Can be global or local.
  * Saves new credentials if access token refreshed.
  * @param {ClaspToken} rc OAuth client settings from rc file.
@@ -313,7 +313,7 @@ const setOauthClientCredentials = async (rc: ClaspToken) => {
 
 // /**
 //  * Compare global OAuth client scopes against manifest and prompt user to
-//  * authorize if new scopes found (local OAuth credentails only).
+//  * authorize if new scopes found (local OAuth credentials only).
 //  * @param {ClaspToken} rc OAuth client settings from rc file.
 //  */
 // // TODO: currently unused. Check relevancy

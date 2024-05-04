@@ -12,9 +12,9 @@ Typescript configuration file | `<rootDir>/tsconfig.json` | Used for user specif
 
 ## Environment variables
 
-Environment variables can be set in order to specify the location of the following configutation files:
+Environment variables can be set in order to specify the location of the following configuration files:
 
-File | Environment varaiable | Comment
+File | Environment variable | Comment
 --- | --- | ---
 Clasp project file | `clasp_config_project` | The filename must start with a dot '.'
 Clasp ignore file | `clasp_config_ignore` |
@@ -22,9 +22,9 @@ Google Auth file | `clasp_config_auth` | The filename must start with a dot '.'
 
 ## Command line options
 
-Command line options can be used in order to specify the location of the following configutation files:
+Command line options can be used in order to specify the location of the following configuration files:
 
-File | Environment varaiable | Comment
+File | Environment variable | Comment
 --- | --- | ---
 Clasp project file | `-P <path>` or `--project <path>` | The filename must start with a dot '.'
 Clasp ignore file | `-I <path>` or `--ignore <path>` |
