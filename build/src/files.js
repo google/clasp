@@ -100,8 +100,8 @@ export const splitProjectFiles = (files) => [
     files.filter(file => file.isIgnored),
 ];
 async function getContentOfProjectFiles(files) {
-    const transpileOpttions = getTranspileOptions();
-    const getContent = (file) => (file.isIgnored ? file : projectFileWithContent(file, transpileOpttions));
+    const transpileOptions = getTranspileOptions();
+    const getContent = (file) => (file.isIgnored ? file : projectFileWithContent(file, transpileOptions));
     return Promise.all(files.map(getContent));
 }
 async function getAppsScriptFilesFromProjectFiles(files, rootDir) {
@@ -167,7 +167,7 @@ const getTranspileOptions = () => {
 //  * Recursively finds all files that are part of the current project, and those that are ignored
 //  * by .claspignore and calls the passed callback function with the file lists.
 //  * @param {string} rootDir The project's root directory
-//  * @param {FilesCallBack} callback The callback will be called with the following paramters
+//  * @param {FilesCallBack} callback The callback will be called with the following parameters
 //  *   error: Error if there's an error, otherwise null
 //  *   result: string[][], array of two lists of strings, ie. [validFilePaths,ignoredFilePaths]
 //  *   files?: Array<AppsScriptFile> Array of AppsScriptFile objects used by clasp push
@@ -247,7 +247,7 @@ export const fetchProject = async (scriptId, versionNumber, silent = false) => {
 };
 /**
  * Writes files locally to `pwd` with dots converted to subdirectories.
- * @param {AppsScriptFile[]} Files to wirte
+ * @param {AppsScriptFile[]} Files to write
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
 export const writeProjectFiles = async (files, rootDir = '') => {

@@ -168,7 +168,7 @@ describe('Test getLocalFileType function from utils', () => {
         expect(getLocalFileType('JS')).to.equal('js');
         expect(getLocalFileType('HTML')).to.equal('html');
     });
-    it('should return the specified file extention if the file type is SERVER_JS', () => {
+    it('should return the specified file extension if the file type is SERVER_JS', () => {
         expect(getLocalFileType('SERVER_JS', 'gs')).to.equal('gs');
         expect(getLocalFileType('GS', 'js')).to.equal('gs');
         expect(getLocalFileType('JS', 'gs')).to.equal('js');

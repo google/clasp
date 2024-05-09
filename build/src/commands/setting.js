@@ -22,7 +22,7 @@ export default async (settingKey, settingValue) => {
                 keyValue = keyValue.toString();
             }
             // We don't use console.log as it automatically adds a new line
-            // Which interfers with storing the value
+            // Which interferes with storing the value
             process.stdout.write(keyValue);
         }
         else {

@@ -110,7 +110,7 @@ program
     .option('--status', 'Print who is logged in')
     .action(login);
 /**
- * Logs out the user by deleteing client credentials.
+ * Logs out the user by deleting client credentials.
  * @name logout
  * @example logout
  */

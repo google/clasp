@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import fs from 'fs-extra';
 import makeDir from 'make-dir';
 import multimatch from 'multimatch';
@@ -6,7 +5,6 @@ import path from 'path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 import typescript from 'typescript';
-import {GaxiosError} from 'gaxios';
 
 import {loadAPICredentials, script} from './auth.js';
 import {ClaspError} from './clasp-error.js';

@@ -57,7 +57,7 @@ export declare const getAppsScriptFileName: (rootDir: string, filePath: string) 
 export declare const fetchProject: (scriptId: string, versionNumber?: number | undefined, silent?: boolean) => Promise<AppsScriptFile[]>;
 /**
  * Writes files locally to `pwd` with dots converted to subdirectories.
- * @param {AppsScriptFile[]} Files to wirte
+ * @param {AppsScriptFile[]} Files to write
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
 export declare const writeProjectFiles: (files: AppsScriptFile[], rootDir?: string) => Promise<void>;

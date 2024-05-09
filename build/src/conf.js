@@ -31,7 +31,7 @@ export class Conf {
     constructor() { }
     set projectRootDirectory(path) {
         this._root = path;
-        this._projectConfig = undefined; // Force recalculation of path if root chanaged
+        this._projectConfig = undefined; // Force recalculation of path if root changed
     }
     get projectRootDirectory() {
         if (this._root === undefined) {
