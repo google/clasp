@@ -448,7 +448,7 @@ If `newValue` is omitted it returns the current setting value.
 
 #### Options
 
-- `settingKey`: settingKey They key in `.clasp.json` you want to change
+- `settingKey`: settingKey The key in `.clasp.json` you want to change
 - `newValue`: newValue The new value for the setting
 
 #### Examples

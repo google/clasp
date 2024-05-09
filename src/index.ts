@@ -125,7 +125,7 @@ program
   .action(login);
 
 /**
- * Logs out the user by deleteing client credentials.
+ * Logs out the user by deleting client credentials.
  * @name logout
  * @example logout
  */

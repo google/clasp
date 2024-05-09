@@ -4,9 +4,9 @@
 
 ### Prerequisites
 
-To use `clasp run`, you need to complete 4 steps:
+To use `clasp run`, you need to complete 5 steps:
 
-- Set up a **Project ID**.
+- Set up the **Project ID** in your `.clasp.json` if missing.
 - Create an **OAuth Client ID** (Other). Download as `creds.json`.
 - `clasp login --creds creds.json` with this downloaded file.
 - Add the following to `appsscript.json`:
@@ -15,6 +15,7 @@ To use `clasp run`, you need to complete 4 steps:
     "access": "ANYONE"
   }
   ```
+- Deploy your project as an API Executable if necessary
 
 #### Setup Instructions
 
@@ -27,9 +28,10 @@ To use `clasp run`, you need to complete 4 steps:
 1. Set the `projectId` to your Apps Script project
     - Open `https://console.developers.google.com/apis/credentials/consent?project=[PROJECT_ID]`
     - Set `Application name` to `clasp project` and click `save`.
-    - `clasp open`
-    - In the menu, click `Resources > Cloud Platform project...`
-    - Paste `Project number` in `Change Project` and click `Set Project`
+    - Run `clasp open`
+    - In the menu, click `⚙️ Project Settings > Google Cloud Platform (GCP) Project`
+    - If the `Project Number` is missing,
+      - Click `Change Project`, paste the PROJECT_NUMBER, and click `Set project`
 1. Use your own OAuth 2 client. Create one by following these instructions:
     - `clasp open --creds`
     - Press **Create credentials** > **OAuth client ID**
@@ -37,6 +39,15 @@ To use `clasp run`, you need to complete 4 steps:
     - **Create** > **OK**
     - Download the file (⬇), move it to your directory, and name it `creds.json`. Please keep this file secret!
 1. Call `clasp login --creds creds.json`
+1. Add the following to `appsscript.json`:
+      ```json
+      "executionApi": {
+        "access": "ANYONE"
+      }
+      ```
+1. If you use Google Workspace, enable `Apps Script API`
+    - Open `https://console.cloud.google.com/marketplace/product/google/script.googleapis.com?project=[PROJECT_ID]`
+    - Press ENABLE button
 
 ### Run a function
 
@@ -46,6 +57,14 @@ After setup, you can remotely execute Apps Script functions from `clasp`:
 - Type `clasp run`. You'll be prompted for which function you want to run. Select and press **Enter**.
 - The result is displayed in the output.
 - You can also run functions directly. i.e. `clasp run helloWorld`.
+
+If you get an "Script API executable not published/deployed." error, deploy your script as an API Executable:
+
+- Run `clasp open`
+- Click `Deploy > New deployment`
+- Select type ⚙ > API Executable
+- Type a `Description`
+- Click `Deploy`
 
 ### Run a function that requires scopes
 

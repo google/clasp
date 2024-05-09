@@ -288,7 +288,7 @@ const authorizeWithoutLocalhost = async (
 };
 
 /**
- * Set OAuth client credentails from rc.
+ * Set OAuth client credentials from rc.
  * Can be global or local.
  * Saves new credentials if access token refreshed.
  * @param {ClaspToken} rc OAuth client settings from rc file.

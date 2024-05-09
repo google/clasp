@@ -73,7 +73,7 @@ export default async (options: CommandOption): Promise<void> => {
   try {
     projectExist = is.string((await getProjectSettings()).scriptId);
   } catch {
-    process.exitCode = 0; // To reset `exitCode` that was overriden in ClaspError constructor.
+    process.exitCode = 0; // To reset `exitCode` that was overridden in ClaspError constructor.
     projectExist = false;
   }
 

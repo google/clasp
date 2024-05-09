@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import fs from 'fs-extra';
 import makeDir from 'make-dir';
 import multimatch from 'multimatch';
@@ -5,6 +6,7 @@ import path from 'path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 import typescript from 'typescript';
+import {GaxiosError} from 'gaxios';
 
 import {loadAPICredentials, script} from './auth.js';
 import {ClaspError} from './clasp-error.js';
@@ -138,9 +140,9 @@ export const splitProjectFiles = (files: ProjectFile[]): [ProjectFile[], Project
 ];
 
 async function getContentOfProjectFiles(files: ProjectFile[]) {
-  const transpileOpttions = getTranspileOptions();
+  const transpileOptions = getTranspileOptions();
 
-  const getContent = (file: ProjectFile) => (file.isIgnored ? file : projectFileWithContent(file, transpileOpttions));
+  const getContent = (file: ProjectFile) => (file.isIgnored ? file : projectFileWithContent(file, transpileOptions));
   return Promise.all(files.map(getContent));
 }
 
@@ -221,7 +223,7 @@ const getTranspileOptions = (): TranspileOptions => {
 //  * Recursively finds all files that are part of the current project, and those that are ignored
 //  * by .claspignore and calls the passed callback function with the file lists.
 //  * @param {string} rootDir The project's root directory
-//  * @param {FilesCallBack} callback The callback will be called with the following paramters
+//  * @param {FilesCallBack} callback The callback will be called with the following parameters
 //  *   error: Error if there's an error, otherwise null
 //  *   result: string[][], array of two lists of strings, ie. [validFilePaths,ignoredFilePaths]
 //  *   files?: Array<AppsScriptFile> Array of AppsScriptFile objects used by clasp push
@@ -326,7 +328,7 @@ export const fetchProject = async (
 
 /**
  * Writes files locally to `pwd` with dots converted to subdirectories.
- * @param {AppsScriptFile[]} Files to wirte
+ * @param {AppsScriptFile[]} Files to write
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
 export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') => {
