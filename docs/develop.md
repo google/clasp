@@ -16,6 +16,7 @@ git clone https://github.com/<your-github-username>/clasp.git
 cd clasp
 ```
 - Install dependencies: `npm install`
+- Link-install this development version of `clasp`: `npm link`
 
 ### After Making a Change
 
