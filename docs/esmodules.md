@@ -17,7 +17,7 @@ const preventTreeShakingPlugin = () => {
       name: 'no-treeshaking',
       resolveId(id, importer) {
         if (!importer) {
-            // let's not theeshake entry points, as we're not exporting anything in Apps Script files
+            // let's not treeshake entry points, as we're not exporting anything in Apps Script files
           return {id, moduleSideEffects: "no-treeshake" }
         }
         return null;
