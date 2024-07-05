@@ -7,7 +7,7 @@ import {makeDirectory} from 'make-dir';
 import multimatch from 'multimatch';
 import normalizePath from 'normalize-path';
 import pMap from 'p-map';
-import recursive from 'recursive-readdir';
+import {fdir} from 'fdir';
 import {ClaspError} from './clasp-error.js';
 import {Project} from './context.js';
 import {ERROR, LOG} from './messages.js';
@@ -73,7 +73,8 @@ export async function getAllProjectFiles(rootDir: string, ignorePatterns: string
 
     // Read all filenames as a flattened tree
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-    const files: ProjectFile[] = (await recursive(rootDir)).map((filename): ProjectFile => {
+    const filelist = await new fdir().withFullPaths().crawl(rootDir).withPromise();
+    const files: ProjectFile[] = filelist.map((filename): ProjectFile => {
       // Replace OS specific path separator to common '/' char for console output
       const name = normalizePath(path.relative(process.cwd(), filename));
 
