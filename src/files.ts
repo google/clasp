@@ -4,7 +4,7 @@ import makeDir from 'make-dir';
 import multimatch from 'multimatch';
 import path from 'path';
 import pMap from 'p-map';
-import recursive from 'recursive-readdir';
+import {fdir} from 'fdir';
 import typescript from 'typescript';
 import {GaxiosError} from 'gaxios';
 
@@ -90,7 +90,8 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
 
     // Read all filenames as a flattened tree
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-    const files: ProjectFile[] = (await recursive(rootDir)).map((filename): ProjectFile => {
+    const filelist = await new fdir().withFullPaths().crawl(rootDir).withPromise();
+    const files: ProjectFile[] = filelist.map((filename): ProjectFile => {
       // Replace OS specific path separator to common '/' char for console output
       const name = filename.replace(/\\/g, '/');
 
