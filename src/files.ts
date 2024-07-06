@@ -90,7 +90,7 @@ export const getAllProjectFiles = async (rootDir: string = path.join('.', '/')):
 
     // Read all filenames as a flattened tree
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-    const filelist = await new fdir().withFullPaths().crawl(rootDir).withPromise();
+    const filelist = await new fdir().withBasePath().crawl(rootDir).withPromise();
     const files: ProjectFile[] = filelist.map((filename): ProjectFile => {
       // Replace OS specific path separator to common '/' char for console output
       const name = filename.replace(/\\/g, '/');
