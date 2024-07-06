@@ -5,6 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 .npm
 .env
+.venv*
 .nyc_output
 *.lock
 

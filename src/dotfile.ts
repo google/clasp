@@ -49,6 +49,9 @@ const defaultClaspignore = `# ignore all files…
 # ignore even valid files if in…
 .git/**
 node_modules/**
+
+# and Python virtual environments
+.venv/**
 `;
 
 // Methods for retrieving dotfiles.
