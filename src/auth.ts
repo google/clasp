@@ -93,11 +93,14 @@ export const defaultScopes = [
  * @param {boolean} useLocalhost Uses a local HTTP server if true. Manual entry o.w.
  * @param {ClaspCredentials?} creds An optional credentials object.
  * @param {string[]} [scopes=[]] List of OAuth scopes to authorize.
+ * @param {number?} redirectPort Optional custom port for the local HTTP server during the authorization process.
+ *                               If not specified, a random available port will be used.
  */
 export const authorize = async (options: {
   readonly creds?: Readonly<ClaspCredentials>;
   readonly scopes: readonly string[]; // Only used with custom creds.
   readonly useLocalhost: boolean;
+  readonly redirectPort?: number;
 }) => {
   try {
     // Set OAuth2 Client Options
@@ -144,10 +147,9 @@ export const authorize = async (options: {
     const oAuth2ClientAuthUrlOptions: GenerateAuthUrlOpts = {access_type: 'offline', scope};
 
     // Grab a token from the credentials.
-    const token = await (options.useLocalhost ? authorizeWithLocalhost : authorizeWithoutLocalhost)(
-      oAuth2ClientOptions,
-      oAuth2ClientAuthUrlOptions
-    );
+    const token = await (options.useLocalhost
+      ? authorizeWithLocalhost(oAuth2ClientOptions, oAuth2ClientAuthUrlOptions, options.redirectPort)
+      : authorizeWithoutLocalhost(oAuth2ClientOptions, oAuth2ClientAuthUrlOptions));
     console.log(`${LOG.AUTH_SUCCESSFUL}\n`);
 
     // Save the token and own creds together.
@@ -205,18 +207,29 @@ export const loadAPICredentials = async (local = false): Promise<ClaspToken> => 
  * a temporary HTTP server to handle the auth redirect.
  * @param {OAuth2ClientOptions} oAuth2ClientOptions The required client options for auth
  * @param {GenerateAuthUrlOpts} oAuth2ClientAuthUrlOptions Auth URL options
+ * @param {number?} redirectPort Optional custom port for the local HTTP server to handle the auth redirect.
+ *                               If not specified, a random available port will be used.
  * Used for local/global testing.
  */
 const authorizeWithLocalhost = async (
   oAuth2ClientOptions: Readonly<OAuth2ClientOptions>,
-  oAuth2ClientAuthUrlOptions: Readonly<GenerateAuthUrlOpts>
+  oAuth2ClientAuthUrlOptions: Readonly<GenerateAuthUrlOpts>,
+  redirectPort?: number
 ): Promise<Credentials> => {
   // Wait until the server is listening, otherwise we don't have
   // the server port needed to set up the Oauth2Client.
-  const server = await new Promise<Server>(resolve => {
+  const server = await new Promise<Server>((resolve, reject) => {
     const s = createServer();
     enableDestroy(s);
-    s.listen(0, () => resolve(s));
+    const port = redirectPort || 0;
+    s.listen(port, () => resolve(s)).on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`Error: Port ${port} is already in use. Please specify a different port with --redirect-port.`);
+      } else {
+        console.error(`Error: Unable to start the server on port ${port}.`, err.message);
+      }
+      reject(err);
+    });
   });
   const {port} = server.address() as AddressInfo;
   const client = new OAuth2Client({...oAuth2ClientOptions, redirectUri: `http://localhost:${port}`});
