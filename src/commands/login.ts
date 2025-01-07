@@ -17,6 +17,7 @@ interface CommandOption {
   readonly localhost?: boolean;
   readonly creds?: string;
   readonly status?: boolean;
+  readonly redirectPort?: number;
 }
 
 /**
@@ -52,6 +53,9 @@ export default async (options: CommandOption): Promise<void> => {
   // Localhost check
   const useLocalhost = Boolean(options.localhost);
 
+  // Use the specified redirectPort if provided
+  const redirectPort = options.redirectPort;
+
   // Using own credentials.
   if (options.creds) {
     // First read the manifest to detect any additional scopes in "oauthScopes" fields.
@@ -69,7 +73,7 @@ File > Project Properties > Scopes\n`);
 
     // Read credentials file.
     const creds = readJsonSync(options.creds, FS_OPTIONS) as Readonly<ClaspCredentials>;
-    await authorize({creds, scopes, useLocalhost});
+    await authorize({creds, scopes, useLocalhost, redirectPort});
     await enableAppsScriptAPI();
 
     return;
@@ -77,5 +81,5 @@ File > Project Properties > Scopes\n`);
 
   // Not using own credentials
   // Use the default scopes needed for clasp.
-  await authorize({scopes: defaultScopes, useLocalhost});
+  await authorize({scopes: defaultScopes, useLocalhost, redirectPort});
 };

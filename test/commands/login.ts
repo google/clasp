@@ -76,5 +76,26 @@ describe('Test clasp login function', () => {
     expect(result.stdout).to.contain(LOG.LOGIN(true));
     expect(result.status).to.equal(1);
   });
+  it('should exit(0) and use the specified redirect port', () => {
+    const customPort = 3434;
+    const result = spawnSync(CLASP, ['login', '--redirect-port', customPort.toString(), '--no-localhost'], {
+      encoding: 'utf8',
+    });
+    // Проверяем, что команда завершилась успешно
+    expect(result.status).to.equal(0);
+    // Проверяем, что вывод содержит информацию об использовании указанного порта
+    expect(result.stdout).to.include(`Redirecting to port: ${customPort}`);
+  });
+
+  it('should exit(1) with error if the redirect port is invalid', () => {
+    const invalidPort = -1; // Некорректный порт
+    const result = spawnSync(CLASP, ['login', '--redirect-port', invalidPort.toString(), '--no-localhost'], {
+      encoding: 'utf8',
+    });
+    // Проверяем, что команда завершилась с ошибкой
+    expect(result.status).to.equal(1);
+    // Проверяем, что вывод содержит сообщение об ошибке
+    expect(result.stderr).to.include('Invalid port specified');
+  });
   after(cleanup);
 });
