@@ -16,7 +16,7 @@
     "build/src"
   ],
   "scripts": {
-    "build": "npm run compile && npm i -g --loglevel=error --force",
+    "build": "npm run compile && npm i --loglevel=error --force",
     "build-fresh": "npm cache clean --force && npm i && npm run build",
     "watch": "tsc --project tsconfig.json --watch",
     "prepare": "npm run compile",

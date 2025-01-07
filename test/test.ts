@@ -1,5 +1,4 @@
 import {expect} from 'chai';
-import {spawnSync} from 'child_process';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 import path, {dirname} from 'path';
@@ -10,15 +9,20 @@ import {getAppsScriptFileName, getLocalFileType} from '../src/files.js';
 import {ERROR, LOG} from '../src/messages.js';
 import {extractScriptId, URL} from '../src/urls.js';
 import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils.js';
-import {CLASP, CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
+import {CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
 import {backupSettings, cleanup, restoreSettings, setup} from './functions.js';
+import {spawnSync} from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const manifest = readPackageUpSync({cwd: __dirname});
 
+function runClasp(args: string[]) {
+  return spawnSync('node', ['./build/src/index.js', ...args], {encoding: 'utf-8'});
+}
+
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
-    const result = spawnSync(CLASP, [command, '--help'], {encoding: 'utf8'});
+    const result = runClasp([command, '--help']);
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(expected);
   };
@@ -56,7 +60,7 @@ describe('Test clasp pull function', () => {
     setup();
   });
   it('should pull an existing project correctly', () => {
-    const result = spawnSync(CLASP, ['pull'], {encoding: 'utf8'});
+    const result = runClasp(['pull']);
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);
@@ -84,19 +88,19 @@ describe('Test clasp version and versions function', () => {
   });
   let versionNumber = 0;
   it('should prompt for version description', () => {
-    const result = spawnSync(CLASP, ['version'], {encoding: 'utf8'});
+    const result = runClasp(['version']);
     expect(result.stderr).to.equal('');
     expect(result.stdout).to.contain(LOG.GIVE_DESCRIPTION);
     expect(result.status).to.equal(0);
   });
   it('should create a new version correctly', () => {
-    const result = spawnSync(CLASP, ['version', 'xxx'], {encoding: 'utf8'});
+    const result = runClasp(['version', 'xxx']);
     versionNumber = Number(result.stdout.slice(result.stdout.lastIndexOf(' '), -2));
     expect(versionNumber).to.be.greaterThan(0);
   });
   // TODO: this test needs to be updated
   it.skip('should list versions correctly', () => {
-    const result = spawnSync(CLASP, ['versions'], {encoding: 'utf8'});
+    const result = runClasp(['versions']);
     expect(result.stdout).to.contain('Versions');
     if (versionNumber) expect(result.stdout).to.contain(`${versionNumber} - `);
     expect(result.status).to.equal(0);
@@ -112,12 +116,12 @@ describe('Test setting function', () => {
     setup();
   });
   it('should return current setting value', () => {
-    const result = spawnSync(CLASP, ['setting', 'scriptId'], {encoding: 'utf8'});
+    const result = runClasp(['setting', 'scriptId']);
 
     expect(result.stdout).to.equal(process.env.SCRIPT_ID);
   });
   it('should update .clasp.json with provided value', () => {
-    const result = spawnSync(CLASP, ['setting', 'scriptId', 'test'], {encoding: 'utf8'});
+    const result = runClasp(['setting', 'scriptId', 'test']);
     const fileContents = fs.readFileSync('.clasp.json', 'utf8');
     expect(result.stdout).to.contain('Updated "scriptId":');
     expect(result.stdout).to.contain('→ "test"');
@@ -125,12 +129,12 @@ describe('Test setting function', () => {
   });
   it('should error on unknown keys', () => {
     // Test getting
-    let result = spawnSync(CLASP, ['setting', 'foo'], {encoding: 'utf8'});
+    let result = runClasp(['setting', 'foo']);
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain(ERROR.UNKNOWN_KEY('foo'));
 
     // Test setting
-    result = spawnSync(CLASP, ['setting', 'bar', 'foo'], {encoding: 'utf8'});
+    result = runClasp(['setting', 'bar', 'foo']);
     expect(result.status).to.equal(1);
     expect(result.stderr).to.contain(ERROR.UNKNOWN_KEY('bar'));
   });
@@ -225,7 +229,7 @@ describe('Test saveProject function from utils', () => {
 
 describe('Test variations of clasp help', () => {
   const expectHelp = (variation: string) => {
-    const result = spawnSync(CLASP, [variation], {encoding: 'utf8'});
+    const result = runClasp([variation]);
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(CLASP_USAGE);
   };
@@ -236,7 +240,7 @@ describe('Test variations of clasp help', () => {
 
 describe('Test variations of clasp --version', () => {
   const expectVersion = (variation: string) => {
-    const result = spawnSync(CLASP, [variation], {encoding: 'utf8'});
+    const result = runClasp([variation]);
     expect(result.status).to.equal(0);
     expect(result.stdout).to.include(manifest ? manifest.packageJson.version : 'unknown');
   };
@@ -246,7 +250,7 @@ describe('Test variations of clasp --version', () => {
 
 describe('Test unknown functions', () => {
   it('should show version correctly', () => {
-    const result = spawnSync(CLASP, ['unknown'], {encoding: 'utf8'});
+    const result = runClasp(['unknown']);
     expect(result.stderr).to.contain('Unknown command');
     expect(result.status).to.equal(1);
   });
@@ -260,7 +264,8 @@ describe('Test all functions while logged out', () => {
   });
   after(restoreSettings);
   const expectNoCredentials = (command: string) => {
-    const result = spawnSync(CLASP, [command], {encoding: 'utf8'});
+    const result = runClasp([command]);
+    console.log('R', result);
     expect(result.status).to.equal(1);
     // expect(result.stderr).to.include(ERROR.NO_CREDENTIALS);
   };
@@ -275,21 +280,21 @@ describe('Test all functions while logged out', () => {
   // TODO: all test should have same order of checks
   // and should all return ERROR.NO_CREDENTIALS
   it('should fail to pull (no .clasp.json file)', () => {
-    const result = spawnSync(CLASP, ['pull'], {encoding: 'utf8'});
+    const result = runClasp(['pull']);
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
     expect(result.stderr).to.contain(ERROR.SETTINGS_DNE());
   });
   it('should fail to open (no .clasp.json file)', () => {
-    const result = spawnSync(CLASP, ['open'], {encoding: 'utf8'});
+    const result = runClasp(['open']);
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
     expect(result.stderr).to.contain(ERROR.SETTINGS_DNE());
   });
   it('should fail to show logs (no .clasp.json file)', () => {
-    const result = spawnSync(CLASP, ['logs'], {encoding: 'utf8'});
+    const result = runClasp(['logs']);
     expect(result.status).to.equal(1);
     // Should be ERROR.NO_CREDENTIALS
     // see: https://github.com/google/clasp/issues/278
