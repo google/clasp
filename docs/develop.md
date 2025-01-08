@@ -58,7 +58,20 @@ After seeing that message, you're ready to test out `clasp`!
 
 ### Run Tests
 
-`clasp` has some unit tests that help detect errors. Build and run tests with these commands:
+`clasp` has some unit tests that help detect errors.
+
+The tests require an existing Apps Script project and corresponding GCP project. Follow the instructions in the
+[Apps Script documentation](https://developers.google.com/apps-script/guides/cloud-platform-projects) to create
+a script with a standard GCP project.
+
+Once created, set the following environment variables. Replace the values with your corresponding script and project IDs.
+
+```sh
+SCRIPT_ID=15wKnP0deQOjCvCDmpkMo9npnosUYYvaLjNtIFEnOmNxxxxxxxx
+PROJECT_ID=stable-century-447xxxxxxx
+```
+
+Build and run tests with these commands:
 
 ```sh
 npm run build;
