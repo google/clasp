@@ -27,7 +27,7 @@
     "importHelpers": true // canary: will cause runtime error if `tslib` is necessary
   },
   "include": [
-    "src/**.ts",
-    "test/**.ts"
+    "src/**/*.ts",
+    "test/**/*.ts"
   ]
 }

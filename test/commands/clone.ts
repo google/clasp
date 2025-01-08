@@ -5,14 +5,14 @@ import {after, before, describe, it} from 'mocha';
 
 import {URL} from '../../src/urls.js';
 import {ERROR, LOG} from '../../src/messages.js';
-import {CLASP, SCRIPT_ID} from '../constants.js';
-import {cleanup, setup} from '../functions.js';
+import {SCRIPT_ID} from '../constants.js';
+import {cleanup, runClasp, setup} from '../functions.js';
 
 describe('Test clasp clone <scriptId> function', () => {
   before(setup);
   it('should clone a project with scriptId correctly', () => {
     cleanup();
-    const result = spawnSync(CLASP, ['clone', SCRIPT_ID], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
+    const result = runClasp(['clone', SCRIPT_ID], {maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
     expect(result.stdout).to.contain(LOG.STATUS_PUSH);
@@ -21,7 +21,7 @@ describe('Test clasp clone <scriptId> function', () => {
   });
   it('should clone a project with scriptURL correctly', () => {
     cleanup();
-    const result = spawnSync(CLASP, ['clone', URL.SCRIPT(SCRIPT_ID)], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
+    const result = runClasp(['clone', URL.SCRIPT(SCRIPT_ID)], {maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
     expect(result.stdout).to.contain(LOG.STATUS_PUSH);
@@ -30,9 +30,15 @@ describe('Test clasp clone <scriptId> function', () => {
   });
   it('should give an error on a non-existing project', () => {
     fs.removeSync('./.clasp.json');
-    const result = spawnSync(CLASP, ['clone', 'non-existing-project'], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
+    const result = runClasp(['clone', 'non-existing-project'], {maxBuffer: 10 * 1024 * 1024});
     expect(result.stderr).to.contain(ERROR.SCRIPT_ID);
     expect(result.status).to.equal(1);
+  });
+  it('should not write clasp config for non-existing project', () => {
+    fs.removeSync('./.clasp.json');
+    const result = runClasp(['clone', 'non-existing-project'], {maxBuffer: 10 * 1024 * 1024});
+    expect(result.status).to.equal(1);
+    expect(fs.existsSync('./.clasp.json')).to.be.false;
   });
   after(cleanup);
 });
@@ -41,13 +47,13 @@ describe('Test clasp clone function', () => {
   before(setup);
   it('should prompt for which script to clone correctly', () => {
     spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(CLASP, ['clone'], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
+    const result = runClasp(['clone'], {maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain(LOG.CLONE_SCRIPT_QUESTION);
     expect(result.status).to.equal(0);
   });
   it('should prompt which project to clone and clone it', () => {
     cleanup();
-    const result = spawnSync(CLASP, ['clone'], {encoding: 'utf8', input: '\n', maxBuffer: 10 * 1024 * 1024});
+    const result = runClasp(['clone'], {input: '\n', maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain(LOG.CLONE_SCRIPT_QUESTION);
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
@@ -57,8 +63,8 @@ describe('Test clasp clone function', () => {
   });
   it('should give an error if .clasp.json already exists', () => {
     fs.writeFileSync('.clasp.json', '');
-    const result = spawnSync(CLASP, ['clone'], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
-    expect(result.stderr).to.contain('Project file (.clasp.json) already exists.');
+    const result = runClasp(['clone'], {maxBuffer: 10 * 1024 * 1024});
+    expect(result.stderr).to.match(/Project file \(.*\) already exists./);
     expect(result.status).to.equal(1);
   });
   after(cleanup);
