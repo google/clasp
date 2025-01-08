@@ -10,15 +10,11 @@ import {ERROR, LOG} from '../src/messages.js';
 import {extractScriptId, URL} from '../src/urls.js';
 import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils.js';
 import {CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
-import {backupSettings, cleanup, restoreSettings, setup} from './functions.js';
+import {runClasp, backupSettings, cleanup, restoreSettings, setup} from './functions.js';
 import {spawnSync} from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const manifest = readPackageUpSync({cwd: __dirname});
-
-function runClasp(args: string[]) {
-  return spawnSync('node', ['./build/src/index.js', ...args], {encoding: 'utf-8'});
-}
 
 describe.skip('Test --help for each function', () => {
   const expectHelp = (command: string, expected: string) => {
