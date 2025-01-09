@@ -11,14 +11,14 @@ import {
 import {spawnSync} from 'child_process';
 
 export function runClasp(args: string[], opts = {}) {
-  const options = Object.assign(
-    {},
-    {
-      encoding: 'utf8',
+  return spawnSync('node', [`${process.cwd()}/build/src/index.js`, ...args], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NODE_NO_WARNINGS: '1',
     },
-    opts ?? {}
-  );
-  return spawnSync('node', [`${process.cwd()}/build/src/index.js`, ...args], options);
+    ...opts,
+  });
 }
 
 /** basic cleanup after tests */
