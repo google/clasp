@@ -89,7 +89,6 @@
     "server-destroy": "^1.0.1",
     "split-lines": "^3.0.0",
     "strip-bom": "^5.0.0",
-    "ts2gas": "^4.2.0",
     "typescript": "^4.4.2"
   },
   "devDependencies": {
