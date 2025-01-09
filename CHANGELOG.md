@@ -10,7 +10,7 @@
 
 ### Bug Fixes
 
-* Don't write files on clone if unable to fetch proejct ([#824](https://github.com/google/clasp/issues/824)) ([b3b292a](https://github.com/google/clasp/commit/b3b292acfcc9bb191a3f4171601b8c420c187546))
+* Don't write files on clone if unable to fetch project ([#824](https://github.com/google/clasp/issues/824)) ([b3b292a](https://github.com/google/clasp/commit/b3b292acfcc9bb191a3f4171601b8c420c187546))
 * Rethrow error so command exits with error status ([#1019](https://github.com/google/clasp/issues/1019)) ([29ac629](https://github.com/google/clasp/commit/29ac62988b970b1905fe2601828bf7dcaac47b54))
 
 ## [2.4.2](https://github.com/google/clasp/compare/v2.4.1...v2.4.2) (2022-09-26)
