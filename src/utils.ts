@@ -234,6 +234,11 @@ export const saveProject = async (projectSettings: ProjectSettings, append = tru
   DOTFILE.PROJECT().write(append ? {...(await getProjectSettings()), ...projectSettings} : projectSettings);
 
 /**
+ * Deletes the project dotfile.
+ */
+export const deleteProject = async (): Promise<void> => await DOTFILE.PROJECT().delete();
+
+/**
  * Gets the script's Cloud Platform Project Id from project settings file or prompt for one.
  * @returns {Promise<string>} A promise to get the projectId string.
  */

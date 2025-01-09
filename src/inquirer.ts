@@ -148,3 +148,32 @@ export const scriptTypePrompt = () =>
       type: 'list',
     },
   ]);
+
+/**
+ * Inquirer prompt for deleting a drive file
+ * @param {boolean} withParent true if the script has a parent project, default is false
+ * @returns {Promise<{ answer: boolean }>} A promise for an object with the `answer` property.
+ */
+export const deleteDriveFilesPrompt = (withParent = false) =>
+  prompt<{answer: boolean}>([
+    {
+      default: false,
+      message: !withParent ? LOG.DELETE_DRIVE_FILE_CONFIRM : LOG.DELETE_DRIVE_FILE_WITH_PARENT_CONFIRM,
+      name: 'answer',
+      type: 'confirm',
+    },
+  ]);
+
+/**
+ * Inquirer prompt for deleting the .clasp.json file
+ * @returns {Promise<{ answer: boolean }>} A promise for an object with the `answer` property.
+ */
+export const deleteClaspJsonPrompt = () =>
+  prompt<{answer: boolean}>([
+    {
+      default: false,
+      message: LOG.DELETE_CLASPJSON_CONFIRM,
+      name: 'answer',
+      type: 'confirm',
+    },
+  ]);
