@@ -62,7 +62,7 @@ export class Conf {
 
   get projectConfig() {
     if (this._projectConfig === undefined && this.projectRootDirectory) {
-      this._projectConfig = this.buildPathOrUseEnv(
+      this._projectConfig = buildPathOrUseEnv(
         `.${PROJECT_NAME}.json`,
         this.projectRootDirectory,
         ENV.DOT_CLASP_PROJECT
@@ -77,7 +77,7 @@ export class Conf {
 
   get ignore() {
     if (this._ignore === undefined && this.projectRootDirectory) {
-      this._ignore = this.buildPathOrUseEnv(`.${PROJECT_NAME}ignore`, this.projectRootDirectory, ENV.DOT_CLASP_IGNORE);
+      this._ignore = buildPathOrUseEnv(`.${PROJECT_NAME}ignore`, this.projectRootDirectory, ENV.DOT_CLASP_IGNORE);
     }
     return this._ignore;
   }
@@ -88,7 +88,7 @@ export class Conf {
 
   get auth() {
     if (this._auth === undefined) {
-      this._auth = this.buildPathOrUseEnv(`.${PROJECT_NAME}rc.json`, os.homedir(), ENV.DOT_CLASP_AUTH);
+      this._auth = buildPathOrUseEnv(`.${PROJECT_NAME}rc.json`, os.homedir(), ENV.DOT_CLASP_AUTH);
     }
     return this._auth;
   }
@@ -99,20 +99,9 @@ export class Conf {
 
   get authLocal() {
     if (this._authLocal === undefined && this.projectRootDirectory) {
-      this._authLocal = this.buildPathOrUseEnv(
-        `.${PROJECT_NAME}rc.json`,
-        this.projectRootDirectory,
-        ENV.DOT_CLASP_AUTH
-      );
+      this._authLocal = buildPathOrUseEnv(`.${PROJECT_NAME}rc.json`, this.projectRootDirectory, ENV.DOT_CLASP_AUTH);
     }
     return this._authLocal;
-  }
-
-  private buildPathOrUseEnv(filename: string, root: string, envName?: string): string {
-    if (envName && process.env[envName] !== undefined) {
-      return process.env[envName]!;
-    }
-    return path.join(root, filename);
   }
 
   /**
@@ -127,4 +116,11 @@ export class Conf {
 
     return Conf._instance;
   }
+}
+
+export function buildPathOrUseEnv(filename: string, root: string, envName?: string): string {
+  if (envName && process.env[envName] !== undefined) {
+    return process.env[envName]!;
+  }
+  return path.join(root, filename);
 }

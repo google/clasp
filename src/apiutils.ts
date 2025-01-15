@@ -1,13 +1,13 @@
 import fuzzy from 'fuzzy';
-import {script_v1 as scriptV1} from 'googleapis';
+import {google, script_v1 as scriptV1} from 'googleapis';
 import type {ReadonlyDeep} from 'type-fest';
 
-import {loadAPICredentials, serviceUsage} from './auth.js';
 import {ClaspError} from './clasp-error.js';
 import {functionNamePrompt, functionNameSource} from './inquirer.js';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest.js';
 import {ERROR} from './messages.js';
 import {getProjectId, spinner, stopSpinner} from './utils.js';
+import {getAuthorizedOAuth2Client} from './auth.js';
 
 /**
  * Prompts for the function name.
@@ -67,6 +67,13 @@ export const enableOrDisableAPI = async (serviceName: string, enable: boolean): 
     throw new ClaspError('An API name is required. Try sheets');
   }
 
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const serviceUsage = google.serviceusage({version: 'v1', auth: oauth2Client});
+
   const name = `projects/${await getProjectIdOrDie()}/services/${serviceName}.googleapis.com`;
   try {
     await (enable ? serviceUsage.services.enable({name}) : serviceUsage.services.disable({name}));
@@ -89,7 +96,13 @@ export const enableOrDisableAPI = async (serviceName: string, enable: boolean): 
  * Enable 'script.googleapis.com' of Google API.
  */
 export const enableAppsScriptAPI = async (): Promise<void> => {
-  await loadAPICredentials(true);
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const serviceUsage = google.serviceusage({version: 'v1', auth: oauth2Client});
+
   const name = `projects/${await getProjectIdOrDie()}/services/script.googleapis.com`;
   await serviceUsage.services.enable({name});
 };

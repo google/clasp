@@ -148,3 +148,17 @@ export const scriptTypePrompt = () =>
       type: 'list',
     },
   ]);
+
+/**
+ * Inquirer prompt for authorization URL.
+ * @returns {Promise<{ type: string }>} A promise for an object with the `type` property.
+ */
+export const authorizationCompletePrompt = () =>
+  prompt<{url: string}>([
+    {
+      choices: Object.keys(SCRIPT_TYPES).map(key => SCRIPT_TYPES[key as keyof typeof SCRIPT_TYPES]),
+      message: 'Enter the URL from your browser after completing authorization',
+      name: 'url',
+      type: 'input',
+    },
+  ]);

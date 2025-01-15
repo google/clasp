@@ -1,5 +1,4 @@
 import cliTruncate from 'cli-truncate';
-import fs from 'fs-extra';
 import {script_v1 as scriptV1} from 'googleapis';
 import isReachable from 'is-reachable';
 import logSymbols from 'log-symbols';
@@ -13,7 +12,7 @@ import {DOTFILE} from './dotfile.js';
 import {projectIdPrompt} from './inquirer.js';
 import {ERROR, LOG} from './messages.js';
 
-import type {ClaspToken, ProjectSettings} from './dotfile';
+import type {ProjectSettings} from './dotfile';
 
 const config = Conf.get();
 
@@ -41,33 +40,6 @@ interface ClaspCredentialsInstalled {
 export interface ClaspCredentials {
   installed: ClaspCredentialsInstalled;
 }
-
-/**
- * Checks if OAuth client settings rc file exists.
- * @param  {boolean} local check ./clasprc.json instead of ~/.clasprc.json
- * @return {boolean}
- */
-export const hasOauthClientSettings = (local = false): boolean => {
-  if (local) {
-    return config.authLocal !== undefined && fs.existsSync(config.authLocal);
-  }
-  return config.auth !== undefined && fs.existsSync(config.auth);
-};
-
-/**
- * Gets the OAuth client settings from rc file.
- * @param {boolean} local If true, gets the local OAuth settings. Global otherwise.
- * ! Should be used instead of `DOTFILE.RC?().read()`
- * @returns {Promise<ClaspToken>} A promise to get the rc file as object.
- */
-export const getOAuthSettings = async (local: boolean): Promise<ClaspToken> => {
-  try {
-    const result = DOTFILE.AUTH(local).read<ClaspToken>();
-    return await result;
-  } catch (error) {
-    throw new ClaspError(getErrorMessage(error) ?? ERROR.NO_CREDENTIALS(local));
-  }
-};
 
 export const spinner = ora(); // new Spinner();
 

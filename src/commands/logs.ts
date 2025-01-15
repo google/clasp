@@ -1,15 +1,15 @@
 import is from '@sindresorhus/is';
 import chalk from 'chalk';
-import {logging_v2 as loggingV2} from 'googleapis';
+import {google, logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
-import {loadAPICredentials, logger} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {DOTFILE, ProjectSettings} from '../dotfile.js';
 import {projectIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
-import {getErrorMessage, getProjectSettings, isValidProjectId, spinner, stopSpinner} from '../utils.js';
+import {getErrorMessage, getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -186,9 +186,12 @@ const fetchAndPrintLogs = async (
     throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 
-  const {isLocalCreds} = await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
 
-  spinner.start(`${isLocalCreds ? LOG.LOCAL_CREDS() : ''}${LOG.GRAB_LOGS}`);
+  const logger = google.logging({version: 'v2', auth: oauth2Client});
 
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
   // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
@@ -215,9 +218,9 @@ const fetchAndPrintLogs = async (
         printLogs(data.entries, formatJson, simplified);
         break;
       case 401:
-        throw new ClaspError(isLocalCreds ? ERROR.UNAUTHENTICATED_LOCAL : ERROR.UNAUTHENTICATED);
+        throw new ClaspError(ERROR.UNAUTHENTICATED);
       case 403:
-        throw new ClaspError(isLocalCreds ? ERROR.PERMISSION_DENIED_LOCAL : ERROR.PERMISSION_DENIED);
+        throw new ClaspError(ERROR.PERMISSION_DENIED);
       default:
         throw new ClaspError(`(${status}) Error: ${statusText}`);
     }

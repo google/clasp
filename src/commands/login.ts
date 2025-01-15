@@ -1,25 +1,62 @@
 /**
  * Clasp command method bodies.
  */
-import fs from 'fs-extra';
 
-import {enableAppsScriptAPI} from '../apiutils.js';
-import {authorize, defaultScopes, getLoggedInEmail, scopeWebAppDeploy} from '../auth.js';
-import {FS_OPTIONS} from '../constants.js';
+import {authorize, getAuthorizedOAuth2Client, getUnauthorizedOuth2Client} from '../auth.js';
 import {readManifest} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
-import {hasOauthClientSettings, safeIsOnline} from '../utils.js';
-import type {ClaspCredentials} from '../utils.js';
+import {safeIsOnline} from '../utils.js';
+import {google} from 'googleapis';
+import {ClaspError} from '../clasp-error.js';
 
-const {readJsonSync} = fs;
+const DEFAULT_SCOPES = [
+  // Default to clasp scopes
+  'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+  'https://www.googleapis.com/auth/script.projects', // Apps Script management
+  'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+  'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+  'https://www.googleapis.com/auth/drive.file', // Create Drive files
+  'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+  'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+  'https://www.googleapis.com/auth/userinfo.email', // User email address
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/cloud-platform',
+];
 
 interface CommandOption {
   readonly localhost?: boolean;
   readonly creds?: string;
   readonly status?: boolean;
   readonly redirectPort?: number;
+  readonly useProjectScopes?: boolean;
 }
 
+async function showLoginStatus(): Promise<void> {
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    console.log(LOG.NOT_LOGGED_IN);
+    return;
+  }
+
+  const isOnline = await safeIsOnline();
+  if (!isOnline) {
+    console.log(LOG.LOGGED_IN_UNKNOWN);
+    return;
+  }
+
+  const api = google.oauth2('v2');
+  const res = await api.userinfo.get({auth: oauth2Client});
+  if (res.status !== 200) {
+    console.log(LOG.LOGGED_IN_UNKNOWN);
+    return;
+  }
+  const email = res.data.email;
+  if (email) {
+    console.log(LOG.LOGGED_IN_AS(email));
+  } else {
+    console.log(LOG.LOGGED_IN_UNKNOWN);
+  }
+}
 /**
  * Logs the user in. Saves the client credentials to an either local or global rc file.
  * @param {object} options The login options.
@@ -29,57 +66,38 @@ interface CommandOption {
  */
 export default async (options: CommandOption): Promise<void> => {
   if (options.status) {
-    if (hasOauthClientSettings()) {
-      const email = (await safeIsOnline()) ? await getLoggedInEmail() : undefined;
-      console.log(email ? LOG.LOGGED_IN_AS(email) : LOG.LOGGED_IN_UNKNOWN);
-    } else {
-      console.log(LOG.NOT_LOGGED_IN);
-    }
-
+    // TODO - Refactor as subcommand
+    await showLoginStatus();
     return;
   }
 
-  // Local vs global checks
-  const isLocalLogin = Boolean(options.creds);
-  if (isLocalLogin && hasOauthClientSettings(true)) {
-    console.error(ERROR.LOGGED_IN_LOCAL);
+  if (await getAuthorizedOAuth2Client()) {
+    console.error(ERROR.LOGGED_IN);
   }
 
-  if (!isLocalLogin && hasOauthClientSettings(false)) {
-    console.error(ERROR.LOGGED_IN_GLOBAL);
-  }
-
-  console.log(LOG.LOGIN(isLocalLogin));
-  // Localhost check
   const useLocalhost = Boolean(options.localhost);
-
-  // Use the specified redirectPort if provided
   const redirectPort = options.redirectPort;
 
-  // Using own credentials.
-  if (options.creds) {
-    // First read the manifest to detect any additional scopes in "oauthScopes" fields.
-    // In the script.google.com UI, these are found under File > Project Properties > Scopes
-    const {oauthScopes = []} = await readManifest();
-    const scopes = [...new Set<string>([...oauthScopes, scopeWebAppDeploy])];
+  const oauth2Client = getUnauthorizedOuth2Client(options.creds);
+
+  let scopes = [...DEFAULT_SCOPES];
+  if (options.useProjectScopes) {
+    const manifest = await readManifest();
+    scopes = manifest.oauthScopes ?? scopes;
     console.log('');
     console.log('Authorizing with the following scopes:');
     for (const scope of scopes) {
       console.log(scope);
     }
-
-    console.log(`\nNOTE: The full list of scopes your project may need can be found at script.google.com under:
-File > Project Properties > Scopes\n`);
-
-    // Read credentials file.
-    const creds = readJsonSync(options.creds, FS_OPTIONS) as Readonly<ClaspCredentials>;
-    await authorize({creds, scopes, useLocalhost, redirectPort});
-    await enableAppsScriptAPI();
-
-    return;
   }
 
-  // Not using own credentials
-  // Use the default scopes needed for clasp.
-  await authorize({scopes: defaultScopes, useLocalhost, redirectPort});
+  await authorize({
+    oauth2Client,
+    scopes,
+    noLocalServer: !useLocalhost,
+    redirectPort,
+  });
+
+  showLoginStatus();
+  return;
 };

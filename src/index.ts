@@ -51,6 +51,7 @@ import versions from './commands/versions.js';
 import {Conf} from './conf.js';
 import {PROJECT_NAME} from './constants.js';
 import {spinner, stopSpinner} from './utils.js';
+import {setActiveUserKey} from './auth.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -75,6 +76,10 @@ program.version(manifest ? manifest.packageJson.version : 'unknown', '-v, --vers
 
 program.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
 
+program.hook('preAction', () => {
+  // TODO - Set up auth/env/etc
+});
+
 /**
  * Path to an auth file, or to a folder with a '.clasprc.json' file.
  */
@@ -82,6 +87,12 @@ program
   .option('-A, --auth <file>', "path to an auth file or a folder with a '.clasprc.json' file.")
   .on('option:auth', (auth: string) => {
     config.auth = auth;
+  });
+
+program
+  .option('-u,--user <name>', 'Store named credentials. If unspecified, the "default" user is used.', 'default')
+  .on('option:user', (user: string) => {
+    setActiveUserKey(user);
   });
 
 /**
@@ -120,7 +131,11 @@ program
   .command('login')
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
-  .option('--creds <file>', 'Relative path to credentials (from GCP).')
+  .option('--creds <file>', 'Relative path to OAuth client secret file (from GCP).')
+  .option(
+    '--use-project-scopes',
+    'Use the scopes from the current project manifest. Used only when authorizing access for the run command.'
+  )
   .option('--status', 'Print who is logged in')
   .option('--redirect-port <port>', 'Specify a custom port for the redirect URL.')
   .action(login);

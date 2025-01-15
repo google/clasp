@@ -1,7 +1,7 @@
-import {script_v1 as scriptV1} from 'googleapis';
+import {google, script_v1 as scriptV1} from 'googleapis';
 import pMap from 'p-map';
 
-import {loadAPICredentials, script} from '../auth.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ERROR, LOG} from '../messages.js';
 import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
@@ -15,7 +15,6 @@ interface CommandOption {
  * @param deploymentId {string} The deployment's ID
  */
 export default async (deploymentId: string | undefined, options: CommandOption): Promise<void> => {
-  await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   if (scriptId) {
     if (options.all) {
@@ -49,6 +48,12 @@ export default async (deploymentId: string | undefined, options: CommandOption):
 };
 
 const deleteDeployment = async (scriptId: string, deploymentId: string) => {
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+  const script = google.script({version: 'v1', auth: oauth2Client});
+
   spinner.start(LOG.UNDEPLOYMENT_START(deploymentId));
 
   const {status} = await script.projects.deployments.delete({scriptId, deploymentId});
@@ -61,6 +66,12 @@ const deleteDeployment = async (scriptId: string, deploymentId: string) => {
 };
 
 const listDeployments = async (scriptId: string) => {
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+  const script = google.script({version: 'v1', auth: oauth2Client});
+
   const {data, status, statusText} = await script.projects.deployments.list({scriptId});
   if (status !== 200) {
     throw new ClaspError(statusText);

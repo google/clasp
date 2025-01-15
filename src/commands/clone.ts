@@ -1,6 +1,5 @@
-import {drive_v3 as driveV3} from 'googleapis';
+import {drive_v3 as driveV3, google} from 'googleapis';
 
-import {drive, loadAPICredentials} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer.js';
@@ -9,6 +8,7 @@ import {extractScriptId} from '../urls.js';
 import {saveProject, spinner} from '../utils.js';
 import status from './status.js';
 import {Conf} from '../conf.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 
 const config = Conf.get();
 
@@ -50,7 +50,13 @@ export default async (
  * Lists a user's AppsScripts and prompts them to choose one to clone.
  */
 const getScriptId = async (): Promise<string> => {
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const drive = google.drive({version: 'v3', auth: oauth2Client});
+
   const {data, statusText} = await drive.files.list({
     // fields: 'files(id, name)',
     orderBy: 'modifiedByMeTime desc',

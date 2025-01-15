@@ -28,7 +28,8 @@
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix src/*.ts src/**/*.ts test/*.ts test/**/*.ts",
-    "pretest": "npm run compile && npm run check"
+    "pretest": "npm run compile && npm run check",
+    "clasp": "node --loader ts-node/esm --no-warnings src/index.ts"
   },
   "nyc": {
     "include": [
@@ -109,6 +110,7 @@
     "nyc": "^15.1.0",
     "prettier": "^2.3.2",
     "tmp": "^0.2.1",
+    "ts-node": "^10.9.2",
     "type-fest": "^2.1.0"
   }
 }

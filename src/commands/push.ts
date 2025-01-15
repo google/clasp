@@ -4,7 +4,7 @@ import normalizeNewline from 'normalize-newline';
 import path from 'path';
 import chokidar from 'chokidar';
 import debouncePkg from 'debounce';
-import {loadAPICredentials} from '../auth.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
 import {FS_OPTIONS, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants.js';
@@ -12,7 +12,7 @@ import {DOTFILE} from '../dotfile.js';
 import {fetchProject, pushFiles} from '../files.js';
 import {overwritePrompt} from '../inquirer.js';
 import {isValidManifest} from '../manifest.js';
-import {LOG} from '../messages.js';
+import {ERROR, LOG} from '../messages.js';
 import {getProjectSettings, spinner} from '../utils.js';
 
 import type {ProjectSettings} from '../dotfile';
@@ -34,7 +34,11 @@ interface CommandOption {
  * @param options.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
 export default async (options: CommandOption): Promise<void> => {
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
   await isValidManifest();
   const projectSettings = await getProjectSettings();
   const {rootDir = '.'} = projectSettings;

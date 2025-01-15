@@ -1,4 +1,5 @@
-import {loadAPICredentials, script} from '../auth.js';
+import {google} from 'googleapis';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {PROJECT_MANIFEST_BASENAME as manifestFileName} from '../constants.js';
 import {ERROR, LOG} from '../messages.js';
@@ -17,7 +18,13 @@ interface CommandOption {
  * @param options.deploymentId  {string} The deployment ID to redeploy.
  */
 export default async (options: CommandOption): Promise<void> => {
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const script = google.script({version: 'v1', auth: oauth2Client});
+
   const {scriptId} = await getProjectSettings();
   if (!scriptId) {
     return;

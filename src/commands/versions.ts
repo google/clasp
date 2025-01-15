@@ -1,16 +1,14 @@
-import {script_v1 as scriptV1} from 'googleapis';
+import {google, script_v1 as scriptV1} from 'googleapis';
 
-import {loadAPICredentials, script} from '../auth.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
-import {LOG} from '../messages.js';
+import {ERROR, LOG} from '../messages.js';
 import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 /**
  * Lists versions of an Apps Script project.
  */
 export default async (): Promise<void> => {
-  await loadAPICredentials();
-
   spinner.start('Grabbing versions…');
 
   const {scriptId} = await getProjectSettings();
@@ -34,6 +32,12 @@ const getVersionList = async (scriptId: string) => {
   let maxPages = 5;
   let pageToken: string | undefined;
   let list: scriptV1.Schema$Version[] = [];
+
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+  const script = google.script({version: 'v1', auth: oauth2Client});
 
   do {
     const {data, status, statusText} = await script.projects.versions.list({scriptId, pageSize: 200, pageToken});

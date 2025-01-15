@@ -1,12 +1,13 @@
 import open from 'open';
 
-import {loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ProjectSettings} from '../dotfile.js';
 import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
 import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils.js';
+import {google} from 'googleapis';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 
 interface CommandOption {
   readonly webapp?: boolean;
@@ -85,7 +86,12 @@ const openAddon = async (projectSettings: ProjectSettings) => {
 
 const openWebApp = async (scriptId: string, optionsDeploymentId?: string) => {
   // Web app: open the latest deployment.
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+  const script = google.script({version: 'v1', auth: oauth2Client});
+
   const {
     data: {deployments = []},
     status,

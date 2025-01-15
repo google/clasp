@@ -1,4 +1,5 @@
-import {drive, loadAPICredentials} from '../auth.js';
+import {google} from 'googleapis';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
@@ -13,7 +14,12 @@ interface CommandOption {
  * @param options.noShorten {boolean}
  */
 export default async (options: CommandOption): Promise<void> => {
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const drive = google.drive({version: 'v3', auth: oauth2Client});
 
   spinner.start(LOG.FINDING_SCRIPTS);
 

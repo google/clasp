@@ -1,19 +1,20 @@
 import chalk from 'chalk';
 import readline from 'readline';
 
-import {getFunctionNames} from '../apiutils.js';
-import {getLocalScript, loadAPICredentials, script} from '../auth.js';
+import {enableAppsScriptAPI, getFunctionNames} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {addScopeToManifest, isValidRunManifest} from '../manifest.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
 import {getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils.js';
+import {google} from 'googleapis';
+import {getAuthorizedOAuth2Client} from '../auth.js';
+import {script_v1 as scriptV1} from 'googleapis';
 
 interface CommandOption {
   readonly nondev: boolean;
   readonly params: string;
 }
-
 /**
  * Executes an Apps Script function. Requires clasp login --creds.
  * @param functionName {string} The function name within the Apps Script project.
@@ -23,13 +24,22 @@ interface CommandOption {
  * @requires `clasp login --creds` to be run beforehand.
  */
 export default async (functionName: string, options: CommandOption): Promise<void> => {
-  await loadAPICredentials();
   const {scriptId} = await getProjectSettings();
   const devMode = !options.nondev; // Defaults to true
   const {params: jsonString = '[]'} = options;
   const parameters = parseJsonOrDie<string[]>(jsonString);
 
   await isValidRunManifest();
+
+  // Load local credentials.
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const script = google.script({version: 'v1', auth: oauth2Client});
+
+  await enableAppsScriptAPI();
 
   // TODO COMMENT THIS. This uses a method that gives a HTML 404.
   // await enableExecutionAPI();
@@ -44,22 +54,28 @@ export default async (functionName: string, options: CommandOption): Promise<voi
     // await pushFiles(true);
   }
 
-  await runFunction(functionName ?? (await getFunctionNames(script, scriptId)), parameters, scriptId, devMode);
+  if (!functionName) {
+    functionName = await getFunctionNames(script, scriptId);
+  }
+
+  await runFunction(script, functionName, parameters, scriptId, devMode);
 };
 
 /**
  * Runs a function.
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
  */
-const runFunction = async (functionName: string, parameters: string[], scriptId: string, devMode: boolean) => {
+const runFunction = async (
+  script: scriptV1.Script,
+  functionName: string,
+  parameters: string[],
+  scriptId: string,
+  devMode: boolean
+) => {
   try {
-    // Load local credentials.
-    await loadAPICredentials(true);
-    const localScript = await getLocalScript();
-
     spinner.start(`Running function: ${functionName}`);
 
-    const apiResponse = await localScript.scripts.run({
+    const apiResponse = await script.scripts.run({
       scriptId,
       requestBody: {function: functionName, parameters, devMode},
     });

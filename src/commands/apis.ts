@@ -1,14 +1,14 @@
-import {discovery_v1 as discoveryV1, serviceusage_v1 as serviceUsageV1} from 'googleapis';
+import {discovery_v1 as discoveryV1, google, serviceusage_v1 as serviceUsageV1} from 'googleapis';
 import open from 'open';
 import type {ReadonlyDeep} from 'type-fest';
 
 import {PUBLIC_ADVANCED_SERVICES} from '../apis.js';
 import {enableOrDisableAPI} from '../apiutils.js';
-import {discovery, loadAPICredentials, serviceUsage} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
 import {getProjectId} from '../utils.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 
 type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
 type PublicAdvancedService = ReadonlyDeep<Required<NonNullable<DirectoryItem>>>;
@@ -23,7 +23,13 @@ interface CommandOption {
  * Otherwise returns an error of command not supported
  */
 export default async (options: CommandOption): Promise<void> => {
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const serviceUsage = google.serviceusage({version: 'v1', auth: oauth2Client});
+  const discovery = google.discovery({version: 'v1'});
 
   // clasp apis --open
   if (options.open) {

@@ -1,6 +1,5 @@
 import is from '@sindresorhus/is';
 import {SCRIPT_TYPES} from '../apis.js';
-import {drive, loadAPICredentials, script} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
 import {scriptTypePrompt} from '../inquirer.js';
@@ -8,6 +7,8 @@ import {manifestExists} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {getDefaultProjectName, getProjectSettings, saveProject, spinner, stopSpinner} from '../utils.js';
 import {Conf} from '../conf.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
+import {google} from 'googleapis';
 
 const config = Conf.get();
 
@@ -36,7 +37,13 @@ export default async (options: CommandOption): Promise<void> => {
     throw new ClaspError(ERROR.FOLDER_EXISTS());
   }
 
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const drive = google.drive({version: 'v3', auth: oauth2Client});
+  const script = google.script({version: 'v1', auth: oauth2Client});
 
   // Create defaults.
   const {parentId: optionParentId, title: name = getDefaultProjectName(), type: optionType} = options;

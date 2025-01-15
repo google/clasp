@@ -1,13 +1,19 @@
-import {loadAPICredentials, script} from '../auth.js';
+import {google} from 'googleapis';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
-import {LOG} from '../messages.js';
+import {ERROR, LOG} from '../messages.js';
 import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 /**
  * Lists a script's deployments.
  */
 export default async (): Promise<void> => {
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+  const script = google.script({version: 'v1', auth: oauth2Client});
+
   const {scriptId} = await getProjectSettings();
   if (scriptId) {
     spinner.start(LOG.DEPLOYMENT_LIST(scriptId));

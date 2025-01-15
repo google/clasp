@@ -7,13 +7,14 @@ import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 import {GaxiosError} from 'gaxios';
 
-import {loadAPICredentials, script} from './auth.js';
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
 import {PROJECT_MANIFEST_FILENAME} from './constants.js';
 import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
 import {getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils.js';
+import {getAuthorizedOAuth2Client} from './auth.js';
+import {google} from 'googleapis';
 
 const config = Conf.get();
 
@@ -265,7 +266,13 @@ export const fetchProject = async (
   versionNumber?: number,
   silent = false
 ): Promise<AppsScriptFile[]> => {
-  await loadAPICredentials();
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+  }
+
+  const script = google.script({version: 'v1', auth: oauth2Client});
+
   spinner.start();
   let response;
   try {
@@ -347,7 +354,14 @@ export const pushFiles = async (silent = false) => {
 
       // Start pushing.
       try {
+        const oauth2Client = await getAuthorizedOAuth2Client();
+        if (!oauth2Client) {
+          throw new ClaspError(ERROR.NO_CREDENTIALS(false));
+        }
+
+        const script = google.script({version: 'v1', auth: oauth2Client});
         await script.projects.updateContent({scriptId, requestBody: {scriptId, files}});
+
         // No error
         stopSpinner();
         if (!silent) {
