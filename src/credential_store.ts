@@ -8,7 +8,7 @@ import path from 'path';
 type StoredCredential = JWTInput & Credentials;
 
 // Initial .clasprc.json format, single credential per file
-type V1FileFormat = {
+type V1LocalFileFormat = {
   token?: {
     access_token: string;
     refresh_token: string;
@@ -24,12 +24,20 @@ type V1FileFormat = {
   isLocalCreds?: boolean;
 };
 
+type V1GlobalFileFormat = {
+  access_token?: string;
+  refresh_token?: string;
+  scope?: string;
+  token_type?: string;
+  exprity_date?: number;
+};
+
 // Clasp 3.x format, support for named credentials
 type V3FileFormat = {
   tokens?: Record<string, StoredCredential | undefined>;
 };
 
-type FileContents = V1FileFormat & V3FileFormat;
+type FileContents = V1LocalFileFormat & V1GlobalFileFormat & V3FileFormat;
 
 export interface CredentialStore {
   save(user: string, credentials: StoredCredential): Promise<void>;
@@ -56,7 +64,7 @@ export class FileCredentialStore implements CredentialStore {
       store.tokens = {};
     }
     store.tokens[user] = credentials;
-    this.dotfile.write(store);
+    await this.dotfile.write(store);
   }
 
   async load(user: string): Promise<StoredCredential | null> {
@@ -68,7 +76,10 @@ export class FileCredentialStore implements CredentialStore {
     if (credentials) {
       return credentials;
     }
-    if (user === 'default' && hasLegacyCredentials(store)) {
+    if (user !== 'default') {
+      return null;
+    }
+    if (hasLegacyLocalCredentials(store)) {
       // Support previous un
       return {
         type: 'authorized_user',
@@ -77,10 +88,25 @@ export class FileCredentialStore implements CredentialStore {
         client_secret: store.oauth2ClientSettings?.clientSecret,
       };
     }
+    if (hasLegacyGlobalCredentials(store)) {
+      return {
+        type: 'authorized_user',
+        access_token: store.access_token,
+        refresh_token: store.refresh_token,
+        expiry_date: store.exprity_date,
+        token_type: store.token_type,
+        client_id: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
+        client_secret: 'v6V3fKV_zWU7iw1DrpO1rknX',
+      };
+    }
     return null;
   }
 }
 
-function hasLegacyCredentials(store: any) {
+function hasLegacyLocalCredentials(store: FileContents) {
   return store.token && store.oauth2ClientSettings;
+}
+
+function hasLegacyGlobalCredentials(store: FileContents) {
+  return !!store.access_token;
 }
