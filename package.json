@@ -100,6 +100,7 @@
   },
   "devDependencies": {
     "@types/picomatch": "^2.3.4",
+    "@biomejs/biome": "^1.9.4",
     "@commander-js/extra-typings": "^13.0.0",
     "@types/chai": "^5.0.1",
     "@types/debounce": "^1.2.4",
