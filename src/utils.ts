@@ -11,6 +11,38 @@ import {ClaspError} from './clasp-error.js';
 import type {Project} from './context.js';
 import {ERROR, LOG} from './messages.js';
 
+<<<<<<< HEAD
+=======
+import type {ProjectSettings} from './dotfile.js';
+
+const config = Conf.get();
+
+/**
+ * Returns input string with uppercased first character
+ */
+const capitalize = (value: string) => value && value[0].toUpperCase() + value.slice(1);
+
+/**
+ * The installed credentials. This is a file downloaded from console.developers.google.com
+ * Credentials > OAuth 2.0 client IDs > Type:Other > Download
+ * Usually called: creds.json
+ * @see https://console.developers.google.com/apis/credentials
+ */
+interface ClaspCredentialsInstalled {
+  client_id: string;
+  project_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_secret: string;
+  redirect_uris: string[];
+}
+
+export interface ClaspCredentials {
+  installed: ClaspCredentialsInstalled;
+}
+
+>>>>>>> 1c8700c (refactor: Update dependencies to latest versions (#961))
 export const spinner = ora(); // new Spinner();
 
 /** Stops the spinner if it is spinning */
@@ -28,12 +60,29 @@ type ResponseLike = {
   };
 };
 
+<<<<<<< HEAD
 function normalizeError(value: unknown): ResponseLike {
   // TODO - Restore legacy behavior if needed
   return value as ResponseLike;
 }
 
 export function getErrorMessage(value: ResponseLike) {
+=======
+type ResponseLike = {
+  error?: {
+    code: number;
+    message: string;
+    status: string;
+  };
+};
+
+function normalizeError(value: unknown): ResponseLike {
+  // TODO - Restore legacy behavior if needed
+  return value as ResponseLike;
+}
+
+export const getErrorMessage = (value: ResponseLike) => {
+>>>>>>> 1c8700c (refactor: Update dependencies to latest versions (#961))
   value = normalizeError(value);
   if (!value?.error) {
     return undefined;
@@ -67,7 +116,41 @@ export function getWebApplicationURL(value: Readonly<scriptV1.Schema$Deployment>
   }
 
   throw new ClaspError(ERROR.NO_WEBAPP(value.deploymentId ?? ''));
+<<<<<<< HEAD
 }
+=======
+};
+
+/**
+ * Gets default project name.
+ * @return {string} default project name.
+ */
+export const getDefaultProjectName = (): string => capitalize(path.basename(config.projectRootDirectory!));
+
+/**
+ * Gets the project settings from the project dotfile.
+ *
+ * Logs errors.
+ *
+ * ! Should be used instead of `DOTFILE.PROJECT().read()`
+ * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
+ */
+export const getProjectSettings = async (): Promise<ProjectSettings> => {
+  const dotfile = DOTFILE.PROJECT();
+
+  if (!(await dotfile.exists())) {
+    throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
+  }
+
+  const settings = await dotfile.read<ProjectSettings>();
+
+  // Settings must have the script ID. Otherwise we err.
+  if (!settings.scriptId) {
+    throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
+  }
+  return settings;
+};
+>>>>>>> 1c8700c (refactor: Update dependencies to latest versions (#961))
 
 /**
  * Gets the Google Drive API FileType.
@@ -137,9 +220,34 @@ export function saveProject(project: Project) {
  * Gets the script's Cloud Platform Project Id from project settings file or prompt for one.
  * @returns {Promise<string>} A promise to get the projectId string.
  */
+<<<<<<< HEAD
 export async function getOrPromptForProjectId(project: Project, promptUser = true): Promise<string> {
   if (project.settings.projectId) {
     return project.settings.projectId;
+=======
+export const getProjectId = async (promptUser = true): Promise<string> => {
+  try {
+    const projectSettings: ProjectSettings = await getProjectSettings();
+
+    if (!projectSettings.projectId) {
+      if (!promptUser) {
+        throw new ClaspError('Project ID not found.');
+      }
+
+      console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
+      console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
+
+      projectSettings.projectId = (await projectIdPrompt()).projectId;
+      await DOTFILE.PROJECT().write(projectSettings);
+    }
+
+    return projectSettings.projectId ?? '';
+  } catch (error) {
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+    throw new ClaspError('Unable to fetch project ID', 1);
+>>>>>>> 1c8700c (refactor: Update dependencies to latest versions (#961))
   }
 
   if (!promptUser) {
