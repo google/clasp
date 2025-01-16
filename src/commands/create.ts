@@ -1,14 +1,14 @@
 import is from '@sindresorhus/is';
+import {google} from 'googleapis';
 import {SCRIPT_TYPES} from '../apis.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
+import {Conf} from '../conf.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
 import {scriptTypePrompt} from '../inquirer.js';
 import {manifestExists} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {getDefaultProjectName, getProjectSettings, saveProject, spinner, stopSpinner} from '../utils.js';
-import {Conf} from '../conf.js';
-import {getAuthorizedOAuth2Client} from '../auth.js';
-import {google} from 'googleapis';
 
 const config = Conf.get();
 

@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import fs from 'fs-extra';
-import {after, before, beforeEach, describe, it} from 'mocha';
+import {after, afterEach, before, beforeEach, describe, it} from 'mocha';
 
 import {CLASP_PATHS, FAKE_CLASPRC} from '../constants.js';
 import {backupSettings, cleanup, restoreSettings, runClasp, setup} from '../functions.js';

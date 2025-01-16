@@ -21,13 +21,14 @@
  * clasp - The Apps Script CLI
  */
 
-import {program} from 'commander';
-import loudRejection from 'loud-rejection';
 import {dirname} from 'path';
-import {readPackageUpSync} from 'read-pkg-up';
 import {fileURLToPath} from 'url';
+import {program} from 'commander';
 import fs from 'fs-extra';
+import loudRejection from 'loud-rejection';
+import {readPackageUpSync} from 'read-pkg-up';
 
+import {setActiveUserKey} from './auth.js';
 import {ClaspError} from './clasp-error.js';
 import {disableApiCommand, enableApiCommand, listApisCommand, openApisCommand} from './commands/apis.js';
 import {cloneProjectCOmmand} from './commands/clone.js';
@@ -49,9 +50,8 @@ import {createVersionCommand} from './commands/version.js';
 import {listVersionsCommand} from './commands/versions.js';
 import {Conf} from './conf.js';
 import {PROJECT_NAME} from './constants.js';
-import {spinner, stopSpinner} from './utils.js';
-import {setActiveUserKey} from './auth.js';
 import {ERROR} from './messages.js';
+import {spinner, stopSpinner} from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

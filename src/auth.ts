@@ -1,14 +1,14 @@
-import {GoogleAuth, OAuth2Client} from 'google-auth-library';
 import {createServer} from 'http';
-import open from 'open';
-import enableDestroy from 'server-destroy';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
+import {GoogleAuth, OAuth2Client} from 'google-auth-library';
+import open from 'open';
+import enableDestroy from 'server-destroy';
 
-import {LOG} from './messages.js';
-import {authorizationCompletePrompt} from './inquirer.js';
-import {FileCredentialStore} from './credential_store.js';
 import {readFileSync} from 'fs';
+import {FileCredentialStore} from './credential_store.js';
+import {authorizationCompletePrompt} from './inquirer.js';
+import {LOG} from './messages.js';
 
 let activeUserKey = 'default';
 const activeCredentialStore = new FileCredentialStore();

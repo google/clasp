@@ -1,10 +1,10 @@
-import {expect} from 'chai';
 import {spawnSync} from 'child_process';
+import {expect} from 'chai';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 
-import {URL} from '../../src/urls.js';
 import {ERROR, LOG} from '../../src/messages.js';
+import {URL} from '../../src/urls.js';
 import {SCRIPT_ID} from '../constants.js';
 import {cleanup, runClasp, setup} from '../functions.js';
 

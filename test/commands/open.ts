@@ -1,8 +1,8 @@
 import {expect} from 'chai';
 import {after, before, describe, it} from 'mocha';
 
-import {URL} from '../../src/urls.js';
 import {ERROR, LOG} from '../../src/messages.js';
+import {URL} from '../../src/urls.js';
 import {PARENT_ID, PROJECT_ID, SCRIPT_ID} from '../constants.js';
 import {cleanup, runClasp, setup} from '../functions.js';
 

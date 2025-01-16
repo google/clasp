@@ -1,3 +1,4 @@
+import path from 'path';
 /**
  * Manages dotfiles. There are 2 types of dotfiles:
  *
@@ -13,7 +14,6 @@
  */
 import dotf from 'dotf';
 import fs from 'fs-extra';
-import path from 'path';
 import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
 

@@ -1,14 +1,14 @@
 import {drive_v3 as driveV3, google} from 'googleapis';
 
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
+import {Conf} from '../conf.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
 import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {extractScriptId} from '../urls.js';
 import {saveProject, spinner} from '../utils.js';
 import {showFiletatusCommand} from './status.js';
-import {Conf} from '../conf.js';
-import {getAuthorizedOAuth2Client} from '../auth.js';
 
 const config = Conf.get();
 

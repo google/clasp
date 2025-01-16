@@ -23,11 +23,11 @@
     "lint": "npm run check",
     "test": "nyc mocha --cache false --timeout 100000 --recursive build/test",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
-    "prettier": "prettier src test --write",
-    "check": "gts check src/*.ts src/**/*.ts test/*.ts test/**/*.ts",
-    "clean": "gts clean",
+    "prettier": "biome format src test --write",
+    "check": "biome check src test",
+    "clean": "rm -rf build",
     "compile": "tsc",
-    "fix": "gts fix src/*.ts src/**/*.ts test/*.ts test/**/*.ts",
+    "fix": "biome check src text --fix --write",
     "pretest": "npm run compile && npm run check",
     "clasp": "node --loader ts-node/esm --no-warnings src/index.ts"
   },
@@ -94,6 +94,7 @@
     "typescript": "^5.7.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@commander-js/extra-typings": "^13.0.0",
     "@types/chai": "^5.0.1",
     "@types/debounce": "^1.2.4",
@@ -106,10 +107,8 @@
     "@types/wtfnode": "^0.7.3",
     "chai": "^5.1.2",
     "coveralls": "^3.1.1",
-    "gts": "^6.0.2",
     "mocha": "^11.0.1",
     "nyc": "^17.1.0",
-    "prettier": "^3.4.2",
     "tmp": "^0.2.3",
     "ts-node": "^10.9.2",
     "type-fest": "^4.32.0"

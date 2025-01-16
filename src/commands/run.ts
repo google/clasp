@@ -1,16 +1,16 @@
-import chalk from 'chalk';
 import readline from 'readline';
+import chalk from 'chalk';
 
+import {GaxiosError} from 'gaxios';
+import {google} from 'googleapis';
+import {script_v1 as scriptV1} from 'googleapis';
 import {enableAppsScriptAPI, getFunctionNames} from '../apiutils.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {addScopeToManifest, isValidRunManifest} from '../manifest.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
 import {getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils.js';
-import {google} from 'googleapis';
-import {getAuthorizedOAuth2Client} from '../auth.js';
-import {script_v1 as scriptV1} from 'googleapis';
-import {GaxiosError} from 'gaxios';
 
 interface CommandOption {
   readonly nondev: boolean;

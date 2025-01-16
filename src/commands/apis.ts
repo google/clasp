@@ -4,12 +4,13 @@ import type {ReadonlyDeep} from 'type-fest';
 
 import {PUBLIC_ADVANCED_SERVICES} from '../apis.js';
 import {enableOrDisableAPI} from '../apiutils.js';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
 import {getProjectId} from '../utils.js';
-import {getAuthorizedOAuth2Client} from '../auth.js';
 
+type Unpacked<T> = T extends Array<infer U> ? U : T;
 type DirectoryItem = Unpacked<discoveryV1.Schema$DirectoryList['items']>;
 type PublicAdvancedService = ReadonlyDeep<Required<NonNullable<DirectoryItem>>>;
 

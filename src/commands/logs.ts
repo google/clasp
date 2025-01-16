@@ -3,13 +3,13 @@ import chalk, {ChalkInstance} from 'chalk';
 import {google, logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {DOTFILE, ProjectSettings} from '../dotfile.js';
 import {projectIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
 import {getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
-import {getAuthorizedOAuth2Client} from '../auth.js';
 
 interface CommandOption {
   readonly json?: boolean;

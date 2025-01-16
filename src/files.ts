@@ -1,20 +1,20 @@
+import path from 'path';
 import chalk from 'chalk';
 import fs from 'fs-extra';
+import {GaxiosError} from 'googleapis-common';
 import {makeDirectory} from 'make-dir';
 import multimatch from 'multimatch';
-import path from 'path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
-import {GaxiosError} from 'googleapis-common';
 
+import {google} from 'googleapis';
+import {getAuthorizedOAuth2Client} from './auth.js';
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
 import {PROJECT_MANIFEST_FILENAME} from './constants.js';
 import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
 import {getApiFileType, getProjectSettings, spinner, stopSpinner} from './utils.js';
-import {getAuthorizedOAuth2Client} from './auth.js';
-import {google} from 'googleapis';
 
 const config = Conf.get();
 

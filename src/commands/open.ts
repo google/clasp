@@ -1,13 +1,13 @@
 import open from 'open';
 
+import {google} from 'googleapis';
+import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ProjectSettings} from '../dotfile.js';
-import {deploymentIdPrompt, DeploymentIdPromptChoice} from '../inquirer.js';
+import {DeploymentIdPromptChoice, deploymentIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
 import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils.js';
-import {google} from 'googleapis';
-import {getAuthorizedOAuth2Client} from '../auth.js';
 
 interface CommandOption {
   readonly webapp?: boolean;

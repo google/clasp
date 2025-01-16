@@ -4,7 +4,7 @@ import {after, afterEach, before, beforeEach, describe, it} from 'mocha';
 
 import {ERROR} from '../../src/messages.js';
 import {CLASP_PATHS, CLIENT_CREDS, FAKE_CLASPRC} from '../constants.js';
-import {backupSettings, cleanup, restoreSettings, randomString, setup, runClasp} from '../functions.js';
+import {backupSettings, cleanup, randomString, restoreSettings, runClasp, setup} from '../functions.js';
 
 describe('Test clasp login function', () => {
   before(setup);

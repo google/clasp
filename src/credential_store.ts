@@ -1,9 +1,9 @@
+import path from 'path';
 import dotf from 'dotf';
 import {Dotfile} from 'dotf';
-import {JWTInput, Credentials} from 'google-auth-library';
-import {Conf} from './conf.js';
+import {Credentials, JWTInput} from 'google-auth-library';
 import {ClaspError} from './clasp-error.js';
-import path from 'path';
+import {Conf} from './conf.js';
 
 type StoredCredential = JWTInput & Credentials;
 

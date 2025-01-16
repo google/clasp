@@ -1,14 +1,14 @@
-import fs from 'fs-extra';
 import path from 'path';
+import fs from 'fs-extra';
 import tmp from 'tmp';
 
+import {spawnSync} from 'child_process';
 import {
   CLASP_PATHS,
   CLASP_SETTINGS,
-  TEST_APPSSCRIPT_JSON_WITH_RUN_API,
   TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
+  TEST_APPSSCRIPT_JSON_WITH_RUN_API,
 } from './constants.js';
-import {spawnSync} from 'child_process';
 
 export function runClasp(args: string[], opts = {}) {
   return spawnSync('node', [`${process.cwd()}/build/src/index.js`, ...args], {

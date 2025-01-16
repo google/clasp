@@ -2,11 +2,11 @@
  * Clasp command method bodies.
  */
 
+import {google} from 'googleapis';
 import {authorize, getAuthorizedOAuth2Client, getUnauthorizedOuth2Client} from '../auth.js';
 import {readManifest} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {safeIsOnline} from '../utils.js';
-import {google} from 'googleapis';
 
 const DEFAULT_SCOPES = [
   // Default to clasp scopes

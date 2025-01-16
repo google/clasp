@@ -1,17 +1,17 @@
+import path, {dirname} from 'path';
+import {fileURLToPath} from 'url';
 import {expect} from 'chai';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
-import path, {dirname} from 'path';
 import {readPackageUpSync} from 'read-pkg-up';
-import {fileURLToPath} from 'url';
 
+import {spawnSync} from 'child_process';
 import {getAppsScriptFileName, getLocalFileType} from '../src/files.js';
 import {ERROR, LOG} from '../src/messages.js';
-import {extractScriptId, URL} from '../src/urls.js';
+import {URL, extractScriptId} from '../src/urls.js';
 import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils.js';
 import {CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
-import {runClasp, backupSettings, cleanup, restoreSettings, setup} from './functions.js';
-import {spawnSync} from 'child_process';
+import {backupSettings, cleanup, restoreSettings, runClasp, setup} from './functions.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const manifest = readPackageUpSync({cwd: __dirname});
