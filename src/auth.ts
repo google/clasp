@@ -54,14 +54,14 @@ export async function getAuthorizedOAuth2Client(userKey?: string) {
 
   client = new GoogleAuth().fromJSON(savedCredentials) as OAuth2Client;
   client.setCredentials(savedCredentials);
-  client.on('tokens', tokens => {
+  client.on('tokens', async tokens => {
     const refreshedCredentials = {
       ...savedCredentials,
       expiry_date: tokens.expiry_date,
       access_token: tokens.access_token,
       id_token: tokens.access_token,
     };
-    activeCredentialStore.save(userKey!, refreshedCredentials);
+    await activeCredentialStore.save(userKey!, refreshedCredentials);
   });
   credentialsCache.set(userKey, client);
   return client;
@@ -94,7 +94,7 @@ export async function authorize(options: AuthorizationOptions) {
   return saveOauthClientCredentials(activeUserKey, client);
 }
 
-function saveOauthClientCredentials(userKey: string, oauth2Client: OAuth2Client) {
+async function saveOauthClientCredentials(userKey: string, oauth2Client: OAuth2Client) {
   const savedCredentials = {
     client_id: oauth2Client._clientId,
     client_secret: oauth2Client._clientSecret,
@@ -102,16 +102,16 @@ function saveOauthClientCredentials(userKey: string, oauth2Client: OAuth2Client)
     refresh_token: oauth2Client.credentials.refresh_token ?? undefined,
     access_token: oauth2Client.credentials.access_token ?? undefined,
   };
-  oauth2Client.on('tokens', tokens => {
+  oauth2Client.on('tokens', async tokens => {
     const refreshedCredentials = {
       ...savedCredentials,
       expiry_date: tokens.expiry_date,
       access_token: tokens.access_token,
       id_token: tokens.access_token,
     };
-    activeCredentialStore.save(userKey, refreshedCredentials);
+    await activeCredentialStore.save(userKey, refreshedCredentials);
   });
-  activeCredentialStore.save(userKey, savedCredentials);
+  await activeCredentialStore.save(userKey, savedCredentials);
   credentialsCache.set(userKey, oauth2Client);
 }
 
@@ -159,7 +159,7 @@ class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
 
   async promptAndReturnCode(authorizationUrl: string) {
     console.log(
-      `Authorize clasp by visiting the following URL on another device:\n\n\t${authorizationUrl}\n\nAfter authorization, copy and paste the URL in the browser here.\n`
+      `Authorize clasp by visiting the following URL on another device:\n\n\t${authorizationUrl}\n\nAfter authorization, copy and paste the URL in the browser here.\n`,
     );
     const {url} = await authorizationCompletePrompt();
     const {code, error} = parseAuthResponseUrl(url);
@@ -188,7 +188,7 @@ class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
       s.listen(this.port, () => resolve(s)).on('error', (err: NodeJS.ErrnoException) => {
         if (err.code === 'EADDRINUSE') {
           console.error(
-            `Error: Port ${this.port} is already in use. Please specify a different port with --redirect-port.`
+            `Error: Port ${this.port} is already in use. Please specify a different port with --redirect-port.`,
           );
         } else {
           console.error(`Error: Unable to start the server on port ${this.port}.`, err.message);
@@ -201,7 +201,7 @@ class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
   }
 
   async promptAndReturnCode(authorizationUrl: string) {
-    return new Promise<string>((resolve, reject) => {
+    return await new Promise<string>((resolve, reject) => {
       if (!this.server) {
         reject(new Error('Server not started'));
         return;
@@ -220,7 +220,7 @@ class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
 
         response.end(LOG.AUTH_PAGE_SUCCESSFUL);
       });
-      open(authorizationUrl);
+      void open(authorizationUrl);
       console.log(LOG.AUTHORIZE(authorizationUrl));
     }).finally(() => this.server?.destroy());
   }
