@@ -18,7 +18,6 @@ import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
 
 import {Conf} from './conf.js';
-import {FS_OPTIONS} from './constants.js';
 
 import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
 
@@ -60,7 +59,7 @@ export const DOTFILE = {
   IGNORE: async () => {
     const ignorePath = config.ignore;
     const content =
-      ignorePath && fs.existsSync(ignorePath) ? fs.readFileSync(ignorePath, FS_OPTIONS) : defaultClaspignore;
+      ignorePath && fs.existsSync(ignorePath) ? fs.readFileSync(ignorePath, {encoding: 'utf8'}) : defaultClaspignore;
 
     return splitLines(stripBom(content)).filter((name: string) => name.length > 0);
   },

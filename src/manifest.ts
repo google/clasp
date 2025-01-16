@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import {PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis.js';
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
-import {FS_OPTIONS, PROJECT_MANIFEST_FILENAME} from './constants.js';
+import {PROJECT_MANIFEST_FILENAME} from './constants.js';
 import {ProjectSettings} from './dotfile.js';
 import {ERROR} from './messages.js';
 import {getProjectSettings, parseJsonOrDie} from './utils.js';
@@ -37,7 +37,7 @@ export const manifestExists = (rootDir = config.projectRootDirectory): boolean =
 export const readManifest = async (): Promise<Manifest> => {
   const manifest = getManifestPath(getRootDir(await getProjectSettings()));
   try {
-    return fs.readJsonSync(manifest, FS_OPTIONS) as Manifest;
+    return fs.readJsonSync(manifest, {encoding: 'utf8'}) as Manifest;
   } catch (error) {
     if (error instanceof ClaspError) {
       throw error;
@@ -88,7 +88,9 @@ export const isValidRunManifest = async (): Promise<boolean> => {
  * - Is valid JSON.
  */
 export const getManifest = async (): Promise<Manifest> =>
-  parseJsonOrDie<Manifest>(fs.readFileSync(getManifestPath(getRootDir(await getProjectSettings())), FS_OPTIONS));
+  parseJsonOrDie<Manifest>(
+    fs.readFileSync(getManifestPath(getRootDir(await getProjectSettings())), {encoding: 'utf8'}),
+  );
 
 /**
  * Adds a list of scopes to the manifest.
@@ -149,7 +151,7 @@ export const enableOrDisableAdvanceServiceInManifest = async (serviceId: string,
   // Copy the list of advanced services:
   // Disable the service (even if we may enable it)
   const enabledServices = (manifest.dependencies.enabledAdvancedServices ?? []).filter(
-    (service: Readonly<EnabledAdvancedService>) => service.serviceId !== serviceId
+    (service: Readonly<EnabledAdvancedService>) => service.serviceId !== serviceId,
   );
 
   // Enable the service
