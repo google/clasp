@@ -5,9 +5,9 @@
     "alwaysStrict": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "lib": ["ESNext"],
-    "module": "ES2020",
-    "moduleResolution": "Node",
+    "lib": ["esnext", "dom"],
+    "module": "Node16",
+    "moduleResolution": "node16",
     "newLine": "lf",
     "noImplicitAny": true,
     "noImplicitThis": true,
@@ -20,8 +20,6 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "stripInternal": true,
-    "suppressExcessPropertyErrors": true,
-    "suppressImplicitAnyIndexErrors": true,
     "target": "es2019",
 
     "importHelpers": true // canary: will cause runtime error if `tslib` is necessary

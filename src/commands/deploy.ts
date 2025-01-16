@@ -17,7 +17,7 @@ interface CommandOption {
  * @param options.description   {string} The deployment description.
  * @param options.deploymentId  {string} The deployment ID to redeploy.
  */
-export default async (options: CommandOption): Promise<void> => {
+export async function deployCommand(options: CommandOption): Promise<void> {
   const oauth2Client = await getAuthorizedOAuth2Client();
   if (!oauth2Client) {
     throw new ClaspError(ERROR.NO_CREDENTIALS(false));
@@ -77,4 +77,4 @@ export default async (options: CommandOption): Promise<void> => {
   stopSpinner();
 
   console.log(`- ${newDeploymentId} @${versionNumber}.`);
-};
+}

@@ -13,7 +13,7 @@ interface CommandOption {
  * Lists a user's Apps Script projects using Google Drive.
  * @param options.noShorten {boolean}
  */
-export default async (options: CommandOption): Promise<void> => {
+export async function listProjectsCommand(options: CommandOption): Promise<void> {
   const oauth2Client = await getAuthorizedOAuth2Client();
   if (!oauth2Client) {
     throw new ClaspError(ERROR.NO_CREDENTIALS(false));
@@ -47,4 +47,4 @@ export default async (options: CommandOption): Promise<void> => {
   } else {
     console.log(LOG.FINDING_SCRIPTS_DNE);
   }
-};
+}

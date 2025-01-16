@@ -20,13 +20,13 @@ describe('Test files isValidFileName function', () => {
   // Disable a couple of linting rules just for these tests
   it('should return true for valid combinations of input', () => {
     expect(
-      isValidFileName(validFileName, validJSFileType, validRootDir, validNormalizedName, validIgnoreMatches)
+      isValidFileName(validFileName, validJSFileType, validRootDir, validNormalizedName, validIgnoreMatches),
     ).to.equal(true);
     expect(
-      isValidFileName(validFileName, validHTMLFileType, validRootDir, validNormalizedName, validIgnoreMatches)
+      isValidFileName(validFileName, validHTMLFileType, validRootDir, validNormalizedName, validIgnoreMatches),
     ).to.equal(true);
     expect(
-      isValidFileName(validJSONFileName, validJSONFileType, validRootDir, validNormalizedName, validIgnoreMatches)
+      isValidFileName(validJSONFileName, validJSONFileType, validRootDir, validNormalizedName, validIgnoreMatches),
     ).to.equal(true);
   });
   it('should return false for invalid combinations of input', () => {
@@ -36,8 +36,8 @@ describe('Test files isValidFileName function', () => {
         validJSFileType,
         validRootDir,
         validNormalizedName,
-        validIgnoreMatches
-      )
+        validIgnoreMatches,
+      ),
     ).to.equal(false);
     expect(
       isValidFileName(
@@ -45,11 +45,11 @@ describe('Test files isValidFileName function', () => {
         validJSFileType,
         validRootDir,
         validNormalizedName,
-        validIgnoreMatches
-      )
+        validIgnoreMatches,
+      ),
     ).to.equal(false);
     expect(
-      isValidFileName(validFileName, invalidFileType, validRootDir, validNormalizedName, validIgnoreMatches)
+      isValidFileName(validFileName, invalidFileType, validRootDir, validNormalizedName, validIgnoreMatches),
     ).to.equal(false);
   });
 });

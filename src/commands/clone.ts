@@ -6,7 +6,7 @@ import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {extractScriptId} from '../urls.js';
 import {saveProject, spinner} from '../utils.js';
-import status from './status.js';
+import {showFiletatusCommand} from './status.js';
 import {Conf} from '../conf.js';
 import {getAuthorizedOAuth2Client} from '../auth.js';
 
@@ -24,11 +24,11 @@ interface CommandOption {
  * @param options.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                        If not specified, clasp will default to the current directory.
  */
-export default async (
+export async function cloneProjectCOmmand(
   scriptId: string | undefined,
   versionNumber: number | undefined,
-  options: CommandOption
-): Promise<void> => {
+  options: CommandOption,
+): Promise<void> {
   if (options.rootDir) {
     config.projectRootDirectory = options.rootDir;
   }
@@ -43,8 +43,8 @@ export default async (
   const files = await fetchProject(id, versionNumber);
   await saveProject({scriptId: id, rootDir: config.projectRootDirectory}, false);
   await writeProjectFiles(files, config.projectRootDirectory);
-  await status();
-};
+  await showFiletatusCommand();
+}
 
 /**
  * Lists a user's AppsScripts and prompts them to choose one to clone.

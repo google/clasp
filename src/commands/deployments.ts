@@ -7,7 +7,7 @@ import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 /**
  * Lists a script's deployments.
  */
-export default async (): Promise<void> => {
+export async function listDeploymentsCommand(): Promise<void> {
   const oauth2Client = await getAuthorizedOAuth2Client();
   if (!oauth2Client) {
     throw new ClaspError(ERROR.NO_CREDENTIALS(false));
@@ -40,4 +40,4 @@ export default async (): Promise<void> => {
       }
     }
   }
-};
+}

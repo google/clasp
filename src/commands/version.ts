@@ -8,7 +8,7 @@ import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 /**
  * Creates a new version of an Apps Script project.
  */
-export default async (description?: string): Promise<void> => {
+export async function createVersionCommand(description?: string): Promise<void> {
   const oauth2Client = await getAuthorizedOAuth2Client();
   if (!oauth2Client) {
     throw new ClaspError(ERROR.NO_CREDENTIALS(false));
@@ -27,4 +27,4 @@ export default async (description?: string): Promise<void> => {
 
   stopSpinner();
   console.log(LOG.VERSION_CREATED(data.versionNumber ?? -1));
-};
+}

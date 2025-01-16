@@ -1,13 +1,13 @@
-import fs from 'fs-extra';
+import {readFileSync} from 'fs';
 import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
 import path from 'path';
 import chokidar from 'chokidar';
-import debouncePkg from 'debounce';
+import debounce from 'debounce';
 import {getAuthorizedOAuth2Client} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
-import {FS_OPTIONS, PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants.js';
+import {PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants.js';
 import {DOTFILE} from '../dotfile.js';
 import {fetchProject, pushFiles} from '../files.js';
 import {overwritePrompt} from '../inquirer.js';
@@ -15,10 +15,8 @@ import {isValidManifest} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {getProjectSettings, spinner} from '../utils.js';
 
-import type {ProjectSettings} from '../dotfile';
+import type {ProjectSettings} from '../dotfile.js';
 
-const {debounce} = debouncePkg;
-const {readFileSync} = fs;
 const WATCH_DEBOUNCE_MS = 1000;
 
 const config = Conf.get();
@@ -33,7 +31,7 @@ interface CommandOption {
  * TODO: Only push the specific files that changed (rather than all files).
  * @param options.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export default async (options: CommandOption): Promise<void> => {
+export async function pushFilesCommand(options: CommandOption): Promise<void> {
   const oauth2Client = await getAuthorizedOAuth2Client();
   if (!oauth2Client) {
     throw new ClaspError(ERROR.NO_CREDENTIALS(false));
@@ -80,7 +78,7 @@ export default async (options: CommandOption): Promise<void> => {
 
   spinner.start(LOG.PUSHING);
   await pushFiles();
-};
+}
 
 /**
  * Confirms that the manifest file has been updated.
@@ -94,7 +92,8 @@ const confirmManifestUpdate = async (): Promise<boolean> => (await overwriteProm
  */
 const manifestHasChanges = async (projectSettings: ProjectSettings): Promise<boolean> => {
   const {scriptId, rootDir = config.projectRootDirectory} = projectSettings;
-  const localManifest = readFileSync(path.join(rootDir!, PROJECT_MANIFEST_FILENAME), FS_OPTIONS);
+  const manifestPath = path.join(rootDir!, PROJECT_MANIFEST_FILENAME);
+  const localManifest = readFileSync(manifestPath, {encoding: 'utf8'});
   const remoteFiles = await fetchProject(scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (remoteManifest) {

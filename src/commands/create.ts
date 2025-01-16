@@ -27,7 +27,7 @@ interface CommandOption {
  * @param options.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                        If not specified, clasp will default to the current directory.
  */
-export default async (options: CommandOption): Promise<void> => {
+export async function createCommand(options: CommandOption): Promise<void> {
   if (options.rootDir) {
     config.projectRootDirectory = options.rootDir;
   }
@@ -107,10 +107,10 @@ export default async (options: CommandOption): Promise<void> => {
   console.log(LOG.CREATE_PROJECT_FINISH(filetype, scriptId));
   await saveProject(
     {scriptId, rootDir: config.projectRootDirectory, parentId: parentId ? [parentId] : undefined},
-    false
+    false,
   );
 
   if (!manifestExists(config.projectRootDirectory)) {
     await writeProjectFiles(await fetchProject(scriptId), config.projectRootDirectory); // Fetches appsscript.json, o.w. `push` breaks
   }
-};
+}

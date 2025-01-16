@@ -13,7 +13,7 @@ const deleteIfExists = (file: string | undefined) => {
 /**
  * Logs out the user by deleting credentials.
  */
-export default async (): Promise<void> => {
+export async function logoutCommand(): Promise<void> {
   deleteIfExists(config.auth);
   deleteIfExists(config.authLocal);
-};
+}

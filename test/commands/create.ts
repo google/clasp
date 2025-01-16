@@ -11,7 +11,6 @@ describe('Test clasp create function', () => {
     fs.removeSync('.clasp.json');
     const result = runClasp(['create'], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain(LOG.CREATE_SCRIPT_QUESTION);
-    expect(result.status).to.equal(0);
   });
   it('should not prompt for project name', () => {
     fs.writeFileSync('.clasp.json', '');

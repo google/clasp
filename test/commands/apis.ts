@@ -16,7 +16,7 @@ describe('Test clasp apis functions', () => {
   });
   it('should ask for an API when trying to enable', () => {
     const result = runClasp(['apis', 'enable']);
-    expect(result.stderr).to.contain('An API name is required.');
+    expect(result.stderr).to.include('missing required argument');
     expect(result.status).to.equal(1);
   });
   it('should enable sheets', () => {
@@ -32,7 +32,7 @@ describe('Test clasp apis functions', () => {
   });
   it('should ask for an API when trying to disable', () => {
     const result = runClasp(['apis', 'disable']);
-    expect(result.stderr).to.contain('An API name is required.');
+    expect(result.stderr).to.include('missing required argument');
     expect(result.status).to.equal(1);
   });
   it('should disable apis correctly', () => {
@@ -43,20 +43,17 @@ describe('Test clasp apis functions', () => {
   });
   it('should show suggestions for using clasp apis', () => {
     const result = runClasp(['apis']);
-    expect(result.stdout).to.contain(`# Try these commands:
-- clasp apis list
-- clasp apis enable slides
-- clasp apis disable slides`);
-    expect(result.stderr).to.equal('');
-    expect(result.status).to.equal(0);
+    expect(result.stderr).to.contain('List, enable, or disable APIs');
+    expect(result.stdout).to.equal('');
+    expect(result.status).to.equal(1);
   });
   it('should error with unknown subcommand', () => {
     const result = runClasp(['apis', 'unknown']);
-    expect(result.stderr).to.contain('Unknown command');
+    expect(result.stderr).to.contain('unknown command');
     expect(result.status).to.equal(1);
   });
   it('should open APIs dashboard', () => {
-    const result = runClasp(['apis', '--open']);
+    const result = runClasp(['apis', 'open']);
     expect(result.stdout).to.contain(URL.APIS(PROJECT_ID));
     expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);

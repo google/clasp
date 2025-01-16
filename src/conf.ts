@@ -65,7 +65,7 @@ export class Conf {
       this._projectConfig = buildPathOrUseEnv(
         `.${PROJECT_NAME}.json`,
         this.projectRootDirectory,
-        ENV.DOT_CLASP_PROJECT
+        ENV.DOT_CLASP_PROJECT,
       );
     }
     return this._projectConfig;

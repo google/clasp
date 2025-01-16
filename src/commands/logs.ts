@@ -1,5 +1,5 @@
 import is from '@sindresorhus/is';
-import chalk from 'chalk';
+import chalk, {ChalkInstance} from 'chalk';
 import {google, logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
@@ -8,7 +8,7 @@ import {DOTFILE, ProjectSettings} from '../dotfile.js';
 import {projectIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
-import {getErrorMessage, getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
+import {getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
 import {getAuthorizedOAuth2Client} from '../auth.js';
 
 interface CommandOption {
@@ -27,7 +27,7 @@ interface CommandOption {
  * @param options.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
  * @param options.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
-export default async (options: CommandOption): Promise<void> => {
+export async function printLogsCommand(options: CommandOption): Promise<void> {
   // Get project settings.
   const projectSettings = await getProjectSettings();
   let projectId = options.setup ? await setupLogs(projectSettings) : projectSettings.projectId;
@@ -58,7 +58,7 @@ export default async (options: CommandOption): Promise<void> => {
   } else {
     await fetchAndPrintLogs(json, simplified, projectId);
   }
-};
+}
 
 /**
  * This object holds all log IDs that have been printed to the user.
@@ -69,7 +69,7 @@ export default async (options: CommandOption): Promise<void> => {
  */
 const logEntryCache: Record<string, boolean> = {};
 
-const severityColor: Record<string, chalk.Chalk> = {
+const severityColor: Record<string, ChalkInstance> = {
   ERROR: chalk.red,
   INFO: chalk.cyan,
   DEBUG: chalk.green, // Includes timeEnd
@@ -84,7 +84,7 @@ const severityColor: Record<string, chalk.Chalk> = {
 const printLogs = (
   input: ReadonlyArray<Readonly<loggingV2.Schema$LogEntry>> = [],
   formatJson = false,
-  simplified = false
+  simplified = false,
 ): void => {
   const entries = [...input].reverse().slice(0, 50); // Print in syslog ascending order
   for (const entry of entries) {
@@ -108,7 +108,7 @@ const printLogs = (
         console.log(
           simplified
             ? `${coloredSeverity} ${functionName} ${payloadData}`
-            : `${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`
+            : `${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`,
         );
 
         logEntryCache[insertId!] = true;
@@ -140,31 +140,23 @@ const obscure = (entry: Readonly<loggingV2.Schema$LogEntry>, functionName: strin
 };
 
 const setupLogs = async (projectSettings: ProjectSettings): Promise<string> => {
-  try {
-    console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
-    console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
+  console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
+  console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
 
-    const dotfile = DOTFILE.PROJECT();
-    if (!dotfile) {
-      throw new ClaspError(ERROR.SETTINGS_DNE());
-    }
-
-    const settings = await dotfile.read<ProjectSettings>();
-    if (!settings.scriptId) {
-      throw new ClaspError(ERROR.SCRIPT_ID_DNE());
-    }
-
-    const {projectId} = await projectIdPrompt();
-    await dotfile.write({...settings, projectId});
-
-    return projectId;
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-
-    throw new ClaspError(getErrorMessage(error) as string); // TODO get rid of type casting
+  const dotfile = DOTFILE.PROJECT();
+  if (!dotfile) {
+    throw new ClaspError(ERROR.SETTINGS_DNE());
   }
+
+  const settings = await dotfile.read<ProjectSettings>();
+  if (!settings.scriptId) {
+    throw new ClaspError(ERROR.SCRIPT_ID_DNE());
+  }
+
+  const {projectId} = await projectIdPrompt();
+  await dotfile.write({...settings, projectId});
+
+  return projectId;
 };
 
 /**
@@ -175,7 +167,7 @@ const fetchAndPrintLogs = async (
   formatJson = false,
   simplified = false,
   projectId?: string,
-  startDate?: Date
+  startDate?: Date,
 ): Promise<void> => {
   // Validate projectId
   if (!projectId) {

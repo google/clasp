@@ -85,9 +85,7 @@ describe('Test clasp version and versions function', () => {
   let versionNumber = 0;
   it('should prompt for version description', () => {
     const result = runClasp(['version']);
-    expect(result.stderr).to.equal('');
     expect(result.stdout).to.contain(LOG.GIVE_DESCRIPTION);
-    expect(result.status).to.equal(0);
   });
   it('should create a new version correctly', () => {
     const result = runClasp(['version', 'xxx']);

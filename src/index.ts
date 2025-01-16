@@ -29,29 +29,29 @@ import {fileURLToPath} from 'url';
 import fs from 'fs-extra';
 
 import {ClaspError} from './clasp-error.js';
-import apis from './commands/apis.js';
-import clone from './commands/clone.js';
-import create from './commands/create.js';
-import defaultCmd from './commands/default.js';
-import deploy from './commands/deploy.js';
-import deployments from './commands/deployments.js';
-import list from './commands/list.js';
-import login from './commands/login.js';
-import logout from './commands/logout.js';
-import logs from './commands/logs.js';
-import openCmd from './commands/open.js';
-import pull from './commands/pull.js';
-import push from './commands/push.js';
-import run from './commands/run.js';
-import setting from './commands/setting.js';
-import status from './commands/status.js';
-import undeploy from './commands/undeploy.js';
-import version from './commands/version.js';
-import versions from './commands/versions.js';
+import {disableApiCommand, enableApiCommand, listApisCommand, openApisCommand} from './commands/apis.js';
+import {cloneProjectCOmmand} from './commands/clone.js';
+import {createCommand} from './commands/create.js';
+import {deployCommand} from './commands/deploy.js';
+import {listDeploymentsCommand} from './commands/deployments.js';
+import {listProjectsCommand} from './commands/list.js';
+import {loginCommand} from './commands/login.js';
+import {logoutCommand} from './commands/logout.js';
+import {printLogsCommand} from './commands/logs.js';
+import {openProjectCommand} from './commands/open.js';
+import {pullFilesCommand} from './commands/pull.js';
+import {pushFilesCommand} from './commands/push.js';
+import {runFunctionCommand} from './commands/run.js';
+import {updateSettingCommand} from './commands/setting.js';
+import {showFiletatusCommand} from './commands/status.js';
+import {undeployCommand} from './commands/undeploy.js';
+import {createVersionCommand} from './commands/version.js';
+import {listVersionsCommand} from './commands/versions.js';
 import {Conf} from './conf.js';
 import {PROJECT_NAME} from './constants.js';
 import {spinner, stopSpinner} from './utils.js';
 import {setActiveUserKey} from './auth.js';
+import {ERROR} from './messages.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -134,18 +134,18 @@ program
   .option('--creds <file>', 'Relative path to OAuth client secret file (from GCP).')
   .option(
     '--use-project-scopes',
-    'Use the scopes from the current project manifest. Used only when authorizing access for the run command.'
+    'Use the scopes from the current project manifest. Used only when authorizing access for the run command.',
   )
   .option('--status', 'Print who is logged in')
   .option('--redirect-port <port>', 'Specify a custom port for the redirect URL.')
-  .action(login);
+  .action(loginCommand);
 
 /**
  * Logs out the user by deleting client credentials.
  * @name logout
  * @example logout
  */
-program.command('logout').description('Log out').action(logout);
+program.command('logout').description('Log out').action(logoutCommand);
 
 /**
  * Creates a new script project.
@@ -167,12 +167,12 @@ program
   .description('Create a script')
   .option(
     '--type <type>',
-    'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, Form, or as a standalone script, web app, or API.'
+    'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, Form, or as a standalone script, web app, or API.',
   )
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
-  .action(create);
+  .action(createCommand);
 
 /**
  * Fetches a project and saves the script id locally.
@@ -184,7 +184,7 @@ program
   .command('clone [scriptId] [versionNumber]')
   .description('Clone a project')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
-  .action(clone);
+  .action(cloneProjectCOmmand);
 
 /**
  * Fetches a project from either a provided or saved script id.
@@ -196,7 +196,7 @@ program
   .command('pull')
   .description('Fetch a remote project')
   .option('--versionNumber <version>', 'The version number of the project to retrieve.')
-  .action(pull);
+  .action(pullFilesCommand);
 
 /**
  * Force writes all local files to the script management server.
@@ -214,7 +214,7 @@ program
   .description('Update the remote project')
   .option('-f, --force', 'Forcibly overwrites the remote manifest.')
   .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changes.')
-  .action(push);
+  .action(pushFilesCommand);
 
 /**
  * Lists files that will be written to the server on `push`.
@@ -229,7 +229,7 @@ program
   .command('status')
   .description('Lists files that will be pushed by clasp')
   .option('--json', 'Show status in JSON form')
-  .action(status);
+  .action(showFiletatusCommand);
 
 /**
  * Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.
@@ -245,14 +245,14 @@ program
   .option('--creds', 'Open the URL to create credentials')
   .option('--addon', 'List parent IDs and open the URL of the first one')
   .option('--deploymentId <id>', 'Use custom deployment ID with webapp')
-  .action(openCmd);
+  .action(openProjectCommand);
 
 /**
  * List deployments of a script
  * @name deployments
  * @example deployments
  */
-program.command('deployments').description('List deployment ids of a script').action(deployments);
+program.command('deployments').description('List deployment ids of a script').action(listDeploymentsCommand);
 
 /**
  * Creates a version and deploys a script.
@@ -270,7 +270,7 @@ program
   .option('-V, --versionNumber <version>', 'The project version') // We can't use `version` in subcommand
   .option('-d, --description <description>', 'The deployment description')
   .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
-  .action(deploy);
+  .action(deployCommand);
 
 /**
  * Undeploys a deployment of a script.
@@ -285,7 +285,7 @@ program
   .command('undeploy [deploymentId]')
   .description('Undeploy a deployment of a project')
   .option('-a, --all', 'Undeploy all deployments')
-  .action(undeploy);
+  .action(undeployCommand);
 
 /**
  * Creates an immutable version of the script.
@@ -294,14 +294,17 @@ program
  * @example version
  * @example version "Bump the version."
  */
-program.command('version [description]').description('Creates an immutable version of the script').action(version);
+program
+  .command('version [description]')
+  .description('Creates an immutable version of the script')
+  .action(createVersionCommand);
 
 /**
  * List versions of a script.
  * @name versions
  * @example versions
  */
-program.command('versions').description('List versions of a script').action(versions);
+program.command('versions').description('List versions of a script').action(listVersionsCommand);
 
 /**
  * Lists your most recent 10 Apps Script projects.
@@ -313,7 +316,7 @@ program
   .command('list')
   .description('List App Scripts projects')
   .option('--noShorten', 'Do not shorten long names', false)
-  .action(list);
+  .action(listProjectsCommand);
 
 /**
  * Prints StackDriver logs.
@@ -330,7 +333,7 @@ program
   .option('--setup', 'Setup StackDriver logs')
   .option('--watch', 'Watch and print new logs')
   .option('--simplified', 'Hide timestamps with logs')
-  .action(logs);
+  .action(printLogsCommand);
 
 /**
  * Remotely executes an Apps Script function.
@@ -349,7 +352,7 @@ program
   .description('Run a function in your Apps Scripts project')
   .option('--nondev', 'Run script function in non-devMode')
   .option('-p, --params [StringArray]', 'Add parameters required for the function as a JSON String Array')
-  .action(run);
+  .action(runFunctionCommand);
 
 /**
  * List, enable, or disable APIs for your project.
@@ -358,16 +361,19 @@ program
  * @example apis list
  * @example apis enable drive
  */
-program
-  .command('apis')
-  .description(
-    `List, enable, or disable APIs
-  list
-  enable <api>
-  disable <api>`
-  )
-  .option('--open', 'Open the API Console in the browser')
-  .action(apis);
+const apisCmd = program.command('apis').description('List, enable, or disable APIs');
+apisCmd.command('list').description('List enabled APIs for the current project').action(listApisCommand);
+apisCmd.command('open').description('Open the API console for the current project.').action(openApisCommand);
+apisCmd
+  .command('enable')
+  .description('Enable a service for the current project.')
+  .argument('<api>', 'Service to enable')
+  .action(enableApiCommand);
+apisCmd
+  .command('disable')
+  .description('Enable a service for the current project.')
+  .argument('<api>', 'Service to disable')
+  .action(disableApiCommand);
 
 /**
  * Update .clasp.json settings file.
@@ -384,13 +390,12 @@ program
   .command('setting [settingKey] [newValue]')
   .alias('settings')
   .description('Update <settingKey> in .clasp.json')
-  .action(setting);
+  .action(updateSettingCommand);
 
-/**
- * All other commands are given a help message.
- * @example random
- */
-program.command('*', {isDefault: true}).description('Any other command is not supported').action(defaultCmd);
+program.on('command:*', op => {
+  console.error(ERROR.COMMAND_DNE(op[0]));
+  process.exitCode = 1;
+});
 
 /**
  * @internal
@@ -411,7 +416,7 @@ if (args.length === 0) {
   program.outputHelp();
 }
 
-(async () => {
+await (async () => {
   try {
     // User input is provided from the process' arguments
     await program.parseAsync(process.argv);

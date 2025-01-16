@@ -8,7 +8,7 @@ import {getProjectSettings, saveProject} from '../utils.js';
  * @param {keyof ProjectSettings} settingKey The key to set
  * @param {string?} settingValue Optional value to set the key to
  */
-export default async (settingKey?: keyof ProjectSettings, settingValue?: string): Promise<void> => {
+export async function updateSettingCommand(settingKey?: keyof ProjectSettings, settingValue?: string): Promise<void> {
   const currentSettings = await getProjectSettings();
 
   // Display all settings if ran `clasp setting`.
@@ -53,4 +53,4 @@ export default async (settingKey?: keyof ProjectSettings, settingValue?: string)
 
     throw new ClaspError('Unable to update .clasp.json');
   }
-};
+}

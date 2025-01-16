@@ -11,7 +11,7 @@ interface CommandOption {
  * @param options.versionNumber {number} The version number of the project to retrieve.
  *                              If not provided, the project's HEAD version is returned.
  */
-export default async (options: CommandOption): Promise<void> => {
+export async function pullFilesCommand(options: CommandOption): Promise<void> {
   const {scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
     spinner.start(LOG.PULLING);
@@ -21,4 +21,4 @@ export default async (options: CommandOption): Promise<void> => {
 
     stopSpinner();
   }
-};
+}

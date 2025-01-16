@@ -8,7 +8,7 @@ import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
 /**
  * Lists versions of an Apps Script project.
  */
-export default async (): Promise<void> => {
+export async function listVersionsCommand(): Promise<void> {
   spinner.start('Grabbing versions…');
 
   const {scriptId} = await getProjectSettings();
@@ -26,7 +26,7 @@ export default async (): Promise<void> => {
   for (const version of versionList) {
     console.log(LOG.VERSION_DESCRIPTION(version));
   }
-};
+}
 
 const getVersionList = async (scriptId: string) => {
   let maxPages = 5;

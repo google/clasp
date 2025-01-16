@@ -10,6 +10,7 @@ import {getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils
 import {google} from 'googleapis';
 import {getAuthorizedOAuth2Client} from '../auth.js';
 import {script_v1 as scriptV1} from 'googleapis';
+import {GaxiosError} from 'gaxios';
 
 interface CommandOption {
   readonly nondev: boolean;
@@ -23,7 +24,7 @@ interface CommandOption {
  * @see https://developers.google.com/apps-script/api/how-tos/execute
  * @requires `clasp login --creds` to be run beforehand.
  */
-export default async (functionName: string, options: CommandOption): Promise<void> => {
+export async function runFunctionCommand(functionName: string, options: CommandOption): Promise<void> {
   const {scriptId} = await getProjectSettings();
   const devMode = !options.nondev; // Defaults to true
   const {params: jsonString = '[]'} = options;
@@ -59,7 +60,7 @@ export default async (functionName: string, options: CommandOption): Promise<voi
   }
 
   await runFunction(script, functionName, parameters, scriptId, devMode);
-};
+}
 
 /**
  * Runs a function.
@@ -70,7 +71,7 @@ const runFunction = async (
   functionName: string,
   parameters: string[],
   scriptId: string,
-  devMode: boolean
+  devMode: boolean,
 ) => {
   try {
     spinner.start(`Running function: ${functionName}`);
@@ -105,7 +106,7 @@ const runFunction = async (
 
     if (error) {
       // TODO move these to logError when stable?
-      switch ((error as any).code) {
+      switch ((error as GaxiosError).status) {
         case 401:
           // The 401 is probably due to this error:
           // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
@@ -131,7 +132,7 @@ https://www.googleapis.com/auth/presentations
         case 404:
           throw new ClaspError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
         default:
-          throw new ClaspError(`(${(error as any).code}) Error: ${(error as any).message}`);
+          throw new ClaspError(`(${(error as GaxiosError).status}) Error: ${(error as GaxiosError).message}`);
       }
     }
   }

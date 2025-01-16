@@ -7,7 +7,6 @@ import {readManifest} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
 import {safeIsOnline} from '../utils.js';
 import {google} from 'googleapis';
-import {ClaspError} from '../clasp-error.js';
 
 const DEFAULT_SCOPES = [
   // Default to clasp scopes
@@ -64,14 +63,15 @@ async function showLoginStatus(): Promise<void> {
  * @param {string?} options.creds The location of credentials file.
  * @param {boolean?} options.status If true, prints who is logged in instead of doing login.
  */
-export default async (options: CommandOption): Promise<void> => {
+export async function loginCommand(options: CommandOption): Promise<void> {
   if (options.status) {
     // TODO - Refactor as subcommand
     await showLoginStatus();
     return;
   }
 
-  if (await getAuthorizedOAuth2Client()) {
+  const existingCredentials = await getAuthorizedOAuth2Client();
+  if (existingCredentials) {
     console.error(ERROR.LOGGED_IN);
   }
 
@@ -98,6 +98,6 @@ export default async (options: CommandOption): Promise<void> => {
     redirectPort,
   });
 
-  showLoginStatus();
+  await showLoginStatus();
   return;
-};
+}

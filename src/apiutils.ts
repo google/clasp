@@ -26,13 +26,12 @@ export const getFunctionNames = async (script: ReadonlyDeep<scriptV1.Script>, sc
     .flatMap(file => file.functionSet!.values!)
     .map(func => func.name!);
 
-  // Returns a Promise
-  // https://www.npmjs.com/package/inquirer-autocomplete-prompt-ipt#options
-  // Example: https://github.com/ruyadorno/inquirer-autocomplete-prompt/blob/master/example.js#L76
-  const source: functionNameSource = async (_answers: unknown, input = '') =>
-    fuzzy.filter(input, functionNames).map(element => element.original);
+  const source: functionNameSource = async (input = '') =>
+    fuzzy.filter(input, functionNames).map(element => ({
+      value: element.original,
+    }));
 
-  return (await functionNamePrompt(source)).functionName;
+  return await functionNamePrompt(source);
 };
 
 /**

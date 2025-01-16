@@ -1,18 +1,18 @@
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import makeDir from 'make-dir';
+import {makeDirectory} from 'make-dir';
 import multimatch from 'multimatch';
 import path from 'path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
-import {GaxiosError} from 'gaxios';
+import {GaxiosError} from 'googleapis-common';
 
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
 import {PROJECT_MANIFEST_FILENAME} from './constants.js';
 import {DOTFILE} from './dotfile.js';
 import {ERROR, LOG} from './messages.js';
-import {getApiFileType, getErrorMessage, getProjectSettings, spinner, stopSpinner} from './utils.js';
+import {getApiFileType, getProjectSettings, spinner, stopSpinner} from './utils.js';
 import {getAuthorizedOAuth2Client} from './auth.js';
 import {google} from 'googleapis';
 
@@ -55,7 +55,7 @@ const isValidFactory = (rootDir: string) => {
     Boolean(
       file.type === 'JSON' // Has a type or is appsscript.json
         ? (rootDir ? path.normalize(file.name) : file.name) === validManifestPath
-        : file.type === 'SERVER_JS' || file.type === 'HTML'
+        : file.type === 'SERVER_JS' || file.type === 'HTML',
     );
 };
 
@@ -182,7 +182,7 @@ export const getOrderedProjectFiles = (files: ProjectFile[], filePushOrder: stri
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
  */
 export const getLocalFileType = (type: string, fileExtension?: string): string =>
-  type === 'SERVER_JS' ? fileExtension ?? 'js' : type.toLowerCase();
+  type === 'SERVER_JS' ? (fileExtension ?? 'js') : type.toLowerCase();
 
 /**
  * Returns true if the user has a clasp project.
@@ -229,14 +229,14 @@ export const isValidFileName = (
   type: string,
   rootDir: string,
   _normalizedName: string,
-  ignoreMatches: readonly string[]
+  ignoreMatches: readonly string[],
 ): boolean => {
   const isValid = isValidFactory(rootDir);
 
   return Boolean(
     !name.includes('node_modules/@types') && // Prevent node_modules/@types/
       isValid({source: '', isIgnored: false, name, type}) &&
-      !ignoreMatches.includes(name) // Must be SERVER_JS or HTML. https://developers.google.com/apps-script/api/reference/rest/v1/File
+      !ignoreMatches.includes(name), // Must be SERVER_JS or HTML. https://developers.google.com/apps-script/api/reference/rest/v1/File
   );
 };
 
@@ -264,7 +264,7 @@ export const getAppsScriptFileName = (rootDir: string, filePath: string) => {
 export const fetchProject = async (
   scriptId: string,
   versionNumber?: number,
-  silent = false
+  silent = false,
 ): Promise<AppsScriptFile[]> => {
   const oauth2Client = await getAuthorizedOAuth2Client();
   if (!oauth2Client) {
@@ -282,7 +282,7 @@ export const fetchProject = async (
       throw error;
     }
 
-    if ((error as any).statusCode === 404) {
+    if ((error as GaxiosError).status === 404) {
       throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
 
@@ -316,10 +316,10 @@ export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') =
       const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension)}`;
       const truePath = `${rootDir || '.'}/${filePath}`;
       try {
-        await makeDir(path.dirname(truePath));
+        await makeDirectory(path.dirname(truePath));
         await fs.writeFile(truePath, file.source);
-      } catch (error: unknown) {
-        throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_FILE_WRITE);
+      } catch (_error) {
+        throw new ClaspError(ERROR.FS_FILE_WRITE);
       }
       // Log only filename if pulling to root (Code.gs vs ./Code.gs)
       console.log(`└─ ${rootDir ? truePath : filePath}`);
@@ -334,7 +334,7 @@ export const writeProjectFiles = async (files: AppsScriptFile[], rootDir = '') =
       throw error;
     }
 
-    throw new ClaspError(getErrorMessage(error) ?? ERROR.FS_DIR_WRITE);
+    throw new ClaspError(ERROR.FS_DIR_WRITE);
   }
 };
 

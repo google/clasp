@@ -12,7 +12,7 @@ import {DOTFILE} from './dotfile.js';
 import {projectIdPrompt} from './inquirer.js';
 import {ERROR, LOG} from './messages.js';
 
-import type {ProjectSettings} from './dotfile';
+import type {ProjectSettings} from './dotfile.js';
 
 const config = Conf.get();
 
@@ -50,34 +50,33 @@ export const stopSpinner = () => {
   }
 };
 
-export const getErrorMessage = (value: any) => {
-  // Errors are weird. The API returns interesting error structures.
-  // TODO(timmerman) This will need to be standardized. Waiting for the API to
-  // change error model. Don't review this method now.
-  if (value && typeof value.error === 'string') {
-    return JSON.parse(value.error).error;
-  }
+type ResponseLike = {
+  error?: {
+    code: number;
+    message: string;
+    status: string;
+  };
+};
 
-  if (value?.statusCode === 401 || (value?.error && value.error.error && value.error.error.code === 401)) {
-    // TODO check if local creds exist:
-    //  localOathSettingsExist() ? ERROR.UNAUTHENTICATED : ERROR.UNAUTHENTICATED_LOCAL
+function normalizeError(value: unknown): ResponseLike {
+  // TODO - Restore legacy behavior if needed
+  return value as ResponseLike;
+}
+
+export const getErrorMessage = (value: ResponseLike) => {
+  value = normalizeError(value);
+  if (!value?.error) {
+    return undefined;
+  }
+  if (value.error.code === 401) {
     return ERROR.UNAUTHENTICATED;
   }
-
-  if (value && ((value.error && value.error.code === 403) || value.code === 403)) {
-    // TODO check if local creds exist:
-    //  localOathSettingsExist() ? ERROR.PERMISSION_DENIED : ERROR.PERMISSION_DENIED_LOCAL
+  if (value.error.code === 403) {
     return ERROR.PERMISSION_DENIED;
   }
-
-  if (value && value.code === 429) {
+  if (value.error.code === 429) {
     return ERROR.RATE_LIMIT;
   }
-
-  if (value?.error) {
-    return `~~ API ERROR (${value.statusCode || value.error.code})=\n${value.error}`;
-  }
-
   return undefined;
 };
 
@@ -91,7 +90,7 @@ export const getErrorMessage = (value: any) => {
 export const getWebApplicationURL = (value: Readonly<scriptV1.Schema$Deployment>) => {
   const {entryPoints = []} = value;
   const entryPoint = entryPoints.find(
-    (entryPoint: Readonly<scriptV1.Schema$EntryPoint>) => entryPoint.entryPointType === 'WEB_APP'
+    (entryPoint: Readonly<scriptV1.Schema$EntryPoint>) => entryPoint.entryPointType === 'WEB_APP',
   );
   if (entryPoint) {
     return entryPoint.webApp?.url;
@@ -117,29 +116,17 @@ export const getDefaultProjectName = (): string => capitalize(path.basename(conf
 export const getProjectSettings = async (): Promise<ProjectSettings> => {
   const dotfile = DOTFILE.PROJECT();
 
-  try {
-    if (await dotfile.exists()) {
-      // Found a dotfile, but does it have the settings, or is it corrupted?
-      try {
-        const settings = await dotfile.read<ProjectSettings>();
-
-        // Settings must have the script ID. Otherwise we err.
-        if (settings.scriptId) {
-          return settings;
-        }
-      } catch (error) {
-        throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
-      }
-    }
-
+  if (!(await dotfile.exists())) {
     throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-
-    throw new ClaspError(getErrorMessage(error) as string);
   }
+
+  const settings = await dotfile.read<ProjectSettings>();
+
+  // Settings must have the script ID. Otherwise we err.
+  if (!settings.scriptId) {
+    throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
+  }
+  return settings;
 };
 
 /**
@@ -230,9 +217,7 @@ export const getProjectId = async (promptUser = true): Promise<string> => {
     if (error instanceof ClaspError) {
       throw error;
     }
-
-    // TODO: better error handling
-    throw new ClaspError((error as any).message);
+    throw new ClaspError('Unable to fetch project ID', 1);
   }
 };
 

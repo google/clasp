@@ -31,7 +31,7 @@ const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<str
  * @param options.creds {boolean} If true, the command will open the credentials URL.
  * @param options.deploymentId {string} Use custom deployment ID with webapp.
  */
-export default async (scriptId: string, options: CommandOption): Promise<void> => {
+export async function openProjectCommand(scriptId: string, options: CommandOption): Promise<void> {
   const projectSettings = await getProjectSettings();
 
   const currentScriptId = scriptId ?? projectSettings.scriptId;
@@ -65,7 +65,7 @@ export default async (scriptId: string, options: CommandOption): Promise<void> =
   // If we're not a web app, open the script URL.
   console.log(LOG.OPEN_PROJECT(currentScriptId));
   await open(URL.SCRIPT(currentScriptId));
-};
+}
 
 const openAddon = async (projectSettings: ProjectSettings) => {
   const {parentId: parentIdList = []} = projectSettings;

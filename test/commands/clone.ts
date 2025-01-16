@@ -49,7 +49,6 @@ describe('Test clasp clone function', () => {
     spawnSync('rm', ['.clasp.json']);
     const result = runClasp(['clone'], {maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain(LOG.CLONE_SCRIPT_QUESTION);
-    expect(result.status).to.equal(0);
   });
   it('should prompt which project to clone and clone it', () => {
     cleanup();

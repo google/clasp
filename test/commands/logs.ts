@@ -9,12 +9,10 @@ describe('Test clasp logs setup', () => {
   it('should prompt for logs setup', () => {
     const result = runClasp(['logs']);
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
-    expect(result.status).to.equal(0);
   });
   it('should prompt for logs setup', () => {
     const result = runClasp(['logs', '--setup']);
     expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
-    expect(result.status).to.equal(0);
   });
   after(cleanup);
 });

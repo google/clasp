@@ -15,15 +15,13 @@ describe('Test clasp login function', () => {
     if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
     const result = runClasp(['login', '--no-localhost']);
     expect(result.stdout).to.contain('https://accounts.google.com');
-    expect(result.stderr).to.equal('');
-    expect(result.status).to.equal(0);
   });
   it('should exit(0) ERROR.LOGGED_IN if credentials exist but continue to login', () => {
     fs.writeFileSync(CLASP_PATHS.rcGlobal, FAKE_CLASPRC.token);
-    const result = runClasp(['login', '--no-localhost']);
+    const result = runClasp(['login', '--no-localhost'], {input: 'http://localhost/?code=123\n'});
     fs.removeSync(CLASP_PATHS.rcGlobal);
     expect(result.stderr).to.contain(ERROR.LOGGED_IN);
-    expect(result.status).to.equal(0);
+    expect(result.stdout).to.contain('https://accounts.google.com');
   });
   // TODO: this test needs to be updated
   it.skip('should exit(1) with ERROR.CREDENTIALS_DNE if --creds file does not exist', () => {

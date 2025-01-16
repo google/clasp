@@ -14,7 +14,7 @@ interface CommandOption {
  * Removes a deployment from the Apps Script project.
  * @param deploymentId {string} The deployment's ID
  */
-export default async (deploymentId: string | undefined, options: CommandOption): Promise<void> => {
+export async function undeployCommand(deploymentId: string | undefined, options: CommandOption): Promise<void> {
   const {scriptId} = await getProjectSettings();
   if (scriptId) {
     if (options.all) {
@@ -45,7 +45,7 @@ export default async (deploymentId: string | undefined, options: CommandOption):
 
     await deleteDeployment(scriptId, deploymentId);
   }
-};
+}
 
 const deleteDeployment = async (scriptId: string, deploymentId: string) => {
   const oauth2Client = await getAuthorizedOAuth2Client();
