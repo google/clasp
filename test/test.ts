@@ -10,10 +10,14 @@ import {getAppsScriptFileName, getLocalFileType} from '../src/files.js';
 import {ERROR, LOG} from '../src/messages.js';
 import {URL, extractScriptId} from '../src/urls.js';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import {getApiFileType, getWebApplicationURL, saveProject} from '../src/utils.js';
 =======
 import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils.js';
 >>>>>>> 1abe07e (chore: Migrate from gts/prettier/eslint to biomejs)
+=======
+import {getApiFileType, getWebApplicationURL, saveProject} from '../src/utils.js';
+>>>>>>> 1ae3ded (fix: Improve consistency of command checks & error messages)
 import {CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
 import {backupSettings, cleanup, restoreSettings, runClasp, setup} from './functions.js';
 

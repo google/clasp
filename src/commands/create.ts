@@ -102,3 +102,12 @@ function getDefaultProjectName(dir: string) {
   const dirName = path.basename(dir);
   return inflection.humanize(dirName);
 }
+
+/**
+ * Gets default project name.
+ * @return {string} default project name.
+ */
+function getDefaultProjectName(config: Conf) {
+  const dirName = path.basename(config.projectRootDirectory!);
+  return inflection.humanize(dirName);
+}

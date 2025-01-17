@@ -4,7 +4,8 @@ import {Command} from 'commander';
 import {google, logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
-import {getAuthorizedOAuth2Client} from '../auth.js';
+import {OAuth2Client} from 'google-auth-library';
+import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {Context, Project, assertAuthenticated, assertScriptSettings} from '../context.js';
 import {ERROR, LOG} from '../messages.js';
