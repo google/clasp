@@ -1,13 +1,14 @@
 import open from 'open';
 
+import {OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
-import {getAuthorizedOAuth2Client} from '../auth.js';
+import inquirer from 'inquirer';
+import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {ProjectSettings} from '../dotfile.js';
-import {DeploymentIdPromptChoice, deploymentIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
-import {ellipsize, getProjectSettings, getWebApplicationURL} from '../utils.js';
+import {checkIfOnlineOrDie, ellipsize, getProjectSettings, getWebApplicationURL} from '../utils.js';
 
 interface CommandOption {
   readonly webapp?: boolean;
@@ -15,14 +16,6 @@ interface CommandOption {
   readonly addon?: boolean;
   readonly deploymentId?: string;
 }
-
-const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<string> => {
-  const {
-    deployment: {deploymentId},
-  } = await deploymentIdPrompt(choices);
-
-  return deploymentId!;
-};
 
 /**
  * Opens an Apps Script project's script.google.com editor.
@@ -32,6 +25,9 @@ const getDeploymentId = async (choices: DeploymentIdPromptChoice[]): Promise<str
  * @param options.deploymentId {string} Use custom deployment ID with webapp.
  */
 export async function openProjectCommand(scriptId: string, options: CommandOption): Promise<void> {
+  await checkIfOnlineOrDie();
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
+
   const projectSettings = await getProjectSettings();
 
   const currentScriptId = scriptId ?? projectSettings.scriptId;
@@ -58,7 +54,7 @@ export async function openProjectCommand(scriptId: string, options: CommandOptio
   }
 
   if (options.webapp) {
-    await openWebApp(currentScriptId, options.deploymentId);
+    await openWebApp(oauth2Client, currentScriptId, options.deploymentId);
     return;
   }
 
@@ -67,63 +63,61 @@ export async function openProjectCommand(scriptId: string, options: CommandOptio
   await open(URL.SCRIPT(currentScriptId));
 }
 
-const openAddon = async (projectSettings: ProjectSettings) => {
+async function openAddon(projectSettings: ProjectSettings) {
   const {parentId: parentIdList = []} = projectSettings;
+
   if (parentIdList.length === 0) {
     throw new ClaspError(ERROR.NO_PARENT_ID());
   }
 
   if (parentIdList.length > 1) {
-    for (const id of parentIdList) {
-      console.log(LOG.FOUND_PARENT(id));
-    }
+    parentIdList.forEach(id => console.log(LOG.FOUND_PARENT(id)));
   }
 
   const parentId = parentIdList[0];
   console.log(LOG.OPEN_FIRST_PARENT(parentId));
   await open(URL.DRIVE(parentId));
-};
+}
 
-const openWebApp = async (scriptId: string, optionsDeploymentId?: string) => {
+async function openWebApp(oauth2Client: OAuth2Client, scriptId: string, optionsDeploymentId?: string) {
   // Web app: open the latest deployment.
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
   const script = google.script({version: 'v1', auth: oauth2Client});
 
-  const {
-    data: {deployments = []},
-    status,
-    statusText,
-  } = await script.projects.deployments.list({scriptId});
-  if (status !== 200) {
-    throw new ClaspError(statusText);
-  }
+  const res = await script.projects.deployments.list({scriptId});
+  const deployments = res.data.deployments ?? [];
 
   if (deployments.length === 0) {
     throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
   }
 
-  // Order deployments by update time.
-  const choices = [...deployments];
-  choices.sort((a, b) => (a.updateTime && b.updateTime ? a.updateTime.localeCompare(b.updateTime) : 0));
-  const prompts = choices.map(value => {
-    const {description, versionNumber} = value.deploymentConfig!;
-    const name = `${ellipsize(description ?? '', 30)}@${`${versionNumber ?? 'HEAD'}`.padEnd(4)} - ${
-      value.deploymentId
-    }`;
-    return {name, value};
-  });
+  let deploymentId = optionsDeploymentId;
+  if (!deploymentId) {
+    // Order deployments by update time.
+    deployments.sort((a, b) => (a.updateTime && b.updateTime ? a.updateTime.localeCompare(b.updateTime) : 0));
+    const choices = deployments.map(value => {
+      const description = ellipsize(value.deploymentConfig?.description ?? '', 30);
+      const versionNumber = (value.deploymentConfig?.versionNumber?.toString() ?? 'HEAD').padEnd(4);
+      const name = `${description}@${versionNumber}} - ${value.deploymentId}`;
+      return {name, value};
+    });
 
-  const deploymentId = optionsDeploymentId ?? (await getDeploymentId(prompts));
+    const answer = await inquirer.prompt([
+      {
+        choices,
+        message: 'Open which deployment?',
+        name: 'deployment',
+        type: 'list',
+      },
+    ]);
 
-  const deployment = await script.projects.deployments.get({scriptId, deploymentId});
+    deploymentId = answer.deployment;
+  }
+  const deploymentResponse = await script.projects.deployments.get({scriptId, deploymentId});
   console.log(LOG.OPEN_WEBAPP(deploymentId));
-  const target = getWebApplicationURL(deployment.data);
+  const target = getWebApplicationURL(deploymentResponse.data);
   if (!target) {
-    throw new ClaspError(`Could not open deployment: ${JSON.stringify(deployment)}`);
+    throw new ClaspError(`Could not open deployment ${deploymentId}`);
   }
 
   await open(target, {wait: false});
-};
+}

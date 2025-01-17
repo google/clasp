@@ -2,9 +2,10 @@ import {readFileSync} from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
 import debounce from 'debounce';
+import {OAuth2Client} from 'google-auth-library';
 import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
-import {getAuthorizedOAuth2Client} from '../auth.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
 import {PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants.js';
@@ -12,8 +13,8 @@ import {DOTFILE} from '../dotfile.js';
 import {fetchProject, pushFiles} from '../files.js';
 import {overwritePrompt} from '../inquirer.js';
 import {isValidManifest} from '../manifest.js';
-import {ERROR, LOG} from '../messages.js';
-import {getProjectSettings, spinner} from '../utils.js';
+import {LOG} from '../messages.js';
+import {checkIfOnlineOrDie, getProjectSettings, spinner} from '../utils.js';
 
 import type {ProjectSettings} from '../dotfile.js';
 
@@ -32,10 +33,8 @@ interface CommandOption {
  * @param options.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
 export async function pushFilesCommand(options: CommandOption): Promise<void> {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
+  await checkIfOnlineOrDie();
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
 
   await isValidManifest();
   const projectSettings = await getProjectSettings();
@@ -45,7 +44,11 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
     console.log(LOG.PUSH_WATCH);
     // Debounce calls to push to coalesce 'save all' actions from editors
     const debouncedPushFiles = debounce(async () => {
-      if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
+      if (
+        !options.force &&
+        (await manifestHasChanges(oauth2Client, projectSettings)) &&
+        !(await confirmManifestUpdate())
+      ) {
         console.log('Stopping push…');
         return;
       }
@@ -71,7 +74,7 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
     return;
   }
 
-  if (!options.force && (await manifestHasChanges(projectSettings)) && !(await confirmManifestUpdate())) {
+  if (!options.force && (await manifestHasChanges(oauth2Client, projectSettings)) && !(await confirmManifestUpdate())) {
     console.log('Stopping push…');
     return;
   }
@@ -90,11 +93,11 @@ const confirmManifestUpdate = async (): Promise<boolean> => (await overwriteProm
  * Checks if the manifest has changes.
  * @returns {Promise<boolean>}
  */
-const manifestHasChanges = async (projectSettings: ProjectSettings): Promise<boolean> => {
+const manifestHasChanges = async (oauth2Client: OAuth2Client, projectSettings: ProjectSettings): Promise<boolean> => {
   const {scriptId, rootDir = config.projectRootDirectory} = projectSettings;
   const manifestPath = path.join(rootDir!, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(manifestPath, {encoding: 'utf8'});
-  const remoteFiles = await fetchProject(scriptId, undefined, true);
+  const remoteFiles = await fetchProject(oauth2Client, scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (remoteManifest) {
     return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);

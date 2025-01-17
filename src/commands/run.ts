@@ -1,16 +1,17 @@
 import readline from 'readline';
 import chalk from 'chalk';
+import fuzzy from 'fuzzy';
+import autocomplete from 'inquirer-autocomplete-standalone';
 
 import {GaxiosError} from 'gaxios';
+import {OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
-import {script_v1 as scriptV1} from 'googleapis';
-import {enableAppsScriptAPI, getFunctionNames} from '../apiutils.js';
-import {getAuthorizedOAuth2Client} from '../auth.js';
+import {getAuthorizedOAuth2ClientOrDie, getProjectIdOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {addScopeToManifest, isValidRunManifest} from '../manifest.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
-import {getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly nondev: boolean;
@@ -25,25 +26,19 @@ interface CommandOption {
  * @requires `clasp login --creds` to be run beforehand.
  */
 export async function runFunctionCommand(functionName: string, options: CommandOption): Promise<void> {
+  await checkIfOnlineOrDie();
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
+
   const {scriptId} = await getProjectSettings();
+
   const devMode = !options.nondev; // Defaults to true
   const {params: jsonString = '[]'} = options;
   const parameters = parseJsonOrDie<string[]>(jsonString);
 
   await isValidRunManifest();
 
-  // Load local credentials.
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
-
-  const script = google.script({version: 'v1', auth: oauth2Client});
-
-  await enableAppsScriptAPI();
-
-  // TODO COMMENT THIS. This uses a method that gives a HTML 404.
-  // await enableExecutionAPI();
+  const projectId = await getProjectIdOrDie();
+  await enableAppsScriptAPI(oauth2Client, projectId);
 
   // Pushes the latest code if in dev mode.
   // We need to update the manifest before executing to:
@@ -56,23 +51,34 @@ export async function runFunctionCommand(functionName: string, options: CommandO
   }
 
   if (!functionName) {
-    functionName = await getFunctionNames(script, scriptId);
+    const allFunctions = await getFunctionNames(oauth2Client, scriptId);
+    const source = async (input = '') =>
+      fuzzy.filter(input, allFunctions).map(element => ({
+        value: element.original,
+      }));
+
+    functionName = await autocomplete({
+      message: 'Select a functionName',
+      source,
+    });
   }
 
-  await runFunction(script, functionName, parameters, scriptId, devMode);
+  await runFunction(oauth2Client, functionName, parameters, scriptId, devMode);
 }
 
 /**
  * Runs a function.
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/scripts/run#response-body
  */
-const runFunction = async (
-  script: scriptV1.Script,
+async function runFunction(
+  oauth2Client: OAuth2Client,
   functionName: string,
   parameters: string[],
   scriptId: string,
   devMode: boolean,
-) => {
+) {
+  const script = google.script({version: 'v1', auth: oauth2Client});
+
   try {
     spinner.start(`Running function: ${functionName}`);
 
@@ -102,50 +108,58 @@ const runFunction = async (
       throw error;
     }
 
+    if (error instanceof GaxiosError) {
+      parseGaxiosError(error, scriptId);
+    }
+  } finally {
     stopSpinner();
+  }
+}
 
-    if (error) {
-      // TODO move these to logError when stable?
-      switch ((error as GaxiosError).status) {
-        case 401:
-          // The 401 is probably due to this error:
-          // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
-          // This is probably due to the OAuth client not having authorized scopes.
-          console.log(`Hey! It looks like you aren't authenticated for the scopes required by this script.
+function parseGaxiosError(error: GaxiosError, scriptId: string) {
+  // TODO move these to logError when stable?
+  switch ((error as GaxiosError).status) {
+    case 401:
+      // The 401 is probably due to this error:
+      // "Error: Local client credentials unauthenticated. Check scopes/authorization.""
+      // This is probably due to the OAuth client not having authorized scopes.
+      console.log(`Hey! It looks like you aren't authenticated for the scopes required by this script.
 Please enter the scopes by doing the following:
 1. Open Your Script: ${URL.SCRIPT(scriptId)}
 2. File > Project Properties > Scopes
 3. Copy/Paste the list of scopes here:
-            ~ Example ~
+          ~ Example ~
 https://mail.google.com/
 https://www.googleapis.com/auth/presentations
 ----(When you're done, press <Enter> 2x)----`);
 
-          readScopesFromStdinAndAddToManifest();
+      readScopesFromStdinAndAddToManifest();
 
-          // We probably don't need to show the unauth error
-          // since we always prompt the user to fix this now.
-          // throw new ClaspError(ERROR.UNAUTHENTICATED_LOCAL);
-          break;
-        case 403:
-          throw new ClaspError(ERROR.PERMISSION_DENIED_LOCAL);
-        case 404:
-          throw new ClaspError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
-        default:
-          throw new ClaspError(`(${(error as GaxiosError).status}) Error: ${(error as GaxiosError).message}`);
-      }
-    }
+      // We probably don't need to show the unauth error
+      // since we always prompt the user to fix this now.
+      // throw new ClaspError(ERROR.UNAUTHENTICATED_LOCAL);
+      break;
+    case 403:
+      throw new ClaspError(ERROR.PERMISSION_DENIED_LOCAL);
+    case 404:
+      throw new ClaspError(ERROR.EXECUTE_ENTITY_NOT_FOUND);
+    default:
+      throw new ClaspError(`(${(error as GaxiosError).status}) Error: ${(error as GaxiosError).message}`);
   }
-};
+}
 
-const readScopesFromStdinAndAddToManifest = () => {
+async function readScopesFromStdinAndAddToManifest() {
   // Example scopes:
   // https://mail.google.com/
   // https://www.googleapis.com/auth/presentations
   // https://www.googleapis.com/auth/spreadsheets
   const scopes: string[] = [];
 
-  const readlineInterface = readline.createInterface({input: process.stdin, output: process.stdout, prompt: ''});
+  const readlineInterface = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    prompt: '',
+  });
 
   const readScope: (input: string) => void = (input: string) => {
     if (input === '') {
@@ -165,4 +179,32 @@ const readScopesFromStdinAndAddToManifest = () => {
   readlineInterface.prompt();
   readlineInterface.on('line', readScope);
   readlineInterface.on('close', addToManifest);
-};
+}
+
+/**
+ * Prompts for the function name.
+ */
+async function getFunctionNames(oauth2Client: OAuth2Client, scriptId: string): Promise<Array<string>> {
+  const script = google.script({version: 'v1', auth: oauth2Client});
+  spinner.start('Getting functions');
+  const content = await script.projects.getContent({scriptId});
+  stopSpinner();
+  if (content.status !== 200) {
+    throw new ClaspError(content.statusText);
+  }
+
+  const {files = []} = content.data;
+  return files
+    .filter(file => file.functionSet?.values)
+    .flatMap(file => file.functionSet!.values!)
+    .map(func => func.name!);
+}
+
+/**
+ * Enable 'script.googleapis.com' of Google API.
+ */
+async function enableAppsScriptAPI(oauth2Client: OAuth2Client, projectId: string) {
+  const serviceUsage = google.serviceusage({version: 'v1', auth: oauth2Client});
+  const name = `projects/${projectId}/services/script.googleapis.com`;
+  await serviceUsage.services.enable({name});
+}

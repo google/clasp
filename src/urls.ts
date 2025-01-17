@@ -1,4 +1,4 @@
-import {SCRIPT_ID_LENGTH} from './apis.js';
+export const SCRIPT_ID_LENGTH = 57;
 
 /**
  * Extracts scriptId from URL if given in URL form.

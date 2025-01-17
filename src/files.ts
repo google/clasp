@@ -1,7 +1,7 @@
 import path from 'path';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import {GaxiosError} from 'googleapis-common';
+import {GaxiosError, OAuth2Client} from 'googleapis-common';
 import {makeDirectory} from 'make-dir';
 import multimatch from 'multimatch';
 import pMap from 'p-map';
@@ -262,15 +262,11 @@ export const getAppsScriptFileName = (rootDir: string, filePath: string) => {
  * @returns {AppsScriptFile[]} Fetched files
  */
 export const fetchProject = async (
+  oauth2Client: OAuth2Client,
   scriptId: string,
   versionNumber?: number,
   silent = false,
 ): Promise<AppsScriptFile[]> => {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
-
   const script = google.script({version: 'v1', auth: oauth2Client});
 
   spinner.start();

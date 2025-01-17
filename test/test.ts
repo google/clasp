@@ -9,7 +9,7 @@ import {spawnSync} from 'child_process';
 import {getAppsScriptFileName, getLocalFileType} from '../src/files.js';
 import {ERROR, LOG} from '../src/messages.js';
 import {URL, extractScriptId} from '../src/urls.js';
-import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils.js';
+import {getApiFileType, getWebApplicationURL, saveProject} from '../src/utils.js';
 import {CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
 import {backupSettings, cleanup, restoreSettings, runClasp, setup} from './functions.js';
 
@@ -167,12 +167,6 @@ describe('Test getWebApplicationURL function from utils', () => {
   });
 });
 
-describe('Test getDefaultProjectName function from utils', () => {
-  it('should return the current directory name correctly', () => {
-    expect(getDefaultProjectName()).to.equal('Clasp');
-  });
-});
-
 describe('Test getLocalFileType function from utils', () => {
   it('should return the lowercase file type correctly', () => {
     expect(getLocalFileType('SERVER_JS')).to.equal('js');
@@ -270,28 +264,7 @@ describe('Test all functions while logged out', () => {
   it('should fail to deploy (no credentials)', () => expectNoCredentials('deploy'));
   it('should fail to version (no credentials)', () => expectNoCredentials('version'));
   it('should fail to versions (no credentials)', () => expectNoCredentials('versions'));
-
-  // TODO: all test should have same order of checks
-  // and should all return ERROR.NO_CREDENTIALS
-  it('should fail to pull (no .clasp.json file)', () => {
-    const result = runClasp(['pull']);
-    expect(result.status).to.equal(1);
-    // Should be ERROR.NO_CREDENTIALS
-    // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE());
-  });
-  it('should fail to open (no .clasp.json file)', () => {
-    const result = runClasp(['open']);
-    expect(result.status).to.equal(1);
-    // Should be ERROR.NO_CREDENTIALS
-    // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE());
-  });
-  it('should fail to show logs (no .clasp.json file)', () => {
-    const result = runClasp(['logs']);
-    expect(result.status).to.equal(1);
-    // Should be ERROR.NO_CREDENTIALS
-    // see: https://github.com/google/clasp/issues/278
-    expect(result.stderr).to.contain(ERROR.SETTINGS_DNE());
-  });
+  it('should fail to pull (no .clasp.json file)', () => expectNoCredentials('versions'));
+  it('should fail to show logs (no .clasp.json file)', () => expectNoCredentials('logs'));
+  it('should fail to open (no .clasp.json file)', () => expectNoCredentials('open'));
 });

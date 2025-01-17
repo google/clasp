@@ -2,21 +2,6 @@
  * Google API Types
  */
 
-/**
- * Different types of starter script templates.
- * Technically, a script can be multiple types (e.g. Slides add-on/API),
- * but it's pretty rare that anyone wants that.
- */
-export enum SCRIPT_TYPES {
-  STANDALONE = 'standalone',
-  DOCS = 'docs',
-  SHEETS = 'sheets',
-  SLIDES = 'slides',
-  FORMS = 'forms',
-  WEBAPP = 'webapp',
-  API = 'api',
-}
-
 // Also see:
 // https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/appsscript.json
 export interface AdvancedService {
@@ -182,5 +167,3 @@ export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
     version: 'v3',
   },
 ];
-
-export const SCRIPT_ID_LENGTH = 57;

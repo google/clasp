@@ -27,7 +27,7 @@
     "check": "biome check src test",
     "clean": "rm -rf build",
     "compile": "tsc",
-    "fix": "biome check src text --fix --write",
+    "fix": "biome check src test --fix",
     "pretest": "npm run compile && npm run check",
     "clasp": "node --loader ts-node/esm --no-warnings src/index.ts"
   },
@@ -75,6 +75,7 @@
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",
     "googleapis-common": "7.2.0",
+    "inflection": "^3.0.2",
     "inquirer": "^12.3.2",
     "inquirer-autocomplete-standalone": "^0.8.1",
     "is-reachable": "^5.2.1",

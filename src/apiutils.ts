@@ -1,50 +1,30 @@
-import fuzzy from 'fuzzy';
-import {google, script_v1 as scriptV1} from 'googleapis';
-import type {ReadonlyDeep} from 'type-fest';
+import {google} from 'googleapis';
 
 import {getAuthorizedOAuth2Client} from './auth.js';
 import {ClaspError} from './clasp-error.js';
-import {functionNamePrompt, functionNameSource} from './inquirer.js';
 import {enableOrDisableAdvanceServiceInManifest} from './manifest.js';
 import {ERROR} from './messages.js';
-import {getProjectId, spinner, stopSpinner} from './utils.js';
+import {getProjectId} from './utils.js';
 
-/**
- * Prompts for the function name.
- */
-export const getFunctionNames = async (script: ReadonlyDeep<scriptV1.Script>, scriptId: string): Promise<string> => {
-  spinner.start('Getting functions');
-  const content = await script.projects.getContent({scriptId});
-  stopSpinner();
-  if (content.status !== 200) {
-    throw new ClaspError(content.statusText);
+export async function getAuthorizedOAuth2ClientOrDie() {
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
   }
-
-  const {files = []} = content.data;
-  const functionNames = files
-    .filter(file => file.functionSet?.values)
-    .flatMap(file => file.functionSet!.values!)
-    .map(func => func.name!);
-
-  const source: functionNameSource = async (input = '') =>
-    fuzzy.filter(input, functionNames).map(element => ({
-      value: element.original,
-    }));
-
-  return await functionNamePrompt(source);
-};
+  return oauth2Client;
+}
 
 /**
  * Gets the project ID from the manifest. If there is no project ID, it returns an error.
  */
-const getProjectIdOrDie = async (): Promise<string> => {
+export async function getProjectIdOrDie(): Promise<string> {
   const projectId = await getProjectId(); // Will prompt user to set up if required
   if (projectId) {
     return projectId;
   }
 
   throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
-};
+}
 
 // /**
 //  * Returns true if the service is enabled for the Google Cloud Project.
@@ -89,19 +69,4 @@ export const enableOrDisableAPI = async (serviceName: string, enable: boolean): 
 
     throw new ClaspError(ERROR.NO_API(enable, serviceName));
   }
-};
-
-/**
- * Enable 'script.googleapis.com' of Google API.
- */
-export const enableAppsScriptAPI = async (): Promise<void> => {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
-
-  const serviceUsage = google.serviceusage({version: 'v1', auth: oauth2Client});
-
-  const name = `projects/${await getProjectIdOrDie()}/services/script.googleapis.com`;
-  await serviceUsage.services.enable({name});
 };

@@ -1,30 +1,34 @@
 import {google} from 'googleapis';
-import {getAuthorizedOAuth2Client} from '../auth.js';
-import {ClaspError} from '../clasp-error.js';
-import {descriptionPrompt} from '../inquirer.js';
-import {ERROR, LOG} from '../messages.js';
-import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import inquirer from 'inquirer';
+import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {LOG} from '../messages.js';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 /**
  * Creates a new version of an Apps Script project.
  */
 export async function createVersionCommand(description?: string): Promise<void> {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
+  await checkIfOnlineOrDie();
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
+  const {scriptId} = await getProjectSettings();
+
   const script = google.script({version: 'v1', auth: oauth2Client});
 
-  const {scriptId} = await getProjectSettings();
-  description = description ?? (await descriptionPrompt()).description;
-
-  spinner.start(LOG.VERSION_CREATE);
-
-  const {data, status, statusText} = await script.projects.versions.create({scriptId, requestBody: {description}});
-  if (status !== 200) {
-    throw new ClaspError(statusText);
+  if (!description) {
+    const answer = await inquirer.prompt([
+      {
+        default: '',
+        message: LOG.GIVE_DESCRIPTION,
+        name: 'description',
+        type: 'input',
+      },
+    ]);
+    description = answer.description;
   }
 
+  spinner.start(LOG.VERSION_CREATE);
+  const res = await script.projects.versions.create({scriptId, requestBody: {description}});
   stopSpinner();
-  console.log(LOG.VERSION_CREATED(data.versionNumber ?? -1));
+
+  console.log(LOG.VERSION_CREATED(res.data.versionNumber ?? -1));
 }

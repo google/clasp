@@ -44,7 +44,7 @@ import {pullFilesCommand} from './commands/pull.js';
 import {pushFilesCommand} from './commands/push.js';
 import {runFunctionCommand} from './commands/run.js';
 import {updateSettingCommand} from './commands/setting.js';
-import {showFiletatusCommand} from './commands/status.js';
+import {showFileStatusCommand} from './commands/status.js';
 import {undeployCommand} from './commands/undeploy.js';
 import {createVersionCommand} from './commands/version.js';
 import {listVersionsCommand} from './commands/versions.js';
@@ -168,6 +168,7 @@ program
   .option(
     '--type <type>',
     'Creates a new Apps Script project attached to a new Document, Spreadsheet, Presentation, Form, or as a standalone script, web app, or API.',
+    'standalone',
   )
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
@@ -229,7 +230,7 @@ program
   .command('status')
   .description('Lists files that will be pushed by clasp')
   .option('--json', 'Show status in JSON form')
-  .action(showFiletatusCommand);
+  .action(showFileStatusCommand);
 
 /**
  * Opens the `clasp` project on script.google.com. Provide a `scriptId` to open a different script.

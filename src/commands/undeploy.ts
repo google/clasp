@@ -1,10 +1,11 @@
 import {google, script_v1 as scriptV1} from 'googleapis';
 import pMap from 'p-map';
 
-import {getAuthorizedOAuth2Client} from '../auth.js';
+import {OAuth2Client} from 'google-auth-library';
+import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {ERROR, LOG} from '../messages.js';
-import {getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -15,72 +16,55 @@ interface CommandOption {
  * @param deploymentId {string} The deployment's ID
  */
 export async function undeployCommand(deploymentId: string | undefined, options: CommandOption): Promise<void> {
+  await checkIfOnlineOrDie();
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
+
   const {scriptId} = await getProjectSettings();
-  if (scriptId) {
-    if (options.all) {
-      const mapper = async ({deploymentId}: scriptV1.Schema$Deployment) => deleteDeployment(scriptId, deploymentId!);
 
-      const deployments = await listDeployments(scriptId);
-      deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
-
-      await pMap(deployments, mapper);
-
-      console.log(LOG.UNDEPLOYMENT_ALL_FINISH);
-      return;
+  if (options.all) {
+    const mapper = async ({deploymentId}: scriptV1.Schema$Deployment) =>
+      deleteDeployment(oauth2Client, scriptId, deploymentId!);
+    const deployments = await listDeployments(oauth2Client, scriptId);
+    if (deployments.length === 0) {
+      throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
 
-    if (!deploymentId) {
-      const deployments = await listDeployments(scriptId);
+    deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
 
-      // @HEAD (Read-only deployments) may not be deleted.
-      deployments.shift();
+    spinner.start(LOG.UNDEPLOYMENT_START('all'));
+    await pMap(deployments, mapper, {concurrency: 4});
+    stopSpinner();
 
-      const lastDeployment = deployments.pop();
-      if (!lastDeployment) {
-        throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
-      }
+    console.log(LOG.UNDEPLOYMENT_ALL_FINISH);
+    return;
+  }
 
-      deploymentId = lastDeployment.deploymentId!;
+  if (!deploymentId) {
+    const deployments = await listDeployments(oauth2Client, scriptId);
+    // @HEAD (Read-only deployments) may not be deleted.
+    deployments.shift();
+
+    const lastDeployment = deployments.pop();
+    if (!lastDeployment || !lastDeployment.deploymentId) {
+      // TODO - More specific error message (or treat as non-error)
+      throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
-
-    await deleteDeployment(scriptId, deploymentId);
+    deploymentId = lastDeployment.deploymentId;
   }
-}
-
-const deleteDeployment = async (scriptId: string, deploymentId: string) => {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
-  const script = google.script({version: 'v1', auth: oauth2Client});
 
   spinner.start(LOG.UNDEPLOYMENT_START(deploymentId));
-
-  const {status} = await script.projects.deployments.delete({scriptId, deploymentId});
-  if (status !== 200) {
-    throw new ClaspError(ERROR.READ_ONLY_DELETE);
-  }
-
+  await deleteDeployment(oauth2Client, scriptId, deploymentId);
   stopSpinner();
-  console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
-};
+}
 
-const listDeployments = async (scriptId: string) => {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
+async function deleteDeployment(oauth2Client: OAuth2Client, scriptId: string, deploymentId: string) {
   const script = google.script({version: 'v1', auth: oauth2Client});
+  await script.projects.deployments.delete({scriptId, deploymentId});
+  console.log(LOG.UNDEPLOYMENT_FINISH(deploymentId));
+}
 
-  const {data, status, statusText} = await script.projects.deployments.list({scriptId});
-  if (status !== 200) {
-    throw new ClaspError(statusText);
-  }
-
-  const {deployments = []} = data;
-  if (deployments.length === 0) {
-    throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  }
-
-  return deployments;
-};
+async function listDeployments(oauth2Client: OAuth2Client, scriptId: string) {
+  const script = google.script({version: 'v1', auth: oauth2Client});
+  const res = await script.projects.deployments.list({scriptId});
+  return res.data.deployments ?? [];
+}

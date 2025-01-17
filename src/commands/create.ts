@@ -1,14 +1,21 @@
-import is from '@sindresorhus/is';
+import path from 'node:path';
 import {google} from 'googleapis';
-import {SCRIPT_TYPES} from '../apis.js';
-import {getAuthorizedOAuth2Client} from '../auth.js';
+import inflection from 'inflection';
+import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
-import {scriptTypePrompt} from '../inquirer.js';
 import {manifestExists} from '../manifest.js';
 import {ERROR, LOG} from '../messages.js';
-import {getDefaultProjectName, getProjectSettings, saveProject, spinner, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, saveProject, spinner, stopSpinner} from '../utils.js';
+
+// https://developers.google.com/drive/api/v3/mime-types
+const DRIVE_FILE_MIMETYPES: Record<string, string> = {
+  docs: 'application/vnd.google-apps.document',
+  forms: 'application/vnd.google-apps.form',
+  sheets: 'application/vnd.google-apps.spreadsheet',
+  slides: 'application/vnd.google-apps.presentation',
+};
 
 const config = Conf.get();
 
@@ -32,65 +39,44 @@ export async function createCommand(options: CommandOption): Promise<void> {
     config.projectRootDirectory = options.rootDir;
   }
 
-  // Handle common errors.
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS());
   }
 
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
+  await checkIfOnlineOrDie();
 
-  const drive = google.drive({version: 'v3', auth: oauth2Client});
-  const script = google.script({version: 'v1', auth: oauth2Client});
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
 
   // Create defaults.
-  const {parentId: optionParentId, title: name = getDefaultProjectName(), type: optionType} = options;
-  let parentId = optionParentId;
+  let parentId: string | undefined = options.parentId;
+  const name: string | undefined = getDefaultProjectName(config);
+  const type: string = options.type ?? '';
 
-  const filetype = optionType ?? (optionParentId ? '' : (await scriptTypePrompt()).type);
+  if (!parentId && DRIVE_FILE_MIMETYPES[type]) {
+    // Create files with MIME type.
+    const mimeType = DRIVE_FILE_MIMETYPES[type];
+    spinner.start(LOG.CREATE_DRIVE_FILE_START(type));
+    const drive = google.drive({version: 'v3', auth: oauth2Client});
+    const res = await drive.files.create({requestBody: {mimeType, name}});
+    if (!res.data.id) {
+      throw new ClaspError('An unexpected error occurred while creating the file.');
+    }
 
-  // Create files with MIME type.
-  // https://developers.google.com/drive/api/v3/mime-types
-  const DRIVE_FILE_MIMETYPES: Record<string, string> = {
-    [SCRIPT_TYPES.DOCS]: 'application/vnd.google-apps.document',
-    [SCRIPT_TYPES.FORMS]: 'application/vnd.google-apps.form',
-    [SCRIPT_TYPES.SHEETS]: 'application/vnd.google-apps.spreadsheet',
-    [SCRIPT_TYPES.SLIDES]: 'application/vnd.google-apps.presentation',
-  };
-  const mimeType = DRIVE_FILE_MIMETYPES[filetype];
-  if (mimeType) {
-    spinner.start(LOG.CREATE_DRIVE_FILE_START(filetype));
-
-    const {
-      data: {id: newParentId},
-    } = await drive.files.create({requestBody: {mimeType, name}});
-    parentId = newParentId!;
-
+    parentId = res.data.id;
     stopSpinner();
-
-    console.log(LOG.CREATE_DRIVE_FILE_FINISH(filetype, parentId));
+    console.log(LOG.CREATE_DRIVE_FILE_FINISH(type, parentId));
   }
 
   // CLI Spinner
   spinner.start(LOG.CREATE_PROJECT_START(name));
 
-  let projectExist: boolean;
-  try {
-    projectExist = is.string((await getProjectSettings()).scriptId);
-  } catch {
-    process.exitCode = 0; // To reset `exitCode` that was overridden in ClaspError constructor.
-    projectExist = false;
-  }
-
-  if (projectExist) {
-    throw new ClaspError(ERROR.NO_NESTED_PROJECTS);
-  }
-
   // Create a new Apps Script project
+  const script = google.script({version: 'v1', auth: oauth2Client});
   const {data, status, statusText} = await script.projects.create({
-    requestBody: {parentId, title: name},
+    requestBody: {
+      parentId,
+      title: name,
+    },
   });
 
   stopSpinner();
@@ -104,13 +90,27 @@ export async function createCommand(options: CommandOption): Promise<void> {
   }
 
   const scriptId = data.scriptId ?? '';
-  console.log(LOG.CREATE_PROJECT_FINISH(filetype, scriptId));
+  console.log(LOG.CREATE_PROJECT_FINISH(type, scriptId));
+
   await saveProject(
-    {scriptId, rootDir: config.projectRootDirectory, parentId: parentId ? [parentId] : undefined},
+    {
+      scriptId,
+      rootDir: config.projectRootDirectory,
+      parentId: parentId ? [parentId] : undefined,
+    },
     false,
   );
 
   if (!manifestExists(config.projectRootDirectory)) {
-    await writeProjectFiles(await fetchProject(scriptId), config.projectRootDirectory); // Fetches appsscript.json, o.w. `push` breaks
+    await writeProjectFiles(await fetchProject(oauth2Client, scriptId), config.projectRootDirectory); // Fetches appsscript.json, o.w. `push` breaks
   }
+}
+
+/**
+ * Gets default project name.
+ * @return {string} default project name.
+ */
+function getDefaultProjectName(config: Conf) {
+  const dirName = path.basename(config.projectRootDirectory!);
+  return inflection.humanize(dirName);
 }

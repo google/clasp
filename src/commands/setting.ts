@@ -17,40 +17,25 @@ export async function updateSettingCommand(settingKey?: keyof ProjectSettings, s
     return;
   }
 
-  // Make a new spinner piped to stdErr so we don't interfere with output
   if (!settingValue) {
-    if (settingKey in currentSettings) {
-      let keyValue = currentSettings[settingKey] ?? '';
-      if (Array.isArray(keyValue)) {
-        keyValue = keyValue.toString();
-      }
-
-      // We don't use console.log as it automatically adds a new line
-      // Which interferes with storing the value
-      process.stdout.write(keyValue);
-    } else {
+    if (!(settingKey in currentSettings)) {
       throw new ClaspError(ERROR.UNKNOWN_KEY(settingKey));
     }
-
+    const keyValue = currentSettings[settingKey] ?? '';
+    // We don't use console.log as it automatically adds a new line
+    // Which interferes with storing the value
+    process.stdout.write(keyValue.toString());
     return;
   }
 
-  try {
-    const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
-    // filePushOrder doesn't work since it requires an array.
-    // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
-    if (['fileExtension', 'projectId', 'rootDir', 'scriptId'].includes(settingKey)) {
-      Reflect.set(currentSettings, settingKey, settingValue);
-      await saveProject(currentSettings, true);
-      console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
-    } else {
-      throw new ClaspError(ERROR.UNKNOWN_KEY(settingKey));
-    }
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-
-    throw new ClaspError('Unable to update .clasp.json');
+  const currentValue = settingKey in currentSettings ? currentSettings[settingKey] : '';
+  // filePushOrder doesn't work since it requires an array.
+  // const filePushOrder = settingKey === 'filePushOrder' ? settingValue : currentSettings.filePushOrder;
+  if (!['fileExtension', 'projectId', 'rootDir', 'scriptId'].includes(settingKey)) {
+    throw new ClaspError(ERROR.UNKNOWN_KEY(settingKey));
   }
+
+  Reflect.set(currentSettings, settingKey, settingValue);
+  await saveProject(currentSettings, true);
+  console.log(`Updated "${settingKey}": "${currentValue}" → "${settingValue}"`);
 }

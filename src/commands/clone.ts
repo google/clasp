@@ -1,14 +1,15 @@
 import {drive_v3 as driveV3, google} from 'googleapis';
 
-import {getAuthorizedOAuth2Client} from '../auth.js';
+import {OAuth2Client} from 'google-auth-library';
+import inquirer from 'inquirer';
+import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
-import {ScriptIdPrompt, scriptIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {extractScriptId} from '../urls.js';
-import {saveProject, spinner} from '../utils.js';
-import {showFiletatusCommand} from './status.js';
+import {checkIfOnlineOrDie, saveProject, spinner, stopSpinner} from '../utils.js';
+import {showFileStatusCommand} from './status.js';
 
 const config = Conf.get();
 
@@ -32,50 +33,62 @@ export async function cloneProjectCOmmand(
   if (options.rootDir) {
     config.projectRootDirectory = options.rootDir;
   }
+
   if (hasProject()) {
     throw new ClaspError(ERROR.FOLDER_EXISTS());
   }
 
-  const id = scriptId ? extractScriptId(scriptId) : await getScriptId();
+  await checkIfOnlineOrDie();
+
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
+  const id = scriptId ? extractScriptId(scriptId) : await getScriptId(oauth2Client);
 
   spinner.start(LOG.CLONING);
-
-  const files = await fetchProject(id, versionNumber);
-  await saveProject({scriptId: id, rootDir: config.projectRootDirectory}, false);
-  await writeProjectFiles(files, config.projectRootDirectory);
-  await showFiletatusCommand();
+  try {
+    const files = await fetchProject(oauth2Client, id, versionNumber);
+    await saveProject({scriptId: id, rootDir: config.projectRootDirectory}, false);
+    await writeProjectFiles(files, config.projectRootDirectory);
+  } finally {
+    stopSpinner();
+  }
+  await showFileStatusCommand();
 }
 
 /**
  * Lists a user's AppsScripts and prompts them to choose one to clone.
  */
-const getScriptId = async (): Promise<string> => {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
-
+async function getScriptId(oauth2Client: OAuth2Client): Promise<string> {
   const drive = google.drive({version: 'v3', auth: oauth2Client});
 
   const {data, statusText} = await drive.files.list({
-    // fields: 'files(id, name)',
+    fields: 'files(id, name)',
     orderBy: 'modifiedByMeTime desc',
-    // pageSize: 10,
+    pageSize: 20,
     q: 'mimeType="application/vnd.google-apps.script"',
   });
+
   if (!data) {
     throw new ClaspError(statusText ?? 'Unable to use the Drive API.');
   }
 
-  const {files = []} = data;
+  const files = data.files ?? [];
+
   if (files.length > 0) {
-    const fileIds: ScriptIdPrompt[] = files.map((file: Readonly<driveV3.Schema$File>) => ({
+    const choices = files.map((file: Readonly<driveV3.Schema$File>) => ({
       name: `${file.name!.padEnd(20)} - ${LOG.SCRIPT_LINK(file.id ?? '')}`,
       value: file.id ?? '',
     }));
-
-    return (await scriptIdPrompt(fileIds)).scriptId;
+    const {scriptId} = await inquirer.prompt([
+      {
+        choices: choices,
+        message: LOG.CLONE_SCRIPT_QUESTION,
+        name: 'scriptId',
+        pageSize: 30,
+        type: 'list',
+      },
+    ]);
+    return scriptId;
   }
 
   throw new ClaspError(LOG.FINDING_SCRIPTS_DNE);
-};
+}

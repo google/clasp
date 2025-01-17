@@ -7,12 +7,7 @@ import {cleanup, runClasp, setup} from '../functions.js';
 
 describe('Test clasp create function', () => {
   before(setup);
-  it('should prompt for a project name correctly', () => {
-    fs.removeSync('.clasp.json');
-    const result = runClasp(['create'], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
-    expect(result.stdout).to.contain(LOG.CREATE_SCRIPT_QUESTION);
-  });
-  it('should not prompt for project name', () => {
+  it('should fail if project already exists', () => {
     fs.writeFileSync('.clasp.json', '');
     const result = runClasp(['create'], {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
     expect(result.stderr).to.match(/Project file \(.*\) already exists./);

@@ -1,4 +1,3 @@
-import path from 'path';
 import cliTruncate from 'cli-truncate';
 import {script_v1 as scriptV1} from 'googleapis';
 import isReachable from 'is-reachable';
@@ -7,19 +6,11 @@ import ora from 'ora';
 import pMap from 'p-map';
 
 import {ClaspError} from './clasp-error.js';
-import {Conf} from './conf.js';
 import {DOTFILE} from './dotfile.js';
 import {projectIdPrompt} from './inquirer.js';
 import {ERROR, LOG} from './messages.js';
 
 import type {ProjectSettings} from './dotfile.js';
-
-const config = Conf.get();
-
-/**
- * Returns input string with uppercased first character
- */
-const capitalize = (value: string) => value && value[0].toUpperCase() + value.slice(1);
 
 /**
  * The installed credentials. This is a file downloaded from console.developers.google.com
@@ -98,12 +89,6 @@ export const getWebApplicationURL = (value: Readonly<scriptV1.Schema$Deployment>
 
   throw new ClaspError(ERROR.NO_WEBAPP(value.deploymentId ?? ''));
 };
-
-/**
- * Gets default project name.
- * @return {string} default project name.
- */
-export const getDefaultProjectName = (): string => capitalize(path.basename(config.projectRootDirectory!));
 
 /**
  * Gets the project settings from the project dotfile.

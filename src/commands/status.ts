@@ -10,22 +10,21 @@ interface CommandOption {
  * Displays the status of which Apps Script files are ignored from .claspignore
  * @param options.json {boolean} Displays the status in json format.
  */
-export async function showFiletatusCommand({json}: CommandOption = {json: false}): Promise<void> {
-  const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
-  if (scriptId) {
-    const [toPush, toIgnore] = splitProjectFiles(await getAllProjectFiles(rootDir));
-    const filesToPush = getOrderedProjectFiles(toPush, filePushOrder).map(file => file.name);
-    const untrackedFiles = toIgnore.map(file => file.name);
+export async function showFileStatusCommand(options?: CommandOption): Promise<void> {
+  const {filePushOrder, rootDir} = await getProjectSettings();
 
-    if (json) {
-      console.log(JSON.stringify({filesToPush, untrackedFiles}));
-      return;
-    }
+  const [toPush, toIgnore] = splitProjectFiles(await getAllProjectFiles(rootDir));
+  const filesToPush = getOrderedProjectFiles(toPush, filePushOrder).map(file => file.name);
+  const untrackedFiles = toIgnore.map(file => file.name);
 
-    console.log(LOG.STATUS_PUSH);
-    logFileList(filesToPush);
-    console.log(); // Separate Ignored files list.
-    console.log(LOG.STATUS_IGNORE);
-    logFileList(untrackedFiles);
+  if (options?.json) {
+    console.log(JSON.stringify({filesToPush, untrackedFiles}));
+    return;
   }
+
+  console.log(LOG.STATUS_PUSH);
+  logFileList(filesToPush);
+  console.log(); // Separate Ignored files list.
+  console.log(LOG.STATUS_IGNORE);
+  logFileList(untrackedFiles);
 }

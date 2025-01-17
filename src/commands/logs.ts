@@ -3,13 +3,14 @@ import chalk, {ChalkInstance} from 'chalk';
 import {google, logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
-import {getAuthorizedOAuth2Client} from '../auth.js';
+import {OAuth2Client} from 'google-auth-library';
+import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {DOTFILE, ProjectSettings} from '../dotfile.js';
 import {projectIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
-import {getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -28,7 +29,8 @@ interface CommandOption {
  * @param options.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
 export async function printLogsCommand(options: CommandOption): Promise<void> {
-  // Get project settings.
+  await checkIfOnlineOrDie();
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
   const projectSettings = await getProjectSettings();
   let projectId = options.setup ? await setupLogs(projectSettings) : projectSettings.projectId;
 
@@ -53,10 +55,10 @@ export async function printLogsCommand(options: CommandOption): Promise<void> {
     setInterval(async () => {
       const startDate = new Date();
       startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
-      await fetchAndPrintLogs(json, simplified, projectId, startDate);
+      await fetchAndPrintLogs(oauth2Client, json, simplified, projectId, startDate);
     }, POLL_INTERVAL);
   } else {
-    await fetchAndPrintLogs(json, simplified, projectId);
+    await fetchAndPrintLogs(oauth2Client, json, simplified, projectId);
   }
 }
 
@@ -81,43 +83,51 @@ const severityColor: Record<string, ChalkInstance> = {
  * Prints log entries
  * @param entries {any[]} StackDriver log entries.
  */
-const printLogs = (
+function printLogs(
   input: ReadonlyArray<Readonly<loggingV2.Schema$LogEntry>> = [],
   formatJson = false,
   simplified = false,
-): void => {
-  const entries = [...input].reverse().slice(0, 50); // Print in syslog ascending order
-  for (const entry of entries) {
-    const {severity = '', timestamp = '', resource, insertId = ''} = entry;
-    if (resource?.labels) {
-      let {function_name: functionName = ERROR.NO_FUNCTION_NAME} = resource.labels;
-      functionName = functionName.padEnd(15);
-      let payloadData: string | Record<string, unknown> = '';
+): void {
+  Array.from(input)
+    .reverse()
+    .slice(0, 50) // Print in syslog ascending order
+    .forEach(entry => {
+      const {severity = '', timestamp = '', resource, insertId = ''} = entry;
+
+      if (logEntryCache[insertId!]) {
+        return null;
+      }
+
+      if (!resource?.labels) {
+        return null;
+      }
+
+      let functionName = (resource.labels.function_name ?? 'N/A').padEnd(15);
+      let payloadData = '';
+
       if (formatJson) {
         payloadData = JSON.stringify(entry, null, 2);
       } else {
         const kludge = obscure(entry, functionName);
-        payloadData = kludge.payloadData;
+        payloadData = kludge.payloadData.toString();
         functionName = kludge.functionName;
       }
 
       const coloredSeverity = `${severityColor[severity!](severity) || severity!}`.padEnd(20);
 
       // If we haven't logged this entry before, log it and mark the cache.
-      if (!logEntryCache[insertId!]) {
-        console.log(
-          simplified
-            ? `${coloredSeverity} ${functionName} ${payloadData}`
-            : `${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`,
-        );
 
-        logEntryCache[insertId!] = true;
-      }
-    }
-  }
-};
+      console.log(
+        simplified
+          ? `${coloredSeverity} ${functionName} ${payloadData}`
+          : `${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`,
+      );
 
-const obscure = (entry: Readonly<loggingV2.Schema$LogEntry>, functionName: string) => {
+      logEntryCache[insertId!] = true;
+    });
+}
+
+function obscure(entry: Readonly<loggingV2.Schema$LogEntry>, functionName: string) {
   const {jsonPayload, protoPayload = {}, textPayload} = entry;
 
   // Chokes on unmatched json payloads
@@ -137,9 +147,9 @@ const obscure = (entry: Readonly<loggingV2.Schema$LogEntry>, functionName: strin
   }
 
   return {functionName, payloadData};
-};
+}
 
-const setupLogs = async (projectSettings: ProjectSettings): Promise<string> => {
+async function setupLogs(projectSettings: ProjectSettings): Promise<string> {
   console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
   console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
 
@@ -157,18 +167,19 @@ const setupLogs = async (projectSettings: ProjectSettings): Promise<string> => {
   await dotfile.write({...settings, projectId});
 
   return projectId;
-};
+}
 
 /**
  * Fetches the logs and prints the to the user.
  * @param startDate {Date?} Get logs from this date to now.
  */
-const fetchAndPrintLogs = async (
+async function fetchAndPrintLogs(
+  oauth2Client: OAuth2Client,
   formatJson = false,
   simplified = false,
   projectId?: string,
   startDate?: Date,
-): Promise<void> => {
+): Promise<void> {
   // Validate projectId
   if (!projectId) {
     throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
@@ -178,49 +189,22 @@ const fetchAndPrintLogs = async (
     throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(projectId));
   }
 
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-  }
-
   const logger = google.logging({version: 'v2', auth: oauth2Client});
 
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
   // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
   const filter = startDate ? `timestamp >= "${startDate.toISOString()}"` : '';
 
-  try {
-    const logs = await logger.entries.list({
-      requestBody: {resourceNames: [`projects/${projectId}`], filter, orderBy: 'timestamp desc'},
-    });
+  const res = await logger.entries.list({
+    requestBody: {resourceNames: [`projects/${projectId}`], filter, orderBy: 'timestamp desc'},
+  });
 
-    // We have an API response. Now, check the API response status.
-    stopSpinner();
+  stopSpinner();
 
-    // Only print filter if provided.
-    if (filter.length > 0) {
-      console.log(filter);
-    }
-
-    // Parse response and print logs or print error message.
-    const {data, status, statusText} = logs;
-
-    switch (status) {
-      case 200:
-        printLogs(data.entries, formatJson, simplified);
-        break;
-      case 401:
-        throw new ClaspError(ERROR.UNAUTHENTICATED);
-      case 403:
-        throw new ClaspError(ERROR.PERMISSION_DENIED);
-      default:
-        throw new ClaspError(`(${status}) Error: ${statusText}`);
-    }
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-
-    throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(projectId));
+  // Only print filter if provided.
+  if (filter.length > 0) {
+    console.log(filter);
   }
-};
+
+  printLogs(res.data.entries, formatJson, simplified);
+}
