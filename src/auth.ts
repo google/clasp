@@ -11,10 +11,15 @@ import {authorizationCompletePrompt} from './inquirer.js';
 import {LOG} from './messages.js';
 
 let activeUserKey = 'default';
+let useAdc = false;
 const activeCredentialStore = new FileCredentialStore();
 
 export function setActiveUserKey(userKey: string) {
   activeUserKey = userKey;
+}
+
+export function useApplicationDefaultCredentials(enabled = true) {
+  useAdc = enabled;
 }
 
 /**
@@ -23,7 +28,7 @@ export function setActiveUserKey(userKey: string) {
  * @param clientSecretPath
  * @returns
  */
-export function getUnauthorizedOuth2Client(clientSecretPath?: string) {
+export function getUnauthorizedOuth2Client(clientSecretPath?: string): OAuth2Client {
   if (clientSecretPath) {
     return createOauthClient(clientSecretPath);
   }
@@ -37,7 +42,11 @@ const credentialsCache: Map<string, OAuth2Client> = new Map();
  * @param userKey
  * @returns
  */
-export async function getAuthorizedOAuth2Client(userKey?: string) {
+export async function getAuthorizedOAuth2Client(userKey?: string): Promise<OAuth2Client | null> {
+  if (useAdc) {
+    return createApplicationDefaultCredentials();
+  }
+
   if (!userKey) {
     userKey = activeUserKey ?? 'default';
   }
@@ -275,4 +284,26 @@ function createDefaultOAuthClient() {
     clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
     redirectUri: 'http://localhost',
   });
+}
+
+async function createApplicationDefaultCredentials() {
+  const defaultCreds = await new GoogleAuth({
+    scopes: [
+      'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
+      'https://www.googleapis.com/auth/script.projects', // Apps Script management
+      'https://www.googleapis.com/auth/script.webapp.deploy', // Apps Script Web Apps
+      'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
+      'https://www.googleapis.com/auth/drive.file', // Create Drive files
+      'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
+      'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+      'https://www.googleapis.com/auth/userinfo.email', // User email address
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/cloud-platform',
+    ],
+  }).getClient();
+  // Remove this check after https://github.com/googleapis/google-auth-library-nodejs/issues/1677 fixed
+  if (defaultCreds instanceof OAuth2Client) {
+    return defaultCreds as OAuth2Client;
+  }
+  return null;
 }

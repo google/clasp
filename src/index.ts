@@ -28,7 +28,7 @@ import fs from 'fs-extra';
 import loudRejection from 'loud-rejection';
 import {readPackageUpSync} from 'read-pkg-up';
 
-import {setActiveUserKey} from './auth.js';
+import {setActiveUserKey, useApplicationDefaultCredentials} from './auth.js';
 import {ClaspError} from './clasp-error.js';
 import {disableApiCommand, enableApiCommand, listApisCommand, openApisCommand} from './commands/apis.js';
 import {cloneProjectCOmmand} from './commands/clone.js';
@@ -94,6 +94,11 @@ program
   .on('option:user', (user: string) => {
     setActiveUserKey(user);
   });
+
+program.option('--adc', 'Use the application default credentials from the environemnt.').on('option:adc', () => {
+  console.log('Using ADC');
+  useApplicationDefaultCredentials();
+});
 
 /**
  * Path to an ignore file, or to a folder with a '.claspignore'.
