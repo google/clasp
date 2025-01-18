@@ -80,6 +80,31 @@ export class FileCredentialStore implements CredentialStore {
     });
   }
 
+  async delete(user: string) {
+    let store: FileContents = {};
+    if (await this.dotfile.exists()) {
+      store = await this.dotfile.read();
+    }
+    if (!store.tokens) {
+      store.tokens = {};
+    }
+    store.tokens[user] = undefined;
+
+    if (user === 'default') {
+      // Remove legacy keys if default user
+      store = {
+        tokens: store.tokens,
+      };
+    }
+    await this.dotfile.write(store);
+  }
+
+  async deleteAll() {
+    await this.dotfile.write({
+      tokens: {},
+    });
+  }
+
   async load(user: string): Promise<StoredCredential | null> {
     const store: FileContents = this.readFile();
     const credentials = store.tokens?.[user] as StoredCredential;

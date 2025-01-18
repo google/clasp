@@ -292,3 +292,10 @@ export async function createApplicationDefaultCredentials() {
   }
   return undefined;
 }
+export async function getAuthorizedOAuth2ClientOrDie() {
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS);
+  }
+  return oauth2Client;
+}

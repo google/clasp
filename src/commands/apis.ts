@@ -3,6 +3,7 @@ import open from 'open';
 
 import {PUBLIC_ADVANCED_SERVICES} from '../apis.js';
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 import {Command} from 'commander';
 import {OAuth2Client} from 'google-auth-library';
@@ -18,8 +19,14 @@ type CommandOptions = {
 };
 =======
 import {enableOrDisableAPI, getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+=======
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
+>>>>>>> d81ed68 (chore: Additional refactoring to improve locality/readability)
 
 import {OAuth2Client} from 'google-auth-library';
+import {ClaspError} from '../clasp-error.js';
+import {enableOrDisableAdvanceServiceInManifest} from '../manifest.js';
+import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
 import {checkIfOnlineOrDie, getProjectId} from '../utils.js';
 
@@ -216,7 +223,12 @@ export async function listApisCommand() {
  * @param serviceName The name of the service to enable
  */
 export async function enableApiCommand(serviceName: string) {
-  await enableOrDisableAPI(serviceName, true);
+  await checkIfOnlineOrDie();
+
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
+  const projectId = await getProjectId(); // Will prompt user to set up if required
+
+  await enableOrDisableAPI(oauth2Client, projectId, serviceName, true);
 }
 
 /**
@@ -225,7 +237,11 @@ export async function enableApiCommand(serviceName: string) {
  * @param serviceName The name of the service to disable
  */
 export async function disableApiCommand(serviceName: string) {
-  await enableOrDisableAPI(serviceName, false);
+  await checkIfOnlineOrDie();
+
+  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
+  const projectId = await getProjectId(); // Will prompt user to set up if required
+  await enableOrDisableAPI(oauth2Client, projectId, serviceName, false);
 }
 
 /**
@@ -273,4 +289,42 @@ async function getAvailableApis(): Promise<Array<Service>> {
     .filter((service): service is Service => service?.id !== undefined && service?.description !== undefined)
     .sort((a, b) => a.id.localeCompare(b.id));
 }
+<<<<<<< HEAD
 >>>>>>> 1ae3ded (fix: Improve consistency of command checks & error messages)
+=======
+
+/**
+ * Enables or disables a Google API.
+ * @param {string} serviceName The name of the service. i.e. sheets
+ * @param {boolean} enable Enables the API if true, otherwise disables.
+ */
+export async function enableOrDisableAPI(
+  oauth2Client: OAuth2Client,
+  projectId: string,
+  serviceName: string,
+  enable: boolean,
+): Promise<void> {
+  if (!serviceName) {
+    throw new ClaspError('An API name is required. Try sheets');
+  }
+
+  const serviceUsage = google.serviceusage({version: 'v1', auth: oauth2Client});
+
+  const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
+  try {
+    await (enable ? serviceUsage.services.enable({name}) : serviceUsage.services.disable({name}));
+    await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
+    console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName} API.`);
+  } catch (error) {
+    if (error instanceof ClaspError) {
+      throw error;
+    }
+
+    // If given non-existent API (like fakeAPI, it throws 403 permission denied)
+    // We will log this for the user instead:
+    console.log(error);
+
+    throw new ClaspError(ERROR.NO_API(enable, serviceName));
+  }
+}
+>>>>>>> d81ed68 (chore: Additional refactoring to improve locality/readability)
