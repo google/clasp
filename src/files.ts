@@ -8,7 +8,6 @@ import pMap from 'p-map';
 import recursive from 'recursive-readdir';
 
 import {google} from 'googleapis';
-import {getAuthorizedOAuth2Client} from './auth.js';
 import {ClaspError} from './clasp-error.js';
 import {Conf} from './conf.js';
 import {PROJECT_MANIFEST_FILENAME} from './constants.js';
@@ -341,7 +340,7 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
  * Pushes project files to script.google.com.
  * @param {boolean} silent If true, doesn't console.log any success message.
  */
-export async function pushFiles(silent = false) {
+export async function pushFiles(oauth2Client: OAuth2Client, silent = false) {
   const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
   if (scriptId) {
     const [toPush] = splitProjectFiles(await getAllProjectFiles(rootDir));
@@ -353,11 +352,6 @@ export async function pushFiles(silent = false) {
 
       // Start pushing.
       try {
-        const oauth2Client = await getAuthorizedOAuth2Client();
-        if (!oauth2Client) {
-          throw new ClaspError(ERROR.NO_CREDENTIALS(false));
-        }
-
         const script = google.script({version: 'v1', auth: oauth2Client});
         await script.projects.updateContent({scriptId, requestBody: {scriptId, files}});
 

@@ -1,5 +1,5 @@
 import {google} from 'googleapis';
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {PROJECT_MANIFEST_BASENAME as manifestFileName} from '../constants.js';
 import {LOG} from '../messages.js';
 import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';

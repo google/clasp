@@ -1,7 +1,7 @@
 import {google, script_v1 as scriptV1} from 'googleapis';
 
 import {OAuth2Client} from 'google-auth-library';
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {LOG} from '../messages.js';
 import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';

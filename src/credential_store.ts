@@ -41,6 +41,8 @@ type FileContents = V1LocalFileFormat & V1GlobalFileFormat & V3FileFormat;
 
 export interface CredentialStore {
   save(user: string, credentials: StoredCredential): Promise<void>;
+  delete(user: string): Promise<void>;
+  deleteAll(): Promise<void>;
   load(user: string): Promise<StoredCredential | null>;
 }
 
@@ -65,6 +67,31 @@ export class FileCredentialStore implements CredentialStore {
     }
     store.tokens[user] = credentials;
     await this.dotfile.write(store);
+  }
+
+  async delete(user: string) {
+    let store: FileContents = {};
+    if (await this.dotfile.exists()) {
+      store = await this.dotfile.read();
+    }
+    if (!store.tokens) {
+      store.tokens = {};
+    }
+    store.tokens[user] = undefined;
+
+    if (user === 'default') {
+      // Remove legacy keys if default user
+      store = {
+        tokens: store.tokens,
+      };
+    }
+    await this.dotfile.write(store);
+  }
+
+  async deleteAll() {
+    await this.dotfile.write({
+      tokens: {},
+    });
   }
 
   async load(user: string): Promise<StoredCredential | null> {

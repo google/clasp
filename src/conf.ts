@@ -31,7 +31,6 @@ export class Conf {
   private _projectConfig: string | undefined;
   private _ignore: string | undefined;
   private _auth: string | undefined;
-  private _authLocal: string | undefined;
 
   private static _instance: Conf;
 
@@ -91,17 +90,6 @@ export class Conf {
       this._auth = buildPathOrUseEnv(`.${PROJECT_NAME}rc.json`, os.homedir(), ENV.DOT_CLASP_AUTH);
     }
     return this._auth;
-  }
-
-  set authLocal(path: string | undefined) {
-    this._authLocal = path;
-  }
-
-  get authLocal() {
-    if (this._authLocal === undefined && this.projectRootDirectory) {
-      this._authLocal = buildPathOrUseEnv(`.${PROJECT_NAME}rc.json`, this.projectRootDirectory, ENV.DOT_CLASP_AUTH);
-    }
-    return this._authLocal;
   }
 
   /**

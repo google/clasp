@@ -6,8 +6,9 @@ import {GoogleAuth, OAuth2Client} from 'google-auth-library';
 import inquirer from 'inquirer';
 import open from 'open';
 import enableDestroy from 'server-destroy';
+import {ClaspError} from './clasp-error.js';
 import {FileCredentialStore} from './credential_store.js';
-import {LOG} from './messages.js';
+import {ERROR, LOG} from './messages.js';
 
 let activeUserKey = 'default';
 let useAdc = false;
@@ -100,6 +101,16 @@ export async function authorize(options: AuthorizationOptions) {
 
   const client = await flow.authorize(options.scopes);
   return saveOauthClientCredentials(activeUserKey, client);
+}
+
+export async function logout() {
+  await activeCredentialStore.delete(activeUserKey);
+  credentialsCache.delete(activeUserKey);
+}
+
+export async function logoutAll() {
+  await activeCredentialStore.deleteAll();
+  credentialsCache.delete(activeUserKey);
 }
 
 async function saveOauthClientCredentials(userKey: string, oauth2Client: OAuth2Client) {
@@ -311,4 +322,11 @@ async function createApplicationDefaultCredentials() {
     return defaultCreds as OAuth2Client;
   }
   return null;
+}
+export async function getAuthorizedOAuth2ClientOrDie() {
+  const oauth2Client = await getAuthorizedOAuth2Client();
+  if (!oauth2Client) {
+    throw new ClaspError(ERROR.NO_CREDENTIALS);
+  }
+  return oauth2Client;
 }

@@ -1,7 +1,7 @@
 import path from 'node:path';
 import {google} from 'googleapis';
 import inflection from 'inflection';
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';

@@ -1,19 +1,8 @@
-import fs from 'fs-extra';
-
-import {Conf} from '../conf.js';
-
-const config = Conf.get();
-
-const deleteIfExists = (file: string | undefined) => {
-  if (file && fs.existsSync(file)) {
-    fs.unlinkSync(file);
-  }
-};
+import {logout} from '../auth.js';
 
 /**
  * Logs out the user by deleting credentials.
  */
 export async function logoutCommand(): Promise<void> {
-  deleteIfExists(config.auth);
-  deleteIfExists(config.authLocal);
+  logout();
 }

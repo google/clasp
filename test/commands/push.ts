@@ -11,6 +11,7 @@ describe('Test clasp push function', () => {
     fs.writeFileSync('Code.js', TEST_CODE_JS);
     fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
     const result = runClasp(['push']);
+    console.log(result.stdout);
     expect(result.stdout).to.contain('Pushed 2 files.');
     expect(result.status).to.equal(0);
   });

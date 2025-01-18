@@ -1,6 +1,6 @@
 import {google} from 'googleapis';
 import inquirer from 'inquirer';
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {LOG} from '../messages.js';
 import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
 

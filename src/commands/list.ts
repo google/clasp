@@ -1,5 +1,5 @@
 import {google} from 'googleapis';
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {LOG} from '../messages.js';
 import {URL} from '../urls.js';
 import {checkIfOnlineOrDie, ellipsize, spinner, stopSpinner} from '../utils.js';

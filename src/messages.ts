@@ -54,8 +54,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   LOGS_UNAVAILABLE: 'StackDriver logs are getting ready, try again soon.',
   NO_API: (enable: boolean, api: string) =>
     `API ${api} doesn't exist. Try 'clasp apis ${enable ? 'enable' : 'disable'} sheets'.`,
-  NO_CREDENTIALS: (local: boolean) =>
-    `Could not read API credentials. Are you logged in ${local ? 'locally' : 'globally'}?`,
+  NO_CREDENTIALS: `Could not read API credentials. Are you logged in?`,
   NO_FUNCTION_NAME: 'N/A',
   NO_GCLOUD_PROJECT: () => `No projectId found in your ${config.projectConfig} file.`,
   NO_PARENT_ID: () => `No parentId or empty parentId found in your ${config.projectConfig} file.`,
@@ -128,7 +127,6 @@ Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   GET_PROJECT_ID_INSTRUCTIONS: `Go to *Resource > Cloud Platform Project…* and copy your projectId
 (including "project-id-")`,
   GIVE_DESCRIPTION: 'Give a description: ',
-  LOCAL_CREDS: () => `Using local credentials: ${config.authLocal} 🔐 `,
   LOGIN: (isLocal: boolean) => `Logging in ${isLocal ? 'locally' : 'globally'}…`,
   LOGS_SETUP: 'Finished setting up logs.\n',
   NO_GCLOUD_PROJECT: `No projectId found. Running ${PROJECT_NAME} logs --setup.`,
@@ -145,11 +143,7 @@ Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   PUSH_WATCH_UPDATED: (filename: string) => `- Updated: ${filename}`,
   PUSH_WATCH: 'Watching for changed files…\n',
   PUSHING: 'Pushing files…',
-  SAVED_CREDS: (isLocalCreds: boolean) =>
-    isLocalCreds
-      ? `Local credentials saved to: ${config.authLocal}.
-*Be sure to never commit this file!* It's basically a password.`
-      : `Default credentials saved to: ${config.auth}.`,
+  SAVED_CREDS: 'Credentials saved.',
   SCRIPT_LINK: (scriptId: string) => `https://script.google.com/d/${scriptId}/edit`,
   // SCRIPT_RUN: (functionName: string) => `Executing: ${functionName}`,
   STACKDRIVER_SETUP: 'Setting up StackDriver Logging.',

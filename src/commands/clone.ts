@@ -2,7 +2,7 @@ import {drive_v3 as driveV3, google} from 'googleapis';
 
 import {OAuth2Client} from 'google-auth-library';
 import inquirer from 'inquirer';
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
 import {fetchProject, hasProject, writeProjectFiles} from '../files.js';

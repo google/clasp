@@ -6,11 +6,12 @@ import autocomplete from 'inquirer-autocomplete-standalone';
 import {GaxiosError} from 'gaxios';
 import {OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
-import {getAuthorizedOAuth2ClientOrDie, getProjectIdOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {addScopeToManifest, isValidRunManifest} from '../manifest.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
+import {getProjectIdOrDie} from '../utils.js';
 import {checkIfOnlineOrDie, getProjectSettings, parseJsonOrDie, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {

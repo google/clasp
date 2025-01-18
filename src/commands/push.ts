@@ -7,7 +7,7 @@ import inquirer from 'inquirer';
 import {OAuth2Client} from 'google-auth-library';
 import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {Conf} from '../conf.js';
 import {PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants.js';
@@ -55,7 +55,7 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
       }
 
       console.log(LOG.PUSHING);
-      return pushFiles();
+      return pushFiles(oauth2Client);
     }, WATCH_DEBOUNCE_MS);
     const patterns = await DOTFILE.IGNORE();
     const watchCallback = async (filePath: string) => {
@@ -67,7 +67,7 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
       return debouncedPushFiles();
     };
     const watcher = chokidar.watch(rootDir, {persistent: true, ignoreInitial: true});
-    watcher.on('ready', pushFiles); // Push on start
+    watcher.on('ready', () => pushFiles(oauth2Client)); // Push on start
     watcher.on('add', watchCallback);
     watcher.on('change', watchCallback);
     watcher.on('unlink', watchCallback);
@@ -81,7 +81,7 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
   }
 
   spinner.start(LOG.PUSHING);
-  await pushFiles();
+  await pushFiles(oauth2Client);
 }
 
 /**
@@ -111,6 +111,8 @@ async function manifestHasChanges(oauth2Client: OAuth2Client, projectSettings: P
   const remoteFiles = await fetchProject(oauth2Client, scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (remoteManifest) {
+    console.log(normalizeNewline(localManifest));
+    console.log(normalizeNewline(remoteManifest.source));
     return normalizeNewline(localManifest) !== normalizeNewline(remoteManifest.source);
   }
 

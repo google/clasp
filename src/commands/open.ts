@@ -3,7 +3,7 @@ import open from 'open';
 import {OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
 import inquirer from 'inquirer';
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
 import {ProjectSettings} from '../dotfile.js';
 import {ERROR, LOG} from '../messages.js';

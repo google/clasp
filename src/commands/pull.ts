@@ -1,4 +1,4 @@
-import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
+import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {fetchProject, writeProjectFiles} from '../files.js';
 import {LOG} from '../messages.js';
 import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
