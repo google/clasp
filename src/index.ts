@@ -32,12 +32,6 @@ loudRejection();
 
 const program = makeProgram();
 
-const [_bin, _sourcePath, ...args] = process.argv;
-// Defaults to help if commands are not provided
-if (args.length === 0) {
-  program.outputHelp();
-}
-
 try {
   // User input is provided from the process' arguments
   await program.parseAsync(process.argv);
