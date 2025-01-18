@@ -12,26 +12,6 @@ import {ERROR, LOG} from './messages.js';
 
 import type {ProjectSettings} from './dotfile.js';
 
-/**
- * The installed credentials. This is a file downloaded from console.developers.google.com
- * Credentials > OAuth 2.0 client IDs > Type:Other > Download
- * Usually called: creds.json
- * @see https://console.developers.google.com/apis/credentials
- */
-interface ClaspCredentialsInstalled {
-  client_id: string;
-  project_id: string;
-  auth_uri: string;
-  token_uri: string;
-  auth_provider_x509_cert_url: string;
-  client_secret: string;
-  redirect_uris: string[];
-}
-
-export interface ClaspCredentials {
-  installed: ClaspCredentialsInstalled;
-}
-
 export const spinner = ora(); // new Spinner();
 
 /** Stops the spinner if it is spinning */

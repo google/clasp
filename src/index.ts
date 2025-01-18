@@ -21,30 +21,15 @@
  * clasp - The Apps Script CLI
  */
 
-import {dirname} from 'path';
-import {fileURLToPath} from 'url';
 import loudRejection from 'loud-rejection';
-import {readPackageUpSync} from 'read-pkg-up';
 
 import {ClaspError} from './clasp-error.js';
 import {makeProgram} from './commands/program.js';
-import {Conf} from './conf.js';
 import {spinner} from './utils.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// instantiate the config singleton (and loads environment variables as a side effect)
-export const config = Conf.get();
 
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
 
-export const manifest = readPackageUpSync({cwd: __dirname});
-// CLI
-
-/**
- * Set global CLI configurations
- */
 const program = makeProgram();
 
 const [_bin, _sourcePath, ...args] = process.argv;
@@ -53,22 +38,20 @@ if (args.length === 0) {
   program.outputHelp();
 }
 
-await (async () => {
-  try {
-    // User input is provided from the process' arguments
-    await program.parseAsync(process.argv);
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      // ClaspError handles process.exitCode
-      console.error(error.message);
-    } else if (error instanceof Error) {
-      process.exitCode = 1;
-      console.error(error.message);
-    } else {
-      process.exitCode = 1;
-      console.error('Unknown error', error);
-    }
-  } finally {
-    spinner.clear();
+try {
+  // User input is provided from the process' arguments
+  await program.parseAsync(process.argv);
+} catch (error) {
+  if (error instanceof ClaspError) {
+    // ClaspError handles process.exitCode
+    console.error(error.message);
+  } else if (error instanceof Error) {
+    process.exitCode = 1;
+    console.error(error.message);
+  } else {
+    process.exitCode = 1;
+    console.error('Unknown error', error);
   }
-})();
+} finally {
+  spinner.clear();
+}
