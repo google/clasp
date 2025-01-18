@@ -7,10 +7,9 @@ import {OAuth2Client} from 'google-auth-library';
 import {getAuthorizedOAuth2ClientOrDie} from '../apiutils.js';
 import {ClaspError} from '../clasp-error.js';
 import {DOTFILE, ProjectSettings} from '../dotfile.js';
-import {projectIdPrompt} from '../inquirer.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
-import {checkIfOnlineOrDie, getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, getProjectId, getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -163,7 +162,7 @@ async function setupLogs(projectSettings: ProjectSettings): Promise<string> {
     throw new ClaspError(ERROR.SCRIPT_ID_DNE());
   }
 
-  const {projectId} = await projectIdPrompt();
+  const projectId = await getProjectId();
   await dotfile.write({...settings, projectId});
 
   return projectId;

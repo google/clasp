@@ -1,5 +1,6 @@
 import cliTruncate from 'cli-truncate';
 import {script_v1 as scriptV1} from 'googleapis';
+import inquirer from 'inquirer';
 import isReachable from 'is-reachable';
 import logSymbols from 'log-symbols';
 import ora from 'ora';
@@ -7,7 +8,6 @@ import pMap from 'p-map';
 
 import {ClaspError} from './clasp-error.js';
 import {DOTFILE} from './dotfile.js';
-import {projectIdPrompt} from './inquirer.js';
 import {ERROR, LOG} from './messages.js';
 
 import type {ProjectSettings} from './dotfile.js';
@@ -193,7 +193,14 @@ export const getProjectId = async (promptUser = true): Promise<string> => {
       console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
       console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
 
-      projectSettings.projectId = (await projectIdPrompt()).projectId;
+      const answer = await inquirer.prompt([
+        {
+          message: `${LOG.ASK_PROJECT_ID}`,
+          name: 'projectId',
+          type: 'input',
+        },
+      ]);
+      projectSettings.projectId = answer.projectId;
       await DOTFILE.PROJECT().write(projectSettings);
     }
 

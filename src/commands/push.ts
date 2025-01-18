@@ -2,6 +2,8 @@ import {readFileSync} from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
 import debounce from 'debounce';
+import inquirer from 'inquirer';
+
 import {OAuth2Client} from 'google-auth-library';
 import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
@@ -11,7 +13,6 @@ import {Conf} from '../conf.js';
 import {PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants.js';
 import {DOTFILE} from '../dotfile.js';
 import {fetchProject, pushFiles} from '../files.js';
-import {overwritePrompt} from '../inquirer.js';
 import {isValidManifest} from '../manifest.js';
 import {LOG} from '../messages.js';
 import {checkIfOnlineOrDie, getProjectSettings, spinner} from '../utils.js';
@@ -87,13 +88,23 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
  * Confirms that the manifest file has been updated.
  * @returns {Promise<boolean>}
  */
-const confirmManifestUpdate = async (): Promise<boolean> => (await overwritePrompt()).overwrite;
+async function confirmManifestUpdate(): Promise<boolean> {
+  const answer = await inquirer.prompt([
+    {
+      default: false,
+      message: 'Manifest file has been updated. Do you want to push and overwrite?',
+      name: 'overwrite',
+      type: 'confirm',
+    },
+  ]);
+  return answer.overwrite;
+}
 
 /**
  * Checks if the manifest has changes.
  * @returns {Promise<boolean>}
  */
-const manifestHasChanges = async (oauth2Client: OAuth2Client, projectSettings: ProjectSettings): Promise<boolean> => {
+async function manifestHasChanges(oauth2Client: OAuth2Client, projectSettings: ProjectSettings): Promise<boolean> {
   const {scriptId, rootDir = config.projectRootDirectory} = projectSettings;
   const manifestPath = path.join(rootDir!, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(manifestPath, {encoding: 'utf8'});
@@ -104,4 +115,4 @@ const manifestHasChanges = async (oauth2Client: OAuth2Client, projectSettings: P
   }
 
   throw new ClaspError('remote manifest no found');
-};
+}

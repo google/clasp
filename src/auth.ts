@@ -1,13 +1,12 @@
+import {readFileSync} from 'fs';
 import {createServer} from 'http';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
 import {GoogleAuth, OAuth2Client} from 'google-auth-library';
+import inquirer from 'inquirer';
 import open from 'open';
 import enableDestroy from 'server-destroy';
-
-import {readFileSync} from 'fs';
 import {FileCredentialStore} from './credential_store.js';
-import {authorizationCompletePrompt} from './inquirer.js';
 import {LOG} from './messages.js';
 
 let activeUserKey = 'default';
@@ -170,8 +169,14 @@ class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
     console.log(
       `Authorize clasp by visiting the following URL on another device:\n\n\t${authorizationUrl}\n\nAfter authorization, copy and paste the URL in the browser here.\n`,
     );
-    const {url} = await authorizationCompletePrompt();
-    const {code, error} = parseAuthResponseUrl(url);
+    const answer = await inquirer.prompt([
+      {
+        message: 'Enter the URL from your browser after completing authorization',
+        name: 'url',
+        type: 'input',
+      },
+    ]);
+    const {code, error} = parseAuthResponseUrl(answer.url);
     if (error) {
       throw new Error(error);
     }
