@@ -12,13 +12,6 @@ import {getProjectSettings, parseJsonOrDie} from './utils.js';
 
 const config = Conf.get();
 
-/** Gets the path to manifest for given `rootDir` */
-const getManifestPath = (rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME);
-
-/** Gets the `rootDir` from given project */
-const getRootDir = ({rootDir}: ProjectSettings): string =>
-  is.string(rootDir) ? rootDir : config.projectRootDirectory!;
-
 /**
  * Checks if the rootDir appears to be a valid project.
  *
@@ -26,16 +19,24 @@ const getRootDir = ({rootDir}: ProjectSettings): string =>
  *
  * @return {boolean} True if valid project, false otherwise
  */
-export const manifestExists = (rootDir = config.projectRootDirectory): boolean =>
-  rootDir !== undefined && fs.existsSync(getManifestPath(rootDir));
+export function manifestExists(rootDir = config.projectRootDirectory): boolean {
+  return (
+    rootDir !== undefined &&
+    fs.existsSync(((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(rootDir))
+  );
+}
 
 /**
  * Reads the appsscript.json manifest file.
  * @returns {Promise<Manifest>} A promise to get the manifest file as object.
  * @see https://developers.google.com/apps-script/concepts/manifests
  */
-export const readManifest = async (): Promise<Manifest> => {
-  const manifest = getManifestPath(getRootDir(await getProjectSettings()));
+export async function readManifest(): Promise<Manifest> {
+  const manifest = ((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(
+    (({rootDir}: ProjectSettings): string => (is.string(rootDir) ? rootDir : config.projectRootDirectory!))(
+      await getProjectSettings(),
+    ),
+  );
   try {
     return fs.readJsonSync(manifest, {encoding: 'utf8'}) as Manifest;
   } catch (error) {
@@ -45,29 +46,14 @@ export const readManifest = async (): Promise<Manifest> => {
 
     throw new ClaspError(ERROR.NO_MANIFEST(manifest));
   }
-};
-
-/**
- * Writes the appsscript.json manifest file.
- * @param {Manifest} manifest The new manifest to write.
- */
-const writeManifest = async (manifest: Readonly<Manifest>) => {
-  try {
-    fs.writeJsonSync(getManifestPath(getRootDir(await getProjectSettings())), manifest, {encoding: 'utf8', spaces: 2});
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-
-    throw new ClaspError(ERROR.FS_FILE_WRITE);
-  }
-};
+}
 
 /**
  * Returns true if the manifest is valid.
  */
-export const isValidManifest = async (manifest?: Manifest): Promise<boolean> =>
-  !is.nullOrUndefined(manifest ?? (await getManifest()));
+export async function isValidManifest(manifest?: Manifest): Promise<boolean> {
+  return !is.nullOrUndefined(manifest ?? (await getManifest()));
+}
 
 /**
  * Ensures the manifest is correct for running a function.
@@ -76,10 +62,10 @@ export const isValidManifest = async (manifest?: Manifest): Promise<boolean> =>
  *   "access": "MYSELF"
  * }
  */
-export const isValidRunManifest = async (): Promise<boolean> => {
+export async function isValidRunManifest(): Promise<boolean> {
   const value = await getManifest();
   return Boolean((await isValidManifest(value)) && value.executionApi && value.executionApi.access);
-};
+}
 
 /**
  * Reads manifest file from project root dir.
@@ -87,20 +73,46 @@ export const isValidRunManifest = async (): Promise<boolean> => {
  * - It exists in the project root.
  * - Is valid JSON.
  */
-export const getManifest = async (): Promise<Manifest> =>
-  parseJsonOrDie<Manifest>(
-    fs.readFileSync(getManifestPath(getRootDir(await getProjectSettings())), {encoding: 'utf8'}),
+export async function getManifest(): Promise<Manifest> {
+  return parseJsonOrDie<Manifest>(
+    fs.readFileSync(
+      ((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(
+        (({rootDir}: ProjectSettings): string => (is.string(rootDir) ? rootDir : config.projectRootDirectory!))(
+          await getProjectSettings(),
+        ),
+      ),
+      {encoding: 'utf8'},
+    ),
   );
+}
 
 /**
  * Adds a list of scopes to the manifest.
  * @param {string[]} scopes The list of explicit scopes
  */
-export const addScopeToManifest = async (scopes: readonly string[]) => {
+export async function addScopeToManifest(scopes: readonly string[]) {
   const manifest = await readManifest();
   manifest.oauthScopes = [...new Set([...(manifest.oauthScopes ?? []), ...scopes])];
-  await writeManifest(manifest);
-};
+  await (async (manifest: Readonly<Manifest>) => {
+    try {
+      fs.writeJsonSync(
+        ((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(
+          (({rootDir}: ProjectSettings): string => (is.string(rootDir) ? rootDir : config.projectRootDirectory!))(
+            await getProjectSettings(),
+          ),
+        ),
+        manifest,
+        {encoding: 'utf8', spaces: 2},
+      );
+    } catch (error) {
+      if (error instanceof ClaspError) {
+        throw error;
+      }
+
+      throw new ClaspError(ERROR.FS_FILE_WRITE);
+    }
+  })(manifest);
+}
 
 // /**
 //  * Enables the Execution API in the Manifest.
@@ -131,7 +143,7 @@ export const addScopeToManifest = async (scopes: readonly string[]) => {
  * @param enable {boolean} True if you want to enable a service. Disables otherwise.
  * @see PUBLIC_ADVANCED_SERVICES
  */
-export const enableOrDisableAdvanceServiceInManifest = async (serviceId: string, enable: boolean) => {
+export async function enableOrDisableAdvanceServiceInManifest(serviceId: string, enable: boolean) {
   /**
    * "enabledAdvancedServices": [
    *   {
@@ -162,8 +174,26 @@ export const enableOrDisableAdvanceServiceInManifest = async (serviceId: string,
 
   // Overwrites the old list with the new list.
   manifest.dependencies.enabledAdvancedServices = enabledServices;
-  await writeManifest(manifest);
-};
+  await (async (manifest: Readonly<Manifest>) => {
+    try {
+      fs.writeJsonSync(
+        ((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(
+          (({rootDir}: ProjectSettings): string => (is.string(rootDir) ? rootDir : config.projectRootDirectory!))(
+            await getProjectSettings(),
+          ),
+        ),
+        manifest,
+        {encoding: 'utf8', spaces: 2},
+      );
+    } catch (error) {
+      if (error instanceof ClaspError) {
+        throw error;
+      }
+
+      throw new ClaspError(ERROR.FS_FILE_WRITE);
+    }
+  })(manifest);
+}
 
 // Manifest Generator
 // Generated with:

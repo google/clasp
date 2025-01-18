@@ -19,8 +19,6 @@ import stripBom from 'strip-bom';
 
 import {Conf} from './conf.js';
 
-import type {Credentials, OAuth2ClientOptions} from 'google-auth-library';
-
 export type {Dotfile} from 'dotf';
 
 const config = Conf.get();
@@ -76,41 +74,4 @@ export const DOTFILE = {
     }
     throw new Error('Project file must start with a dot (i.e. .clasp.json)');
   },
-  // Stores {ClaspCredentials}
-  AUTH: (local?: boolean) => {
-    const configPath = local ? config.authLocal : config.auth;
-    // ! TODO: currently limited if filename doesn't start with a dot '.'
-    const {dir, base} = path.parse(configPath!);
-    if (base.startsWith('.')) {
-      return dotf(dir || '.', base.slice(1));
-    }
-    throw new Error('Auth file must start with a dot (i.e. .clasp.json)');
-  },
 };
-
-/**
- * OAuth client settings file.
- * Local credentials are saved in ./.clasprc.json
- * Global credentials are saved in ~/.clasprc.json
- * @example
- * {
- *   "token": {
- *     "access_token": "",
- *     "refresh_token": "",
- *     "scope": "https://www.googleapis.com/auth/script.projects https://.../script.webapp.deploy",
- *     "token_type": "Bearer",
- *     "expiry_date": 1539130731398
- *   },
- *   "oauth2ClientSettings": {
- *     "clientId": "",
- *     "clientSecret": "",
- *     "redirectUri": "http://localhost"
- *   },
- *   "isLocalCreds": false
- * }
- */
-export interface ClaspToken {
-  token: Credentials;
-  oauth2ClientSettings: OAuth2ClientOptions;
-  isLocalCreds: boolean;
-}

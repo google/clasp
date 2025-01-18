@@ -12,7 +12,7 @@ export const SCRIPT_ID_LENGTH = 57;
  * extractScriptId('1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I')
  * returns '1Ng7bNZ1K95wNi2H7IUwZzM68FL6ffxQhyc_ByV42zpS6qAFX8pFsWu2I'
  */
-export const extractScriptId = (scriptId: string) => {
+export function extractScriptId(scriptId: string) {
   if (scriptId.length !== SCRIPT_ID_LENGTH) {
     const ids = scriptId.split('/').filter(s => s.length === SCRIPT_ID_LENGTH);
     if (ids.length > 0) {
@@ -21,7 +21,7 @@ export const extractScriptId = (scriptId: string) => {
   }
 
   return scriptId;
-};
+}
 
 // Helpers to get Apps Script project URLs
 export const URL = {

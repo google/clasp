@@ -1,7 +1,6 @@
 import os from 'os';
 import path from 'path';
 
-import {ClaspToken} from '../src/dotfile.js';
 import {randomString} from './functions.js';
 
 import type {OAuth2ClientOptions} from 'google-auth-library';
@@ -78,7 +77,7 @@ const oAuth2ClientOptions: OAuth2ClientOptions = {
   clientSecret: randomString(),
 };
 
-const FAKE_CLASPRC_LOCAL: ClaspToken = {
+const FAKE_CLASPRC_LOCAL = {
   token: FAKE_CLASPRC_TOKEN,
   oauth2ClientSettings: oAuth2ClientOptions,
   isLocalCreds: true,

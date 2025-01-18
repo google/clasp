@@ -41,7 +41,7 @@ export async function getProjectIdOrDie(): Promise<string> {
  * @param {string} serviceName The name of the service. i.e. sheets
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
-export const enableOrDisableAPI = async (serviceName: string, enable: boolean): Promise<void> => {
+export async function enableOrDisableAPI(serviceName: string, enable: boolean): Promise<void> {
   if (!serviceName) {
     throw new ClaspError('An API name is required. Try sheets');
   }
@@ -69,4 +69,4 @@ export const enableOrDisableAPI = async (serviceName: string, enable: boolean): 
 
     throw new ClaspError(ERROR.NO_API(enable, serviceName));
   }
-};
+}
