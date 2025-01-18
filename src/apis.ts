@@ -22,148 +22,163 @@ export interface AdvancedService {
  */
 export const PUBLIC_ADVANCED_SERVICES: AdvancedService[] = [
   {
-    userSymbol: 'Classroom',
-    serviceId: 'classroom',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'Tasks',
-    serviceId: 'tasks',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'BigQuery',
-    serviceId: 'bigquery',
-    version: 'v2',
-  },
-  {
-    userSymbol: 'DoubleClickCampaigns',
-    serviceId: 'dfareporting',
-    version: 'v3.3',
-  },
-  {
-    userSymbol: 'YouTube',
-    serviceId: 'youtube',
-    version: 'v3',
-  },
-  {
-    userSymbol: 'FusionTables',
-    serviceId: 'fusiontables',
-    version: 'v2',
-  },
-  {
-    userSymbol: 'Docs',
-    serviceId: 'docs',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'Drive',
-    serviceId: 'drive',
-    version: 'v2',
-  },
-  {
-    userSymbol: 'AdminLicenseManager',
-    serviceId: 'licensing',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'Mirror',
-    serviceId: 'mirror',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'AnalyticsReporting',
-    serviceId: 'analyticsreporting',
-    version: 'v4',
-  },
-  {
     userSymbol: 'AdminDirectory',
-    serviceId: 'admin',
     version: 'directory_v1',
-  },
-  {
-    userSymbol: 'AdminReports',
     serviceId: 'admin',
-    version: 'reports_v1',
-  },
-  {
-    userSymbol: 'Gmail',
-    serviceId: 'gmail',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'AdSense',
-    serviceId: 'adsense',
-    version: 'v1.4',
-  },
-  {
-    userSymbol: 'TagManager',
-    serviceId: 'tagmanager',
-    version: 'v2',
   },
   {
     userSymbol: 'AdminGroupsMigration',
+    version: 'v1',
     serviceId: 'groupsmigration',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'Slides',
-    serviceId: 'slides',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'Sheets',
-    serviceId: 'sheets',
-    version: 'v4',
-  },
-  {
-    userSymbol: 'ShoppingContent',
-    serviceId: 'content',
-    version: 'v2',
-  },
-  {
-    userSymbol: 'DriveActivity',
-    serviceId: 'driveactivity',
-    version: 'v2',
-  },
-  {
-    userSymbol: 'Calendar',
-    serviceId: 'calendar',
-    version: 'v3',
-  },
-  {
-    userSymbol: 'AdminReseller',
-    serviceId: 'reseller',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'YouTubeAnalytics',
-    serviceId: 'youtubeAnalytics',
-    version: 'v2',
-  },
-  {
-    userSymbol: 'People',
-    serviceId: 'peopleapi',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'AppsActivity',
-    serviceId: 'appsactivity',
-    version: 'v1',
-  },
-  {
-    userSymbol: 'YouTubeContentId',
-    serviceId: 'youtubePartner',
-    version: 'v1',
   },
   {
     userSymbol: 'AdminGroupsSettings',
-    serviceId: 'groupssettings',
     version: 'v1',
+    serviceId: 'groupssettings',
+  },
+  {
+    userSymbol: 'AdminLicenseManager',
+    version: 'v1',
+    serviceId: 'licensing',
+  },
+  {
+    userSymbol: 'AdminReports',
+    version: 'reports_v1',
+    serviceId: 'admin',
+  },
+  {
+    userSymbol: 'AdminReseller',
+    version: 'v1',
+    serviceId: 'reseller',
+  },
+  {
+    userSymbol: 'AdSense',
+    version: 'v2',
+    serviceId: 'adsense',
   },
   {
     userSymbol: 'Analytics',
-    serviceId: 'analytics',
     version: 'v3',
+    serviceId: 'analytics',
+  },
+  {
+    userSymbol: 'AnalyticsAdmin',
+    version: 'v1beta',
+    serviceId: 'analyticsadmin',
+  },
+  {
+    userSymbol: 'AnalyticsData',
+    version: 'v1beta',
+    serviceId: 'analyticsdata',
+  },
+  {
+    userSymbol: 'AnalyticsReporting',
+    version: 'v4',
+    serviceId: 'analyticsreporting',
+  },
+  {
+    userSymbol: 'Area120Tables',
+    version: 'v1alpha1',
+    serviceId: 'area120tables',
+  },
+  {
+    userSymbol: 'BigQuery',
+    version: 'v2',
+    serviceId: 'bigquery',
+  },
+  {
+    userSymbol: 'Calendar',
+    version: 'v3',
+    serviceId: 'calendar',
+  },
+  {
+    userSymbol: 'Chat',
+    version: 'v1',
+    serviceId: 'chat',
+  },
+  {
+    userSymbol: 'Classroom',
+    version: 'v1',
+    serviceId: 'classroom',
+  },
+  {
+    userSymbol: 'Docs',
+    version: 'v1',
+    serviceId: 'docs',
+  },
+  {
+    userSymbol: 'DoubleClickCampaigns',
+    version: 'v4',
+    serviceId: 'dfareporting',
+  },
+  {
+    userSymbol: 'Drive',
+    version: 'v3',
+    serviceId: 'drive',
+  },
+  {
+    userSymbol: 'DriveActivity',
+    version: 'v2',
+    serviceId: 'driveactivity',
+  },
+  {
+    userSymbol: 'DriveLabels',
+    version: 'v2beta',
+    serviceId: 'drivelabels',
+  },
+  {
+    userSymbol: 'Gmail',
+    version: 'v1',
+    serviceId: 'gmail',
+  },
+  {
+    userSymbol: 'People',
+    version: 'v1',
+    serviceId: 'peopleapi',
+  },
+  {
+    userSymbol: 'Sheets',
+    version: 'v4',
+    serviceId: 'sheets',
+  },
+  {
+    userSymbol: 'ShoppingContent',
+    version: 'v2.1',
+    serviceId: 'content',
+  },
+  {
+    userSymbol: 'Slides',
+    version: 'v1',
+    serviceId: 'slides',
+  },
+  {
+    userSymbol: 'TagManager',
+    version: 'v2',
+    serviceId: 'tagmanager',
+  },
+  {
+    userSymbol: 'Tasks',
+    version: 'v1',
+    serviceId: 'tasks',
+  },
+  {
+    userSymbol: 'WorkspaceEvents',
+    version: 'v1',
+    serviceId: 'workspaceevents',
+  },
+  {
+    userSymbol: 'YouTube',
+    version: 'v3',
+    serviceId: 'youtube',
+  },
+  {
+    userSymbol: 'YouTubeAnalytics',
+    version: 'v1',
+    serviceId: 'youtubeAnalytics',
+  },
+  {
+    userSymbol: 'YouTubeContentId',
+    version: 'v1',
+    serviceId: 'youtubePartner',
   },
 ];
