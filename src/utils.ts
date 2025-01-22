@@ -188,15 +188,4 @@ export function parseJsonOrDie<T>(value: string): T {
  */
 export function ellipsize(value: string, length: number) {
   return cliTruncate(value, length, {preferTruncationOnSpace: true}).padEnd(length);
-} /**
- * Gets the project ID from the manifest. If there is no project ID, it returns an error.
- */
-
-export async function getProjectIdOrDie(): Promise<string> {
-  const projectId = await getProjectId(); // Will prompt user to set up if required
-  if (projectId) {
-    return projectId;
-  }
-
-  throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
 }

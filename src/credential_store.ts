@@ -81,10 +81,7 @@ export class FileCredentialStore implements CredentialStore {
   }
 
   async delete(user: string) {
-    let store: FileContents = {};
-    if (await this.dotfile.exists()) {
-      store = await this.dotfile.read();
-    }
+    let store: FileContents = this.readFile();
     if (!store.tokens) {
       store.tokens = {};
     }
@@ -96,11 +93,11 @@ export class FileCredentialStore implements CredentialStore {
         tokens: store.tokens,
       };
     }
-    await this.dotfile.write(store);
+    this.writeFile(store);
   }
 
   async deleteAll() {
-    await this.dotfile.write({
+    await this.writeFile({
       tokens: {},
     });
   }

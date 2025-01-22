@@ -4,6 +4,7 @@ import open from 'open';
 import {PUBLIC_ADVANCED_SERVICES} from '../apis.js';
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 import {Command} from 'commander';
 import {OAuth2Client} from 'google-auth-library';
@@ -22,15 +23,25 @@ import {enableOrDisableAPI, getAuthorizedOAuth2ClientOrDie} from '../apiutils.js
 =======
 import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 >>>>>>> d81ed68 (chore: Additional refactoring to improve locality/readability)
+=======
+>>>>>>> b72d6ed (chore: First pass at restructuring config to not use global vars)
 
+import {Command} from 'commander';
 import {OAuth2Client} from 'google-auth-library';
 import {ClaspError} from '../clasp-error.js';
+import {Context, assertAuthenticated, assertScriptSettings} from '../context.js';
 import {enableOrDisableAdvanceServiceInManifest} from '../manifest.js';
 import {ERROR} from '../messages.js';
 import {URL} from '../urls.js';
-import {checkIfOnlineOrDie, getProjectId} from '../utils.js';
+import {checkIfOnlineOrDie, getOrPromptForProjectId} from '../utils.js';
 
+<<<<<<< HEAD
 >>>>>>> 1ae3ded (fix: Improve consistency of command checks & error messages)
+=======
+type CommandOptions = {
+  context: Context;
+};
+>>>>>>> b72d6ed (chore: First pass at restructuring config to not use global vars)
 type Service = {
   id: string;
   name: string;
@@ -52,9 +63,18 @@ export async function openApisCommand(this: Command, options: CommandOptions) {
 /**
  * Opens the Google Cloud Console for the project.
  */
+<<<<<<< HEAD
 export async function openApisCommand() {
   const projectId = await getProjectId();
 >>>>>>> 1ae3ded (fix: Improve consistency of command checks & error messages)
+=======
+export async function openApisCommand(this: Command, options: CommandOptions) {
+  const context = options.context;
+  assertScriptSettings(context);
+
+  const projectId = await getOrPromptForProjectId(context.project);
+
+>>>>>>> b72d6ed (chore: First pass at restructuring config to not use global vars)
   const apisUrl = URL.APIS(projectId);
   console.log(apisUrl);
   await open(apisUrl, {wait: false});
@@ -63,6 +83,7 @@ export async function openApisCommand() {
 /**
  * Lists all APIs available to the user and shows which ones are enabled.
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 export async function listApisCommand(this: Command) {
   await checkIfOnlineOrDie();
@@ -200,16 +221,23 @@ export async function enableOrDisableAPI(context: Context, serviceName: string, 
 }
 =======
 export async function listApisCommand() {
+=======
+export async function listApisCommand(this: Command) {
+>>>>>>> b72d6ed (chore: First pass at restructuring config to not use global vars)
   await checkIfOnlineOrDie();
 
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
-  const projectId = await getProjectId(); // Will prompt user to set up if required
+  const context: Context = this.opts().context;
+  console.log(context);
+  assertAuthenticated(context);
+  assertScriptSettings(context);
+
+  const projectId = await getOrPromptForProjectId(context.project);
 
   const printService = (service: Service) =>
     console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`);
 
   console.log('\n# Currently enabled APIs:');
-  const enabledApis = await getEnabledApis(oauth2Client, projectId);
+  const enabledApis = await getEnabledApis(context.credentials, projectId);
   enabledApis.forEach(printService);
 
   console.log('\n# List of available APIs:');
@@ -222,13 +250,17 @@ export async function listApisCommand() {
  *
  * @param serviceName The name of the service to enable
  */
-export async function enableApiCommand(serviceName: string) {
+export async function enableApiCommand(this: Command, serviceName: string) {
   await checkIfOnlineOrDie();
 
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
-  const projectId = await getProjectId(); // Will prompt user to set up if required
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
 
-  await enableOrDisableAPI(oauth2Client, projectId, serviceName, true);
+  const projectId = await getOrPromptForProjectId(context.project);
+  context.project.settings.projectId = projectId;
+
+  await enableOrDisableAPI(context, serviceName, true);
 }
 
 /**
@@ -236,12 +268,16 @@ export async function enableApiCommand(serviceName: string) {
  *
  * @param serviceName The name of the service to disable
  */
-export async function disableApiCommand(serviceName: string) {
+export async function disableApiCommand(this: Command, serviceName: string) {
   await checkIfOnlineOrDie();
 
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
-  const projectId = await getProjectId(); // Will prompt user to set up if required
-  await enableOrDisableAPI(oauth2Client, projectId, serviceName, false);
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
+
+  const projectId = await getOrPromptForProjectId(context.project);
+  context.project.settings.projectId = projectId;
+  await enableOrDisableAPI(context, serviceName, false);
 }
 
 /**
@@ -298,22 +334,19 @@ async function getAvailableApis(): Promise<Array<Service>> {
  * @param {string} serviceName The name of the service. i.e. sheets
  * @param {boolean} enable Enables the API if true, otherwise disables.
  */
-export async function enableOrDisableAPI(
-  oauth2Client: OAuth2Client,
-  projectId: string,
-  serviceName: string,
-  enable: boolean,
-): Promise<void> {
+export async function enableOrDisableAPI(context: Context, serviceName: string, enable: boolean): Promise<void> {
+  assertScriptSettings(context);
+
   if (!serviceName) {
     throw new ClaspError('An API name is required. Try sheets');
   }
 
-  const serviceUsage = google.serviceusage({version: 'v1', auth: oauth2Client});
+  const serviceUsage = google.serviceusage({version: 'v1', auth: context.credentials});
 
-  const name = `projects/${projectId}/services/${serviceName}.googleapis.com`;
+  const name = `projects/${context.project.settings.projectId}/services/${serviceName}.googleapis.com`;
   try {
     await (enable ? serviceUsage.services.enable({name}) : serviceUsage.services.disable({name}));
-    await enableOrDisableAdvanceServiceInManifest(serviceName, enable);
+    await enableOrDisableAdvanceServiceInManifest(context.project.contentDir, serviceName, enable);
     console.log(`${enable ? 'Enable' : 'Disable'}d ${serviceName} API.`);
   } catch (error) {
     if (error instanceof ClaspError) {
