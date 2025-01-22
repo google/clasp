@@ -1,13 +1,13 @@
 import {expect} from 'chai';
 import {after, before, describe, it} from 'mocha';
 
-import {getManifest, isValidManifest, isValidRunManifest} from '../src/manifest.js';
+import {isValidManifest, isValidRunManifest, loadManifest} from '../src/manifest.js';
 import {cleanup, setup, setupWithRunManifest} from './functions.js';
 
 describe('Test getManifest function', () => {
   before(setup);
   it('should get a valid manifest file correctly', async () => {
-    const manifest = await getManifest();
+    const manifest = await loadManifest('.');
     expect(manifest.timeZone).to.equal('America/Los_Angeles');
   });
   after(cleanup);
@@ -16,7 +16,8 @@ describe('Test getManifest function', () => {
 describe('Test isValidRunManifest function', () => {
   it('should validate a manifest with run permissions', async () => {
     setupWithRunManifest();
-    expect(await isValidRunManifest()).to.equal(true);
+    const manifest = await loadManifest('.');
+    expect(await isValidRunManifest(manifest)).to.equal(true);
     cleanup();
   });
   it('should not validate a manifest with run permissions', async () => {
@@ -30,7 +31,8 @@ describe('Test isValidRunManifest function', () => {
 describe('Test isValidManifest function', () => {
   before(setup);
   it('should validate a manifest', async () => {
-    expect(await isValidManifest()).to.equal(true);
+    const manifest = await loadManifest('.');
+    expect(await isValidManifest(manifest)).to.equal(true);
   });
   after(cleanup);
 });

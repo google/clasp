@@ -1,10 +1,7 @@
 import {script_v1 as scriptV1} from 'googleapis';
 
-import {Conf} from './conf.js';
 import {PROJECT_MANIFEST_FILENAME, PROJECT_NAME} from './constants.js';
 import {URL} from './urls.js';
-
-const config = Conf.get();
 
 /** Human friendly Google Drive file type name */
 const fileTypeName = new Map<string, string>([
@@ -44,7 +41,7 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   DEPLOYMENT_COUNT: 'Unable to deploy; Scripts may only have up to 20 versioned deployments at a time.',
   DRIVE: 'Something went wrong with the Google Drive API',
   EXECUTE_ENTITY_NOT_FOUND: 'Script API executable not published/deployed.',
-  FOLDER_EXISTS: () => `Project file (${config.projectConfig}) already exists.`,
+  FOLDER_EXISTS: (path: string) => `Project file (${path}) already exists.`,
   FS_DIR_WRITE: 'Could not create directory.',
   FS_FILE_WRITE: 'Could not write file.',
   INVALID_JSON: 'Input params not Valid JSON string. Please fix and try again',
@@ -56,8 +53,8 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
     `API ${api} doesn't exist. Try 'clasp apis ${enable ? 'enable' : 'disable'} sheets'.`,
   NO_CREDENTIALS: `Could not read API credentials. Are you logged in?`,
   NO_FUNCTION_NAME: 'N/A',
-  NO_GCLOUD_PROJECT: () => `No projectId found in your ${config.projectConfig} file.`,
-  NO_PARENT_ID: () => `No parentId or empty parentId found in your ${config.projectConfig} file.`,
+  NO_GCLOUD_PROJECT: (path: string) => `No projectId found in your ${path} file.`,
+  NO_PARENT_ID: (path: string) => `No parentId or empty parentId found in your ${path} file.`,
   NO_LOCAL_CREDENTIALS: `Requires local credentials:\n\n  ${PROJECT_NAME} login --creds <file.json>`,
   NO_MANIFEST: (filename: string) => `Manifest: ${filename} invalid. \`create\` or \`clone\` a project first.`,
   NO_NESTED_PROJECTS: '\nNested clasp projects are not supported.',
@@ -74,14 +71,14 @@ Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,
   RATE_LIMIT: 'Rate limit exceeded. Check quota.',
   RUN_NODATA: 'Script execution API returned no data.',
   READ_ONLY_DELETE: 'Unable to delete read-only deployment.',
-  SCRIPT_ID_DNE: () => `No scriptId found in your ${config.projectConfig} file.`,
+  SCRIPT_ID_DNE: (path: string) => `No scriptId found in your ${path} file.`,
   SCRIPT_ID_INCORRECT: (scriptId: string) => `The scriptId "${scriptId}" looks incorrect.
 Did you provide the correct scriptId?`,
   SCRIPT_ID: `Could not find script.
 Did you provide the correct scriptId?
 Are you logged in to the correct account with the script?`,
   SETTINGS_DNE: () => `
-No valid ${config.projectConfig} project file. You may need to \`create\` or \`clone\` a project first.`,
+No valid .clasp.json project file. You may need to \`create\` or \`clone\` a project first.`,
   UNAUTHENTICATED_LOCAL: 'Error: Local client credentials unauthenticated. Check scopes/authorization.',
   UNAUTHENTICATED: 'Error: Unauthenticated request: Please try again.',
   UNKNOWN_KEY: (key: string) => `Unknown key "${key}"`,
@@ -100,9 +97,9 @@ export const LOG = {
   AUTH_PAGE_SUCCESSFUL: 'Logged in! You may close this page. ', // HTML Redirect Page
   AUTH_SUCCESSFUL: 'Authorization successful.',
   AUTHORIZE: (authUrl: string) => `🔑 Authorize ${PROJECT_NAME} by visiting this url:\n${authUrl}\n`,
-  CLONE_SUCCESS: (fileCount: number) => `Warning: files in subfolder are not accounted for unless you set a '${
-    config.ignore
-  }' file.
+  CLONE_SUCCESS: (
+    fileCount: number,
+  ) => `Warning: files in subfolder are not accounted for unless you set a .claspignore file.
 Cloned ${fileCount} ${fileCount === 1 ? 'file' : 'files'}.`,
   CLONING: 'Cloning files…',
   CLONE_SCRIPT_QUESTION: 'Clone which script?',

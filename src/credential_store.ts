@@ -1,9 +1,5 @@
-import path from 'path';
-import dotf from 'dotf';
-import {Dotfile} from 'dotf';
+import fs from 'fs';
 import {Credentials, JWTInput} from 'google-auth-library';
-import {ClaspError} from './clasp-error.js';
-import {Conf} from './conf.js';
 
 type StoredCredential = JWTInput & Credentials;
 
@@ -47,33 +43,23 @@ export interface CredentialStore {
 }
 
 export class FileCredentialStore implements CredentialStore {
-  private dotfile: Dotfile;
-  constructor() {
-    const filePath = Conf.get().auth;
-    const {dir, base} = path.parse(filePath!);
-    if (!base.startsWith('.')) {
-      throw new ClaspError('Project file must start with a dot (i.e. .clasp.json)');
-    }
-    this.dotfile = dotf(dir || '.', base.slice(1));
+  private filePath: string;
+
+  constructor(filePath: string) {
+    this.filePath = filePath;
   }
 
   async save(user: string, credentials?: StoredCredential) {
-    let store: FileContents = {};
-    if (await this.dotfile.exists()) {
-      store = await this.dotfile.read();
-    }
+    const store: FileContents = this.readFile();
     if (!store.tokens) {
       store.tokens = {};
     }
     store.tokens[user] = credentials;
-    await this.dotfile.write(store);
+    this.writeFile(store);
   }
 
   async delete(user: string) {
-    let store: FileContents = {};
-    if (await this.dotfile.exists()) {
-      store = await this.dotfile.read();
-    }
+    let store: FileContents = this.readFile();
     if (!store.tokens) {
       store.tokens = {};
     }
@@ -85,20 +71,17 @@ export class FileCredentialStore implements CredentialStore {
         tokens: store.tokens,
       };
     }
-    await this.dotfile.write(store);
+    this.writeFile(store);
   }
 
   async deleteAll() {
-    await this.dotfile.write({
+    await this.writeFile({
       tokens: {},
     });
   }
 
   async load(user: string): Promise<StoredCredential | null> {
-    if (!(await this.dotfile.exists())) {
-      return null;
-    }
-    const store: FileContents = await this.dotfile.read();
+    const store: FileContents = this.readFile();
     const credentials = store.tokens?.[user] as StoredCredential;
     if (credentials) {
       return credentials;
@@ -127,6 +110,19 @@ export class FileCredentialStore implements CredentialStore {
       };
     }
     return null;
+  }
+
+  private readFile(): FileContents {
+    if (fs.existsSync(this.filePath)) {
+      // TODO - use promises
+      const content = fs.readFileSync(this.filePath, {encoding: 'utf8'});
+      return JSON.parse(content);
+    }
+    return {};
+  }
+
+  private writeFile(store: FileContents) {
+    fs.writeFileSync(this.filePath, JSON.stringify(store, null, 2));
   }
 }
 

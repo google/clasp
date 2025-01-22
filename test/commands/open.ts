@@ -27,6 +27,8 @@ describe('Test clasp open function', () => {
   });
   it('open parent page correctly', () => {
     const result = runClasp(['open', '--addon']);
+    console.log(result.stdout);
+    console.log(result.stderr);
     expect(result.stdout).to.contain(LOG.OPEN_FIRST_PARENT(PARENT_ID[0]));
   });
   // FIXME: `deploymentId` should be valid value:

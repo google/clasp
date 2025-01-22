@@ -5,7 +5,7 @@ import {after, before, describe, it} from 'mocha';
 
 import {ERROR, LOG} from '../../src/messages.js';
 import {URL} from '../../src/urls.js';
-import {SCRIPT_ID} from '../constants.js';
+import {CLASP_SETTINGS, SCRIPT_ID} from '../constants.js';
 import {cleanup, runClasp, setup} from '../functions.js';
 
 describe('Test clasp clone <scriptId> function', () => {
@@ -61,7 +61,7 @@ describe('Test clasp clone function', () => {
     expect(result.status).to.equal(0);
   });
   it('should give an error if .clasp.json already exists', () => {
-    fs.writeFileSync('.clasp.json', '');
+    fs.writeFileSync('.clasp.json', CLASP_SETTINGS.valid);
     const result = runClasp(['clone'], {maxBuffer: 10 * 1024 * 1024});
     expect(result.stderr).to.match(/Project file \(.*\) already exists./);
     expect(result.status).to.equal(1);

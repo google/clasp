@@ -1,11 +1,12 @@
+import {Command} from 'commander';
 import {google, script_v1 as scriptV1} from 'googleapis';
 import pMap from 'p-map';
 
 import {OAuth2Client} from 'google-auth-library';
-import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
+import {Context, assertAuthenticated, assertScriptSettings} from '../context.js';
 import {ERROR, LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -15,18 +16,23 @@ interface CommandOption {
  * Removes a deployment from the Apps Script project.
  * @param deploymentId {string} The deployment's ID
  */
-export async function undeployCommand(deploymentId: string | undefined, options: CommandOption): Promise<void> {
+export async function undeployCommand(
+  this: Command,
+  deploymentId: string | undefined,
+  options: CommandOption,
+): Promise<void> {
   await checkIfOnlineOrDie();
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
 
-  const {scriptId} = await getProjectSettings();
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
 
   if (options.all) {
     const mapper = async ({deploymentId}: scriptV1.Schema$Deployment) =>
-      deleteDeployment(oauth2Client, scriptId, deploymentId!);
-    const deployments = await listDeployments(oauth2Client, scriptId);
+      deleteDeployment(context.credentials, context.project.settings.scriptId, deploymentId!);
+    const deployments = await listDeployments(context.credentials, context.project.settings.scriptId);
     if (deployments.length === 0) {
-      throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+      throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(context.project.settings.scriptId));
     }
 
     deployments.shift(); // @HEAD (Read-only deployments) may not be deleted.
@@ -40,20 +46,20 @@ export async function undeployCommand(deploymentId: string | undefined, options:
   }
 
   if (!deploymentId) {
-    const deployments = await listDeployments(oauth2Client, scriptId);
+    const deployments = await listDeployments(context.credentials, context.project.settings.scriptId);
     // @HEAD (Read-only deployments) may not be deleted.
     deployments.shift();
 
     const lastDeployment = deployments.pop();
     if (!lastDeployment || !lastDeployment.deploymentId) {
       // TODO - More specific error message (or treat as non-error)
-      throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
+      throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(context.project.settings.scriptId));
     }
     deploymentId = lastDeployment.deploymentId;
   }
 
   spinner.start(LOG.UNDEPLOYMENT_START(deploymentId));
-  await deleteDeployment(oauth2Client, scriptId, deploymentId);
+  await deleteDeployment(context.credentials, context.project.settings.scriptId, deploymentId);
   stopSpinner();
 }
 

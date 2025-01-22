@@ -197,8 +197,16 @@ describe('Test saveProject function from utils', () => {
   it('should save the scriptId correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
-      await saveProject({scriptId: '12345'});
-      const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
+      await saveProject({
+        projectRootDir: __dirname,
+        contentDir: __dirname,
+        configFilePath: path.join(__dirname, '.clasp.json'),
+        settings: {
+          scriptId: '12345',
+        },
+        ignorePatterns: [],
+      });
+      const id = fs.readFileSync(path.join(__dirname, '.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345"}');
     };
     expect(isSaved).to.not.equal(null);
@@ -207,8 +215,17 @@ describe('Test saveProject function from utils', () => {
   it('should save the scriptId, rootDir correctly', () => {
     spawnSync('rm', ['.clasp.json']);
     const isSaved = async () => {
-      await saveProject({scriptId: '12345', rootDir: './dist'});
-      const id = fs.readFileSync(path.join(__dirname, '/../.clasp.json'), 'utf8');
+      await saveProject({
+        projectRootDir: __dirname,
+        contentDir: __dirname,
+        configFilePath: path.join(__dirname, '.clasp.json'),
+        settings: {
+          scriptId: '12345',
+          srcDir: './dist',
+        },
+        ignorePatterns: [],
+      });
+      const id = fs.readFileSync(path.join(__dirname, '.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345","rootDir":"./dist"}');
     };
     expect(isSaved).to.not.equal(null);

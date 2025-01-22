@@ -1,21 +1,17 @@
 import path from 'path';
 import chalk from 'chalk';
 import fs from 'fs-extra';
+import {google} from 'googleapis';
 import {GaxiosError, OAuth2Client} from 'googleapis-common';
 import {makeDirectory} from 'make-dir';
 import multimatch from 'multimatch';
+import normalizePath from 'normalize-path';
 import pMap from 'p-map';
 import recursive from 'recursive-readdir';
-
-import {google} from 'googleapis';
 import {ClaspError} from './clasp-error.js';
-import {Conf} from './conf.js';
-import {PROJECT_MANIFEST_FILENAME} from './constants.js';
-import {DOTFILE} from './dotfile.js';
+import {Project} from './context.js';
 import {ERROR, LOG} from './messages.js';
-import {getApiFileType, getProjectSettings, spinner, stopSpinner} from './utils.js';
-
-const config = Conf.get();
+import {getApiFileType, spinner, stopSpinner} from './utils.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -44,20 +40,19 @@ function ignoredProjectFile(file: ProjectFile): ProjectFile {
 }
 
 function isValidFactory(rootDir: string) {
-  const validManifestPath = rootDir ? path.join(rootDir, PROJECT_MANIFEST_FILENAME) : PROJECT_MANIFEST_FILENAME;
-
   /**
    * Validates a file:
    *
    * - is a manifest file
    * - type is either `SERVER_JS` or `HTML` @see https://developers.google.com/apps-script/api/reference/rest/v1/File
    */
-  return (file: ProjectFile): boolean =>
-    Boolean(
-      file.type === 'JSON' // Has a type or is appsscript.json
-        ? (rootDir ? path.normalize(file.name) : file.name) === validManifestPath
-        : file.type === 'SERVER_JS' || file.type === 'HTML',
-    );
+  return (file: ProjectFile): boolean => {
+    if (file.type === 'JSON') {
+      const name = path.relative(rootDir, file.name);
+      return name === 'appsscript.json';
+    }
+    return file.type === 'SERVER_JS' || file.type === 'HTML';
+  };
 }
 
 /**
@@ -69,9 +64,8 @@ function isValidFactory(rootDir: string) {
  *
  * @param rootDir the project's `rootDir`
  */
-export async function getAllProjectFiles(rootDir: string = path.join('.', '/')): Promise<ProjectFile[]> {
+export async function getAllProjectFiles(rootDir: string, ignorePatterns: string[]): Promise<ProjectFile[]> {
   try {
-    const ignorePatterns = await DOTFILE.IGNORE();
     const isIgnored = (file: string) =>
       multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length > 0;
 
@@ -81,7 +75,7 @@ export async function getAllProjectFiles(rootDir: string = path.join('.', '/')):
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
     const files: ProjectFile[] = (await recursive(rootDir)).map((filename): ProjectFile => {
       // Replace OS specific path separator to common '/' char for console output
-      const name = filename.replace(/\\/g, '/');
+      const name = normalizePath(path.relative(process.cwd(), filename));
 
       return {source: '', isIgnored: isIgnored(name), name, type: ''};
     });
@@ -107,7 +101,6 @@ export async function getAllProjectFiles(rootDir: string = path.join('.', '/')):
             throw new ClaspError(ERROR.CONFLICTING_FILE_EXTENSION(`${parsed.dir}/${parsed.name}`));
           }
         }
-
         return isValid(file) ? file : ignoredProjectFile(file);
       }
 
@@ -182,14 +175,6 @@ export function getOrderedProjectFiles(files: ProjectFile[], filePushOrder: stri
  */
 export function getLocalFileType(type: string, fileExtension?: string): string {
   return type === 'SERVER_JS' ? (fileExtension ?? 'js') : type.toLowerCase();
-}
-
-/**
- * Returns true if the user has a clasp project.
- * @returns {boolean} If .clasp.json exists.
- */
-export function hasProject(): boolean {
-  return config.projectConfig !== undefined && fs.existsSync(config.projectConfig);
 }
 
 // /**
@@ -306,21 +291,14 @@ export async function fetchProject(
  * @param {AppsScriptFile[]} Files to write
  * @param {string?} rootDir The directory to save the project files to. Defaults to `pwd`
  */
-export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
+export async function writeProjectFiles(files: AppsScriptFile[], project: Project) {
   try {
-    const {fileExtension} = await getProjectSettings();
-
     const mapper = async (file: AppsScriptFile) => {
-      const filePath = `${file.name}.${getLocalFileType(file.type, fileExtension)}`;
-      const truePath = `${rootDir || '.'}/${filePath}`;
-      try {
-        await makeDirectory(path.dirname(truePath));
-        await fs.writeFile(truePath, file.source);
-      } catch (_error) {
-        throw new ClaspError(ERROR.FS_FILE_WRITE);
-      }
-      // Log only filename if pulling to root (Code.gs vs ./Code.gs)
-      console.log(`└─ ${rootDir ? truePath : filePath}`);
+      const filePath = `${file.name}.${getLocalFileType(file.type, project.settings.fileExtension)}`;
+      const truePath = `${project.contentDir}/${filePath}`;
+      await makeDirectory(path.dirname(truePath));
+      await fs.writeFile(truePath, file.source);
+      console.log(`└─ ${truePath}`);
     };
 
     const fileList = files.filter(file => file.source); // Disallow empty files
@@ -340,82 +318,85 @@ export async function writeProjectFiles(files: AppsScriptFile[], rootDir = '') {
  * Pushes project files to script.google.com.
  * @param {boolean} silent If true, doesn't console.log any success message.
  */
-export async function pushFiles(oauth2Client: OAuth2Client, silent = false) {
-  const {filePushOrder, scriptId, rootDir} = await getProjectSettings();
-  if (scriptId) {
-    const [toPush] = splitProjectFiles(await getAllProjectFiles(rootDir));
+export async function pushFiles(oauth2Client: OAuth2Client, project: Project, silent = false) {
+  const [toPush] = splitProjectFiles(await getAllProjectFiles(project.contentDir, project.ignorePatterns));
 
-    if (toPush.length > 0) {
-      const orderedFiles = getOrderedProjectFiles(toPush, filePushOrder);
-      const files = await getAppsScriptFilesFromProjectFiles(orderedFiles, rootDir ?? path.join('.', '/'));
-      const filenames = orderedFiles.map(file => file.name);
+  if (toPush.length > 0) {
+    const orderedFiles = getOrderedProjectFiles(toPush, project.settings.filePushOrder);
+    const files = await getAppsScriptFilesFromProjectFiles(orderedFiles, project.contentDir ?? path.join('.', '/'));
+    const filenames = orderedFiles.map(file => file.name);
 
-      // Start pushing.
-      try {
-        const script = google.script({version: 'v1', auth: oauth2Client});
-        await script.projects.updateContent({scriptId, requestBody: {scriptId, files}});
+    // Start pushing.
+    try {
+      const script = google.script({version: 'v1', auth: oauth2Client});
+      await script.projects.updateContent({
+        scriptId: project.settings.scriptId,
+        requestBody: {
+          scriptId: project.settings.scriptId,
+          files,
+        },
+      });
 
-        // No error
-        stopSpinner();
-        if (!silent) {
-          logFileList(filenames);
-          console.log(LOG.PUSH_SUCCESS(filenames.length));
-        }
-      } catch (error) {
-        stopSpinner();
-        console.error(LOG.PUSH_FAILURE);
-        if (error instanceof GaxiosError) {
-          let message = error.message;
-          let snippet = '';
-          const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
-          const [, errorName, lineNum, fileName] = re.exec(error.message) ?? [];
-          if (fileName !== undefined) {
-            let filePath = path.resolve(rootDir ?? '.', fileName);
-            const parsedFilePath = path.parse(filePath);
-            // Check if the file exists locally as any supported type
-            const {fileExtension} = await getProjectSettings();
-            const extensions = ['gs', 'js', 'ts'];
-            if (fileExtension !== undefined) extensions.push(fileExtension);
-            for (const ext of extensions) {
-              const filePath_ext = path.join(parsedFilePath.dir, `${parsedFilePath.name}.${ext}`);
-              if (fs.existsSync(filePath_ext)) {
-                filePath = filePath_ext;
-                break;
-              }
-            }
-            message = `${errorName} - "${filePath}:${lineNum}"`;
-
-            // Get formatted code snippet
-            const contextCount = 4;
-            const parsedFileName = path.parse(fileName);
-            const fileNameKey = path.join(parsedFileName.dir, parsedFileName.name);
-            const reqFiles: ProjectFile[] = JSON.parse(error.config.body).files;
-            const errFile = reqFiles.find((x: ProjectFile) => x.name === fileNameKey && x.type === 'SERVER_JS');
-            if (errFile !== undefined) {
-              const srcLines = errFile.source.split('\n');
-
-              const errIndex = Math.max(parseInt(lineNum) - 1, 0);
-              const preIndex = Math.max(errIndex - contextCount, 0);
-              const postIndex = Math.min(errIndex + contextCount + 1, srcLines.length);
-
-              const preLines = chalk.dim(`  ${srcLines.slice(preIndex, errIndex).join('\n  ')}`);
-              const errLine = chalk.bold(`⇒ ${srcLines[errIndex]}`);
-              const postLines = chalk.dim(`  ${srcLines.slice(errIndex + 1, postIndex).join('\n  ')}`);
-
-              snippet = preLines + '\n' + errLine + '\n' + postLines;
+      // No error
+      stopSpinner();
+      if (!silent) {
+        logFileList(filenames);
+        console.log(LOG.PUSH_SUCCESS(filenames.length));
+      }
+    } catch (error) {
+      stopSpinner();
+      console.error(LOG.PUSH_FAILURE);
+      if (error instanceof GaxiosError) {
+        let message = error.message;
+        let snippet = '';
+        const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
+        const [, errorName, lineNum, fileName] = re.exec(error.message) ?? [];
+        if (fileName !== undefined) {
+          let filePath = path.resolve(project.contentDir ?? '.', fileName);
+          const parsedFilePath = path.parse(filePath);
+          // Check if the file exists locally as any supported type
+          const extensions = ['gs', 'js', 'ts'];
+          const fileExtension = project.settings.fileExtension;
+          if (fileExtension !== undefined) extensions.push(fileExtension);
+          for (const ext of extensions) {
+            const filePath_ext = path.join(parsedFilePath.dir, `${parsedFilePath.name}.${ext}`);
+            if (fs.existsSync(filePath_ext)) {
+              filePath = filePath_ext;
+              break;
             }
           }
-          console.error(chalk.red(message));
-          console.log(snippet);
-        } else {
-          console.error(error);
+          message = `${errorName} - "${filePath}:${lineNum}"`;
+
+          // Get formatted code snippet
+          const contextCount = 4;
+          const parsedFileName = path.parse(fileName);
+          const fileNameKey = path.join(parsedFileName.dir, parsedFileName.name);
+          const reqFiles: ProjectFile[] = JSON.parse(error.config.body).files;
+          const errFile = reqFiles.find((x: ProjectFile) => x.name === fileNameKey && x.type === 'SERVER_JS');
+          if (errFile !== undefined) {
+            const srcLines = errFile.source.split('\n');
+
+            const errIndex = Math.max(parseInt(lineNum) - 1, 0);
+            const preIndex = Math.max(errIndex - contextCount, 0);
+            const postIndex = Math.min(errIndex + contextCount + 1, srcLines.length);
+
+            const preLines = chalk.dim(`  ${srcLines.slice(preIndex, errIndex).join('\n  ')}`);
+            const errLine = chalk.bold(`⇒ ${srcLines[errIndex]}`);
+            const postLines = chalk.dim(`  ${srcLines.slice(errIndex + 1, postIndex).join('\n  ')}`);
+
+            snippet = preLines + '\n' + errLine + '\n' + postLines;
+          }
         }
-        throw error;
+        console.error(chalk.red(message));
+        console.log(snippet);
+      } else {
+        console.error(error);
       }
-    } else {
-      stopSpinner();
-      console.log(LOG.PUSH_NO_FILES);
+      throw error;
     }
+  } else {
+    stopSpinner();
+    console.log(LOG.PUSH_NO_FILES);
   }
 }
 

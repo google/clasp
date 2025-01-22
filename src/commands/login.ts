@@ -2,9 +2,10 @@
  * Clasp command method bodies.
  */
 
+import {Command} from 'commander';
 import {google} from 'googleapis';
-import {authorize, getAuthorizedOAuth2Client, getUnauthorizedOuth2Client} from '../auth.js';
-import {readManifest} from '../manifest.js';
+import {authorize, getUnauthorizedOuth2Client} from '../auth.js';
+import {Context, assertScriptSettings} from '../context.js';
 import {ERROR, LOG} from '../messages.js';
 import {safeIsOnline} from '../utils.js';
 
@@ -30,9 +31,8 @@ interface CommandOption {
   readonly useProjectScopes?: boolean;
 }
 
-async function showLoginStatus(): Promise<void> {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
+async function showLoginStatus(context: Context): Promise<void> {
+  if (!context.credentials) {
     console.log(LOG.NOT_LOGGED_IN);
     return;
   }
@@ -44,7 +44,7 @@ async function showLoginStatus(): Promise<void> {
   }
 
   const api = google.oauth2('v2');
-  const res = await api.userinfo.get({auth: oauth2Client});
+  const res = await api.userinfo.get({auth: context.credentials});
   if (res.status !== 200) {
     console.log(LOG.LOGGED_IN_UNKNOWN);
     return;
@@ -63,15 +63,16 @@ async function showLoginStatus(): Promise<void> {
  * @param {string?} options.creds The location of credentials file.
  * @param {boolean?} options.status If true, prints who is logged in instead of doing login.
  */
-export async function loginCommand(options: CommandOption): Promise<void> {
+export async function loginCommand(this: Command, options: CommandOption): Promise<void> {
+  const context: Context = this.opts().context;
+
   if (options.status) {
     // TODO - Refactor as subcommand
-    await showLoginStatus();
+    await showLoginStatus(context);
     return;
   }
 
-  const existingCredentials = await getAuthorizedOAuth2Client();
-  if (existingCredentials) {
+  if (context.credentials) {
     console.error(ERROR.LOGGED_IN);
   }
 
@@ -82,8 +83,8 @@ export async function loginCommand(options: CommandOption): Promise<void> {
 
   let scopes = [...DEFAULT_SCOPES];
   if (options.useProjectScopes) {
-    const manifest = await readManifest();
-    scopes = manifest.oauthScopes ?? scopes;
+    assertScriptSettings(context);
+    scopes = context.project.manifest?.oauthScopes ?? scopes;
     console.log('');
     console.log('Authorizing with the following scopes:');
     for (const scope of scopes) {
@@ -92,12 +93,14 @@ export async function loginCommand(options: CommandOption): Promise<void> {
   }
 
   await authorize({
+    store: context.credentialStore,
+    userKey: context.userKey,
     oauth2Client,
     scopes,
     noLocalServer: !useLocalhost,
     redirectPort,
   });
 
-  await showLoginStatus();
+  await showLoginStatus(context);
   return;
 }

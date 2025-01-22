@@ -1,5 +1,6 @@
+import {Command} from 'commander';
 import {google} from 'googleapis';
-import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
+import {Context, assertAuthenticated, assertScriptSettings} from '../context.js';
 import {LOG} from '../messages.js';
 import {URL} from '../urls.js';
 import {checkIfOnlineOrDie, ellipsize, spinner, stopSpinner} from '../utils.js';
@@ -12,11 +13,14 @@ interface CommandOption {
  * Lists a user's Apps Script projects using Google Drive.
  * @param options.noShorten {boolean}
  */
-export async function listProjectsCommand(options: CommandOption): Promise<void> {
+export async function listProjectsCommand(this: Command, options: CommandOption): Promise<void> {
   await checkIfOnlineOrDie();
 
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
-  const drive = google.drive({version: 'v3', auth: oauth2Client});
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
+
+  const drive = google.drive({version: 'v3', auth: context.credentials});
 
   spinner.start(LOG.FINDING_SCRIPTS);
 

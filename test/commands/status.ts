@@ -58,10 +58,10 @@ describe('Test clasp status function', () => {
     ]);
     const result = runClasp(['status', '--json'], {cwd: tmpdir});
     const resultJson = JSON.parse(result.stdout);
-    expect(result.stderr).to.equal('');
-    expect(result.status).to.equal(0);
     expect(resultJson.untrackedFiles).to.have.members(['dist/should/alsoBeIgnored', 'dist/shouldBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['dist/build/main.js', 'dist/appsscript.json']);
+    expect(result.stderr).to.equal('');
+    expect(result.status).to.equal(0);
     // TODO: cleanup by del/rimraf tmpdir
   });
   it('should respect globs and negation rules when relative rootDir given', () => {
@@ -74,11 +74,11 @@ describe('Test clasp status function', () => {
       {file: 'build/should/alsoBeIgnored', data: TEST_CODE_JS},
     ]);
     const result = runClasp(['status', '--json'], {cwd: tmpdir + '/src'});
-    expect(result.stderr).to.equal('');
-    expect(result.status).to.equal(0);
     const resultJson = JSON.parse(result.stdout);
     expect(resultJson.untrackedFiles).to.have.members(['../build/should/alsoBeIgnored', '../build/shouldBeIgnored']);
     expect(resultJson.filesToPush).to.have.members(['../build/main.js', '../build/appsscript.json']);
+    expect(result.stderr).to.equal('');
+    expect(result.status).to.equal(0);
     // TODO: cleanup by del/rimraf tmpdir
   });
   after(cleanup);

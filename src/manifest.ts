@@ -3,56 +3,20 @@ import is from '@sindresorhus/is';
 import fs from 'fs-extra';
 
 import {PUBLIC_ADVANCED_SERVICES as publicAdvancedServices} from './apis.js';
-import {ClaspError} from './clasp-error.js';
-import {Conf} from './conf.js';
-import {PROJECT_MANIFEST_FILENAME} from './constants.js';
-import {ProjectSettings} from './dotfile.js';
-import {ERROR} from './messages.js';
-import {getProjectSettings, parseJsonOrDie} from './utils.js';
 
-const config = Conf.get();
-
-/**
- * Checks if the rootDir appears to be a valid project.
- *
- * @param {string} rootDir dir to check.
- *
- * @return {boolean} True if valid project, false otherwise
- */
-export function manifestExists(rootDir = config.projectRootDirectory): boolean {
-  return (
-    rootDir !== undefined &&
-    fs.existsSync(((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(rootDir))
-  );
+export function loadManifest(contentDir: string): Manifest {
+  return fs.readJsonSync(path.join(contentDir, 'appsscript.json'));
 }
 
-/**
- * Reads the appsscript.json manifest file.
- * @returns {Promise<Manifest>} A promise to get the manifest file as object.
- * @see https://developers.google.com/apps-script/concepts/manifests
- */
-export async function readManifest(): Promise<Manifest> {
-  const manifest = ((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(
-    (({rootDir}: ProjectSettings): string => (is.string(rootDir) ? rootDir : config.projectRootDirectory!))(
-      await getProjectSettings(),
-    ),
-  );
-  try {
-    return fs.readJsonSync(manifest, {encoding: 'utf8'}) as Manifest;
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-
-    throw new ClaspError(ERROR.NO_MANIFEST(manifest));
-  }
+export function saveManifest(contentDir: string, manifest: Manifest) {
+  fs.writeJsonSync(path.join(contentDir, 'appsscript.json'), manifest, {spaces: 2});
 }
 
 /**
  * Returns true if the manifest is valid.
  */
-export async function isValidManifest(manifest?: Manifest): Promise<boolean> {
-  return !is.nullOrUndefined(manifest ?? (await getManifest()));
+export function isValidManifest(manifest?: Manifest): manifest is Manifest {
+  return !is.nullOrUndefined(manifest);
 }
 
 /**
@@ -62,80 +26,19 @@ export async function isValidManifest(manifest?: Manifest): Promise<boolean> {
  *   "access": "MYSELF"
  * }
  */
-export async function isValidRunManifest(): Promise<boolean> {
-  const value = await getManifest();
-  return Boolean((await isValidManifest(value)) && value.executionApi && value.executionApi.access);
-}
-
-/**
- * Reads manifest file from project root dir.
- * The manifest is valid if it:
- * - It exists in the project root.
- * - Is valid JSON.
- */
-export async function getManifest(): Promise<Manifest> {
-  return parseJsonOrDie<Manifest>(
-    fs.readFileSync(
-      ((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(
-        (({rootDir}: ProjectSettings): string => (is.string(rootDir) ? rootDir : config.projectRootDirectory!))(
-          await getProjectSettings(),
-        ),
-      ),
-      {encoding: 'utf8'},
-    ),
-  );
+export function isValidRunManifest(manifest?: Manifest): boolean {
+  return isValidManifest(manifest) && manifest.executionApi !== undefined && manifest.executionApi.access !== undefined;
 }
 
 /**
  * Adds a list of scopes to the manifest.
  * @param {string[]} scopes The list of explicit scopes
  */
-export async function addScopeToManifest(scopes: readonly string[]) {
-  const manifest = await readManifest();
+export async function addScopeToManifest(contentDir: string, scopes: readonly string[]) {
+  const manifest = loadManifest(contentDir);
   manifest.oauthScopes = [...new Set([...(manifest.oauthScopes ?? []), ...scopes])];
-  await (async (manifest: Readonly<Manifest>) => {
-    try {
-      fs.writeJsonSync(
-        ((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(
-          (({rootDir}: ProjectSettings): string => (is.string(rootDir) ? rootDir : config.projectRootDirectory!))(
-            await getProjectSettings(),
-          ),
-        ),
-        manifest,
-        {encoding: 'utf8', spaces: 2},
-      );
-    } catch (error) {
-      if (error instanceof ClaspError) {
-        throw error;
-      }
-
-      throw new ClaspError(ERROR.FS_FILE_WRITE);
-    }
-  })(manifest);
+  saveManifest(contentDir, manifest);
 }
-
-// /**
-//  * Enables the Execution API in the Manifest.
-//  * The Execution API requires the manifest to have the "executionApi.access" field set.
-//  */
-// // TODO: currently unused. Check relevancy
-// export async function enableExecutionAPI() {
-//   console.log('Writing manifest');
-//   const manifest = await readManifest();
-//   manifest.executionApi = manifest.executionApi ?? {
-//     access: 'ANYONE',
-//   };
-//   await writeManifest(manifest);
-//   console.log('Wrote manifest');
-
-//   console.log('Checking Apps Script API');
-//   if (!(await isEnabled('script'))) {
-//     console.log('Apps Script API is currently disabled. Enabling…');
-//     await enableOrDisableAPI('script', true);
-//   }
-
-//   console.log('Apps Script API is enabled.');
-// }
 
 /**
  * Enables or disables an advanced service in the manifest.
@@ -143,18 +46,9 @@ export async function addScopeToManifest(scopes: readonly string[]) {
  * @param enable {boolean} True if you want to enable a service. Disables otherwise.
  * @see PUBLIC_ADVANCED_SERVICES
  */
-export async function enableOrDisableAdvanceServiceInManifest(serviceId: string, enable: boolean) {
-  /**
-   * "enabledAdvancedServices": [
-   *   {
-   *     "userSymbol": "string",
-   *     "serviceId": "string",
-   *     "version": "string",
-   *   }
-   *   ...
-   * ],
-   */
-  const manifest = await readManifest();
+export async function enableOrDisableAdvanceServiceInManifest(contentDir: string, serviceId: string, enable: boolean) {
+  const manifest = loadManifest(contentDir);
+
   // Create objects if they don't exist.
   if (!manifest.dependencies) {
     manifest.dependencies = {enabledAdvancedServices: []};
@@ -174,170 +68,46 @@ export async function enableOrDisableAdvanceServiceInManifest(serviceId: string,
 
   // Overwrites the old list with the new list.
   manifest.dependencies.enabledAdvancedServices = enabledServices;
-  await (async (manifest: Readonly<Manifest>) => {
-    try {
-      fs.writeJsonSync(
-        ((rootDir: string): string => path.join(rootDir, PROJECT_MANIFEST_FILENAME))(
-          (({rootDir}: ProjectSettings): string => (is.string(rootDir) ? rootDir : config.projectRootDirectory!))(
-            await getProjectSettings(),
-          ),
-        ),
-        manifest,
-        {encoding: 'utf8', spaces: 2},
-      );
-    } catch (error) {
-      if (error instanceof ClaspError) {
-        throw error;
-      }
 
-      throw new ClaspError(ERROR.FS_FILE_WRITE);
-    }
-  })(manifest);
+  saveManifest(contentDir, manifest);
 }
 
-// Manifest Generator
-// Generated with:
-// - https://developers.google.com/apps-script/concepts/manifests
-// - http://json2ts.com/
-
-/*
-{
-  "timeZone": "df",
-  "oauthScopes": [
-    "df"
-  ],
-  "dependencies": {
-    "enabledAdvancedServices": [
-      {
-        "userSymbol": "string",
-        "serviceId": "string",
-        "version": "string",
-      }
-    ],
-    "libraries": [
-      {
-        "userSymbol": "string",
-        "libraryId": "string",
-        "version": "string",
-        "developmentMode": true,
-      }
-    ]
-  },
-  "exceptionLogging": "string",
-  "webapp": {
-    "access": "string",
-    "executeAs": "string",
-  },
-  "executionApi": {
-    "access": "string",
-  },
-  "urlFetchWhitelist": [
-    "string"
-  ],
-  "gmail": {
-    "oauthScopes": [
-      "https://www.googleapis.com/auth/gmail.addons.execute",
-      "https://www.googleapis.com/auth/gmail.addons.current.message.metadata",
-      "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/script.locale"
-    ],
-    "urlFetchWhitelist": [
-      "https://www.example.com/myendpoint/"
-    ],
-    "gmail": {
-      "name": "My Gmail Add-on",
-      "logoUrl": "https://www.example.com/hosted/images/2x/my-icon.png",
-      "primaryColor": "#4285F4",
-      "secondaryColor": "#00BCD4",
-      "authorizationCheckFunction": "get3PAuthorizationUrls",
-      "contextualTriggers": [
-        {
-          "unconditional": {},
-          "onTriggerFunction": "buildAddOn"
-        }
-      ],
-      "composeTrigger": {
-        "selectActions": [
-          {
-            "text": "Add images to email",
-            "runFunction": "getInsertImageComposeCards"
-          }
-        ],
-        "draftAccess": "METADATA"
-      },
-      "openLinkUrlPrefixes": [
-        "https://mail.google.com/",
-        "https://script.google.com/a/google.com/d/",
-        "https://drive.google.com/a/google.com/file/d/",
-        "https://en.wikipedia.org/wiki/",
-        "https://www.example.com/",
-      ],
-      "universalActions": [
-        {
-          "text": "Open settings",
-          "runFunction": "getSettingsCard"
-        },
-        {
-          "text": "Open help page",
-          "openLink": "https://www.example.com/help"
-        }
-      ],
-      "useLocaleFromApp": true
-    },
-    "sheets": {
-      "macros": [
-        {
-          "menuName": "QuickRowSum",
-          "functionName": "calculateRowSum",
-          "defaultShortcut": "Ctrl+Alt+Shift+1"
-        },
-        {
-          "menuName": "Headerfy",
-          "functionName": "updateToHeaderStyle",
-          "defaultShortcut": "Ctrl+Alt+Shift+2"
-        }
-      ]
-    }
-  }
-}
-*/
-
-interface EnabledAdvancedService {
+export interface EnabledAdvancedService {
   userSymbol: string;
   serviceId: string;
   version: string;
 }
 
-interface Library {
+export interface Library {
   userSymbol: string;
   libraryId: string;
   version: string;
   developmentMode: boolean;
 }
 
-interface Dependencies {
+export interface Dependencies {
   enabledAdvancedServices?: EnabledAdvancedService[];
   libraries?: Library[];
 }
 
-interface Webapp {
+export interface Webapp {
   access: string;
   executeAs: string;
 }
 
-interface ExecutionApi {
+export interface ExecutionApi {
   access: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface Unconditional {}
+export interface Unconditional {}
 
-interface ContextualTrigger {
+export interface ContextualTrigger {
   unconditional: Unconditional;
   onTriggerFunction: string;
 }
 
-interface SelectAction {
+export interface SelectAction {
   text: string;
   runFunction: string;
 }
@@ -347,13 +117,13 @@ interface ComposeTrigger {
   draftAccess: string;
 }
 
-interface UniversalAction {
+export interface UniversalAction {
   text: string;
   runFunction: string;
   openLink: string;
 }
 
-interface Gmail2 {
+export interface Gmail2 {
   name: string;
   logoUrl: string;
   primaryColor: string;
@@ -366,24 +136,24 @@ interface Gmail2 {
   useLocaleFromApp: boolean;
 }
 
-interface Macro {
+export interface Macro {
   menuName: string;
   functionName: string;
   defaultShortcut: string;
 }
 
-interface Sheets {
+export interface Sheets {
   macros: Macro[];
 }
 
-interface Gmail {
+export interface Gmail {
   oauthScopes: string[];
   urlFetchWhitelist: string[];
   gmail: Gmail2;
   sheets: Sheets;
 }
 
-interface Manifest {
+export interface Manifest {
   timeZone?: string;
   oauthScopes?: string[];
   dependencies?: Dependencies;

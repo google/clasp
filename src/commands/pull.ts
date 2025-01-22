@@ -1,7 +1,8 @@
-import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
+import {Command} from 'commander';
+import {Context, assertAuthenticated, assertScriptSettings} from '../context.js';
 import {fetchProject, writeProjectFiles} from '../files.js';
 import {LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, spinner, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -12,17 +13,17 @@ interface CommandOption {
  * @param options.versionNumber {number} The version number of the project to retrieve.
  *                              If not provided, the project's HEAD version is returned.
  */
-export async function pullFilesCommand(options: CommandOption): Promise<void> {
+export async function pullFilesCommand(this: Command, options: CommandOption): Promise<void> {
   await checkIfOnlineOrDie();
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
 
-  const {scriptId, rootDir} = await getProjectSettings();
-  if (scriptId) {
-    spinner.start(LOG.PULLING);
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
 
-    const files = await fetchProject(oauth2Client, scriptId, options.versionNumber);
-    await writeProjectFiles(files, rootDir);
+  spinner.start(LOG.PULLING);
 
-    stopSpinner();
-  }
+  const files = await fetchProject(context.credentials, context.project.settings.scriptId, options.versionNumber);
+  await writeProjectFiles(files, context.project);
+
+  stopSpinner();
 }

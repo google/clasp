@@ -1,21 +1,17 @@
 import {drive_v3 as driveV3, google} from 'googleapis';
 
+import {Command, OptionValues} from 'commander';
 import {OAuth2Client} from 'google-auth-library';
 import inquirer from 'inquirer';
-import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
+
+import path from 'path';
 import {ClaspError} from '../clasp-error.js';
-import {Conf} from '../conf.js';
-import {fetchProject, hasProject, writeProjectFiles} from '../files.js';
+import {Context, DEFAULT_CLASP_IGNORE, Project, assertAuthenticated, makeClaspConfigFileName} from '../context.js';
+import {fetchProject, writeProjectFiles} from '../files.js';
 import {ERROR, LOG} from '../messages.js';
 import {extractScriptId} from '../urls.js';
 import {checkIfOnlineOrDie, saveProject, spinner, stopSpinner} from '../utils.js';
 import {showFileStatusCommand} from './status.js';
-
-const config = Conf.get();
-
-interface CommandOption {
-  readonly rootDir: string;
-}
 
 /**
  * Fetches an Apps Script project.
@@ -25,33 +21,67 @@ interface CommandOption {
  * @param options.rootDir {string} Specifies the local directory in which clasp will store your project files.
  *                        If not specified, clasp will default to the current directory.
  */
-export async function cloneProjectCOmmand(
+export async function cloneProjectCommand(
+  this: Command,
   scriptId: string | undefined,
   versionNumber: number | undefined,
-  options: CommandOption,
 ): Promise<void> {
-  if (options.rootDir) {
-    config.projectRootDirectory = options.rootDir;
-  }
-
-  if (hasProject()) {
-    throw new ClaspError(ERROR.FOLDER_EXISTS());
-  }
-
   await checkIfOnlineOrDie();
 
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
-  const id = scriptId ? extractScriptId(scriptId) : await getScriptId(oauth2Client);
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
 
+  if (context.project) {
+    throw new ClaspError(ERROR.FOLDER_EXISTS(context.project.configFilePath));
+  }
+
+  if (scriptId) {
+    scriptId = extractScriptId(scriptId);
+  } else {
+    scriptId = await getScriptId(context.credentials);
+  }
+
+  const opts = this.optsWithGlobals();
+  const project = initProjectFromCommandOptions(opts, scriptId);
+  context.project = project;
   spinner.start(LOG.CLONING);
   try {
-    const files = await fetchProject(oauth2Client, id, versionNumber);
-    await saveProject({scriptId: id, rootDir: config.projectRootDirectory}, false);
-    await writeProjectFiles(files, config.projectRootDirectory);
+    const files = await fetchProject(context.credentials, scriptId, versionNumber);
+    await saveProject(context.project);
+    await writeProjectFiles(files, context.project);
   } finally {
     stopSpinner();
   }
-  await showFileStatusCommand();
+  await showFileStatusCommand.call(this);
+}
+
+export function initProjectFromCommandOptions(opts: OptionValues, scriptId: string): Project {
+  if (opts.project) {
+    console.log(`Ignoring project option (${opts.project} during clone. Writing to current directory.`);
+  }
+  if (opts.ignore) {
+    console.log(`Ignoring ignore file option (${opts.ignore} during clone.`);
+  }
+  const projectRootDir = process.cwd();
+  const absoluteSrcDir = path.resolve(projectRootDir, opts.rootDir ?? '.');
+  const srcDir = path.relative(projectRootDir, absoluteSrcDir);
+  if (srcDir.startsWith('..')) {
+    throw new ClaspError('Root directory cannot be outside of the current directory.');
+  }
+  const fileName = makeClaspConfigFileName(opts.env);
+  const configFilePath = path.resolve(projectRootDir, fileName);
+
+  const project = {
+    projectRootDir: projectRootDir,
+    contentDir: absoluteSrcDir,
+    configFilePath,
+    settings: {
+      scriptId,
+      srcDir: srcDir?.length ? srcDir : '.',
+    },
+    ignorePatterns: DEFAULT_CLASP_IGNORE,
+  };
+  return project;
 }
 
 /**

@@ -1,15 +1,14 @@
 import is from '@sindresorhus/is';
 import chalk, {ChalkInstance} from 'chalk';
+import {Command} from 'commander';
 import {google, logging_v2 as loggingV2} from 'googleapis';
 import open from 'open';
 
-import {OAuth2Client} from 'google-auth-library';
-import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
-import {DOTFILE, ProjectSettings} from '../dotfile.js';
+import {Context, Project, assertAuthenticated, assertScriptSettings} from '../context.js';
 import {ERROR, LOG} from '../messages.js';
 import {URL} from '../urls.js';
-import {checkIfOnlineOrDie, getProjectId, getProjectSettings, isValidProjectId, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, getOrPromptForProjectId, isValidProjectId, stopSpinner} from '../utils.js';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -27,17 +26,26 @@ interface CommandOption {
  * @param options.watch {boolean} If true, the command will watch for logs and print them. Exit with ^C.
  * @param options.simplified {boolean} If true, the command will remove timestamps from the logs.
  */
-export async function printLogsCommand(options: CommandOption): Promise<void> {
+export async function printLogsCommand(this: Command, options: CommandOption): Promise<void> {
   await checkIfOnlineOrDie();
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
-  const projectSettings = await getProjectSettings();
-  let projectId = options.setup ? await setupLogs(projectSettings) : projectSettings.projectId;
+
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
+
+  let projectId = context.project.settings.projectId;
+
+  if (options.setup) {
+    projectId = await setupLogs(context.project);
+  }
 
   if (!projectId) {
     console.log(LOG.NO_GCLOUD_PROJECT);
-    projectId = await setupLogs(projectSettings);
+    projectId = await setupLogs(context.project);
     console.log(LOG.LOGS_SETUP);
   }
+
+  context.project.settings.projectId = projectId;
 
   // If we're opening the logs, get the URL, open, then quit.
   if (options.open) {
@@ -54,10 +62,10 @@ export async function printLogsCommand(options: CommandOption): Promise<void> {
     setInterval(async () => {
       const startDate = new Date();
       startDate.setSeconds(startDate.getSeconds() - (10 * POLL_INTERVAL) / 1000);
-      await fetchAndPrintLogs(oauth2Client, json, simplified, projectId, startDate);
+      await fetchAndPrintLogs(context, json, simplified, startDate);
     }, POLL_INTERVAL);
   } else {
-    await fetchAndPrintLogs(oauth2Client, json, simplified, projectId);
+    await fetchAndPrintLogs(context, json, simplified);
   }
 }
 
@@ -148,22 +156,11 @@ function obscure(entry: Readonly<loggingV2.Schema$LogEntry>, functionName: strin
   return {functionName, payloadData};
 }
 
-async function setupLogs(projectSettings: ProjectSettings): Promise<string> {
-  console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
+async function setupLogs(project: Project): Promise<string> {
+  console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(project.settings.scriptId))}\n`);
   console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
 
-  const dotfile = DOTFILE.PROJECT();
-  if (!dotfile) {
-    throw new ClaspError(ERROR.SETTINGS_DNE());
-  }
-
-  const settings = await dotfile.read<ProjectSettings>();
-  if (!settings.scriptId) {
-    throw new ClaspError(ERROR.SCRIPT_ID_DNE());
-  }
-
-  const projectId = await getProjectId();
-  await dotfile.write({...settings, projectId});
+  const projectId = await getOrPromptForProjectId(project);
 
   return projectId;
 }
@@ -173,29 +170,30 @@ async function setupLogs(projectSettings: ProjectSettings): Promise<string> {
  * @param startDate {Date?} Get logs from this date to now.
  */
 async function fetchAndPrintLogs(
-  oauth2Client: OAuth2Client,
+  context: Context,
   formatJson = false,
   simplified = false,
-  projectId?: string,
   startDate?: Date,
 ): Promise<void> {
   // Validate projectId
-  if (!projectId) {
-    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
+  assertScriptSettings(context);
+
+  if (!context.project.settings.projectId) {
+    throw new ClaspError(ERROR.NO_GCLOUD_PROJECT(context.project?.configFilePath));
   }
 
-  if (!isValidProjectId(projectId)) {
-    throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(projectId));
+  if (!isValidProjectId(context.project.settings.projectId)) {
+    throw new ClaspError(ERROR.PROJECT_ID_INCORRECT(context.project.settings.projectId));
   }
 
-  const logger = google.logging({version: 'v2', auth: oauth2Client});
+  const logger = google.logging({version: 'v2', auth: context.credentials});
 
   // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
   // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
   const filter = startDate ? `timestamp >= "${startDate.toISOString()}"` : '';
 
   const res = await logger.entries.list({
-    requestBody: {resourceNames: [`projects/${projectId}`], filter, orderBy: 'timestamp desc'},
+    requestBody: {resourceNames: [`projects/${context.project.settings.projectId}`], filter, orderBy: 'timestamp desc'},
   });
 
   stopSpinner();

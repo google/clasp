@@ -1,6 +1,8 @@
+import {Command} from 'commander';
+
+import {Context, assertScriptSettings} from '../context.js';
 import {getAllProjectFiles, getOrderedProjectFiles, logFileList, splitProjectFiles} from '../files.js';
 import {LOG} from '../messages.js';
-import {getProjectSettings} from '../utils.js';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -10,11 +12,14 @@ interface CommandOption {
  * Displays the status of which Apps Script files are ignored from .claspignore
  * @param options.json {boolean} Displays the status in json format.
  */
-export async function showFileStatusCommand(options?: CommandOption): Promise<void> {
-  const {filePushOrder, rootDir} = await getProjectSettings();
+export async function showFileStatusCommand(this: Command, options?: CommandOption): Promise<void> {
+  const context: Context = this.opts().context;
+  assertScriptSettings(context);
 
-  const [toPush, toIgnore] = splitProjectFiles(await getAllProjectFiles(rootDir));
-  const filesToPush = getOrderedProjectFiles(toPush, filePushOrder).map(file => file.name);
+  const [toPush, toIgnore] = splitProjectFiles(
+    await getAllProjectFiles(context.project.contentDir, context.project.ignorePatterns),
+  );
+  const filesToPush = getOrderedProjectFiles(toPush, context.project.settings.filePushOrder).map(file => file.name);
   const untrackedFiles = toIgnore.map(file => file.name);
 
   if (options?.json) {

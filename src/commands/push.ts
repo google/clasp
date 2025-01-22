@@ -1,27 +1,22 @@
 import {readFileSync} from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
+import {Command} from 'commander';
 import debounce from 'debounce';
 import inquirer from 'inquirer';
 
 import {OAuth2Client} from 'google-auth-library';
 import multimatch from 'multimatch';
 import normalizeNewline from 'normalize-newline';
-import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
-import {Conf} from '../conf.js';
 import {PROJECT_MANIFEST_BASENAME, PROJECT_MANIFEST_FILENAME} from '../constants.js';
-import {DOTFILE} from '../dotfile.js';
 import {fetchProject, pushFiles} from '../files.js';
-import {isValidManifest} from '../manifest.js';
 import {LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner} from '../utils.js';
+import {checkIfOnlineOrDie, spinner} from '../utils.js';
 
-import type {ProjectSettings} from '../dotfile.js';
+import {Context, assertAuthenticated, assertScriptSettings} from '../context.js';
 
 const WATCH_DEBOUNCE_MS = 1000;
-
-const config = Conf.get();
 
 interface CommandOption {
   readonly watch?: boolean;
@@ -33,13 +28,12 @@ interface CommandOption {
  * TODO: Only push the specific files that changed (rather than all files).
  * @param options.watch {boolean} If true, runs `clasp push` when any local file changes. Exit with ^C.
  */
-export async function pushFilesCommand(options: CommandOption): Promise<void> {
+export async function pushFilesCommand(this: Command, options: CommandOption): Promise<void> {
   await checkIfOnlineOrDie();
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
 
-  await isValidManifest();
-  const projectSettings = await getProjectSettings();
-  const {rootDir = '.'} = projectSettings;
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
 
   if (options.watch) {
     console.log(LOG.PUSH_WATCH);
@@ -47,7 +41,11 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
     const debouncedPushFiles = debounce(async () => {
       if (
         !options.force &&
-        (await manifestHasChanges(oauth2Client, projectSettings)) &&
+        (await manifestHasChanges(
+          context.credentials,
+          context.project.settings.scriptId,
+          context.project.contentDir,
+        )) &&
         !(await confirmManifestUpdate())
       ) {
         console.log('Stopping push…');
@@ -55,19 +53,18 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
       }
 
       console.log(LOG.PUSHING);
-      return pushFiles(oauth2Client);
+      return pushFiles(context.credentials, context.project);
     }, WATCH_DEBOUNCE_MS);
-    const patterns = await DOTFILE.IGNORE();
     const watchCallback = async (filePath: string) => {
-      if (multimatch([filePath], patterns, {dot: true}).length > 0) {
+      if (multimatch([filePath], context.project.ignorePatterns, {dot: true}).length > 0) {
         // The file matches the ignored files patterns so we do nothing
         return;
       }
       console.log(`\n${LOG.PUSH_WATCH_UPDATED(filePath)}\n`);
       return debouncedPushFiles();
     };
-    const watcher = chokidar.watch(rootDir, {persistent: true, ignoreInitial: true});
-    watcher.on('ready', () => pushFiles(oauth2Client)); // Push on start
+    const watcher = chokidar.watch(context.project.contentDir, {persistent: true, ignoreInitial: true});
+    watcher.on('ready', () => pushFiles(context.credentials, context.project)); // Push on start
     watcher.on('add', watchCallback);
     watcher.on('change', watchCallback);
     watcher.on('unlink', watchCallback);
@@ -75,13 +72,17 @@ export async function pushFilesCommand(options: CommandOption): Promise<void> {
     return;
   }
 
-  if (!options.force && (await manifestHasChanges(oauth2Client, projectSettings)) && !(await confirmManifestUpdate())) {
+  if (
+    !options.force &&
+    (await manifestHasChanges(context.credentials, context.project.settings.scriptId, context.project.contentDir)) &&
+    !(await confirmManifestUpdate())
+  ) {
     console.log('Stopping push…');
     return;
   }
 
   spinner.start(LOG.PUSHING);
-  await pushFiles(oauth2Client);
+  await pushFiles(context.credentials, context.project);
 }
 
 /**
@@ -104,9 +105,8 @@ async function confirmManifestUpdate(): Promise<boolean> {
  * Checks if the manifest has changes.
  * @returns {Promise<boolean>}
  */
-async function manifestHasChanges(oauth2Client: OAuth2Client, projectSettings: ProjectSettings): Promise<boolean> {
-  const {scriptId, rootDir = config.projectRootDirectory} = projectSettings;
-  const manifestPath = path.join(rootDir!, PROJECT_MANIFEST_FILENAME);
+async function manifestHasChanges(oauth2Client: OAuth2Client, scriptId: string, contentDir: string): Promise<boolean> {
+  const manifestPath = path.join(contentDir, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(manifestPath, {encoding: 'utf8'});
   const remoteFiles = await fetchProject(oauth2Client, scriptId, undefined, true);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);

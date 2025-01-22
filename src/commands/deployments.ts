@@ -1,21 +1,27 @@
+import {Command} from 'commander';
 import {google} from 'googleapis';
-import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
+
+import {Context, assertAuthenticated, assertScriptSettings} from '../context.js';
 import {LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, spinner, stopSpinner} from '../utils.js';
 
 /**
  * Lists a script's deployments.
  */
-export async function listDeploymentsCommand(): Promise<void> {
+export async function listDeploymentsCommand(this: Command): Promise<void> {
   await checkIfOnlineOrDie();
 
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
-  const script = google.script({version: 'v1', auth: oauth2Client});
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
 
-  const {scriptId} = await getProjectSettings();
-  spinner.start(LOG.DEPLOYMENT_LIST(scriptId));
+  const script = google.script({version: 'v1', auth: context.credentials});
 
-  const res = await script.projects.deployments.list({scriptId});
+  spinner.start(LOG.DEPLOYMENT_LIST(context.project.settings.scriptId));
+
+  const res = await script.projects.deployments.list({
+    scriptId: context.project.settings.scriptId,
+  });
   stopSpinner();
 
   const deployments = res.data.deployments ?? [];

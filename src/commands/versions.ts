@@ -1,22 +1,25 @@
+import {Command} from 'commander';
 import {google, script_v1 as scriptV1} from 'googleapis';
 
 import {OAuth2Client} from 'google-auth-library';
-import {getAuthorizedOAuth2ClientOrDie} from '../auth.js';
 import {ClaspError} from '../clasp-error.js';
+import {Context, assertAuthenticated, assertScriptSettings} from '../context.js';
 import {LOG} from '../messages.js';
-import {checkIfOnlineOrDie, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {checkIfOnlineOrDie, spinner, stopSpinner} from '../utils.js';
 
 /**
  * Lists versions of an Apps Script project.
  */
-export async function listVersionsCommand(): Promise<void> {
+export async function listVersionsCommand(this: Command): Promise<void> {
   await checkIfOnlineOrDie();
-  const oauth2Client = await getAuthorizedOAuth2ClientOrDie();
-  const {scriptId} = await getProjectSettings();
+
+  const context: Context = this.opts().context;
+  assertAuthenticated(context);
+  assertScriptSettings(context);
 
   spinner.start('Grabbing versions…');
 
-  const versionList = await getVersionList(oauth2Client, scriptId);
+  const versionList = await getVersionList(context.credentials, context.project.settings.scriptId);
 
   stopSpinner();
 

@@ -6,21 +6,8 @@ import {GoogleAuth, OAuth2Client} from 'google-auth-library';
 import inquirer from 'inquirer';
 import open from 'open';
 import enableDestroy from 'server-destroy';
-import {ClaspError} from './clasp-error.js';
-import {FileCredentialStore} from './credential_store.js';
-import {ERROR, LOG} from './messages.js';
-
-let activeUserKey = 'default';
-let useAdc = false;
-const activeCredentialStore = new FileCredentialStore();
-
-export function setActiveUserKey(userKey: string) {
-  activeUserKey = userKey;
-}
-
-export function useApplicationDefaultCredentials(enabled = true) {
-  useAdc = enabled;
-}
+import {CredentialStore} from './credential_store.js';
+import {LOG} from './messages.js';
 
 /**
  * Creates an an unauthorized oauth2 client given the client secret file. If no path is provided,
@@ -35,33 +22,25 @@ export function getUnauthorizedOuth2Client(clientSecretPath?: string): OAuth2Cli
   return createDefaultOAuthClient();
 }
 
-const credentialsCache: Map<string, OAuth2Client> = new Map();
-
 /**
  * Create an authorized oauth2 client from saved credentials.
  * @param userKey
  * @returns
  */
-export async function getAuthorizedOAuth2Client(userKey?: string): Promise<OAuth2Client | null> {
-  if (useAdc) {
-    return createApplicationDefaultCredentials();
-  }
-
+export async function getAuthorizedOAuth2Client(
+  store: CredentialStore,
+  userKey?: string,
+): Promise<OAuth2Client | undefined> {
   if (!userKey) {
-    userKey = activeUserKey ?? 'default';
+    userKey = 'default';
   }
 
-  let client = credentialsCache.get(userKey);
-  if (client) {
-    return client;
-  }
-
-  const savedCredentials = await activeCredentialStore.load(userKey);
+  const savedCredentials = await store.load(userKey);
   if (!savedCredentials) {
-    return null;
+    return undefined;
   }
 
-  client = new GoogleAuth().fromJSON(savedCredentials) as OAuth2Client;
+  const client = new GoogleAuth().fromJSON(savedCredentials) as OAuth2Client;
   client.setCredentials(savedCredentials);
   client.on('tokens', async tokens => {
     const refreshedCredentials = {
@@ -70,9 +49,8 @@ export async function getAuthorizedOAuth2Client(userKey?: string): Promise<OAuth
       access_token: tokens.access_token,
       id_token: tokens.access_token,
     };
-    await activeCredentialStore.save(userKey!, refreshedCredentials);
+    await store.save(userKey!, refreshedCredentials);
   });
-  credentialsCache.set(userKey, client);
   return client;
 }
 
@@ -81,6 +59,8 @@ export type AuthorizationOptions = {
   redirectPort?: number;
   scopes: string[] | string;
   oauth2Client: OAuth2Client;
+  store: CredentialStore;
+  userKey: string;
 };
 
 /**
@@ -100,20 +80,10 @@ export async function authorize(options: AuthorizationOptions) {
   }
 
   const client = await flow.authorize(options.scopes);
-  return saveOauthClientCredentials(activeUserKey, client);
+  return saveOauthClientCredentials(options.store, options.userKey, client);
 }
 
-export async function logout() {
-  await activeCredentialStore.delete(activeUserKey);
-  credentialsCache.delete(activeUserKey);
-}
-
-export async function logoutAll() {
-  await activeCredentialStore.deleteAll();
-  credentialsCache.delete(activeUserKey);
-}
-
-async function saveOauthClientCredentials(userKey: string, oauth2Client: OAuth2Client) {
+async function saveOauthClientCredentials(store: CredentialStore, userKey: string, oauth2Client: OAuth2Client) {
   const savedCredentials = {
     client_id: oauth2Client._clientId,
     client_secret: oauth2Client._clientSecret,
@@ -128,10 +98,9 @@ async function saveOauthClientCredentials(userKey: string, oauth2Client: OAuth2C
       access_token: tokens.access_token,
       id_token: tokens.access_token,
     };
-    await activeCredentialStore.save(userKey, refreshedCredentials);
+    await store.save(userKey, refreshedCredentials);
   });
-  await activeCredentialStore.save(userKey, savedCredentials);
-  credentialsCache.set(userKey, oauth2Client);
+  await store.save(userKey, savedCredentials);
 }
 
 class AuthorizationCodeFlow {
@@ -302,7 +271,7 @@ function createDefaultOAuthClient() {
   });
 }
 
-async function createApplicationDefaultCredentials() {
+export async function createApplicationDefaultCredentials() {
   const defaultCreds = await new GoogleAuth({
     scopes: [
       'https://www.googleapis.com/auth/script.deployments', // Apps Script deployments
@@ -321,12 +290,5 @@ async function createApplicationDefaultCredentials() {
   if (defaultCreds instanceof OAuth2Client) {
     return defaultCreds as OAuth2Client;
   }
-  return null;
-}
-export async function getAuthorizedOAuth2ClientOrDie() {
-  const oauth2Client = await getAuthorizedOAuth2Client();
-  if (!oauth2Client) {
-    throw new ClaspError(ERROR.NO_CREDENTIALS);
-  }
-  return oauth2Client;
+  return undefined;
 }

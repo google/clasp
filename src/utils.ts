@@ -1,3 +1,4 @@
+import fs from 'fs';
 import cliTruncate from 'cli-truncate';
 import {script_v1 as scriptV1} from 'googleapis';
 import inquirer from 'inquirer';
@@ -7,10 +8,8 @@ import ora from 'ora';
 import pMap from 'p-map';
 
 import {ClaspError} from './clasp-error.js';
-import {DOTFILE} from './dotfile.js';
+import type {Project} from './context.js';
 import {ERROR, LOG} from './messages.js';
-
-import type {ProjectSettings} from './dotfile.js';
 
 export const spinner = ora(); // new Spinner();
 
@@ -68,30 +67,6 @@ export function getWebApplicationURL(value: Readonly<scriptV1.Schema$Deployment>
   }
 
   throw new ClaspError(ERROR.NO_WEBAPP(value.deploymentId ?? ''));
-}
-
-/**
- * Gets the project settings from the project dotfile.
- *
- * Logs errors.
- *
- * ! Should be used instead of `DOTFILE.PROJECT().read()`
- * @return {Promise<ProjectSettings>} A promise to get the project dotfile as object.
- */
-export async function getProjectSettings(): Promise<ProjectSettings> {
-  const dotfile = DOTFILE.PROJECT();
-
-  if (!(await dotfile.exists())) {
-    throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
-  }
-
-  const settings = await dotfile.read<ProjectSettings>();
-
-  // Settings must have the script ID. Otherwise we err.
-  if (!settings.scriptId) {
-    throw new ClaspError(ERROR.SETTINGS_DNE()); // Never found a dotfile
-  }
-  return settings;
 }
 
 /**
@@ -154,44 +129,37 @@ export async function checkIfOnlineOrDie() {
  * @param {ProjectSettings} projectSettings The project settings
  * @param {boolean} append Appends the settings if true.
  */
-export async function saveProject(projectSettings: ProjectSettings, append = true): Promise<ProjectSettings> {
-  return DOTFILE.PROJECT().write(append ? {...(await getProjectSettings()), ...projectSettings} : projectSettings);
+export function saveProject(project: Project) {
+  fs.writeFileSync(project.configFilePath, JSON.stringify(project.settings, null, 2));
 }
 
 /**
  * Gets the script's Cloud Platform Project Id from project settings file or prompt for one.
  * @returns {Promise<string>} A promise to get the projectId string.
  */
-export async function getProjectId(promptUser = true): Promise<string> {
-  try {
-    const projectSettings: ProjectSettings = await getProjectSettings();
-
-    if (!projectSettings.projectId) {
-      if (!promptUser) {
-        throw new ClaspError('Project ID not found.');
-      }
-
-      console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(projectSettings.scriptId))}\n`);
-      console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
-
-      const answer = await inquirer.prompt([
-        {
-          message: `${LOG.ASK_PROJECT_ID}`,
-          name: 'projectId',
-          type: 'input',
-        },
-      ]);
-      projectSettings.projectId = answer.projectId;
-      await DOTFILE.PROJECT().write(projectSettings);
-    }
-
-    return projectSettings.projectId ?? '';
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-    throw new ClaspError('Unable to fetch project ID', 1);
+export async function getOrPromptForProjectId(project: Project, promptUser = true): Promise<string> {
+  if (project.settings.projectId) {
+    return project.settings.projectId;
   }
+
+  if (!promptUser) {
+    throw new ClaspError('Project ID not found.');
+  }
+
+  console.log(`${LOG.OPEN_LINK(LOG.SCRIPT_LINK(project.settings.scriptId))}\n`);
+  console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
+
+  const answer = await inquirer.prompt([
+    {
+      message: `${LOG.ASK_PROJECT_ID}`,
+      name: 'projectId',
+      type: 'input',
+    },
+  ]);
+  project.settings.projectId = answer.projectId as string;
+  saveProject(project);
+
+  return project.settings.projectId;
 }
 
 /**
@@ -220,15 +188,4 @@ export function parseJsonOrDie<T>(value: string): T {
  */
 export function ellipsize(value: string, length: number) {
   return cliTruncate(value, length, {preferTruncationOnSpace: true}).padEnd(length);
-} /**
- * Gets the project ID from the manifest. If there is no project ID, it returns an error.
- */
-
-export async function getProjectIdOrDie(): Promise<string> {
-  const projectId = await getProjectId(); // Will prompt user to set up if required
-  if (projectId) {
-    return projectId;
-  }
-
-  throw new ClaspError(ERROR.NO_GCLOUD_PROJECT());
 }
