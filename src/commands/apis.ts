@@ -91,7 +91,6 @@ export default async (options: CommandOption): Promise<void> => {
       }
     },
     undefined: async () => {
-      await apiSubCommands.list();
       console.log(`# Try these commands:
 - clasp apis list
 - clasp apis enable slides

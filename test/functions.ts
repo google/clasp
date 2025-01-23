@@ -8,6 +8,18 @@ import {
   TEST_APPSSCRIPT_JSON_WITH_RUN_API,
   TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
 } from './constants.js';
+import {spawnSync} from 'child_process';
+
+export function runClasp(args: string[], opts = {}) {
+  return spawnSync('node', [`${process.cwd()}/build/src/index.js`, ...args], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      NODE_NO_WARNINGS: '1',
+    },
+    ...opts,
+  });
+}
 
 /** basic cleanup after tests */
 export const cleanup = () => {

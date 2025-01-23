@@ -434,6 +434,7 @@ export const pushFiles = async (silent = false) => {
         } else {
           console.error(error);
         }
+        throw error;
       }
     } else {
       stopSpinner();

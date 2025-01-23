@@ -13,11 +13,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      SCRIPT_ID: 1EwE84eZCSBPcaAiJzCnDjmxMVnLQrDyhSKq1oZY6q-3x4BIDHgQefCnL
-      PROJECT_ID: project-id-3961473932623644264
+      SCRIPT_ID: ${{ vars.TEST_SCRIPT_ID }}
+      PROJECT_ID: ${{ vars.TEST_PROJECT_ID }}
     strategy:
       matrix:
-        node-version: [12]
+        node-version: [22]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - uses: actions/checkout@v2

@@ -40,8 +40,9 @@ export default async (
 
   spinner.start(LOG.CLONING);
 
+  const files = await fetchProject(id, versionNumber);
   await saveProject({scriptId: id, rootDir: config.projectRootDirectory}, false);
-  await writeProjectFiles(await fetchProject(id, versionNumber), config.projectRootDirectory);
+  await writeProjectFiles(files, config.projectRootDirectory);
   await status();
 };
 
