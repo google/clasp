@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/google/clasp/compare/v2.5.0...v2.5.1) (2025-01-24)
+
+
+### Bug Fixes
+
+* Speed up directory crawling ([588d1bc](https://github.com/google/clasp/commit/588d1bc8df14568bc3dd7d331f3adde44f784f9e))
+
 ## [2.5.0](https://github.com/google/clasp/compare/v2.4.2...v2.5.0) (2025-01-09)
 
 
