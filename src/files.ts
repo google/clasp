@@ -1,5 +1,6 @@
 import path from 'path';
 import chalk from 'chalk';
+import {fdir} from 'fdir';
 import fs from 'fs-extra';
 import {google} from 'googleapis';
 import {GaxiosError, OAuth2Client} from 'googleapis-common';
@@ -7,7 +8,6 @@ import {makeDirectory} from 'make-dir';
 import multimatch from 'multimatch';
 import normalizePath from 'normalize-path';
 import pMap from 'p-map';
-import {fdir} from 'fdir';
 import {ClaspError} from './clasp-error.js';
 import {Project} from './context.js';
 import {ERROR, LOG} from './messages.js';
