@@ -49,6 +49,7 @@ export interface Project {
   ignorePatterns: string[];
   // appsscript.json
   manifest?: Manifest;
+  recursive: boolean;
 }
 
 export type InitOptions = {
@@ -83,6 +84,7 @@ export async function createContext(options: InitOptions = {}): Promise<Context>
       contentDir: contentDir,
       configFilePath: projectRoot.configPath,
       ignorePatterns,
+      recursive: ignoreFilePath !== undefined,
       manifest,
     };
   }

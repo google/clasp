@@ -108,7 +108,7 @@ async function confirmManifestUpdate(): Promise<boolean> {
 async function manifestHasChanges(oauth2Client: OAuth2Client, scriptId: string, contentDir: string): Promise<boolean> {
   const manifestPath = path.join(contentDir, PROJECT_MANIFEST_FILENAME);
   const localManifest = readFileSync(manifestPath, {encoding: 'utf8'});
-  const remoteFiles = await fetchProject(oauth2Client, scriptId, undefined, true);
+  const remoteFiles = await fetchProject(oauth2Client, scriptId, undefined);
   const remoteManifest = remoteFiles.find(file => file.name === PROJECT_MANIFEST_BASENAME);
   if (remoteManifest) {
     console.log(normalizeNewline(localManifest));

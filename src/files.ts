@@ -11,7 +11,7 @@ import pMap from 'p-map';
 import {ClaspError} from './clasp-error.js';
 import {Project} from './context.js';
 import {ERROR, LOG} from './messages.js';
-import {getApiFileType, spinner, stopSpinner} from './utils.js';
+import {getApiFileType} from './utils.js';
 
 // An Apps Script API File
 interface AppsScriptFile {
@@ -22,37 +22,45 @@ interface AppsScriptFile {
 
 interface ProjectFile {
   readonly isIgnored: boolean;
-  readonly name: string;
-  readonly source: string;
-  readonly type: string;
+  readonly localPath: string;
+  readonly remotePath?: string;
+  readonly source?: string;
+  readonly type?: string;
 }
 
-async function projectFileWithContent(file: ProjectFile): Promise<ProjectFile> {
-  const content = await fs.readFile(file.name);
+function isValidFileType(file: Pick<ProjectFile, 'localPath' | 'type'>) {
+  if (file.type === 'JSON' && path.basename(file.localPath) === 'appsscript.json') {
+    return true;
+  }
+  return file.type === 'SERVER_JS' || file.type === 'HTML';
+}
+
+async function projectFileWithContent(rootDir: string, file: Pick<ProjectFile, 'localPath'>): Promise<ProjectFile> {
+  const type = getApiFileType(file.localPath);
+
+  if (!isValidFileType({localPath: file.localPath, type})) {
+    return {...file, type, source: '', isIgnored: true};
+  }
+
+  const remotePath = getAppsScriptFileName(rootDir, file.localPath);
+  const content = await fs.readFile(file.localPath);
   const source = content.toString();
-  const type = getApiFileType(file.name);
 
-  return {...file, source, type};
+  return {...file, remotePath, source, type, isIgnored: false};
 }
 
-function ignoredProjectFile(file: ProjectFile): ProjectFile {
+function ignoredProjectFile(file: Pick<ProjectFile, 'localPath'>): ProjectFile {
   return {...file, source: '', isIgnored: true, type: ''};
 }
 
-function isValidFactory(rootDir: string) {
-  /**
-   * Validates a file:
-   *
-   * - is a manifest file
-   * - type is either `SERVER_JS` or `HTML` @see https://developers.google.com/apps-script/api/reference/rest/v1/File
-   */
-  return (file: ProjectFile): boolean => {
-    if (file.type === 'JSON') {
-      const name = path.relative(rootDir, file.name);
-      return name === 'appsscript.json';
-    }
-    return file.type === 'SERVER_JS' || file.type === 'HTML';
-  };
+async function getCandidateFiles(rootDir: string, recursive: boolean) {
+  let fdirBuilder = new fdir().withBasePath();
+  if (!recursive) {
+    fdirBuilder = fdirBuilder.withMaxDepth(1);
+  }
+  const files = await fdirBuilder.crawl(rootDir).withPromise();
+  files.sort((a, b) => a.localeCompare(b));
+  return files[Symbol.iterator]();
 }
 
 /**
@@ -64,79 +72,72 @@ function isValidFactory(rootDir: string) {
  *
  * @param rootDir the project's `rootDir`
  */
-export async function getAllProjectFiles(rootDir: string, ignorePatterns: string[]): Promise<ProjectFile[]> {
-  try {
-    const isIgnored = (file: string) =>
-      multimatch(path.relative(rootDir, file), ignorePatterns, {dot: true}).length > 0;
-
-    const isValid = isValidFactory(rootDir);
-
-    // Read all filenames as a flattened tree
-    // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-    const filelist = await new fdir().withBasePath().crawl(rootDir).withPromise();
-    const files: ProjectFile[] = filelist.map((filename): ProjectFile => {
-      // Replace OS specific path separator to common '/' char for console output
-      const name = normalizePath(path.relative(process.cwd(), filename));
-
-      return {source: '', isIgnored: isIgnored(name), name, type: ''};
-    });
-    files.sort((a, b) => a.name.localeCompare(b.name));
-
-    const filesWithContent = await getContentOfProjectFiles(files);
-    return filesWithContent.map((file: ProjectFile): ProjectFile => {
-      // Loop through files that are not ignored from `.claspignore`
-      if (!file.isIgnored) {
-        // Prevent node_modules/@types/
-        if (file.name.includes('node_modules/@types')) {
-          return ignoredProjectFile(file);
-        }
-
-        // Check if there are files that will conflict if renamed .gs to .js.
-        // When pushing to Apps Script, these files will overwrite each other.
-        const parsed = path.parse(file.name);
-        if (parsed.ext === '.gs') {
-          const jsFile = `${parsed.dir}/${parsed.name}.js`;
-          // Can't rename, conflicting files
-          // Only print error once (for .gs)
-          if (files.findIndex(otherFile => !otherFile.isIgnored && otherFile.name === jsFile) !== -1) {
-            throw new ClaspError(ERROR.CONFLICTING_FILE_EXTENSION(`${parsed.dir}/${parsed.name}`));
-          }
-        }
-        return isValid(file) ? file : ignoredProjectFile(file);
-      }
-
-      return file;
-    });
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
+export async function getAllProjectFiles(
+  rootDir: string,
+  ignorePatterns: string[],
+  recursive: boolean,
+): Promise<ProjectFile[]> {
+  const isIgnored = (file: string) => {
+    file = path.relative(rootDir, file);
+    if (file.includes('node_modules/@types')) {
+      return true;
     }
+    return multimatch(file, ignorePatterns, {dot: true}).length > 0;
+  };
 
-    // TODO improve error handling
-    throw error;
-  }
+  // Read all filenames as a flattened tree
+  // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
+  const filelist = await getCandidateFiles(rootDir, recursive);
+  const duplicateCheck = new Set<string>();
+
+  const files = Promise.all(
+    filelist
+      .map(async filename => {
+        // Replace OS specific path separator to common '/' char for console output
+        const name = normalizePath(path.relative(process.cwd(), filename));
+        if (isIgnored(name)) {
+          return ignoredProjectFile({localPath: name});
+        }
+        return await projectFileWithContent(rootDir, {localPath: name});
+      })
+      .map(async file => {
+        // Check for naming conflicts
+        const f = await file;
+        if (f.isIgnored) {
+          return f;
+        }
+        if (f.type !== 'SERVER_JS') {
+          return f;
+        }
+        const parsedPath = path.parse(f.localPath);
+        const key = path.format({dir: parsedPath.dir, name: parsedPath.name});
+        if (duplicateCheck.has(key)) {
+          throw new ClaspError(ERROR.CONFLICTING_FILE_EXTENSION(key));
+        }
+        return f;
+      }),
+  );
+  return files;
 }
 
 export function splitProjectFiles(files: ProjectFile[]): [ProjectFile[], ProjectFile[]] {
-  return [files.filter(file => !file.isIgnored), files.filter(file => file.isIgnored)];
+  return files.reduce(
+    (prev, file) => {
+      // ignored files go in the second array
+      const index = file.isIgnored ? 1 : 0;
+      prev[index].push(file);
+      return prev;
+    },
+    [[] as ProjectFile[], [] as ProjectFile[]],
+  );
 }
 
-async function getContentOfProjectFiles(files: ProjectFile[]) {
-  const getContent = (file: ProjectFile) => (file.isIgnored ? file : projectFileWithContent(file));
-  return Promise.all(files.map(getContent));
-}
-
-async function getAppsScriptFilesFromProjectFiles(files: ProjectFile[], rootDir: string) {
-  const filesWithContent = await getContentOfProjectFiles(files);
-  return filesWithContent.map(file => {
-    const {name, source, type} = file;
-
-    return {
-      name: getAppsScriptFileName(rootDir, name), // The file base name
-      source, // The file contents
-      type, // The file extension
-    };
-  });
+async function getAppsScriptFilesFromProjectFiles(files: ProjectFile[]) {
+  return files.map(file => ({
+    name: file.remotePath,
+    source: file.source,
+    type: file.type,
+  }));
 }
 
 // This statement customizes the order in which the files are pushed.
@@ -147,15 +148,14 @@ export function getOrderedProjectFiles(files: ProjectFile[], filePushOrder: stri
   const orderedFiles = [...files];
 
   if (filePushOrder && filePushOrder.length > 0) {
-    // stopSpinner();
     console.log('Detected filePushOrder setting. Pushing these files first:');
     logFileList(filePushOrder);
     console.log('');
 
     orderedFiles.sort((a, b) => {
       // Get the file order index
-      const indexA = filePushOrder.indexOf(a.name);
-      const indexB = filePushOrder.indexOf(b.name);
+      const indexA = filePushOrder.indexOf(a.localPath);
+      const indexB = filePushOrder.indexOf(b.localPath);
 
       // If a file path isn't in the filePushOrder array, set the order to +∞.
       return (indexA > -1 ? indexA : Number.POSITIVE_INFINITY) - (indexB > -1 ? indexB : Number.POSITIVE_INFINITY);
@@ -174,58 +174,8 @@ export function getOrderedProjectFiles(files: ProjectFile[], filePushOrder: stri
  * @return {string}      The file type
  * @see https://developers.google.com/apps-script/api/reference/rest/v1/File#FileType
  */
-export function getLocalFileType(type: string, fileExtension?: string): string {
+function getLocalFileType(type: string, fileExtension?: string): string {
   return type === 'SERVER_JS' ? (fileExtension ?? 'js') : type.toLowerCase();
-}
-
-// /**
-//  * Recursively finds all files that are part of the current project, and those that are ignored
-//  * by .claspignore and calls the passed callback function with the file lists.
-//  * @param {string} rootDir The project's root directory
-//  * @param {FilesCallBack} callback The callback will be called with the following parameters
-//  *   error: Error if there's an error, otherwise null
-//  *   result: string[][], array of two lists of strings, ie. [validFilePaths,ignoredFilePaths]
-//  *   files?: Array<AppsScriptFile> Array of AppsScriptFile objects used by clasp push
-//  * @todo Make this function actually return a Promise that can be awaited.
-//  */
-// export const getProjectFiles = async (rootDir: string = path.join('.', '/'), callback: FilesCallback) => {
-//   try {
-//     const {filePushOrder} = await getProjectSettings();
-
-//     const allFiles = await getAllProjectFiles(rootDir);
-//     const [filesToPush, filesToIgnore] = splitProjectFiles(allFiles);
-
-//     const orderedFiles = getOrderedProjectFiles(filesToPush, filePushOrder);
-
-//     callback(
-//       false,
-//       [orderedFiles.map(file => file.name), filesToIgnore.map(file => file.name)],
-//       getAppsScriptFilesFromProjectFiles(orderedFiles, rootDir)
-//     );
-//   } catch (error) {
-//     return callback(error, [[], []], []);
-//   }
-// };
-
-/**
- * @deprecated If the file is valid, add it to our file list.
- * We generally want to allow for all file types, including files in node_modules/.
- * However, node_modules/@types/ files should be ignored.
- */
-export function isValidFileName(
-  name: string,
-  type: string,
-  rootDir: string,
-  _normalizedName: string,
-  ignoreMatches: readonly string[],
-): boolean {
-  const isValid = isValidFactory(rootDir);
-
-  return Boolean(
-    !name.includes('node_modules/@types') && // Prevent node_modules/@types/
-      isValid({source: '', isIgnored: false, name, type}) &&
-      !ignoreMatches.includes(name),
-  );
 }
 
 /**
@@ -233,14 +183,12 @@ export function isValidFileName(
  * Formats rootDir/appsscript.json to appsscript.json.
  * Preserves subdirectory names in rootDir
  * (rootDir/foo/Code.js becomes foo/Code.js)
- * @param {string} rootDir The directory to save the project files to.
  * @param {string} filePath Path of file that is part of the current project
  */
 export function getAppsScriptFileName(rootDir: string, filePath: string) {
-  const nameWithoutExt = filePath.slice(0, -path.extname(filePath).length);
-
-  // Replace OS specific path separator to common '/' char
-  return (rootDir ? path.relative(rootDir, nameWithoutExt) : nameWithoutExt).replace(/\\/g, '/');
+  const resolvedPath = path.relative(rootDir, filePath);
+  const parsedPath = path.parse(resolvedPath);
+  return path.format({dir: parsedPath.dir, name: parsedPath.name});
 }
 
 /**
@@ -253,35 +201,22 @@ export async function fetchProject(
   oauth2Client: OAuth2Client,
   scriptId: string,
   versionNumber?: number,
-  silent = false,
 ): Promise<AppsScriptFile[]> {
   const script = google.script({version: 'v1', auth: oauth2Client});
 
-  spinner.start();
   let response;
   try {
     response = await script.projects.getContent({scriptId, versionNumber});
   } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-
     if ((error as GaxiosError).status === 404) {
       throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
     }
-
     throw new ClaspError(ERROR.SCRIPT_ID);
   }
-
-  stopSpinner();
 
   const {files} = response.data;
   if (!files) {
     throw new ClaspError(ERROR.SCRIPT_ID_INCORRECT(scriptId));
-  }
-
-  if (!silent) {
-    console.log(LOG.CLONE_SUCCESS(files.length));
   }
 
   return files as AppsScriptFile[];
@@ -299,18 +234,14 @@ export async function writeProjectFiles(files: AppsScriptFile[], project: Projec
       const truePath = `${project.contentDir}/${filePath}`;
       await makeDirectory(path.dirname(truePath));
       await fs.writeFile(truePath, file.source);
-      console.log(`└─ ${truePath}`);
+      return truePath;
     };
 
     const fileList = files.filter(file => file.source); // Disallow empty files
     fileList.sort((a, b) => a.name.localeCompare(b.name));
 
-    await pMap(fileList, mapper);
-  } catch (error) {
-    if (error instanceof ClaspError) {
-      throw error;
-    }
-
+    return await pMap(fileList, mapper);
+  } catch {
     throw new ClaspError(ERROR.FS_DIR_WRITE);
   }
 }
@@ -320,85 +251,75 @@ export async function writeProjectFiles(files: AppsScriptFile[], project: Projec
  * @param {boolean} silent If true, doesn't console.log any success message.
  */
 export async function pushFiles(oauth2Client: OAuth2Client, project: Project, silent = false) {
-  const [toPush] = splitProjectFiles(await getAllProjectFiles(project.contentDir, project.ignorePatterns));
+  const [toPush] = splitProjectFiles(
+    await getAllProjectFiles(project.contentDir, project.ignorePatterns, project.recursive),
+  );
 
-  if (toPush.length > 0) {
-    const orderedFiles = getOrderedProjectFiles(toPush, project.settings.filePushOrder);
-    const files = await getAppsScriptFilesFromProjectFiles(orderedFiles, project.contentDir ?? path.join('.', '/'));
-    const filenames = orderedFiles.map(file => file.name);
-
-    // Start pushing.
-    try {
-      const script = google.script({version: 'v1', auth: oauth2Client});
-      await script.projects.updateContent({
-        scriptId: project.settings.scriptId,
-        requestBody: {
-          scriptId: project.settings.scriptId,
-          files,
-        },
-      });
-
-      // No error
-      stopSpinner();
-      if (!silent) {
-        logFileList(filenames);
-        console.log(LOG.PUSH_SUCCESS(filenames.length));
-      }
-    } catch (error) {
-      stopSpinner();
-      console.error(LOG.PUSH_FAILURE);
-      if (error instanceof GaxiosError) {
-        let message = error.message;
-        let snippet = '';
-        const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
-        const [, errorName, lineNum, fileName] = re.exec(error.message) ?? [];
-        if (fileName !== undefined) {
-          let filePath = path.resolve(project.contentDir ?? '.', fileName);
-          const parsedFilePath = path.parse(filePath);
-          // Check if the file exists locally as any supported type
-          const extensions = ['gs', 'js', 'ts'];
-          const fileExtension = project.settings.fileExtension;
-          if (fileExtension !== undefined) extensions.push(fileExtension);
-          for (const ext of extensions) {
-            const filePath_ext = path.join(parsedFilePath.dir, `${parsedFilePath.name}.${ext}`);
-            if (fs.existsSync(filePath_ext)) {
-              filePath = filePath_ext;
-              break;
-            }
-          }
-          message = `${errorName} - "${filePath}:${lineNum}"`;
-
-          // Get formatted code snippet
-          const contextCount = 4;
-          const parsedFileName = path.parse(fileName);
-          const fileNameKey = path.join(parsedFileName.dir, parsedFileName.name);
-          const reqFiles: ProjectFile[] = JSON.parse(error.config.body).files;
-          const errFile = reqFiles.find((x: ProjectFile) => x.name === fileNameKey && x.type === 'SERVER_JS');
-          if (errFile !== undefined) {
-            const srcLines = errFile.source.split('\n');
-
-            const errIndex = Math.max(parseInt(lineNum) - 1, 0);
-            const preIndex = Math.max(errIndex - contextCount, 0);
-            const postIndex = Math.min(errIndex + contextCount + 1, srcLines.length);
-
-            const preLines = chalk.dim(`  ${srcLines.slice(preIndex, errIndex).join('\n  ')}`);
-            const errLine = chalk.bold(`⇒ ${srcLines[errIndex]}`);
-            const postLines = chalk.dim(`  ${srcLines.slice(errIndex + 1, postIndex).join('\n  ')}`);
-
-            snippet = preLines + '\n' + errLine + '\n' + postLines;
-          }
-        }
-        console.error(chalk.red(message));
-        console.log(snippet);
-      } else {
-        console.error(error);
-      }
-      throw error;
-    }
-  } else {
-    stopSpinner();
+  if (toPush.length === 0) {
     console.log(LOG.PUSH_NO_FILES);
+    return;
   }
+
+  const orderedFiles = getOrderedProjectFiles(toPush, project.settings.filePushOrder);
+  const files = await getAppsScriptFilesFromProjectFiles(orderedFiles);
+  const filenames = orderedFiles.map(file => file.localPath);
+
+  // Start pushing.
+  try {
+    const script = google.script({version: 'v1', auth: oauth2Client});
+    await script.projects.updateContent({
+      scriptId: project.settings.scriptId,
+      requestBody: {
+        scriptId: project.settings.scriptId,
+        files,
+      },
+    });
+
+    if (!silent) {
+      logFileList(filenames);
+      console.log(LOG.PUSH_SUCCESS(filenames.length));
+    }
+  } catch (error) {
+    console.error(LOG.PUSH_FAILURE);
+    if (error instanceof GaxiosError) {
+      const {message, snippet} = extractScriptError(error, orderedFiles);
+      console.error(chalk.red(message));
+      if (snippet) {
+        console.log(snippet);
+      }
+    }
+    throw new ClaspError('Push failed.');
+  }
+}
+
+function extractScriptError(error: GaxiosError, files: ProjectFile[]) {
+  let message = error.message;
+  let snippet = '';
+  const re = /Syntax error: (.+) line: (\d+) file: (.+)/;
+  const [, errorName, lineNum, fileName] = re.exec(error.message) ?? [];
+  if (fileName === undefined) {
+    return {message};
+  }
+
+  message = `${errorName} - "${fileName}:${lineNum}"`;
+  // Get formatted code snippet
+  const contextCount = 4;
+  const errFile = files.find((x: ProjectFile) => x.remotePath === fileName);
+  if (!errFile || !errFile.source) {
+    return {message};
+  }
+
+  const srcLines = errFile.source.split('\n');
+  const errIndex = Math.max(parseInt(lineNum) - 1, 0);
+  const preIndex = Math.max(errIndex - contextCount, 0);
+  const postIndex = Math.min(errIndex + contextCount + 1, srcLines.length);
+
+  const preLines = chalk.dim(`  ${srcLines.slice(preIndex, errIndex).join('\n  ')}`);
+  const errLine = chalk.bold(`⇒ ${srcLines[errIndex]}`);
+  const postLines = chalk.dim(`  ${srcLines.slice(errIndex + 1, postIndex).join('\n  ')}`);
+
+  snippet = preLines + '\n' + errLine + '\n' + postLines;
+  return {message, snippet};
 }
 
 export function logFileList(files: readonly string[]) {

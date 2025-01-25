@@ -17,10 +17,12 @@ export async function showFileStatusCommand(this: Command, options?: CommandOpti
   assertScriptSettings(context);
 
   const [toPush, toIgnore] = splitProjectFiles(
-    await getAllProjectFiles(context.project.contentDir, context.project.ignorePatterns),
+    await getAllProjectFiles(context.project.contentDir, context.project.ignorePatterns, context.project.recursive),
   );
-  const filesToPush = getOrderedProjectFiles(toPush, context.project.settings.filePushOrder).map(file => file.name);
-  const untrackedFiles = toIgnore.map(file => file.name);
+  const filesToPush = getOrderedProjectFiles(toPush, context.project.settings.filePushOrder).map(
+    file => file.localPath,
+  );
+  const untrackedFiles = toIgnore.map(file => file.localPath);
 
   if (options?.json) {
     console.log(JSON.stringify({filesToPush, untrackedFiles}));

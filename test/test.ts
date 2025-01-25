@@ -6,7 +6,7 @@ import {after, before, describe, it} from 'mocha';
 import {readPackageUpSync} from 'read-pkg-up';
 
 import {spawnSync} from 'child_process';
-import {getAppsScriptFileName, getLocalFileType} from '../src/files.js';
+import {getAppsScriptFileName} from '../src/files.js';
 import {ERROR, LOG} from '../src/messages.js';
 import {URL, extractScriptId} from '../src/urls.js';
 <<<<<<< HEAD
@@ -175,22 +175,6 @@ describe('Test getWebApplicationURL function from utils', () => {
   });
 });
 
-describe('Test getLocalFileType function from utils', () => {
-  it('should return the lowercase file type correctly', () => {
-    expect(getLocalFileType('SERVER_JS')).to.equal('js');
-    expect(getLocalFileType('GS')).to.equal('gs');
-    expect(getLocalFileType('JS')).to.equal('js');
-    expect(getLocalFileType('HTML')).to.equal('html');
-  });
-
-  it('should return the specified file extension if the file type is SERVER_JS', () => {
-    expect(getLocalFileType('SERVER_JS', 'gs')).to.equal('gs');
-    expect(getLocalFileType('GS', 'js')).to.equal('gs');
-    expect(getLocalFileType('JS', 'gs')).to.equal('js');
-    expect(getLocalFileType('HTML', 'js')).to.equal('html');
-  });
-});
-
 describe('Test getAPIFileType function from utils', () => {
   it('should return the uppercase file type correctly', () => {
     expect(getApiFileType('file.GS')).to.equal('SERVER_JS');
@@ -213,6 +197,7 @@ describe('Test saveProject function from utils', () => {
           scriptId: '12345',
         },
         ignorePatterns: [],
+        recursive: false,
       });
       const id = fs.readFileSync(path.join(__dirname, '.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345"}');
@@ -232,6 +217,7 @@ describe('Test saveProject function from utils', () => {
           srcDir: './dist',
         },
         ignorePatterns: [],
+        recursive: false,
       });
       const id = fs.readFileSync(path.join(__dirname, '.clasp.json'), 'utf8');
       expect(id).to.equal('{"scriptId":"12345","rootDir":"./dist"}');

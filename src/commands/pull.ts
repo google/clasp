@@ -23,7 +23,9 @@ export async function pullFilesCommand(this: Command, options: CommandOption): P
   spinner.start(LOG.PULLING);
 
   const files = await fetchProject(context.credentials, context.project.settings.scriptId, options.versionNumber);
-  await writeProjectFiles(files, context.project);
+  const paths = await writeProjectFiles(files, context.project);
+  paths.forEach(p => console.log(`└─ ${p}`));
+  console.log(LOG.CLONE_SUCCESS(files.length));
 
   stopSpinner();
 }

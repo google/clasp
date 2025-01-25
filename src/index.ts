@@ -47,5 +47,5 @@ try {
     console.error('Unknown error', error);
   }
 } finally {
-  spinner.clear();
+  spinner.stop();
 }

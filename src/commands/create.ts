@@ -90,8 +90,10 @@ export async function createCommand(this: Command, options: CommandOption): Prom
   console.log(LOG.CREATE_PROJECT_FINISH(type, scriptId));
 
   const projectFiles = await fetchProject(context.credentials, scriptId);
-  await writeProjectFiles(projectFiles, context.project);
+  const paths = await writeProjectFiles(projectFiles, context.project);
+  paths.forEach(p => console.log(`└─ ${p}`));
   await saveProject(context.project);
+  console.log(LOG.CLONE_SUCCESS(projectFiles.length));
 }
 
 /**

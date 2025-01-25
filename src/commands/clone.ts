@@ -48,7 +48,9 @@ export async function cloneProjectCommand(
   try {
     const files = await fetchProject(context.credentials, scriptId, versionNumber);
     await saveProject(context.project);
-    await writeProjectFiles(files, context.project);
+    const paths = await writeProjectFiles(files, context.project);
+    paths.forEach(p => console.log(`└─ ${p}`));
+    console.log(LOG.CLONE_SUCCESS(files.length));
   } finally {
     stopSpinner();
   }
@@ -80,6 +82,7 @@ export function initProjectFromCommandOptions(opts: OptionValues, scriptId: stri
       srcDir: srcDir?.length ? srcDir : '.',
     },
     ignorePatterns: DEFAULT_CLASP_IGNORE,
+    recursive: false,
   };
   return project;
 }
