@@ -21,7 +21,7 @@
     "stripInternal": true,
     "target": "es2019",
 
-    "importHelpers": true // canary: will cause runtime error if `tslib` is necessary
+    "importHelpers": true 
   },
   "include": [
     "src/**/*.ts",
