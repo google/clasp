@@ -1,25 +1,14 @@
-import path, {dirname} from 'path';
+import {dirname} from 'path';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
 import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 import {readPackageUpSync} from 'read-pkg-up';
 
-import {spawnSync} from 'child_process';
-import {getAppsScriptFileName} from '../src/files.js';
 import {ERROR, LOG} from '../src/messages.js';
-import {URL, extractScriptId} from '../src/urls.js';
-<<<<<<< HEAD
-<<<<<<< HEAD
-import {getApiFileType, getWebApplicationURL, saveProject} from '../src/utils.js';
-=======
-import {getApiFileType, getDefaultProjectName, getWebApplicationURL, saveProject} from '../src/utils.js';
->>>>>>> 1abe07e (chore: Migrate from gts/prettier/eslint to biomejs)
-=======
-import {getApiFileType, getWebApplicationURL, saveProject} from '../src/utils.js';
->>>>>>> 1ae3ded (fix: Improve consistency of command checks & error messages)
 import {CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
 import {backupSettings, cleanup, restoreSettings, runClasp, setup} from './functions.js';
+import {URL} from './urls.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const manifest = readPackageUpSync({cwd: __dirname});
@@ -47,13 +36,6 @@ describe.skip('Test --help for each function', () => {
   it('should list --help', () => expectHelp('list', 'List App Scripts projects'));
   it('should apis --help', () => expectHelp('apis', 'List, enable, or disable APIs'));
   it('should help --help', () => expectHelp('help', 'Display help'));
-});
-
-describe('Test extractScriptId function', () => {
-  it('should return scriptId correctly', () => {
-    expect(extractScriptId(SCRIPT_ID)).to.equal(SCRIPT_ID);
-    expect(extractScriptId(URL.SCRIPT(SCRIPT_ID))).to.equal(SCRIPT_ID);
-  });
 });
 
 describe('Test clasp pull function', () => {
@@ -143,86 +125,10 @@ describe('Test setting function', () => {
   after(cleanup);
 });
 
-describe('Test getAppsScriptFileName function from files', () => {
-  it('should return the basename correctly', () => {
-    expect(getAppsScriptFileName('./', 'appsscript.json')).to.equal('appsscript');
-    expect(getAppsScriptFileName('', 'appsscript.json')).to.equal('appsscript');
-    expect(getAppsScriptFileName('./dist', './dist/appsscript.json')).to.equal('appsscript');
-    expect(getAppsScriptFileName('./dist', './dist/foo/Code.js')).to.equal('foo/Code');
-  });
-});
-
 describe('Test URL helper from utils', () => {
   it('should return the scriptURL correctly', () => {
     const url = URL.SCRIPT('abcdefghijklmnopqrstuvwxyz');
     expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
-  });
-});
-
-describe('Test getWebApplicationURL function from utils', () => {
-  it('should return the scriptURL correctly', () => {
-    const url = getWebApplicationURL({
-      entryPoints: [
-        {
-          entryPointType: 'WEB_APP',
-          webApp: {
-            url: 'https://script.google.com/macros/s/abcdefghijklmnopqrstuvwxyz/exec',
-          },
-        },
-      ],
-    });
-    expect(url).to.equal('https://script.google.com/macros/s/abcdefghijklmnopqrstuvwxyz/exec');
-  });
-});
-
-describe('Test getAPIFileType function from utils', () => {
-  it('should return the uppercase file type correctly', () => {
-    expect(getApiFileType('file.GS')).to.equal('SERVER_JS');
-    expect(getApiFileType('file.JS')).to.equal('SERVER_JS');
-    expect(getApiFileType('file.js')).to.equal('SERVER_JS');
-    expect(getApiFileType('file.jsx')).to.equal('JSX');
-    expect(getApiFileType('file.js.html')).to.equal('HTML');
-  });
-});
-
-describe('Test saveProject function from utils', () => {
-  it('should save the scriptId correctly', () => {
-    spawnSync('rm', ['.clasp.json']);
-    const isSaved = async () => {
-      await saveProject({
-        projectRootDir: __dirname,
-        contentDir: __dirname,
-        configFilePath: path.join(__dirname, '.clasp.json'),
-        settings: {
-          scriptId: '12345',
-        },
-        ignorePatterns: [],
-        recursive: false,
-      });
-      const id = fs.readFileSync(path.join(__dirname, '.clasp.json'), 'utf8');
-      expect(id).to.equal('{"scriptId":"12345"}');
-    };
-    expect(isSaved).to.not.equal(null);
-  });
-
-  it('should save the scriptId, rootDir correctly', () => {
-    spawnSync('rm', ['.clasp.json']);
-    const isSaved = async () => {
-      await saveProject({
-        projectRootDir: __dirname,
-        contentDir: __dirname,
-        configFilePath: path.join(__dirname, '.clasp.json'),
-        settings: {
-          scriptId: '12345',
-          srcDir: './dist',
-        },
-        ignorePatterns: [],
-        recursive: false,
-      });
-      const id = fs.readFileSync(path.join(__dirname, '.clasp.json'), 'utf8');
-      expect(id).to.equal('{"scriptId":"12345","rootDir":"./dist"}');
-    };
-    expect(isSaved).to.not.equal(null);
   });
 });
 

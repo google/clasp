@@ -1,12 +1,18 @@
 import {Command} from 'commander';
+import {AuthInfo} from '../auth/auth.js';
 
-import {Context} from '../context.js';
+export const command = new Command('logout').description('Logout of clasp').action(async function (
+  this: Command,
+): Promise<void> {
+  const auth: AuthInfo = this.opts().auth;
 
-/**
- * Logs out the user by deleting credentials.
- */
-export async function logoutCommand(this: Command): Promise<void> {
-  const context: Context = this.opts().context;
+  if (!auth.credentialStore) {
+    this.error('No credential store found, unable to log out.');
+    return;
+  }
 
-  context.credentialStore.delete(context.userKey);
-}
+  if (!auth.credentials) {
+    return;
+  }
+  auth.credentialStore?.delete(auth.user);
+});

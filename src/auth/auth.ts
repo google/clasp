@@ -2,12 +2,60 @@ import {readFileSync} from 'fs';
 import {createServer} from 'http';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
+import os from 'os';
+import path from 'path';
 import {GoogleAuth, OAuth2Client} from 'google-auth-library';
+import {google} from 'googleapis';
 import inquirer from 'inquirer';
 import open from 'open';
 import enableDestroy from 'server-destroy';
-import {CredentialStore} from './credential_store.js';
-import {LOG} from './messages.js';
+import {LOG} from '../messages.js';
+import {CredentialStore, FileCredentialStore} from './credential_store.js';
+
+type InitOptions = {
+  authFilePath?: string;
+  userKey?: string;
+  useApplicationDefaultCredentials?: boolean;
+};
+
+export type AuthInfo = {
+  credentials?: OAuth2Client;
+  credentialStore?: CredentialStore;
+  user: string;
+};
+
+export async function initAuth(options: InitOptions): Promise<AuthInfo> {
+  const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
+  const credentialStore = new FileCredentialStore(authFilePath);
+
+  if (options.useApplicationDefaultCredentials) {
+    const credentials = await createApplicationDefaultCredentials();
+    return {
+      credentials,
+      credentialStore,
+      user: options.userKey ?? 'default',
+    };
+  }
+
+  const credentials = await getAuthorizedOAuth2Client(credentialStore, options.userKey);
+  return {
+    credentials,
+    credentialStore,
+    user: options.userKey ?? 'default',
+  };
+}
+
+export async function getUserInfo(credentials: OAuth2Client) {
+  const api = google.oauth2('v2');
+  const res = await api.userinfo.get({auth: credentials});
+  if (res.status !== 200) {
+    return undefined;
+  }
+  return {
+    email: res.data.email,
+    id: res.data.id,
+  };
+}
 
 /**
  * Creates an an unauthorized oauth2 client given the client secret file. If no path is provided,
@@ -80,7 +128,8 @@ export async function authorize(options: AuthorizationOptions) {
   }
 
   const client = await flow.authorize(options.scopes);
-  return saveOauthClientCredentials(options.store, options.userKey, client);
+  await saveOauthClientCredentials(options.store, options.userKey, client);
+  return client;
 }
 
 async function saveOauthClientCredentials(store: CredentialStore, userKey: string, oauth2Client: OAuth2Client) {

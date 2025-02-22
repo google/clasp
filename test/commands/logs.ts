@@ -1,25 +1,11 @@
 import {expect} from 'chai';
 import {after, before, describe, it} from 'mocha';
 
-import {LOG} from '../../src/messages.js';
-import {cleanup, runClasp, setup, setupWithoutGCPProject} from '../functions.js';
+import {cleanup, runClasp, setup} from '../functions.js';
 
-describe('Test clasp logs setup', () => {
-  before(setupWithoutGCPProject);
-  it('should prompt for logs setup', () => {
-    const result = runClasp(['logs']);
-    expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
-  });
-  it('should prompt for logs setup', () => {
-    const result = runClasp(['logs', '--setup']);
-    expect(result.stdout).to.contain(`${LOG.ASK_PROJECT_ID}`);
-  });
-  after(cleanup);
-});
-
-describe('Test clasp logs function', () => {
+describe('Test clasp logs function', function () {
   before(setup);
-  it('should get some logs', () => {
+  it('should get some logs', function () {
     const result = runClasp(['logs']);
     // Example log line:
     // NOTICE               2019-02-26T05:10:20.658Z google.api.serviceusage.v1.ServiceUsage.EnableService Setting up StackDriver Logging.

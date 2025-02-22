@@ -3,9 +3,9 @@ import {after, before, describe, it} from 'mocha';
 
 import {cleanup, runClasp, setup} from '../functions.js';
 
-describe('Test clasp deployments function', () => {
+describe('Test clasp deployments function', function () {
   before(setup);
-  it('should list deployments correctly', () => {
+  it('should list deployments correctly', function () {
     const result = runClasp(['deployments']);
     expect(result.stdout).to.contain('Deployment');
     expect(result.status).to.equal(0);

@@ -3,9 +3,9 @@ import {after, before, describe, it} from 'mocha';
 
 import {cleanup, runClasp, setup} from '../functions.js';
 
-describe('Test clasp list function', () => {
+describe('Test clasp list function', function () {
   before(setup);
-  it('should list clasp projects correctly', () => {
+  it('should list clasp projects correctly', function () {
     const result = runClasp(['list']);
     // Every project starts with this base URL, thus
     // using clasp list should at least contain this
@@ -13,7 +13,7 @@ describe('Test clasp list function', () => {
     expect(result.stdout).to.contain('https://script.google.com/d/');
     expect(result.status).to.equal(0);
   });
-  it('does not shorten project names when indicated not to', () => {
+  it('does not shorten project names when indicated not to', function () {
     const result = runClasp(['list', '--noShorten']);
     expect(result.stdout).to.contain('https://script.google.com/d/');
     expect(result.stdout).to.not.contain('…');

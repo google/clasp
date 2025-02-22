@@ -1,7 +1,7 @@
 import {script_v1 as scriptV1} from 'googleapis';
 
+import {URL} from '../test/urls.js';
 import {PROJECT_MANIFEST_FILENAME, PROJECT_NAME} from './constants.js';
-import {URL} from './urls.js';
 
 /** Human friendly Google Drive file type name */
 const fileTypeName = new Map<string, string>([
@@ -27,10 +27,7 @@ const getScriptTypeName = (type: string) => (fileTypeName.has(type) ? `${fileTyp
 
 // Error messages (some errors take required params)
 export const ERROR = {
-  ACCESS_TOKEN: 'Error retrieving access token: ',
   BAD_CREDENTIALS_FILE: 'Incorrect credentials file format.',
-  BAD_REQUEST: (message: string) => `Error: ${message}
-Your credentials may be invalid. Try logging in again.`,
   BAD_MANIFEST: `Error: Your ${PROJECT_MANIFEST_FILENAME} contains invalid JSON.`,
   COMMAND_DNE: (command: string) => `🤔  Unknown command "${PROJECT_NAME} ${command}"\n
 Forgot ${PROJECT_NAME} commands? Get help:\n  ${PROJECT_NAME} --help`,

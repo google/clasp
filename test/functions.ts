@@ -1,8 +1,8 @@
+import {spawnSync} from 'child_process';
 import path from 'path';
+import Debug from 'debug';
 import fs from 'fs-extra';
 import tmp from 'tmp';
-
-import {spawnSync} from 'child_process';
 import {
   CLASP_PATHS,
   CLASP_SETTINGS,
@@ -10,8 +10,11 @@ import {
   TEST_APPSSCRIPT_JSON_WITH_RUN_API,
 } from './constants.js';
 
+const debug = Debug('clasp:test');
+
 export function runClasp(args: string[], opts = {}) {
-  return spawnSync('node', [`${process.cwd()}/build/src/index.js`, ...args], {
+  debug('Running clasp with args: %s', args.join(' '));
+  const commandOutput = spawnSync('node', [`${process.cwd()}/build/src/index.js`, ...args], {
     encoding: 'utf8',
     env: {
       ...process.env,
@@ -19,6 +22,9 @@ export function runClasp(args: string[], opts = {}) {
     },
     ...opts,
   });
+  debug('stdout: %s', commandOutput.stdout);
+  debug('stderr: %s', commandOutput.stderr);
+  return commandOutput;
 }
 
 /** basic cleanup after tests */
@@ -31,6 +37,7 @@ export const cleanup = () => {
 
 /** basic setup for tests */
 export const setup = () => {
+  console.log(CLASP_SETTINGS.valid);
   fs.writeFileSync('.clasp.json', CLASP_SETTINGS.valid);
   fs.writeFileSync('appsscript.json', TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API);
 };

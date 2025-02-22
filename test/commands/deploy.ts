@@ -3,11 +3,11 @@ import {after, before, describe, it} from 'mocha';
 
 import {cleanup, runClasp, setup} from '../functions.js';
 
-describe('Test clasp deploy function', () => {
+describe('Test clasp deploy function', function () {
   before(setup);
   // Could fail to to maximum deployments (20)
   // TODO: skip test if at maximum
-  it('should deploy correctly', () => {
+  it('should deploy correctly', function () {
     const result = runClasp(['deploy']);
     if (result.status) {
       const err1 = 'Scripts may only have up to 20 versioned deployments at a time';

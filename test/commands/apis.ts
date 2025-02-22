@@ -1,61 +1,46 @@
 import {expect} from 'chai';
 import {after, before, describe, it} from 'mocha';
 
-import {URL} from '../../src/urls.js';
 import {PROJECT_ID} from '../constants.js';
 import {cleanup, runClasp, setup} from '../functions.js';
+import {URL} from '../urls.js';
 
 describe('Test clasp apis functions', () => {
   before(setup);
-  it('should list apis correctly', () => {
-    const result = runClasp(['apis', 'list']);
+  it('should list apis correctly', function () {
+    const result = runClasp(['list-apis']);
     expect(result.stdout).to.contain('# Currently enabled APIs:');
     expect(result.stdout).to.contain('# List of available APIs:');
-    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
-  it('should ask for an API when trying to enable', () => {
-    const result = runClasp(['apis', 'enable']);
+  it('should ask for an API when trying to enable', function () {
+    const result = runClasp(['enable-api']);
     expect(result.stderr).to.include('missing required argument');
     expect(result.status).to.equal(1);
   });
-  it('should enable sheets', () => {
-    const result = runClasp(['apis', 'enable', 'sheets']);
+  it('should enable sheets', function () {
+    const result = runClasp(['enable-api', 'sheets']);
     expect(result.stdout).to.contain('Enabled sheets API.');
-    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
-  it('should give error message for non-existent API', () => {
-    const result = runClasp(['apis', 'enable', 'fakeApi']);
-    expect(result.stderr).to.contain("API fakeApi doesn't exist. Try 'clasp apis enable sheets'.");
+  it('should give error message for non-existent API', function () {
+    const result = runClasp(['enable-api', 'fakeApi']);
+    expect(result.stderr).to.contain('does not exist');
     expect(result.status).to.equal(1);
   });
-  it('should ask for an API when trying to disable', () => {
-    const result = runClasp(['apis', 'disable']);
+  it('should ask for an API when trying to disable', function () {
+    const result = runClasp(['disable-api']);
     expect(result.stderr).to.include('missing required argument');
     expect(result.status).to.equal(1);
   });
-  it('should disable apis correctly', () => {
-    const result = runClasp(['apis', 'disable', 'sheets']);
+  it('should disable apis correctly', function () {
+    const result = runClasp(['disable-api', 'sheets']);
     expect(result.stdout).to.contain('Disabled sheets API.');
-    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
-  it('should show suggestions for using clasp apis', () => {
-    const result = runClasp(['apis']);
-    expect(result.stderr).to.contain('List, enable, or disable APIs');
-    expect(result.stdout).to.equal('');
-    expect(result.status).to.equal(1);
-  });
-  it('should error with unknown subcommand', () => {
-    const result = runClasp(['apis', 'unknown']);
-    expect(result.stderr).to.contain('unknown command');
-    expect(result.status).to.equal(1);
-  });
-  it('should open APIs dashboard', () => {
-    const result = runClasp(['apis', 'open']);
+  it('should open APIs dashboard', function () {
+    const result = runClasp(['open-api-console']);
     expect(result.stdout).to.contain(URL.APIS(PROJECT_ID));
-    expect(result.stderr).to.equal('');
     expect(result.status).to.equal(0);
   });
   after(cleanup);

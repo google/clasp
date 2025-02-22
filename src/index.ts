@@ -20,12 +20,12 @@
 /**
  * clasp - The Apps Script CLI
  */
-
+import Debug from 'debug';
 import loudRejection from 'loud-rejection';
 
-import {ClaspError} from './clasp-error.js';
 import {makeProgram} from './commands/program.js';
-import {spinner} from './utils.js';
+
+const debug = Debug('clasp:cli');
 
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
@@ -33,19 +33,16 @@ loudRejection();
 const program = makeProgram();
 
 try {
+  debug('Running clasp with args: %s', process.argv.join(' '));
   // User input is provided from the process' arguments
   await program.parseAsync(process.argv);
 } catch (error) {
-  if (error instanceof ClaspError) {
-    // ClaspError handles process.exitCode
-    console.error(error.message);
-  } else if (error instanceof Error) {
+  debug('Error: %O', error);
+  if (error instanceof Error) {
     process.exitCode = 1;
     console.error(error.message);
   } else {
     process.exitCode = 1;
     console.error('Unknown error', error);
   }
-} finally {
-  spinner.stop();
 }

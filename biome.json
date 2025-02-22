@@ -9,6 +9,11 @@
     "lineWidth": 120,
     "attributePosition": "auto"
   },
+  "files": {
+    "ignore": [
+      "test/fixtures/**"
+    ]
+  },
   "organizeImports": { "enabled": true },
   "linter": {
     "enabled": true,

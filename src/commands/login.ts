@@ -3,11 +3,9 @@
  */
 
 import {Command} from 'commander';
-import {google} from 'googleapis';
-import {authorize, getUnauthorizedOuth2Client} from '../auth.js';
-import {Context, assertScriptSettings} from '../context.js';
+import {AuthInfo, authorize, getUnauthorizedOuth2Client, getUserInfo} from '../auth/auth.js';
+import {Clasp} from '../core/clasp.js';
 import {ERROR, LOG} from '../messages.js';
-import {safeIsOnline} from '../utils.js';
 
 const DEFAULT_SCOPES = [
   // Default to clasp scopes
@@ -31,76 +29,58 @@ interface CommandOption {
   readonly useProjectScopes?: boolean;
 }
 
-async function showLoginStatus(context: Context): Promise<void> {
-  if (!context.credentials) {
-    console.log(LOG.NOT_LOGGED_IN);
-    return;
-  }
+export const command = new Command('login')
+  .description('Log in to script.google.com')
+  .option('--no-localhost', 'Do not run a local server, manually enter code instead')
+  .option('--creds <file>', 'Relative path to OAuth client secret file (from GCP).')
+  .option(
+    '--use-project-scopes',
+    'Use the scopes from the current project manifest. Used only when authorizing access for the run command.',
+  )
+  .option('--redirect-port <port>', 'Specify a custom port for the redirect URL.')
+  .action(async function (this: Command, options: CommandOption): Promise<void> {
+    const auth: AuthInfo = this.opts().auth;
+    const clasp: Clasp = this.opts().clasp;
 
-  const isOnline = await safeIsOnline();
-  if (!isOnline) {
-    console.log(LOG.LOGGED_IN_UNKNOWN);
-    return;
-  }
-
-  const api = google.oauth2('v2');
-  const res = await api.userinfo.get({auth: context.credentials});
-  if (res.status !== 200) {
-    console.log(LOG.LOGGED_IN_UNKNOWN);
-    return;
-  }
-  const email = res.data.email;
-  if (email) {
-    console.log(LOG.LOGGED_IN_AS(email));
-  } else {
-    console.log(LOG.LOGGED_IN_UNKNOWN);
-  }
-}
-/**
- * Logs the user in. Saves the client credentials to an either local or global rc file.
- * @param {object} options The login options.
- * @param {boolean?} options.localhost If true, authorizes without a HTTP server.
- * @param {string?} options.creds The location of credentials file.
- * @param {boolean?} options.status If true, prints who is logged in instead of doing login.
- */
-export async function loginCommand(this: Command, options: CommandOption): Promise<void> {
-  const context: Context = this.opts().context;
-
-  if (options.status) {
-    // TODO - Refactor as subcommand
-    await showLoginStatus(context);
-    return;
-  }
-
-  if (context.credentials) {
-    console.error(ERROR.LOGGED_IN);
-  }
-
-  const useLocalhost = Boolean(options.localhost);
-  const redirectPort = options.redirectPort;
-
-  const oauth2Client = getUnauthorizedOuth2Client(options.creds);
-
-  let scopes = [...DEFAULT_SCOPES];
-  if (options.useProjectScopes) {
-    assertScriptSettings(context);
-    scopes = context.project.manifest?.oauthScopes ?? scopes;
-    console.log('');
-    console.log('Authorizing with the following scopes:');
-    for (const scope of scopes) {
-      console.log(scope);
+    if (!auth.credentialStore) {
+      this.error('No credential store found, unable to login.');
+      return;
     }
-  }
 
-  await authorize({
-    store: context.credentialStore,
-    userKey: context.userKey,
-    oauth2Client,
-    scopes,
-    noLocalServer: !useLocalhost,
-    redirectPort,
+    if (auth.credentials) {
+      console.error(ERROR.LOGGED_IN);
+    }
+
+    const useLocalhost = Boolean(options.localhost);
+    const redirectPort = options.redirectPort;
+
+    const oauth2Client = getUnauthorizedOuth2Client(options.creds);
+
+    let scopes = [...DEFAULT_SCOPES];
+    if (options.useProjectScopes) {
+      const manifest = await clasp.project.readManifest();
+      scopes = manifest.oauthScopes ?? scopes;
+      console.log('');
+      console.log('Authorizing with the following scopes:');
+      for (const scope of scopes) {
+        console.log(scope);
+      }
+    }
+
+    const credentials = await authorize({
+      store: auth.credentialStore,
+      userKey: auth.user,
+      oauth2Client,
+      scopes,
+      noLocalServer: !useLocalhost,
+      redirectPort,
+    });
+
+    const user = await getUserInfo(credentials);
+    if (!user || !user.email) {
+      console.log(LOG.LOGGED_IN_UNKNOWN);
+      return;
+    }
+
+    console.log(LOG.LOGGED_IN_AS(user.email));
   });
-
-  await showLoginStatus(context);
-  return;
-}
