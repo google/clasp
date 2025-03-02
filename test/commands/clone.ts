@@ -4,7 +4,6 @@ import {after, before, describe, it} from 'mocha';
 
 import {CLASP_SETTINGS, SCRIPT_ID} from '../constants.js';
 import {cleanup, runClasp, setup} from '../functions.js';
-import {URL} from '../urls.js';
 
 describe('Test clasp clone <scriptId> function', function () {
   before(setup);
@@ -17,7 +16,8 @@ describe('Test clasp clone <scriptId> function', function () {
   });
   it('should clone a project with scriptURL correctly', function () {
     cleanup();
-    const result = runClasp(['clone', URL.SCRIPT(SCRIPT_ID)], {maxBuffer: 10 * 1024 * 1024});
+    const url = `https://script.google.com/d/${SCRIPT_ID}/edit`
+    const result = runClasp(['clone', url], {maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');
     expect(result.status).to.equal(0);

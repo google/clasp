@@ -3,7 +3,6 @@ import {after, before, describe, it} from 'mocha';
 
 import {PROJECT_ID} from '../constants.js';
 import {cleanup, runClasp, setup} from '../functions.js';
-import {URL} from '../urls.js';
 
 describe('Test clasp apis functions', () => {
   before(setup);
@@ -40,7 +39,7 @@ describe('Test clasp apis functions', () => {
   });
   it('should open APIs dashboard', function () {
     const result = runClasp(['open-api-console']);
-    expect(result.stdout).to.contain(URL.APIS(PROJECT_ID));
+    expect(result.stdout).to.contain(`https://console.developers.google.com/apis/dashboard?project=${PROJECT_ID}`);
     expect(result.status).to.equal(0);
   });
   after(cleanup);
