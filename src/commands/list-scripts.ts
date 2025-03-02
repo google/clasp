@@ -1,6 +1,6 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, ellipsize, withSpinner} from './utils.js';
 
 interface CommandOption {
@@ -16,15 +16,29 @@ export const command = new Command('list-scripts')
 
     const clasp: Clasp = this.opts().clasp;
 
-    const files = await withSpinner(LOG.FINDING_SCRIPTS, async () => {
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Finding your scripts...',
+    });
+    const files = await withSpinner(spinnerMsg, async () => {
       return clasp.project.listScripts();
     });
 
     if (!files.results.length) {
-      console.log(LOG.FINDING_SCRIPTS_DNE);
+      const msg = intl.formatMessage({
+        defaultMessage: 'No script files found.',
+      });
+      console.log(msg);
       return;
     }
-
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: 'Found {count, plural, one {# script} other {# scripts}}.',
+      },
+      {
+        count: files.results.length,
+      },
+    );
+    console.log(successMessage);
     files.results.forEach(file => {
       const name = options.noShorten ? file.name! : ellipsize(file.name!, 20);
       const url = `https://script.google.com/d/${file.id}/edit`;

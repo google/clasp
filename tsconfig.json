@@ -20,8 +20,16 @@
     "strictPropertyInitialization": true,
     "stripInternal": true,
     "target": "es2019",
-
-    "importHelpers": true 
+    "importHelpers": true,
+    "plugins": [
+      {
+        "transform": "@formatjs/ts-transformer",
+        "import": "transform",
+        "type": "config",
+        "overrideIdFn": "[sha512:contenthash:base64:6]",
+        "ast": true
+      }
+    ] 
   },
   "include": [
     "src/**/*.ts",
@@ -29,6 +37,7 @@
   ],
   "ts-node": {
     "transpileOnly": true,
-    "files": true
-  }
+    "files": true,
+    "compiler": "ts-patch/compiler"
+  },
 }

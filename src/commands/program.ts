@@ -1,6 +1,5 @@
 import {Command, Option} from 'commander';
 import {PROJECT_NAME} from '../constants.js';
-import {ERROR} from '../messages.js';
 
 import {command as cloneCommand} from './clone-script.js';
 import {command as createDeploymentCommand} from './create-deployment.js';
@@ -33,6 +32,7 @@ import {fileURLToPath} from 'url';
 import {readPackageUpSync} from 'read-pkg-up';
 import {initAuth} from '../auth/auth.js';
 import {initClaspInstance} from '../core/clasp.js';
+import {intl} from '../intl.js';
 
 export function makeProgram() {
   const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -116,7 +116,15 @@ export function makeProgram() {
   program.addCommand(listVersionsCommand);
 
   program.on('command:*', async function (this: Command, op) {
-    console.error(ERROR.COMMAND_DNE(op[0]));
+    const msg = intl.formatMessage(
+      {
+        defaultMessage: 'Unknown command "clasp {command}"',
+      },
+      {
+        command: op[0],
+      },
+    );
+    console.error(msg);
     process.exitCode = 1;
   });
 

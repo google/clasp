@@ -1,16 +1,13 @@
 import {readFileSync} from 'fs';
-import {createServer} from 'http';
-import type {IncomingMessage, Server, ServerResponse} from 'http';
-import type {AddressInfo} from 'net';
 import os from 'os';
 import path from 'path';
 import {GoogleAuth, OAuth2Client} from 'google-auth-library';
 import {google} from 'googleapis';
-import inquirer from 'inquirer';
-import open from 'open';
-import enableDestroy from 'server-destroy';
-import {LOG} from '../messages.js';
-import {CredentialStore, FileCredentialStore} from './credential_store.js';
+import {AuthorizationCodeFlow} from './auth_code_flow.js';
+import {CredentialStore} from './credential_store.js';
+import {FileCredentialStore} from './file_credential_store.js';
+import {LocalServerAuthorizationCodeFlow} from './localhost_auth_code_flow.js';
+import {ServerlessAuthorizationCodeFlow} from './serverless_auth_code_flow.js';
 
 type InitOptions = {
   authFilePath?: string;
@@ -150,133 +147,6 @@ async function saveOauthClientCredentials(store: CredentialStore, userKey: strin
     await store.save(userKey, refreshedCredentials);
   });
   await store.save(userKey, savedCredentials);
-}
-
-class AuthorizationCodeFlow {
-  protected oauth2Client: OAuth2Client;
-
-  constructor(oauth2client: OAuth2Client) {
-    this.oauth2Client = oauth2client;
-  }
-
-  async authorize(scopes: string | string[]) {
-    const scope = Array.isArray(scopes) ? scopes.join(' ') : scopes;
-    const redirectUri = await this.getRedirectUri();
-    const authUrl = this.oauth2Client.generateAuthUrl({
-      redirect_uri: redirectUri,
-      access_type: 'offline',
-      scope: scope,
-    });
-    const code = await this.promptAndReturnCode(authUrl);
-    const tokens = await this.oauth2Client.getToken({
-      code,
-      redirect_uri: redirectUri,
-    });
-    this.oauth2Client.setCredentials(tokens.tokens);
-    return this.oauth2Client;
-  }
-
-  async getRedirectUri(): Promise<string> {
-    throw new Error('Not implemented');
-  }
-
-  async promptAndReturnCode(_authorizationUrl: string): Promise<string> {
-    throw new Error('Not implemented');
-  }
-}
-
-class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
-  constructor(oauth2client: OAuth2Client) {
-    super(oauth2client);
-  }
-
-  async getRedirectUri(): Promise<string> {
-    return 'http://localhost:8888';
-  }
-
-  async promptAndReturnCode(authorizationUrl: string) {
-    console.log(
-      `Authorize clasp by visiting the following URL on another device:\n\n\t${authorizationUrl}\n\nAfter authorization, copy and paste the URL in the browser here.\n`,
-    );
-    const answer = await inquirer.prompt([
-      {
-        message: 'Enter the URL from your browser after completing authorization',
-        name: 'url',
-        type: 'input',
-      },
-    ]);
-    const {code, error} = parseAuthResponseUrl(answer.url);
-    if (error) {
-      throw new Error(error);
-    }
-    if (!code) {
-      throw new Error('Missing code in responde URL');
-    }
-    return code;
-  }
-}
-
-class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
-  protected server: Server | undefined;
-  protected port = 0;
-
-  constructor(oauth2client: OAuth2Client) {
-    super(oauth2client);
-  }
-
-  async getRedirectUri(): Promise<string> {
-    this.server = await new Promise<Server>((resolve, reject) => {
-      const s = createServer();
-      enableDestroy(s);
-      s.listen(this.port, () => resolve(s)).on('error', (err: NodeJS.ErrnoException) => {
-        if (err.code === 'EADDRINUSE') {
-          console.error(
-            `Error: Port ${this.port} is already in use. Please specify a different port with --redirect-port.`,
-          );
-        } else {
-          console.error(`Error: Unable to start the server on port ${this.port}.`, err.message);
-        }
-        reject(err);
-      });
-    });
-    const {port} = this.server.address() as AddressInfo;
-    return `http://localhost:${port}`;
-  }
-
-  async promptAndReturnCode(authorizationUrl: string) {
-    return await new Promise<string>((resolve, reject) => {
-      if (!this.server) {
-        reject(new Error('Server not started'));
-        return;
-      }
-      this.server.on('request', (request: IncomingMessage, response: ServerResponse) => {
-        if (!request.url) {
-          reject(new Error('Missing URL in request'));
-          return;
-        }
-        const {code, error} = parseAuthResponseUrl(request.url);
-        if (code) {
-          resolve(code);
-        } else {
-          reject(error);
-        }
-
-        response.end(LOG.AUTH_PAGE_SUCCESSFUL);
-      });
-      void open(authorizationUrl);
-      console.log(LOG.AUTHORIZE(authorizationUrl));
-    }).finally(() => this.server?.destroy());
-  }
-}
-
-function parseAuthResponseUrl(url: string) {
-  const urlParts = new URL(url, 'http://localhost/').searchParams;
-  const code = urlParts.get('code');
-  const error = urlParts.get('error');
-  return {
-    code,
-    error,
-  };
 }
 
 /**

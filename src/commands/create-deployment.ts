@@ -1,5 +1,6 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, withSpinner} from './utils.js';
 
 interface CommandOption {
@@ -23,10 +24,25 @@ export const command = new Command('create-deployment')
     const versionNumber = options.versionNumber;
 
     try {
-      const deployment = await withSpinner('Deploying project...', async () => {
+      const spinnerMsg = intl.formatMessage({
+        defaultMessage: 'Deploying project...',
+      });
+      const deployment = await withSpinner(spinnerMsg, async () => {
         return await clasp.project.deploy(description, deploymentId, versionNumber);
       });
-      console.log(`- ${deployment.deploymentId} @${deployment.deploymentConfig?.versionNumber}.`);
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: `Deployed {deploymentId} {version, select, 
+          undefined {@HEAD}
+          other {@{version}}
+        }`,
+        },
+        {
+          deploymentId: deployment.deploymentId,
+          version: deployment.deploymentConfig?.versionNumber,
+        },
+      );
+      console.log(successMessage);
     } catch (error) {
       if (error.cause?.code === 'INVALID_ARGUMENT') {
         this.error(error.cause.message);

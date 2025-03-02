@@ -1,6 +1,7 @@
 import {Command} from 'commander';
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, ellipsize, isInteractive, openUrl} from './utils.js';
 
 export const command = new Command('open-web-app')
@@ -12,7 +13,10 @@ export const command = new Command('open-web-app')
 
     const scriptId = clasp.project.scriptId;
     if (!scriptId) {
-      this.error('Script ID not set. Unable to open IDE.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'Script ID not set, unable to open web app.',
+      });
+      this.error(msg);
     }
 
     if (!deploymentId && isInteractive()) {
@@ -29,10 +33,13 @@ export const command = new Command('open-web-app')
         };
       });
 
+      const prompt = intl.formatMessage({
+        defaultMessage: 'Open which deployment?',
+      });
       const answer = await inquirer.prompt([
         {
           choices: choices,
-          message: 'Open which deployment?',
+          message: prompt,
           name: 'deployment',
           type: 'list',
         },
@@ -42,21 +49,25 @@ export const command = new Command('open-web-app')
     }
 
     if (!deploymentId) {
-      this.error('Deployment ID is requrired.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'Deployment ID is requrired.',
+      });
+      this.error(msg);
     }
 
-    const entryPoints = await clasp.project.entryPoints(deploymentId);
-    if (!entryPoints) {
-      this.error('No entry points found.');
-    }
+    const entryPoints = (await clasp.project.entryPoints(deploymentId)) ?? [];
 
     const webAppEntry = entryPoints.find(entryPoint => {
       return entryPoint.entryPointType === 'WEB_APP' && !!entryPoint.webApp?.url;
     });
+
     if (!webAppEntry || !webAppEntry.webApp?.url) {
-      this.error('No web app entry point found.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'No web app entry point found.',
+      });
+      this.error(msg);
     }
+
     const url = webAppEntry.webApp.url;
-    console.log(url);
     await openUrl(url);
   });

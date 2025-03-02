@@ -1,6 +1,7 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
-import {checkIfOnlineOrDie, maybePromptForProjectId, withSpinner} from './utils.js';
+import {intl} from '../intl.js';
+import {assertGcpProjectConfigured, checkIfOnlineOrDie, maybePromptForProjectId, withSpinner} from './utils.js';
 
 export const command = new Command('disable-api')
   .description('Disable a service for the current project.')
@@ -10,14 +11,24 @@ export const command = new Command('disable-api')
 
     await checkIfOnlineOrDie();
 
-    const projectId = await maybePromptForProjectId(clasp);
-    if (!projectId) {
-      this.error('Project ID not set.');
-    }
+    await maybePromptForProjectId(clasp);
 
-    await withSpinner('Disabling service...', async () => {
+    assertGcpProjectConfigured(clasp);
+
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Disabling service...',
+    });
+    await withSpinner(spinnerMsg, async () => {
       await clasp.services.disableService(serviceName);
     });
 
-    console.log(`Disabled ${serviceName} API.`);
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: 'Disabled {name} API.',
+      },
+      {
+        name: serviceName,
+      },
+    );
+    console.log(successMessage);
   });

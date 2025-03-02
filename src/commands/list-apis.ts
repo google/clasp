@@ -1,6 +1,7 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
-import {checkIfOnlineOrDie, maybePromptForProjectId, withSpinner} from './utils.js';
+import {intl} from '../intl.js';
+import {assertGcpProjectConfigured, checkIfOnlineOrDie, maybePromptForProjectId, withSpinner} from './utils.js';
 
 export const command = new Command('list-apis')
   .alias('apis')
@@ -10,21 +11,28 @@ export const command = new Command('list-apis')
 
     await checkIfOnlineOrDie();
 
-    const projectId = await maybePromptForProjectId(clasp);
-    if (!projectId) {
-      this.error('Project ID not set.');
-    }
+    await maybePromptForProjectId(clasp);
+    assertGcpProjectConfigured(clasp);
 
-    const [enabledApis, availableApis] = await withSpinner('Fetching APIs...', () =>
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Fetching APIs...',
+    });
+    const [enabledApis, availableApis] = await withSpinner(spinnerMsg, () =>
       Promise.all([clasp.services.getEnabledServices(), clasp.services.getAvailableServices()]),
     );
 
-    console.log('\n# Currently enabled APIs:');
+    const enabledApisLabel = intl.formatMessage({
+      defaultMessage: '# Currently enabled APIs:',
+    });
+    console.log(`\n${enabledApisLabel}`);
     for (const service of enabledApis) {
       console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`);
     }
 
-    console.log('\n# List of available APIs:');
+    const availableApisLabel = intl.formatMessage({
+      defaultMessage: '# List of available APIs:',
+    });
+    console.log(`\n${availableApisLabel}`);
     for (const service of availableApis) {
       console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`);
     }

@@ -6,14 +6,55 @@ import open from 'open';
 import ora from 'ora';
 import pMap from 'p-map';
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
+import {intl} from '../intl.js';
+
+export async function assertScriptConfigured(clasp: Clasp) {
+  if (clasp.project.scriptId) {
+    return;
+  }
+
+  const msg = intl.formatMessage({
+    defaultMessage: 'Script ID is not set, unable to continue.',
+  });
+  throw new Error(msg);
+}
+
+export async function assertGcpProjectConfigured(clasp: Clasp) {
+  if (clasp.project.projectId) {
+    return;
+  }
+
+  const msg = intl.formatMessage({
+    defaultMessage: 'GCP project ID is not set, unable to continue.',
+  });
+  throw new Error(msg);
+}
 
 export async function maybePromptForProjectId(clasp: Clasp) {
   let projectId = clasp.project.getProjectId();
   if (!projectId && isInteractive()) {
+    assertScriptConfigured(clasp);
+
+    const url = `https://script.google.com/home/projects/${clasp.project.scriptId}/settings`;
+    const instructions = intl.formatMessage(
+      {
+        defaultMessage: `The script is not bound to a GCP project. To view or configure the GCP project for this
+      script, open {url} in your browser and follow instructions for setting up a GCP project. If a project is already
+      configured, open the GCP project to get the project ID value.`,
+      },
+      {
+        url,
+      },
+    );
+    console.log(instructions);
+    await openUrl(url);
+
+    const prompt = intl.formatMessage({
+      defaultMessage: 'What is your GCP projectId?',
+    });
     const answer = await inquirer.prompt([
       {
-        message: `${LOG.ASK_PROJECT_ID}`,
+        message: prompt,
         name: 'projectId',
         type: 'input',
       },
@@ -87,7 +128,25 @@ export function isInteractive() {
 
 export async function openUrl(url: string) {
   if (!isInteractive()) {
+    const msg = intl.formatMessage(
+      {
+        defaultMessage: 'Open {url} in your browser to continue.',
+      },
+      {
+        url,
+      },
+    );
+    console.log(msg);
     return;
   }
+  const msg = intl.formatMessage(
+    {
+      defaultMessage: 'Opening {url} in your browser.',
+    },
+    {
+      url,
+    },
+  );
+  console.log(msg);
   return await open(url, {wait: false});
 }

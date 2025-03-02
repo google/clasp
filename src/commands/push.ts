@@ -2,9 +2,8 @@ import path from 'path';
 import {Command} from 'commander';
 import inquirer from 'inquirer';
 
-import {LOG} from '../messages.js';
-
 import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, isInteractive, withSpinner} from './utils.js';
 
 interface CommandOption {
@@ -31,13 +30,30 @@ async function pushAction(this: Command, options: CommandOption): Promise<void> 
     if (isManifestUpdated && !force) {
       force = await confirmManifestUpdate();
       if (!force) {
-        console.log('Skipping push.');
+        const msg = intl.formatMessage({
+          defaultMessage: 'Skipping push.',
+        });
+        console.log(msg);
       }
     }
-    const files = await withSpinner(LOG.PUSHING, async () => {
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Pushing files...',
+    });
+    const files = await withSpinner(spinnerMsg, async () => {
       return await clasp.files.push();
     });
-    console.log(`Pushed ${files.length} files.`);
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: `Pushed {count, plural, 
+        =0 {no files.}
+        one {one file.}
+        other {# files}}.`,
+      },
+      {
+        count: files.length,
+      },
+    );
+    console.log(successMessage);
     files.forEach(f => console.log(`└─ ${f.localPath}`));
     return true;
   };
@@ -47,17 +63,21 @@ async function pushAction(this: Command, options: CommandOption): Promise<void> 
     const paths = pendingChanges.map(f => f.localPath);
     await onChange(paths);
   } else {
-    console.log('Script is already up to date.');
+    const msg = intl.formatMessage({
+      defaultMessage: 'Script is already up to date.',
+    });
+    console.log(msg);
   }
 
   if (!watch) {
     return;
   }
 
-  console.log(LOG.PUSH_WATCH);
-
   const onReady = async () => {
-    console.log('Waiting for changes...');
+    const msg = intl.formatMessage({
+      defaultMessage: 'Waiting for changes...',
+    });
+    console.log(msg);
   };
 
   const stopWatching = clasp.files.watchLocalFiles(onReady, async paths => {
@@ -75,10 +95,13 @@ async function confirmManifestUpdate(): Promise<boolean> {
   if (!isInteractive()) {
     return false;
   }
+  const prompt = intl.formatMessage({
+    defaultMessage: 'Manifest file has been updated. Do you want to push and overwrite?',
+  });
   const answer = await inquirer.prompt([
     {
       default: false,
-      message: 'Manifest file has been updated. Do you want to push and overwrite?',
+      message: prompt,
       name: 'overwrite',
       type: 'confirm',
     },

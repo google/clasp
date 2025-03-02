@@ -1,6 +1,6 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, withSpinner} from './utils.js';
 
 interface CommandOption {
@@ -17,10 +17,24 @@ export const command = new Command('pull')
 
     const versionNumber = options.versionNumber;
 
-    const files = await withSpinner(LOG.PULLING, async () => {
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Pulling files...',
+    });
+    const files = await withSpinner(spinnerMsg, async () => {
       return await clasp.files.pull(versionNumber);
     });
 
     files.forEach(f => console.log(`└─ ${f.localPath}`));
-    console.log(LOG.CLONE_SUCCESS(files.length));
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: `Pulled {count, plural, 
+        =0 {no files.}
+        one {one file.}
+        other {# files}}.`,
+      },
+      {
+        count: files.length,
+      },
+    );
+    console.log(successMessage);
   });

@@ -1,7 +1,7 @@
 import {Command} from 'commander';
 
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
+import {intl} from '../intl.js';
 import {withSpinner} from './utils.js';
 
 interface CommandOption {
@@ -17,7 +17,10 @@ export const command = new Command('show-file-status')
 
     const outputAsJson = options?.json ?? false;
 
-    const [filesToPush, untrackedFiles] = await withSpinner('Analyzing project files...', async () => {
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Analyzing project files...',
+    });
+    const [filesToPush, untrackedFiles] = await withSpinner(spinnerMsg, async () => {
       return await Promise.all([clasp.files.collectLocalFiles(), clasp.files.getUntrackedFiles()]);
     });
 
@@ -30,12 +33,17 @@ export const command = new Command('show-file-status')
       return;
     }
 
-    console.log(LOG.STATUS_PUSH);
+    const trackedMsg = intl.formatMessage({
+      defaultMessage: 'Tracked files:',
+    });
+    console.log(trackedMsg);
     for (const file of filesToPush) {
       console.log(`└─ ${file.localPath}`);
     }
-    console.log('\n');
-    console.log(LOG.STATUS_IGNORE);
+    const untrackedMsg = intl.formatMessage({
+      defaultMessage: 'Untracked files:',
+    });
+    console.log(untrackedMsg);
     for (const file of untrackedFiles) {
       console.log(`└─ ${file}`);
     }

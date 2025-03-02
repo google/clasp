@@ -7,7 +7,7 @@ describe('Test clasp deployments function', function () {
   before(setup);
   it('should list deployments correctly', function () {
     const result = runClasp(['deployments']);
-    expect(result.stdout).to.contain('Deployment');
+    expect(result.stdout).to.contain('deployment');
     expect(result.status).to.equal(0);
   });
   after(cleanup);

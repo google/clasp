@@ -1,6 +1,7 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
-import {checkIfOnlineOrDie, maybePromptForProjectId, withSpinner} from './utils.js';
+import {intl} from '../intl.js';
+import {assertGcpProjectConfigured, checkIfOnlineOrDie, maybePromptForProjectId, withSpinner} from './utils.js';
 
 export const command = new Command('enable-api')
   .description('Enable a service for the current project.')
@@ -10,21 +11,38 @@ export const command = new Command('enable-api')
 
     await checkIfOnlineOrDie();
 
-    const projectId = await maybePromptForProjectId(clasp);
-    if (!projectId) {
-      this.error('Project ID not set.');
-    }
+    await maybePromptForProjectId(clasp);
+    assertGcpProjectConfigured(clasp);
 
     try {
-      await withSpinner('Enabling service...', async () => {
+      const spinnerMsg = intl.formatMessage({
+        defaultMessage: 'Enabling service...',
+      });
+      await withSpinner(spinnerMsg, async () => {
         await clasp.services.enableService(serviceName);
       });
     } catch (error) {
       if (error.cause?.code === 'NOT_AUTHORIZED') {
-        this.error(`Not authorized to enable ${serviceName} or it does not exist.`);
+        const msg = intl.formatMessage(
+          {
+            defaultMessage: 'Not authorized to enable {name} or it does not exist.',
+          },
+          {
+            name: serviceName,
+          },
+        );
+        this.error(msg);
       }
       throw error;
     }
 
-    console.log(`Enabled ${serviceName} API.`);
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: 'Enabled {name} API.',
+      },
+      {
+        name: serviceName,
+      },
+    );
+    console.log(successMessage);
   });

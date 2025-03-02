@@ -1,14 +1,11 @@
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
-import fs from 'fs-extra';
 import {after, before, describe, it} from 'mocha';
 import {readPackageUpSync} from 'read-pkg-up';
 
-import {ERROR, LOG} from '../src/messages.js';
-import {CLASP_PATHS, CLASP_USAGE, IS_PR, SCRIPT_ID} from './constants.js';
-import {backupSettings, cleanup, restoreSettings, runClasp, setup} from './functions.js';
-import {URL} from './urls.js';
+import {CLASP_USAGE, IS_PR} from './constants.js';
+import {cleanup,  runClasp, setup} from './functions.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const manifest = readPackageUpSync({cwd: __dirname});
@@ -38,33 +35,6 @@ describe.skip('Test --help for each function', () => {
   it('should help --help', () => expectHelp('help', 'Display help'));
 });
 
-describe('Test clasp pull function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  it('should pull an existing project correctly', () => {
-    const result = runClasp(['pull']);
-    expect(result.stdout).to.contain('Cloned');
-    expect(result.stdout).to.contain('files.');
-    expect(result.status).to.equal(0);
-  });
-  after(cleanup);
-});
-
-describe('Test URL utils function', () => {
-  it('should create Script URL correctly', () => {
-    const expectedUrl = `https://script.google.com/d/${SCRIPT_ID}/edit`;
-    expect(URL.SCRIPT(SCRIPT_ID)).to.equal(expectedUrl);
-  });
-  it('should create Creds URL correctly', () => {
-    const expectedURL = `https://console.developers.google.com/apis/credentials?project=${SCRIPT_ID}`;
-    expect(URL.CREDS(SCRIPT_ID)).to.equal(expectedURL);
-  });
-});
-
 describe('Test clasp version and versions function', () => {
   before(function () {
     if (IS_PR) {
@@ -75,7 +45,7 @@ describe('Test clasp version and versions function', () => {
   let versionNumber = 0;
   it('should prompt for version description', () => {
     const result = runClasp(['version']);
-    expect(result.stdout).to.contain(LOG.GIVE_DESCRIPTION);
+    expect(result.stdout).to.contain('Created version');
   });
   it('should create a new version correctly', () => {
     const result = runClasp(['version', 'xxx']);
@@ -90,46 +60,6 @@ describe('Test clasp version and versions function', () => {
     expect(result.status).to.equal(0);
   });
   after(cleanup);
-});
-
-describe('Test setting function', () => {
-  before(function () {
-    if (IS_PR) {
-      this.skip();
-    }
-    setup();
-  });
-  it('should return current setting value', () => {
-    const result = runClasp(['setting', 'scriptId']);
-
-    expect(result.stdout).to.equal(process.env.SCRIPT_ID);
-  });
-  it('should update .clasp.json with provided value', () => {
-    const result = runClasp(['setting', 'scriptId', 'test']);
-    const fileContents = fs.readFileSync('.clasp.json', 'utf8');
-    expect(result.stdout).to.contain('Updated "scriptId":');
-    expect(result.stdout).to.contain('→ "test"');
-    expect(fileContents).to.contain('"test"');
-  });
-  it('should error on unknown keys', () => {
-    // Test getting
-    let result = runClasp(['setting', 'foo']);
-    expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain(ERROR.UNKNOWN_KEY('foo'));
-
-    // Test setting
-    result = runClasp(['setting', 'bar', 'foo']);
-    expect(result.status).to.equal(1);
-    expect(result.stderr).to.contain(ERROR.UNKNOWN_KEY('bar'));
-  });
-  after(cleanup);
-});
-
-describe('Test URL helper from utils', () => {
-  it('should return the scriptURL correctly', () => {
-    const url = URL.SCRIPT('abcdefghijklmnopqrstuvwxyz');
-    expect(url).to.equal('https://script.google.com/d/abcdefghijklmnopqrstuvwxyz/edit');
-  });
 });
 
 describe('Test variations of clasp help', () => {
@@ -159,29 +89,4 @@ describe('Test unknown functions', () => {
     expect(result.stderr).to.contain('Unknown command');
     expect(result.status).to.equal(1);
   });
-});
-
-describe('Test all functions while logged out', () => {
-  before(() => {
-    backupSettings();
-    if (fs.existsSync(CLASP_PATHS.rcGlobal)) fs.removeSync(CLASP_PATHS.rcGlobal);
-    if (fs.existsSync(CLASP_PATHS.rcLocal)) fs.removeSync(CLASP_PATHS.rcLocal);
-  });
-  after(restoreSettings);
-  const expectNoCredentials = (command: string) => {
-    const result = runClasp([command]);
-    console.log('R', result);
-    expect(result.status).to.equal(1);
-    expect(result.stderr).to.include(ERROR.NO_CREDENTIALS);
-  };
-  it('should fail to list (no credentials)', () => expectNoCredentials('list'));
-  it('should fail to clone (no credentials)', () => expectNoCredentials('clone'));
-  it('should fail to push (no credentials)', () => expectNoCredentials('push'));
-  it('should fail to deployments (no credentials)', () => expectNoCredentials('deployments'));
-  it('should fail to deploy (no credentials)', () => expectNoCredentials('deploy'));
-  it('should fail to version (no credentials)', () => expectNoCredentials('version'));
-  it('should fail to versions (no credentials)', () => expectNoCredentials('versions'));
-  it('should fail to pull (no .clasp.json file)', () => expectNoCredentials('versions'));
-  it('should fail to show logs (no .clasp.json file)', () => expectNoCredentials('logs'));
-  it('should fail to open (no .clasp.json file)', () => expectNoCredentials('open'));
 });

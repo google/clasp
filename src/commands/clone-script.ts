@@ -2,7 +2,7 @@ import {Command} from 'commander';
 import inquirer from 'inquirer';
 
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, isInteractive, withSpinner} from './utils.js';
 
 export const command = new Command('clone-script')
@@ -16,7 +16,10 @@ export const command = new Command('clone-script')
     await checkIfOnlineOrDie();
 
     if (clasp.project.exists()) {
-      this.error('Project file already exists.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'Project file already exists.',
+      });
+      this.error(msg);
     }
 
     const rootDir: string = this.opts().rootDir;
@@ -36,10 +39,11 @@ export const command = new Command('clone-script')
         name: `${file.name.padEnd(20)} - https://script.google.com/d/${file.id}/edit`,
         value: file.id,
       }));
+      const prompt = intl.formatMessage({defaultMessage: 'Clone which script?'});
       const answer = await inquirer.prompt([
         {
           choices: choices,
-          message: LOG.CLONE_SCRIPT_QUESTION,
+          message: prompt,
           name: 'scriptId',
           pageSize: 30,
           type: 'list',
@@ -49,21 +53,42 @@ export const command = new Command('clone-script')
     }
 
     if (!scriptId) {
-      this.error('No script ID.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'No script ID.',
+      });
+      this.error(msg);
     }
 
     try {
-      const files = await withSpinner('Cloning script...', async () => {
+      const cloningScriptMsg = intl.formatMessage({
+        defaultMessage: 'Cloning script...',
+      });
+      const files = await withSpinner(cloningScriptMsg, async () => {
         clasp = clasp.withScriptId(scriptId);
         const files = await clasp.files.pull(versionNumber);
         clasp.project.updateSettings();
         return files;
       });
       files.forEach(f => console.log(`└─ ${f.localPath}`));
-      console.log(LOG.CLONE_SUCCESS(files.length));
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: `Warning: files in subfolder are not accounted for unless you set a .claspignore file.
+        Cloned {count, plural, 
+          =0 {no files.}
+          one {one file.}
+          other {# files}}.`,
+        },
+        {
+          count: files.length,
+        },
+      );
+      console.log(successMessage);
     } catch (error) {
       if (error.cause?.code === 'INVALID_ARGUMENT') {
-        this.error('Invalid script ID.');
+        const msg = intl.formatMessage({
+          defaultMessage: 'Invalid script ID.',
+        });
+        this.error(msg);
       }
       throw error;
     }

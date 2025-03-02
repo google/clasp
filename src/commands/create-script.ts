@@ -2,7 +2,7 @@ import path from 'node:path';
 import {Command} from 'commander';
 import inflection from 'inflection';
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, withSpinner} from './utils.js';
 
 // https://developers.google.com/drive/api/v3/mime-types
@@ -37,7 +37,10 @@ export const command = new Command('create-script')
     const clasp: Clasp = this.opts().clasp;
 
     if (clasp.project.exists()) {
-      this.error('Project file already exists.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'Project file already exists.',
+      });
+      this.error(msg);
     }
 
     // Create defaults.
@@ -51,31 +54,70 @@ export const command = new Command('create-script')
     if (type && type !== 'standalone') {
       const mimeType = DRIVE_FILE_MIMETYPES[type];
       if (!mimeType) {
-        this.error('Invalid container file type');
+        const msg = intl.formatMessage({
+          defaultMessage: 'Invalid container file type',
+        });
+        this.error(msg);
       }
 
+      const spinnerMsg = intl.formatMessage({
+        defaultMessage: 'Creating script...',
+      });
       const {parentId} = await withSpinner(
-        'Creating script...',
+        spinnerMsg,
         async () => await clasp.project.createWithContainer(name, mimeType),
       );
-
-      console.log(LOG.CREATE_DRIVE_FILE_FINISH(type, parentId));
-    } else {
-      const scriptId = await withSpinner(
-        'Creating script...',
-        async () => await clasp.project.createScript(name, parentId),
+      const url = `https://drive.google.com/open?id=${parentId}`;
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: 'Created new container: [url}',
+        },
+        {
+          url,
+        },
       );
-      console.log(LOG.CREATE_PROJECT_FINISH(type, scriptId));
+      console.log(successMessage);
+    } else {
+      const spinnerMsg = intl.formatMessage({
+        defaultMessage: 'Creating script...',
+      });
+      const scriptId = await withSpinner(spinnerMsg, async () => await clasp.project.createScript(name, parentId));
+
+      const url = `https://script.google.com/d/${scriptId}/edit`;
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: 'Created new script: {url}',
+        },
+        {
+          url,
+        },
+      );
+      console.log(successMessage);
     }
 
-    const files = await withSpinner('Cloning script...', async () => {
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Cloning script...',
+    });
+    const files = await withSpinner(spinnerMsg, async () => {
       const files = await clasp.files.pull();
       clasp.project.updateSettings();
       return files;
     });
 
     files.forEach(f => console.log(`└─ ${f.localPath}`));
-    console.log(LOG.CLONE_SUCCESS(files.length));
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: `Warning: files in subfolder are not accounted for unless you set a .claspignore file.
+      Cloned {count, plural, 
+        =0 {no files.}
+        one {one file.}
+        other {# files}}.`,
+      },
+      {
+        count: files.length,
+      },
+    );
+    console.log(successMessage);
   });
 
 /**

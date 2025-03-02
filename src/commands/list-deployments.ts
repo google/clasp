@@ -1,5 +1,6 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, withSpinner} from './utils.js';
 
 export const command = new Command('list-deployments')
@@ -9,15 +10,29 @@ export const command = new Command('list-deployments')
     await checkIfOnlineOrDie();
     const clasp: Clasp = this.opts().clasp;
 
-    const deployments = await withSpinner('Fetching deployments...', async () => {
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Fetching deployments...',
+    });
+    const deployments = await withSpinner(spinnerMsg, async () => {
       return await clasp.project.listDeployments();
     });
 
     if (!deployments.results.length) {
-      console.log('No deployments.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'No deployments.',
+      });
+      console.log(msg);
       return;
     }
-    console.log(`${deployments.results.length} ${deployments.results.length === 1 ? 'Deployment' : 'Deployments'}.`);
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: 'Found {count, plural, one {# deployment} other {# deployments}}.',
+      },
+      {
+        count: deployments.results.length,
+      },
+    );
+    console.log(successMessage);
     deployments.results
       .filter(d => d.deploymentConfig && d.deploymentId)
       .forEach(d => {

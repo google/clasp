@@ -3,6 +3,7 @@ import {Command} from 'commander';
 import fuzzy from 'fuzzy';
 import autocomplete from 'inquirer-autocomplete-standalone';
 import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, isInteractive, withSpinner} from './utils.js';
 
 interface CommandOption {
@@ -33,9 +34,11 @@ export const command = new Command('run-function')
         fuzzy.filter(input, allFunctions).map(element => ({
           value: element.original,
         }));
-
+      const prompt = intl.formatMessage({
+        defaultMessage: 'Selection a function name',
+      });
       functionName = await autocomplete({
-        message: 'Select a functionName',
+        message: prompt,
         source,
       });
     }
@@ -46,20 +49,34 @@ export const command = new Command('run-function')
 
       if (error && error.details) {
         const {errorMessage, scriptStackTraceElements} = error.details[0];
-        console.error(`${chalk.red('Exception:')}`, errorMessage, scriptStackTraceElements || []);
+        const msg = intl.formatMessage({
+          defaultMessage: 'Exception:',
+        });
+        console.error(`${chalk.red(msg)}`, errorMessage, scriptStackTraceElements || []);
         return;
       }
+
       if (response && response.result) {
         console.log(response.result);
       } else {
-        console.log(chalk.red('No response.'));
+        const msg = intl.formatMessage({
+          defaultMessage: 'No response.',
+        });
+        console.log(chalk.red(msg));
       }
     } catch (error) {
       if (error.cause?.code === 'NOT_AUTHORIZED') {
-        this.error('Unable to run script function. Please make sure you have permission to run the script function.');
+        const msg = intl.formatMessage({
+          defaultMessage:
+            'Unable to run script function. Please make sure you have permission to run the script function.',
+        });
+        this.error(msg);
       }
       if (error.cause?.code === 'NOT_FOUND') {
-        this.error('Script function not found. Please make sure script is deployed as API executable.');
+        const msg = intl.formatMessage({
+          defaultMessage: 'Script function not found. Please make sure script is deployed as API executable.',
+        });
+        this.error(msg);
       }
       throw error;
     }

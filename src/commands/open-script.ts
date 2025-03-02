@@ -1,5 +1,6 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, openUrl} from './utils.js';
 
 export const command = new Command('open-script')
@@ -13,10 +14,12 @@ export const command = new Command('open-script')
       scriptId = clasp.project.scriptId;
     }
     if (!scriptId) {
-      this.error('Script ID not set. Unable to open IDE.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'Script ID not set, unable to open IDE.',
+      });
+      this.error(msg);
     }
 
     const url = `https://script.google.com/d/${scriptId}/edit`;
-    console.log(`Opening IDE: ${url}`);
     await openUrl(url);
   });

@@ -2,8 +2,8 @@ import chalk, {ChalkInstance} from 'chalk';
 import {Command} from 'commander';
 import {logging_v2 as loggingV2} from 'googleapis';
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
-import {isInteractive, maybePromptForProjectId, openUrl, withSpinner} from './utils.js';
+import {intl} from '../intl.js';
+import {assertGcpProjectConfigured, isInteractive, maybePromptForProjectId, withSpinner} from './utils.js';
 
 interface CommandOption {
   readonly json?: boolean;
@@ -26,7 +26,10 @@ export const command = new Command('tail-logs')
     let since: Date | undefined;
 
     const fetchAndPrintLogs = async () => {
-      const entries = await withSpinner('Fetching logs...', async () => await clasp.logs.getLogEntries(since));
+      const spinnerMsg = intl.formatMessage({
+        defaultMessage: 'Fetching logs...',
+      });
+      const entries = await withSpinner(spinnerMsg, async () => await clasp.logs.getLogEntries(since));
       entries.results.reverse().forEach(entry => {
         if (entry.timestamp) {
           since = new Date(entry.timestamp);
@@ -52,16 +55,10 @@ export const command = new Command('tail-logs')
     };
 
     if (!clasp.project.projectId && isInteractive()) {
-      const url = `https://script.google.com/d/${clasp.project.scriptId}/edit`;
-      console.log(`${LOG.OPEN_LINK(url)}\n`);
-      await openUrl(url);
-      console.log(`${LOG.GET_PROJECT_ID_INSTRUCTIONS}\n`);
       await maybePromptForProjectId(clasp);
     }
 
-    if (!clasp.project.projectId) {
-      this.error('Project ID not set.');
-    }
+    assertGcpProjectConfigured(clasp);
 
     await fetchAndPrintLogs();
 

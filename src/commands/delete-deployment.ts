@@ -1,7 +1,8 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, withSpinner} from './utils.js';
+
 interface CommandOption {
   readonly all?: boolean;
 }
@@ -18,8 +19,23 @@ export const command = new Command('delete-deployment')
 
     const removeAll = options.all;
 
+    const deleteDeployment = async (id: string) => {
+      const spinnerMsg = intl.formatMessage(
+        {
+          defaultMessage: 'Deleting deployment {id}',
+        },
+        {id},
+      );
+      return await withSpinner(spinnerMsg, async () => {
+        return await clasp.project.undeploy(id);
+      });
+    };
+
     if (removeAll) {
-      const deployments = await withSpinner('Fetching deployments...', async () => {
+      const spinnerMsg = intl.formatMessage({
+        defaultMessage: 'Fetching deployments...',
+      });
+      const deployments = await withSpinner(spinnerMsg, async () => {
         return await clasp.project.listDeployments();
       });
 
@@ -29,11 +45,12 @@ export const command = new Command('delete-deployment')
         if (!id) {
           continue;
         }
-        await withSpinner(`Deleting deployment ${id}`, async () => {
-          await clasp.project.undeploy(id);
-        });
+        await deleteDeployment(id);
       }
-      console.log(LOG.UNDEPLOYMENT_ALL_FINISH);
+      const successMessage = intl.formatMessage({
+        defaultMessage: `Undeployed all deployments.`,
+      });
+      console.log(successMessage);
       return;
     }
 
@@ -44,12 +61,13 @@ export const command = new Command('delete-deployment')
 
       const lastDeployment = deployments.results.pop();
       if (!lastDeployment || !lastDeployment.deploymentId) {
-        this.error('No deployments found.');
+        const msg = intl.formatMessage({
+          defaultMessage: `No deployments found.`,
+        });
+        this.error(msg);
       }
       deploymentId = lastDeployment.deploymentId;
     }
 
-    await withSpinner(`Deleting deployment ${deploymentId}`, async () => {
-      await clasp.project.undeploy(deploymentId);
-    });
+    await deleteDeployment(deploymentId);
   });

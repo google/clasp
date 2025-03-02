@@ -1,3 +1,25 @@
+cloning_script_spinner: |
+  Cloning script...
+invalid_script_id: |
+  {scriptId, select,
+    undefined {Missing script ID.}
+    other {Invalid script ID {scriptId}.}
+  }
+clone_complete: |
+  Warning: files in subfolder are not accounted for unless you set a .claspignore file.
+  Cloned {count, plural, 
+    =0 {no files.}
+    one {one file.}
+    other {# files}}.
+prompt_script_id: |
+  Clone which script?
+deploying_script_spinner: |
+  Deploying project...'
+deployed_script: |
+  Deployed {deploymentId} {version, select, 
+    undefined {@HEAD}
+    other {@{version}}
+  }
 test:
   BAD_CREDENTIALS_FILE: |
     Incorrect credentials file format.

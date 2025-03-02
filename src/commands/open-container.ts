@@ -1,5 +1,6 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, openUrl} from './utils.js';
 
 export const command = new Command('open-container')
@@ -10,10 +11,12 @@ export const command = new Command('open-container')
 
     const parentId = clasp.project.parentId;
     if (!parentId) {
-      this.error('Parent ID not set. Unable to open document.');
+      const msg = intl.formatMessage({
+        defaultMessage: 'Parent ID not set, unable to open document.',
+      });
+      this.error(msg);
     }
 
     const url = `https://drive.google.com/open?id=${parentId}`;
-    console.log(`Opening ${url}`);
     await openUrl(url);
   });

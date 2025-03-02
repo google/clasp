@@ -1,6 +1,6 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
-import {maybePromptForProjectId, openUrl} from './utils.js';
+import {assertGcpProjectConfigured, maybePromptForProjectId, openUrl} from './utils.js';
 
 export const command = new Command('open-api-console')
   .description('Open the API console for the current project.')
@@ -8,11 +8,8 @@ export const command = new Command('open-api-console')
     const clasp: Clasp = this.opts().clasp;
 
     const projectId = await maybePromptForProjectId(clasp);
-    if (!projectId) {
-      this.error('Project ID not set.');
-    }
+    assertGcpProjectConfigured(clasp);
 
-    const apisUrl = `https://console.developers.google.com/apis/dashboard?project=${projectId}`;
-    console.log(apisUrl);
-    await openUrl(apisUrl);
+    const url = `https://console.developers.google.com/apis/dashboard?project=${projectId}`;
+    await openUrl(url);
   });

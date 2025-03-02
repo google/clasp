@@ -5,7 +5,7 @@
 import {Command} from 'commander';
 import {AuthInfo, authorize, getUnauthorizedOuth2Client, getUserInfo} from '../auth/auth.js';
 import {Clasp} from '../core/clasp.js';
-import {ERROR, LOG} from '../messages.js';
+import {intl} from '../intl.js';
 
 const DEFAULT_SCOPES = [
   // Default to clasp scopes
@@ -43,12 +43,17 @@ export const command = new Command('login')
     const clasp: Clasp = this.opts().clasp;
 
     if (!auth.credentialStore) {
-      this.error('No credential store found, unable to login.');
-      return;
+      const msg = intl.formatMessage({
+        defaultMessage: 'No credential store found, unable to login.',
+      });
+      this.error(msg);
     }
 
     if (auth.credentials) {
-      console.error(ERROR.LOGGED_IN);
+      const msg = intl.formatMessage({
+        defaultMessage: 'Warning: You seem to already be logged in.',
+      });
+      console.error(msg);
     }
 
     const useLocalhost = Boolean(options.localhost);
@@ -60,8 +65,11 @@ export const command = new Command('login')
     if (options.useProjectScopes) {
       const manifest = await clasp.project.readManifest();
       scopes = manifest.oauthScopes ?? scopes;
+      const scopesLabel = intl.formatMessage({
+        defaultMessage: 'Authorizing with the following scopes:',
+      });
       console.log('');
-      console.log('Authorizing with the following scopes:');
+      console.log(scopesLabel);
       for (const scope of scopes) {
         console.log(scope);
       }
@@ -77,10 +85,15 @@ export const command = new Command('login')
     });
 
     const user = await getUserInfo(credentials);
-    if (!user || !user.email) {
-      console.log(LOG.LOGGED_IN_UNKNOWN);
-      return;
-    }
-
-    console.log(LOG.LOGGED_IN_AS(user.email));
+    const msg = intl.formatMessage(
+      {
+        defaultMessage: `{email, select,
+        undefined {You are logged in as an unknown user.}
+        other {You are logged in as {email}.}}`,
+      },
+      {
+        email: user?.email,
+      },
+    );
+    console.log(msg);
   });

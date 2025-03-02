@@ -20,7 +20,7 @@ describe('Test clasp create <title> function', function () {
   it('should create a new project named <title> correctly', function () {
     fs.removeSync('.clasp.json');
     const result = runClasp(['create', '--type', 'standalone', '--title', 'myTitle']);
-    expect(result.stdout).to.contain('Created new standalone script: https://script.google.com/d/');
+    expect(result.stdout).to.contain('Created new script: https://script.google.com/d/');
     expect(result.status).to.equal(0);
   });
 });

@@ -2,7 +2,7 @@ import {Command} from 'commander';
 
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
-import {LOG} from '../messages.js';
+import {intl} from '../intl.js';
 import {checkIfOnlineOrDie, isInteractive, withSpinner} from './utils.js';
 
 export const command = new Command('create-version')
@@ -15,10 +15,13 @@ export const command = new Command('create-version')
     const clasp: Clasp = this.opts().clasp;
 
     if (!description && isInteractive()) {
+      const prompt = intl.formatMessage({
+        defaultMessage: 'Give a description:',
+      });
       const answer = await inquirer.prompt([
         {
           default: '',
-          message: LOG.GIVE_DESCRIPTION,
+          message: prompt,
           name: 'description',
           type: 'input',
         },
@@ -26,9 +29,20 @@ export const command = new Command('create-version')
       description = answer.description;
     }
 
-    const versionNumber = await withSpinner('Creating a new version...', async () => {
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Creating a new version...',
+    });
+    const versionNumber = await withSpinner(spinnerMsg, async () => {
       return clasp.project.version(description);
     });
 
-    console.log(LOG.VERSION_CREATED(versionNumber));
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: `Created version {version, number}`,
+      },
+      {
+        version: versionNumber,
+      },
+    );
+    console.log(successMessage);
   });
