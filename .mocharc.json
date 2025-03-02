@@ -1,0 +1,11 @@
+{
+  "extension": ["ts"],
+  "timeout": 20000,
+  "spec": "test/**/*.ts",
+  "require": "ts-node/register",
+  "loader": "ts-node/esm",
+  "watch-files": [
+    "src",
+    "test"
+  ]
+}

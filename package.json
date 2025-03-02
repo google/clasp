@@ -18,18 +18,27 @@
   "scripts": {
     "build": "npm run compile && npm i --loglevel=error --force",
     "build-fresh": "npm cache clean --force && npm i && npm run build",
-    "watch": "tsc --project tsconfig.json --watch",
+    "watch": "tspc --project tsconfig.json --watch",
     "prepare": "npm run compile",
     "lint": "npm run check",
-    "test": "nyc mocha --loader=ts-node/esm  --cache false --timeout 100000 --recursive test/**/*.ts",
+    "test": "nyc mocha",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "biome format src test --write",
     "check": "biome check src test",
     "clean": "rm -rf build",
-    "compile": "tsc",
+    "compile": "tspc",
     "fix": "biome check src test --fix",
     "pretest": "npm run compile && npm run check",
     "clasp": "node --loader ts-node/esm --no-warnings src/index.ts"
+  },
+  "messageformat": {
+    "locale": [
+      "en"
+    ],
+    "include": [
+      "src/messages/"
+    ],
+    "outfile": "src/messages/messages.js"
   },
   "nyc": {
     "include": [
@@ -61,6 +70,8 @@
   "author": "Grant Timmerman",
   "license": "Apache-2.0",
   "dependencies": {
+    "@formatjs/intl": "^3.1.4",
+    "@messageformat/core": "^3.4.0",
     "@sindresorhus/is": "^7.0.1",
     "@types/debug": "^4.1.12",
     "chalk": "^5.4.1",
@@ -102,6 +113,8 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@commander-js/extra-typings": "^13.0.0",
+    "@formatjs/ts-transformer": "^3.13.32",
+    "@messageformat/cli": "^4.0.1",
     "@types/chai": "^5.0.1",
     "@types/chai-as-promised": "^8.0.1",
     "@types/debounce": "^1.2.4",
@@ -124,6 +137,7 @@
     "nyc": "^17.1.0",
     "tmp": "^0.2.3",
     "ts-node": "^10.9.2",
+    "ts-patch": "^3.3.0",
     "type-fest": "^4.33.0",
     "why-is-node-running": "^3.2.2",
     "wtfnode": "^0.10.0"
