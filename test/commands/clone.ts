@@ -16,7 +16,7 @@ describe('Test clasp clone <scriptId> function', function () {
   });
   it('should clone a project with scriptURL correctly', function () {
     cleanup();
-    const url = `https://script.google.com/d/${SCRIPT_ID}/edit`
+    const url = `https://script.google.com/d/${SCRIPT_ID}/edit`;
     const result = runClasp(['clone', url], {maxBuffer: 10 * 1024 * 1024});
     expect(result.stdout).to.contain('Cloned');
     expect(result.stdout).to.contain('files.');

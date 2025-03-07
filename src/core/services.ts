@@ -31,30 +31,45 @@ export class Services {
     const serviceUsage = google.serviceusage({version: 'v1', auth: this.options.credentials});
 
     try {
-      const serviceList = await fetchWithPages(async (pageSize, pageToken) => {
-        const requestOptions = {
-          parent: `projects/${projectId}`,
-          filter: 'state:ENABLED',
-          pageSize,
-          pageToken,
-        };
-        debug('Fetching available APIs with request %O', requestOptions);
-        const res = await serviceUsage.services.list(requestOptions);
-        return {
-          results: res.data.services ?? [],
-          pageToken: res.data.nextPageToken ?? undefined,
-        };
-      });
+      const serviceList = await fetchWithPages(
+        async (pageSize, pageToken) => {
+          const requestOptions = {
+            parent: `projects/${projectId}`,
+            filter: 'state:ENABLED',
+            pageSize,
+            pageToken,
+          };
+          debug('Fetching available APIs with request %O', requestOptions);
+          const res = await serviceUsage.services.list(requestOptions);
+          return {
+            results: res.data.services ?? [],
+            pageToken: res.data.nextPageToken ?? undefined,
+          };
+        },
+        {
+          pageSize: 200,
+          maxResults: 10000,
+        },
+      );
 
       // Filter out the disabled ones. Print the enabled ones.
-      const truncateName = (name: string) => name.slice(0, name.indexOf('.'));
+      const truncateName = (name: string) => {
+        const i = name.indexOf('.');
+        if (i !== -1) {
+          return name.slice(0, i);
+        }
+        return name;
+      };
+      const allowedIds = PUBLIC_ADVANCED_SERVICES.map(service => service.serviceId);
       return serviceList.results
-        .filter(service => service.state === 'ENABLED')
         .map(service => ({
           id: service.name ?? '',
           name: truncateName(service.config?.name ?? 'Unknown name'),
           description: service.config?.documentation?.summary ?? '',
-        }));
+        }))
+        .filter(service => {
+          return allowedIds.indexOf(service.name) !== -1;
+        });
     } catch (error) {
       handleApiError(error);
     }
@@ -68,11 +83,16 @@ export class Services {
       const {data} = await discovery.apis.list({
         preferred: true,
       });
-
+      const allowedIds = PUBLIC_ADVANCED_SERVICES.map(service => service.serviceId);
       const allServices = data.items ?? [];
-      return PUBLIC_ADVANCED_SERVICES.map(service => allServices.find(s => s?.name === service.serviceId))
-        .filter((service): service is Service => service?.id !== undefined && service?.description !== undefined)
-        .sort((a, b) => a.id.localeCompare(b.id));
+      const isValidService = (s: any): s is Service => {
+        return (
+          s.id !== undefined && s.name !== undefined && allowedIds.indexOf(s.name) !== -1 && s.description !== undefined
+        );
+      };
+      const services = allServices.filter(isValidService).sort((a, b) => a.id.localeCompare(b.id));
+      debug('Available services: %O', services);
+      return services;
     } catch (error) {
       handleApiError(error);
     }
@@ -96,33 +116,33 @@ export class Services {
       throw new Error('Manifest file does not exist.');
     }
 
+    const advancedService = PUBLIC_ADVANCED_SERVICES.find(service => service.serviceId === serviceName);
+    if (!advancedService) {
+      throw new Error('Service is not a valid advanced service.');
+    }
+
+    // Do not update manifest if not valid advanced service
+    debug('Service is an advanced service, updating manifest');
+    const manifest: Manifest = await fs.readJson(manifestPath);
+    if (manifest.dependencies?.enabledAdvancedServices) {
+      if (
+        manifest.dependencies.enabledAdvancedServices.findIndex(s => s.userSymbol === advancedService.userSymbol) === -1
+      ) {
+        manifest.dependencies.enabledAdvancedServices.push(advancedService);
+      }
+    } else if (manifest.dependencies) {
+      manifest.dependencies.enabledAdvancedServices = [advancedService];
+    } else {
+      manifest.dependencies = {enabledAdvancedServices: [advancedService]};
+    }
+
+    debug('Updating manifest at %s with %j', manifestPath, manifest);
+    await fs.writeJson(manifestPath, manifest, {spaces: 2});
+
     const serviceUsage = google.serviceusage({version: 'v1', auth: this.options.credentials});
     const resourceName = `projects/${projectId}/services/${serviceName}.googleapis.com`;
     try {
       await serviceUsage.services.enable({name: resourceName});
-
-      const advancedService = PUBLIC_ADVANCED_SERVICES.find(service => service.serviceId === serviceName);
-      if (!advancedService) {
-        // Do not update manifest if not valid advanced service
-        debug('Service is not an advanced service, skipping manifest update');
-        return;
-      }
-      const manifest: Manifest = await fs.readJson(manifestPath);
-      if (manifest.dependencies?.enabledAdvancedServices) {
-        if (
-          manifest.dependencies.enabledAdvancedServices.findIndex(s => s.userSymbol === advancedService.userSymbol) ===
-          -1
-        ) {
-          manifest.dependencies.enabledAdvancedServices.push(advancedService);
-        }
-      } else if (manifest.dependencies) {
-        manifest.dependencies.enabledAdvancedServices = [advancedService];
-      } else {
-        manifest.dependencies = {enabledAdvancedServices: [advancedService]};
-      }
-
-      debug('Updating manifest at %s with %j', manifestPath, manifest);
-      await fs.writeJson(manifestPath, manifest, {spaces: 2});
     } catch (error) {
       handleApiError(error);
     }
@@ -147,27 +167,28 @@ export class Services {
       throw new Error('Manifest file does not exist.');
     }
 
+    const advancedService = PUBLIC_ADVANCED_SERVICES.find(service => service.serviceId === serviceName);
+    if (!advancedService) {
+      throw new Error('Service is not a valid advanced service.');
+    }
+    // Do not update manifest if not valid advanced service
+    debug('Service is an advanced service, updating manifest');
+    const manifest: Manifest = await fs.readJson(manifestPath);
+    if (!manifest.dependencies?.enabledAdvancedServices) {
+      debug('Service enabled in manifest, skipping manifest update');
+      return;
+    }
+    manifest.dependencies.enabledAdvancedServices = manifest.dependencies.enabledAdvancedServices.filter(
+      service => service.serviceId !== serviceName,
+    );
+    debug('Updating manifest at %s with %j', manifestPath, manifest);
+    await fs.writeJson(manifestPath, manifest, {spaces: 2});
+
+    debug('Service is not an advanced service, treating as a GCP service');
     const serviceUsage = google.serviceusage({version: 'v1', auth: this.options.credentials});
     const resourceName = `projects/${projectId}/services/${serviceName}.googleapis.com`;
     try {
       await serviceUsage.services.disable({name: resourceName});
-
-      const advancedService = PUBLIC_ADVANCED_SERVICES.find(service => service.serviceId === serviceName);
-      if (!advancedService) {
-        // Do not update manifest if not valid advanced service
-        debug('Service is not an advanced service, skipping manifest update');
-        return;
-      }
-      const manifest: Manifest = await fs.readJson(manifestPath);
-      if (!manifest.dependencies?.enabledAdvancedServices) {
-        debug('Service enabled in manifest, skipping manifest update');
-        return;
-      }
-      manifest.dependencies.enabledAdvancedServices = manifest.dependencies.enabledAdvancedServices.filter(
-        service => service.serviceId !== serviceName,
-      );
-      debug('Updating manifest at %s with %j', manifestPath, manifest);
-      await fs.writeJson(manifestPath, manifest, {spaces: 2});
     } catch (error) {
       handleApiError(error);
     }

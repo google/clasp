@@ -5,7 +5,7 @@ import {after, before, describe, it} from 'mocha';
 import {readPackageUpSync} from 'read-pkg-up';
 
 import {CLASP_USAGE, IS_PR} from './constants.js';
-import {cleanup,  runClasp, setup} from './functions.js';
+import {cleanup, runClasp, setup} from './functions.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const manifest = readPackageUpSync({cwd: __dirname});

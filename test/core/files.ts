@@ -15,15 +15,6 @@ use(chaiAsPromised);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/*
-function mockTokenRefresh() {
-  nock('https://oauth2.googleapis.com').post('/token').reply(200, {
-    access_token: 'mock-access-token',
-    expires_in: 3599,
-  });
-}
-*/
-
 function mockCredentials() {
   const client = new OAuth2Client();
   client.setCredentials({
