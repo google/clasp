@@ -32,7 +32,7 @@ export class Functions {
     return files.flatMap(file => file.functionSet?.values ?? []).map(func => func.name!);
   }
 
-  async runFunction(functionName: string, parameters: unknown[], devMode: boolean) {
+  async runFunction(functionName: string, parameters: unknown[], devMode = true) {
     debug('Running script function %s', functionName);
     assertAuthenticated(this.options);
     assertScriptConfigured(this.options);

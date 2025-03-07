@@ -133,6 +133,4 @@ describe('Service operations', () => {
       expect(manifest.dependencies?.enabledAdvancedServices).to.not.containSubset([{serviceId: 'gmail'}]);
     });
   });
-
 });
-
