@@ -1,7 +1,7 @@
 import path from 'path';
 import Debug from 'debug';
 import {findUpSync} from 'find-up';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import {OAuth2Client} from 'google-auth-library';
 import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
@@ -96,7 +96,8 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   const ignoreFile = await findIgnoreFile(projectRoot.rootDir, options.ignoreFile);
   const ignoreRules = await loadIgnoreFileOrDefaults(ignoreFile);
 
-  const config = await fs.readJson(projectRoot.configPath);
+  const content = await fs.readFile(projectRoot.configPath, {encoding: 'utf8'});
+  const config = JSON.parse(content);
   const fileExtension = config.fileExtension || 'js';
   const filePushOrder = config.filePushOrder || [];
   const contentDir = path.resolve(projectRoot.rootDir, config.srcDir || config.rootDir || '.');
@@ -138,7 +139,8 @@ async function findProjectRootdDir(configFilePath?: string) {
     return undefined;
   }
 
-  if (!(await fs.exists(configFilePath))) {
+  const configFileExists = await hasReadAccess(configFilePath);
+  if (!configFileExists) {
     debug('Project file %s does not exist', configFilePath);
     return undefined;
   }
@@ -170,7 +172,8 @@ async function findIgnoreFile(projectDir: string, configFilePath?: string) {
     return undefined;
   }
 
-  if (!(await fs.exists(configFilePath))) {
+  const configFileExists = await hasReadAccess(configFilePath);
+  if (!configFileExists) {
     debug('ignore file %s does not exist', configFilePath);
     return undefined;
   }
@@ -186,4 +189,14 @@ async function loadIgnoreFileOrDefaults(configPath?: string) {
   let content = await fs.readFile(configPath, {encoding: 'utf8'});
   content = stripBom(content);
   return splitLines(content).filter((name: string) => name.length > 0);
+}
+
+
+async function hasReadAccess(path: string): Promise<boolean> {
+  try {
+    await fs.access(path, fs.constants.R_OK);
+  } catch {
+    return false;
+  }
+  return true;
 }

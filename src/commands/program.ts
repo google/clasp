@@ -1,4 +1,4 @@
-import {Command, Option} from 'commander';
+import {Command, CommanderError, Option} from 'commander';
 import {PROJECT_NAME} from '../constants.js';
 
 import {command as cloneCommand} from './clone-script.js';
@@ -34,12 +34,14 @@ import {initAuth} from '../auth/auth.js';
 import {initClaspInstance} from '../core/clasp.js';
 import {intl} from '../intl.js';
 
-export function makeProgram() {
+export function makeProgram(exitOveride?: (err: CommanderError) => void) {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const manifest = readPackageUpSync({cwd: __dirname});
   const version = manifest ? manifest.packageJson.version : 'unknown';
 
   const program = new Command();
+
+  program.exitOverride(exitOveride);
 
   program.storeOptionsAsProperties(false);
 
@@ -89,31 +91,38 @@ export function makeProgram() {
     ),
   );
 
-  program.addCommand(loginCommand);
-  program.addCommand(logoutCommand);
-  program.addCommand(openAuthCommand);
-  program.addCommand(cloneCommand);
-  program.addCommand(createCommand);
-  program.addCommand(pushCommand);
-  program.addCommand(pullCommand);
-  program.addCommand(createDeploymentCommand);
-  program.addCommand(deleteDeploymentCOmand);
-  program.addCommand(listDeploymentsCommand);
-  program.addCommand(disableApiCommand);
-  program.addCommand(enableApiCommand);
-  program.addCommand(listApisCommand);
-  program.addCommand(openApisConsoleCommand);
-  program.addCommand(authStatusCommand);
-  program.addCommand(filesStatusCommand);
-  program.addCommand(openLogsCommand);
-  program.addCommand(setupLogsCommand);
-  program.addCommand(tailLogsCommand);
-  program.addCommand(openScriptCommand);
-  program.addCommand(openContainerCommand);
-  program.addCommand(runCommand);
-  program.addCommand(listCommand);
-  program.addCommand(createVersionCommand);
-  program.addCommand(listVersionsCommand);
+  const commandsToAdd = [
+    loginCommand,
+    logoutCommand,
+    openAuthCommand,
+    cloneCommand,
+    createCommand,
+    pushCommand,
+    pullCommand,
+    createDeploymentCommand,
+    deleteDeploymentCOmand,
+    listDeploymentsCommand,
+    disableApiCommand,
+    enableApiCommand,
+    listApisCommand,
+    openApisConsoleCommand,
+    authStatusCommand,
+    filesStatusCommand,
+    openLogsCommand,
+    setupLogsCommand,
+    tailLogsCommand,
+    openScriptCommand,
+    openContainerCommand,
+    runCommand,
+    listCommand,
+    createVersionCommand,
+    listVersionsCommand,
+  ];
+  
+  for (const cmd of commandsToAdd) {
+    program.addCommand(cmd);
+    cmd.copyInheritedSettings(program);
+  }
 
   program.on('command:*', async function (this: Command, op) {
     const msg = intl.formatMessage(
@@ -124,9 +133,10 @@ export function makeProgram() {
         command: op[0],
       },
     );
-    console.error(msg);
-    process.exitCode = 1;
+    this.error(msg as string);
   });
+
+  program.error
 
   return program;
 }

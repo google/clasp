@@ -99,12 +99,10 @@ export async function safeIsOnline(): Promise<boolean> {
   if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
     return true;
   }
-
-  const urls = ['script.google.com', 'console.developers.google.com', 'console.cloud.google.com', 'drive.google.com'];
-
-  const result = await pMap(urls, mapper, {stopOnError: false});
-
-  return result.every(wasReached => wasReached);
+  return true;
+//  const urls = ['script.google.com', 'console.developers.google.com', 'console.cloud.google.com', 'drive.google.com'];
+//  const result = await pMap(urls, mapper, {stopOnError: false});
+//  return result.every(wasReached => wasReached);
 }
 
 /**

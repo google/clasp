@@ -1,6 +1,6 @@
 import path from 'path';
 import Debug from 'debug';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import {google} from 'googleapis';
 
 import {PUBLIC_ADVANCED_SERVICES} from './apis.js';
@@ -110,7 +110,7 @@ export class Services {
     }
 
     const manifestPath = path.join(contentDir, 'appsscript.json');
-    const manifestExists = fs.exists(manifestPath);
+    const manifestExists = await hasReadWriteAccess(manifestPath);
     if (!manifestExists) {
       debug('Manifest file at %s does not exist', manifestPath);
       throw new Error('Manifest file does not exist.');
@@ -123,7 +123,8 @@ export class Services {
 
     // Do not update manifest if not valid advanced service
     debug('Service is an advanced service, updating manifest');
-    const manifest: Manifest = await fs.readJson(manifestPath);
+    const content = await fs.readFile(manifestPath);
+    const manifest: Manifest = JSON.parse(content.toString());
     if (manifest.dependencies?.enabledAdvancedServices) {
       if (
         manifest.dependencies.enabledAdvancedServices.findIndex(s => s.userSymbol === advancedService.userSymbol) === -1
@@ -137,7 +138,7 @@ export class Services {
     }
 
     debug('Updating manifest at %s with %j', manifestPath, manifest);
-    await fs.writeJson(manifestPath, manifest, {spaces: 2});
+    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 
     const serviceUsage = google.serviceusage({version: 'v1', auth: this.options.credentials});
     const resourceName = `projects/${projectId}/services/${serviceName}.googleapis.com`;
@@ -161,7 +162,7 @@ export class Services {
     }
 
     const manifestPath = path.join(contentDir, 'appsscript.json');
-    const manifestExists = fs.exists(manifestPath);
+    const manifestExists = await hasReadWriteAccess(manifestPath);
     if (!manifestExists) {
       debug('Manifest file at %s does not exist', manifestPath);
       throw new Error('Manifest file does not exist.');
@@ -173,7 +174,8 @@ export class Services {
     }
     // Do not update manifest if not valid advanced service
     debug('Service is an advanced service, updating manifest');
-    const manifest: Manifest = await fs.readJson(manifestPath);
+    const content = await fs.readFile(manifestPath);
+    const manifest: Manifest = JSON.parse(content.toString());
     if (!manifest.dependencies?.enabledAdvancedServices) {
       debug('Service enabled in manifest, skipping manifest update');
       return;
@@ -182,7 +184,7 @@ export class Services {
       service => service.serviceId !== serviceName,
     );
     debug('Updating manifest at %s with %j', manifestPath, manifest);
-    await fs.writeJson(manifestPath, manifest, {spaces: 2});
+    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 
     debug('Service is not an advanced service, treating as a GCP service');
     const serviceUsage = google.serviceusage({version: 'v1', auth: this.options.credentials});
@@ -193,4 +195,13 @@ export class Services {
       handleApiError(error);
     }
   }
+}
+
+async function hasReadWriteAccess(path: string) {
+  try {
+    await fs.access(path, fs.constants.W_OK | fs.constants.R_OK);
+  } catch {
+    return false;
+  }
+  return true;
 }

@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import {google} from 'googleapis';
 import {script_v1} from 'googleapis';
 
@@ -320,10 +320,7 @@ export class Project {
       fileExtension: this.options.files.fileExtension,
       filePushOrder: [],
     };
-    if (!(await fs.exists(this.options.configFilePath))) {
-      debug('File %s does not exist, creating new one', this.options.configFilePath);
-    }
-    await fs.writeJson(this.options.configFilePath, settings);
+    await fs.writeFile(this.options.configFilePath, JSON.stringify(settings, null, 2));
   }
 
   async setProjectId(projectId: string | undefined): Promise<void> {
@@ -342,7 +339,8 @@ export class Project {
     assertScriptConfigured(this.options);
     const manifestPath = path.join(this.options.files.contentDir, 'appsscript.json');
     debug('Manifest path is %s', manifestPath);
-    const manifest: Manifest = await fs.readJson(manifestPath);
+    const content = await fs.readFile(manifestPath);
+    const manifest: Manifest = JSON.parse(content.toString());
     return manifest;
   }
 }

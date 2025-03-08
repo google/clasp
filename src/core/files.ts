@@ -3,10 +3,9 @@ import chalk from 'chalk';
 import chokidar from 'chokidar';
 import Debug from 'debug';
 import {fdir} from 'fdir';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import {google} from 'googleapis';
 import {GaxiosError} from 'googleapis-common';
-import {makeDirectory} from 'make-dir';
 import micromatch from 'micromatch';
 import normalizePath from 'normalize-path';
 import pMap from 'p-map';
@@ -362,19 +361,19 @@ export class Files {
     assertScriptConfigured(this.options);
 
     const files = await this.fetchRemote(version);
-    this.WriteFiles(files);
+    await this.WriteFiles(files);
     return files;
   }
 
   private async WriteFiles(files: ProjectFile[]) {
     debug('Writing files');
     const mapper = async (file: ProjectFile) => {
-      debug('Write file %s', file.localPath);
+      debug('Write file %s', path.resolve(file.localPath));
       if (!file.source) {
         debug('Skipping empty file.');
         return;
       }
-      await makeDirectory(path.dirname(file.localPath));
+      await fs.mkdir(path.dirname(file.localPath), { recursive: true });
       await fs.writeFile(file.localPath, file.source);
     };
     return await pMap(files, mapper);
