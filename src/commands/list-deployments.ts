@@ -1,13 +1,12 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, withSpinner} from './utils.js';
+import {withSpinner} from './utils.js';
 
 export const command = new Command('list-deployments')
   .alias('deployments')
   .description('List deployment ids of a script')
   .action(async function (this: Command): Promise<void> {
-    await checkIfOnlineOrDie();
     const clasp: Clasp = this.opts().clasp;
 
     const spinnerMsg = intl.formatMessage({

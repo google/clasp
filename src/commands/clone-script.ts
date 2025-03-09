@@ -3,7 +3,7 @@ import inquirer from 'inquirer';
 
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, isInteractive, withSpinner} from './utils.js';
+import {isInteractive, withSpinner} from './utils.js';
 
 export const command = new Command('clone-script')
   .alias('clone')
@@ -12,8 +12,6 @@ export const command = new Command('clone-script')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
   .action(async function (this: Command, scriptId: string, versionNumber: number | undefined) {
     let clasp: Clasp = this.opts().clasp;
-
-    await checkIfOnlineOrDie();
 
     if (clasp.project.exists()) {
       const msg = intl.formatMessage({

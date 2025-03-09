@@ -4,7 +4,7 @@ import fuzzy from 'fuzzy';
 import autocomplete from 'inquirer-autocomplete-standalone';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, isInteractive, withSpinner} from './utils.js';
+import {isInteractive, withSpinner} from './utils.js';
 
 interface CommandOption {
   readonly nondev: boolean;
@@ -18,8 +18,6 @@ export const command = new Command('run-function')
   .option('--nondev', 'Run script function in non-devMode')
   .option('-p, --params <value>', 'Parameters to pass to the function, as a JSON-encoded array')
   .action(async function (this: Command, functionName: string, options: CommandOption): Promise<void> {
-    await checkIfOnlineOrDie();
-
     const clasp: Clasp = this.opts().clasp;
     const devMode = !options.nondev; // Defaults to true
     let params: unknown[] = [];

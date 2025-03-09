@@ -1,7 +1,7 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, withSpinner} from './utils.js';
+import {withSpinner} from './utils.js';
 
 interface CommandOption {
   readonly all?: boolean;
@@ -13,8 +13,6 @@ export const command = new Command('delete-deployment')
   .arguments('[deploymentId]')
   .option('-a, --all', 'Undeploy all deployments')
   .action(async function (this: Command, deploymentId: string | undefined, options: CommandOption) {
-    await checkIfOnlineOrDie();
-
     const clasp: Clasp = this.opts().clasp;
 
     const removeAll = options.all;

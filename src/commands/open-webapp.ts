@@ -2,13 +2,12 @@ import {Command} from 'commander';
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, ellipsize, isInteractive, openUrl} from './utils.js';
+import {ellipsize, isInteractive, openUrl} from './utils.js';
 
 export const command = new Command('open-web-app')
   .arguments('[deploymentId]')
   .description('Open a deployed web app in the browser.')
   .action(async function (this: Command, deploymentId?: string): Promise<void> {
-    await checkIfOnlineOrDie();
     const clasp: Clasp = this.opts().clasp;
 
     const scriptId = clasp.project.scriptId;

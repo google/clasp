@@ -4,7 +4,7 @@ import inquirer from 'inquirer';
 
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, isInteractive, withSpinner} from './utils.js';
+import {isInteractive, withSpinner} from './utils.js';
 
 interface CommandOption {
   readonly watch?: boolean;
@@ -15,77 +15,73 @@ export const command = new Command('push')
   .description('Update the remote project')
   .option('-f, --force', 'Forcibly overwrites the remote manifest.')
   .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changes.')
-  .action(pushAction);
+  .action(async function (this: Command, options: CommandOption) {
+    const clasp: Clasp = this.opts().clasp;
 
-async function pushAction(this: Command, options: CommandOption): Promise<void> {
-  await checkIfOnlineOrDie();
+    const watch = options.watch;
+    let force = options.force;
 
-  const clasp: Clasp = this.opts().clasp;
-
-  const watch = options.watch;
-  let force = options.force;
-
-  const onChange = async (paths: string[]) => {
-    const isManifestUpdated = paths.findIndex(p => path.basename(p) === 'appsscript.json') !== -1;
-    if (isManifestUpdated && !force) {
-      force = await confirmManifestUpdate();
-      if (!force) {
-        const msg = intl.formatMessage({
-          defaultMessage: 'Skipping push.',
-        });
-        console.log(msg);
+    const onChange = async (paths: string[]) => {
+      const isManifestUpdated = paths.findIndex(p => path.basename(p) === 'appsscript.json') !== -1;
+      if (isManifestUpdated && !force) {
+        force = await confirmManifestUpdate();
+        if (!force) {
+          const msg = intl.formatMessage({
+            defaultMessage: 'Skipping push.',
+          });
+          console.log(msg);
+        }
       }
-    }
-    const spinnerMsg = intl.formatMessage({
-      defaultMessage: 'Pushing files...',
-    });
-    const files = await withSpinner(spinnerMsg, async () => {
-      return await clasp.files.push();
-    });
-    const successMessage = intl.formatMessage(
-      {
-        defaultMessage: `Pushed {count, plural, 
+      const spinnerMsg = intl.formatMessage({
+        defaultMessage: 'Pushing files...',
+      });
+      const files = await withSpinner(spinnerMsg, async () => {
+        return await clasp.files.push();
+      });
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: `Pushed {count, plural, 
         =0 {no files.}
         one {one file.}
         other {# files}}.`,
-      },
-      {
-        count: files.length,
-      },
-    );
-    console.log(successMessage);
-    files.forEach(f => console.log(`└─ ${f.localPath}`));
-    return true;
-  };
+        },
+        {
+          count: files.length,
+        },
+      );
+      console.log(successMessage);
+      files.forEach(f => console.log(`└─ ${f.localPath}`));
+      return true;
+    };
 
-  const pendingChanges = await clasp.files.getChangedFiles();
-  if (pendingChanges.length) {
-    const paths = pendingChanges.map(f => f.localPath);
-    await onChange(paths);
-  } else {
-    const msg = intl.formatMessage({
-      defaultMessage: 'Script is already up to date.',
-    });
-    console.log(msg);
-  }
-
-  if (!watch) {
-    return;
-  }
-
-  const onReady = async () => {
-    const msg = intl.formatMessage({
-      defaultMessage: 'Waiting for changes...',
-    });
-    console.log(msg);
-  };
-
-  const stopWatching = clasp.files.watchLocalFiles(onReady, async paths => {
-    if (!(await onChange(paths))) {
-      stopWatching();
+    const pendingChanges = await clasp.files.getChangedFiles();
+    if (pendingChanges.length) {
+      const paths = pendingChanges.map(f => f.localPath);
+      await onChange(paths);
+    } else {
+      const msg = intl.formatMessage({
+        defaultMessage: 'Script is already up to date.',
+      });
+      console.log(msg);
     }
+
+    if (!watch) {
+      return;
+    }
+
+    const onReady = async () => {
+      const msg = intl.formatMessage({
+        defaultMessage: 'Waiting for changes...',
+      });
+      console.log(msg);
+    };
+
+    const stopWatching = clasp.files.watchLocalFiles(onReady, async paths => {
+      if (!(await onChange(paths))) {
+        stopWatching();
+      }
+    });
   });
-}
 
 /**
  * Confirms that the manifest file has been updated.

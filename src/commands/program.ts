@@ -118,7 +118,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     createVersionCommand,
     listVersionsCommand,
   ];
-  
+
   for (const cmd of commandsToAdd) {
     program.addCommand(cmd);
     cmd.copyInheritedSettings(program);
@@ -136,7 +136,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     this.error(msg as string);
   });
 
-  program.error
+  program.error;
 
   return program;
 }

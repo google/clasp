@@ -1,7 +1,7 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, ellipsize, withSpinner} from './utils.js';
+import {ellipsize, withSpinner} from './utils.js';
 
 interface CommandOption {
   readonly noShorten: boolean;
@@ -12,8 +12,6 @@ export const command = new Command('list-scripts')
   .description('List App Scripts projects')
   .option('--noShorten', 'Do not shorten long names', false)
   .action(async function (this: Command, options: CommandOption): Promise<void> {
-    await checkIfOnlineOrDie();
-
     const clasp: Clasp = this.opts().clasp;
 
     const spinnerMsg = intl.formatMessage({

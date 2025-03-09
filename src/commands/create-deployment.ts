@@ -1,7 +1,7 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, withSpinner} from './utils.js';
+import {withSpinner} from './utils.js';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -16,8 +16,6 @@ export const command = new Command('create-deployment')
   .option('-d, --description <description>', 'The deployment description')
   .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
   .action(async function (this: Command, options: CommandOption): Promise<void> {
-    await checkIfOnlineOrDie();
-
     const clasp: Clasp = this.opts().clasp;
     const deploymentId = options.deploymentId;
     const description = options.description;

@@ -3,7 +3,7 @@ import {Command} from 'commander';
 import inflection from 'inflection';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {checkIfOnlineOrDie, withSpinner} from './utils.js';
+import {withSpinner} from './utils.js';
 
 // https://developers.google.com/drive/api/v3/mime-types
 const DRIVE_FILE_MIMETYPES: Record<string, string> = {
@@ -32,8 +32,6 @@ export const command = new Command('create-script')
   .option('--parentId <id>', 'A project parent Id.')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
   .action(async function (this: Command, options: CommandOption): Promise<void> {
-    await checkIfOnlineOrDie();
-
     const clasp: Clasp = this.opts().clasp;
 
     if (clasp.project.exists()) {

@@ -4,7 +4,6 @@ import inquirer from 'inquirer';
 import isReachable from 'is-reachable';
 import open from 'open';
 import ora from 'ora';
-import pMap from 'p-map';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
 
@@ -84,40 +83,6 @@ export async function withSpinner<T>(message: string, fn: () => Promise<T>): Pro
 
 export function ellipsize(value: string, length: number) {
   return cliTruncate(value, length, {preferTruncationOnSpace: true}).padEnd(length);
-}
-
-const mapper = async (url: string) => {
-  return await isReachable(url, {timeout: 25_000});
-};
-
-/**
- * Checks if the network is available. Gracefully exits if not.
- */
-// If using a proxy, return true since `isOnline` doesn't work.
-// @see https://github.com/googleapis/google-api-nodejs-client#using-a-proxy
-export async function safeIsOnline(): Promise<boolean> {
-  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
-    return true;
-  }
-  return true;
-//  const urls = ['script.google.com', 'console.developers.google.com', 'console.cloud.google.com', 'drive.google.com'];
-//  const result = await pMap(urls, mapper, {stopOnError: false});
-//  return result.every(wasReached => wasReached);
-}
-
-/**
- * Checks if the network is available. Gracefully exits if not.
- */
-export async function checkIfOnlineOrDie() {
-  if (await safeIsOnline()) {
-    return true;
-  }
-
-  throw new Error('Unable to reach servers. Check your internet connection.', {
-    cause: {
-      code: 'NO_NETWORK',
-    },
-  });
 }
 
 export function isInteractive() {
