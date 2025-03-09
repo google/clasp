@@ -373,7 +373,7 @@ export class Files {
         debug('Skipping empty file.');
         return;
       }
-      await fs.mkdir(path.dirname(file.localPath), { recursive: true });
+      await fs.mkdir(path.dirname(file.localPath), {recursive: true});
       await fs.writeFile(file.localPath, file.source);
     };
     return await pMap(files, mapper);

@@ -191,7 +191,6 @@ async function loadIgnoreFileOrDefaults(configPath?: string) {
   return splitLines(content).filter((name: string) => name.length > 0);
 }
 
-
 async function hasReadAccess(path: string): Promise<boolean> {
   try {
     await fs.access(path, fs.constants.R_OK);
