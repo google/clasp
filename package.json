@@ -24,11 +24,10 @@
     "test": "nyc mocha",
     "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
     "prettier": "biome format src test --write",
-    "check": "biome check src test",
+    "check": "biome check src test && npm run compile",
     "clean": "rm -rf build",
     "compile": "tspc",
     "fix": "biome check src test --fix",
-    "xpretest": "npm run compile && npm run check",
     "clasp": "node --loader ts-node/esm --no-warnings src/index.ts"
   },
   "messageformat": {
