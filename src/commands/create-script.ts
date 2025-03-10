@@ -43,7 +43,7 @@ export const command = new Command('create-script')
 
     // Create defaults.
     const parentId: string | undefined = options.parentId;
-    const name: string | undefined = getDefaultProjectName(process.cwd());
+    const name: string = options.title ? options.title : getDefaultProjectName(process.cwd());
     const type: string = options.type ? options.type.toLowerCase() : 'standalone';
     const rootDir: string = options.rootDir ?? '.';
 
@@ -122,7 +122,7 @@ export const command = new Command('create-script')
  * Gets default project name.
  * @return {string} default project name.
  */
-function getDefaultProjectName(dir: string) {
+export function getDefaultProjectName(dir: string) {
   const dirName = path.basename(dir);
   return inflection.humanize(dirName);
 }

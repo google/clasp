@@ -6,11 +6,10 @@ import {expect, use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiSubset from 'chai-subset';
 import {OAuth2Client} from 'google-auth-library';
-import {beforeEach, describe, it} from 'mocha';
+import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
-import nock from 'nock';
 import {initClaspInstance} from '../../src/core/clasp.js';
-
+import {mockDisableService, mockEnableService, mockListApis, mockListEnabledServices, resetMocks, setupMocks} from '../mocks.js';
 use(chaiSubset);
 use(chaiAsPromised);
 
@@ -26,21 +25,21 @@ function mockCredentials() {
 }
 
 function shouldFailServiceOperationsWhenNotSetup() {
-  it('should fail to list enabled APIs', async () => {
+  it('should fail to list enabled APIs', async function () {
     const clasp = await initClaspInstance({
       credentials: mockCredentials(),
     });
     return expect(clasp.services.getEnabledServices()).to.eventually.be.rejectedWith(Error);
   });
 
-  it('should fail to enable APIs', async () => {
+  it('should fail to enable APIs', async function () {
     const clasp = await initClaspInstance({
       credentials: mockCredentials(),
     });
     return expect(clasp.services.enableService('sheets')).to.eventually.be.rejectedWith(Error);
   });
 
-  it('should fail to disable APIs', async () => {
+  it('should fail to disable APIs', async function () {
     const clasp = await initClaspInstance({
       credentials: mockCredentials(),
     });
@@ -48,23 +47,31 @@ function shouldFailServiceOperationsWhenNotSetup() {
   });
 }
 
-describe('Service operations', () => {
-  describe('with no project, no credentials', () => {
-    beforeEach(() => {
+describe('Service operations', function () {
+  beforeEach(function () {
+    setupMocks();
+  });
+
+  afterEach(function () {
+    resetMocks();
+  });
+
+  describe('with no project, no credentials', function () {
+    beforeEach(function () {
       mockfs({});
     });
     shouldFailServiceOperationsWhenNotSetup();
   });
 
-  describe('with no project, authenticated', () => {
-    beforeEach(() => {
+  describe('with no project, authenticated', function () {
+    beforeEach(function () {
       mockfs({});
     });
     shouldFailServiceOperationsWhenNotSetup();
   });
 
-  describe('with project, authenticated', () => {
-    beforeEach(() => {
+  describe('with project, authenticated', function () {
+    beforeEach(function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -79,7 +86,8 @@ describe('Service operations', () => {
       });
     });
 
-    it('should  list available APIs', async () => {
+    it('should  list available APIs', async function () {
+      mockListApis();
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -87,20 +95,10 @@ describe('Service operations', () => {
       expect(services).to.containSubset([{name: 'docs'}]);
     });
 
-    it('should list enabled APIs', async () => {
-      nock('https://serviceusage.googleapis.com')
-        .get(/v1\/(.*)\/services/)
-        .reply(200, {
-          services: [
-            {
-              name: '123',
-              config: {
-                name: 'docs.googleapis.com',
-              },
-              state: 'ENABLED',
-            },
-          ],
-        });
+    it('should list enabled APIs', async function () {
+      mockListEnabledServices({
+        projectId: 'mock-gcp-project',
+      });
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -108,10 +106,11 @@ describe('Service operations', () => {
       expect(services).to.containSubset([{name: 'docs'}]);
     });
 
-    it('should enable an api in manifest', async () => {
-      nock('https://serviceusage.googleapis.com')
-        .post(/v1\/(.*)\/services\/(.*):enable/)
-        .reply(200, {});
+    it('should enable an api in manifest', async function () {
+      mockEnableService({
+          projectId: 'mock-gcp-project',
+          serviceName: 'docs.googleapis.com',
+      });
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -120,11 +119,12 @@ describe('Service operations', () => {
       expect(manifest.dependencies?.enabledAdvancedServices).to.containSubset([{serviceId: 'docs'}]);
     });
 
-    it('should disable an api in manifest', async () => {
-      nock('https://serviceusage.googleapis.com')
-        .post(/v1\/(.*)\/services\/(.*):disable/)
-        .reply(200, {});
-      const clasp = await initClaspInstance({
+    it('should disable an api in manifest', async function () {
+      mockDisableService({
+        projectId: 'mock-gcp-project',
+        serviceName: 'gmail.googleapis.com',
+    });
+    const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
 

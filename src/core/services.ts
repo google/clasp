@@ -140,6 +140,7 @@ export class Services {
     debug('Updating manifest at %s with %j', manifestPath, manifest);
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 
+    debug('Enabling GCP service %s.googleapis.com', serviceName);
     const serviceUsage = google.serviceusage({version: 'v1', auth: this.options.credentials});
     const resourceName = `projects/${projectId}/services/${serviceName}.googleapis.com`;
     try {
@@ -186,7 +187,7 @@ export class Services {
     debug('Updating manifest at %s with %j', manifestPath, manifest);
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 
-    debug('Service is not an advanced service, treating as a GCP service');
+    debug('Disabling GCP service %s.googleapis.com', serviceName);
     const serviceUsage = google.serviceusage({version: 'v1', auth: this.options.credentials});
     const resourceName = `projects/${projectId}/services/${serviceName}.googleapis.com`;
     try {

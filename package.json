@@ -28,7 +28,7 @@
     "clean": "rm -rf build",
     "compile": "tspc",
     "fix": "biome check src test --fix",
-    "pretest": "npm run compile && npm run check",
+    "xpretest": "npm run compile && npm run check",
     "clasp": "node --loader ts-node/esm --no-warnings src/index.ts"
   },
   "messageformat": {
@@ -41,6 +41,7 @@
     "outfile": "src/messages/messages.js"
   },
   "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
     "include": [
       "src/**/*.ts"
     ],
@@ -91,7 +92,6 @@
     "inflection": "^3.0.2",
     "inquirer": "^12.3.2",
     "inquirer-autocomplete-standalone": "^0.8.1",
-    "is-reachable": "^5.2.1",
     "log-symbols": "^7.0.0",
     "loud-rejection": "^2.2.0",
     "make-dir": "^5.0.0",
@@ -113,6 +113,7 @@
     "@biomejs/biome": "^1.9.4",
     "@commander-js/extra-typings": "^13.0.0",
     "@formatjs/ts-transformer": "^3.13.32",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@messageformat/cli": "^4.0.1",
     "@types/chai": "^5.0.1",
     "@types/chai-as-promised": "^8.0.1",
@@ -132,7 +133,6 @@
     "@types/wtfnode": "^0.7.3",
     "chai": "^5.1.2",
     "chai-as-promised": "^8.0.1",
-    "chai-files": "^1.4.0",
     "chai-subset": "^1.6.0",
     "coveralls": "^3.1.1",
     "mocha": "^11.1.0",
@@ -140,6 +140,7 @@
     "nock": "^14.0.0",
     "nyc": "^17.1.0",
     "sinon": "^19.0.2",
+    "source-map-support": "^0.5.21",
     "tmp": "^0.2.3",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.3.0",

@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs-extra';
 
 import {fileURLToPath} from 'url';
 import {expect, use} from 'chai';
@@ -9,6 +8,11 @@ import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import {initClaspInstance} from '../../src/core/clasp.js';
+
+import {chaiFileExists} from '../helpers.js';
+import {resetMocks, setupMocks} from '../mocks.js';
+
+use(chaiFileExists);
 
 use(chaiAsPromised);
 
@@ -23,13 +27,21 @@ function mockCredentials() {
   return client;
 }
 
-describe('Project operations', () => {
-  describe('with no project, authenticated', () => {
-    beforeEach(() => {
+describe('Project operations', function () {
+  beforeEach(function () {
+    setupMocks();
+  });
+
+  afterEach(function () {
+    resetMocks();
+  });
+
+  describe('with no project, authenticated', function () {
+    beforeEach(function () {
       mockfs({});
     });
 
-    it('should create a new script with given name', async () => {
+    it('should create a new script with given name', async function () {
       nock('https://script.googleapis.com')
         .post(/\/v1\/projects/, body => {
           expect(body.title).to.equal('test script');
@@ -47,7 +59,7 @@ describe('Project operations', () => {
       expect(scriptId).to.equal('mock-script-id');
     });
 
-    it('should create a new script with parent id', async () => {
+    it('should create a new script with parent id', async function () {
       nock('https://script.googleapis.com')
         .post(/\/v1\/projects/, body => {
           expect(body.title).to.equal('test script');
@@ -66,7 +78,7 @@ describe('Project operations', () => {
       expect(scriptId).to.equal('mock-script-id');
     });
 
-    it('should create a new script and container', async () => {
+    it('should create a new script and container', async function () {
       nock('https://www.googleapis.com')
         .post(/drive\/v3\/files/, body => {
           expect(body.name).to.equal('test sheet');
@@ -99,7 +111,7 @@ describe('Project operations', () => {
       expect(parentId).to.equal('mock-parent-id');
     });
 
-    it('should list available scripts', async () => {
+    it('should list available scripts', async function () {
       nock('https://www.googleapis.com')
         .get(/drive\/v3\/files/)
         .reply(200, {
@@ -125,80 +137,78 @@ describe('Project operations', () => {
       expect(scripts.results.length).to.equal(3);
     });
 
-    it('should fail to create a version', async () => {
+    it('should fail to create a version', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       return expect(clasp.project.version()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should fail to list versions', async () => {
+    it('should fail to list versions', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       return expect(clasp.project.listVersions()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should fail to list deployments', async () => {
+    it('should fail to list deployments', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       return expect(clasp.project.listDeployments()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should fail to deploy', async () => {
+    it('should fail to deploy', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       return expect(clasp.project.deploy()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should fail to undeploy', async () => {
+    it('should fail to undeploy', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       return expect(clasp.project.undeploy('id')).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should fail to update settings', async () => {
+    it('should fail to update settings', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       return expect(clasp.project.updateSettings()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should fail to get project ID', async () => {
+    it('should fail to get project ID', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       expect(() => clasp.project.getProjectId()).to.throw(Error);
     });
 
-    it('should say project does not exist', async () => {
+    it('should say project does not exist', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       expect(clasp.project.exists()).to.be.false;
     });
 
-    it('should save settings once project is set', async () => {
+    it('should save settings once project is set', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       clasp.withScriptId('mock-script-id');
       await clasp.project.updateSettings();
-
-      const exists = await fs.exists('.clasp.json');
-      expect(exists).to.be.true;
+      expect('.clasp.json').to.be.a.realFile;
     });
 
-    afterEach(() => {
+    afterEach(function () {
       mockfs.restore();
     });
   });
 
-  describe('with project, authenticated', () => {
-    beforeEach(() => {
+  describe('with project, authenticated', function () {
+    beforeEach(function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -210,7 +220,7 @@ describe('Project operations', () => {
       });
     });
 
-    it('should create a version', async () => {
+    it('should create a version', async function () {
       nock('https://script.googleapis.com')
         .post(/\/v1\/projects\/.*\/versions/, body => {
           expect(body.description).to.equal('New release');
@@ -226,7 +236,7 @@ describe('Project operations', () => {
       expect(version).to.equal(2);
     });
 
-    it('should list versions', async () => {
+    it('should list versions', async function () {
       nock('https://script.googleapis.com')
         .get(/\/v1\/projects\/.*\/versions/)
         .reply(200, {
@@ -249,7 +259,7 @@ describe('Project operations', () => {
       expect(versions.results).to.have.length(2);
     });
 
-    it('should list deployments', async () => {
+    it('should list deployments', async function () {
       nock('https://script.googleapis.com')
         .get(/\/v1\/projects\/.*\/deployments/)
         .reply(200, {
@@ -273,7 +283,7 @@ describe('Project operations', () => {
       expect(versions.results).to.have.length(1);
     });
 
-    it('should create new version on deploy', async () => {
+    it('should create new version on deploy', async function () {
       nock('https://script.googleapis.com')
         .post(/\/v1\/projects\/.*\/versions/, body => {
           expect(body.description).to.equal('test');
@@ -300,9 +310,9 @@ describe('Project operations', () => {
       expect(deployment).to.exist;
     });
 
-    it('should not create new version on deploy if version provided', async () => {
+    it('should not create new version on deploy if version provided', async function () {
       nock('https://script.googleapis.com')
-        .post(/\/v1\/projects\/.*\/versions/, () => {
+        .post(/\/v1\/projects\/.*\/versions/, function () {
           throw new Error('Should not create new version');
         })
         .reply(200, {
@@ -326,7 +336,7 @@ describe('Project operations', () => {
       expect(deployment).to.exist;
     });
 
-    it('should undeploy', async () => {
+    it('should undeploy', async function () {
       nock('https://script.googleapis.com')
         .delete(/\/v1\/projects\/.*\/deployments/)
         .reply(200, {});
@@ -336,28 +346,28 @@ describe('Project operations', () => {
       await clasp.project.undeploy('123');
     });
 
-    it('should update settings', async () => {
+    it('should update settings', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       await clasp.project.updateSettings();
     });
 
-    it('should get project ID', async () => {
+    it('should get project ID', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       expect(() => clasp.project.getProjectId()).to.not.throw();
     });
 
-    it('should say project exists', async () => {
+    it('should say project exists', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       expect(clasp.project.exists()).to.be.true;
     });
 
-    afterEach(() => {
+    afterEach(function () {
       mockfs.restore();
     });
   });

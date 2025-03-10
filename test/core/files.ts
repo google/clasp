@@ -9,7 +9,7 @@ import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import {initClaspInstance} from '../../src/core/clasp.js';
-
+import {resetMocks, setupMocks} from '../mocks.js';
 use(chaiAsPromised);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,9 +23,17 @@ function mockCredentials() {
   return client;
 }
 
-describe('File operations', () => {
-  describe('with valid project, no ignore file', () => {
-    beforeEach(() => {
+describe('File operations', function () {
+  beforeEach(function () {
+    setupMocks();
+  });
+
+  afterEach(function () {
+    resetMocks();
+  });
+
+  describe('with valid project, no ignore file', function () {
+    beforeEach(function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -40,7 +48,7 @@ describe('File operations', () => {
       });
     });
 
-    it('should collect local files non-recursively with default ignore', async () => {
+    it('should collect local files non-recursively with default ignore', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -48,7 +56,7 @@ describe('File operations', () => {
       expect(foundFiles).to.have.length(3);
     });
 
-    it('should push files', async () => {
+    it('should push files', async function () {
       nock('https://script.googleapis.com')
         .put(/\/v1\/projects\/.*\/content/, body => {
           expect(body.files).to.have.length(3);
@@ -71,7 +79,7 @@ describe('File operations', () => {
       expect(pushedFiles).to.have.length(3);
     });
 
-    it('should fetch remote files', async () => {
+    it('should fetch remote files', async function () {
       nock('https://script.googleapis.com')
         .get(/\/v1\/projects\/.*\/content/)
         .reply(200, {
@@ -98,7 +106,7 @@ describe('File operations', () => {
       expect(pulledFiles[1].localPath).to.equal('Code.js');
     });
 
-    it('should fetch remote files with version #', async () => {
+    it('should fetch remote files with version #', async function () {
       nock('https://script.googleapis.com')
         .get(/\/v1\/projects\/.*\/content/)
         .query({versionNumber: 2})
@@ -126,7 +134,7 @@ describe('File operations', () => {
       expect(pulledFiles[1].localPath).to.equal('Code.js');
     });
 
-    it('should pull files', async () => {
+    it('should pull files', async function () {
       nock('https://script.googleapis.com')
         .get(/\/v1\/projects\/.*\/content/)
         .reply(200, {
@@ -153,7 +161,7 @@ describe('File operations', () => {
       expect(pulledFiles[1].localPath).to.equal('Code.js');
     });
 
-    it('should pull files with version #', async () => {
+    it('should pull files with version #', async function () {
       nock('https://script.googleapis.com')
         .get(/\/v1\/projects\/.*\/content/)
         .query({versionNumber: 2})
@@ -181,13 +189,13 @@ describe('File operations', () => {
       expect(pulledFiles[1].localPath).to.equal('Code.js');
     });
 
-    afterEach(() => {
+    afterEach(function () {
       mockfs.restore();
     });
   });
 
-  describe('with invalid project, authenticated', () => {
-    beforeEach(() => {
+  describe('with invalid project, authenticated', function () {
+    beforeEach(function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -201,41 +209,41 @@ describe('File operations', () => {
       });
     });
 
-    it('should not collect local files', async () => {
+    it('should not collect local files', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       expect(clasp.files.collectLocalFiles()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should not push files', async () => {
+    it('should not push files', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       expect(clasp.files.push()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should not fetch remote files', async () => {
+    it('should not fetch remote files', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       expect(clasp.files.fetchRemote()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should not pull files', async () => {
+    it('should not pull files', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       expect(clasp.files.pull()).to.eventually.be.rejectedWith(Error);
     });
 
-    afterEach(() => {
+    afterEach(function () {
       mockfs.restore();
     });
   });
 
-  describe('with valid project, unauthenticated', () => {
-    beforeEach(() => {
+  describe('with valid project, unauthenticated', function () {
+    beforeEach(function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -247,34 +255,34 @@ describe('File operations', () => {
       });
     });
 
-    it('should collect local files non-recursively with default ignore', async () => {
+    it('should collect local files non-recursively with default ignore', async function () {
       const clasp = await initClaspInstance({});
       const foundFiles = await clasp.files.collectLocalFiles();
       expect(foundFiles).to.have.length(3);
     });
 
-    it('should not push files', async () => {
+    it('should not push files', async function () {
       const clasp = await initClaspInstance({});
       expect(clasp.files.push()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should not fetch remote files', async () => {
+    it('should not fetch remote files', async function () {
       const clasp = await initClaspInstance({});
       expect(clasp.files.fetchRemote()).to.eventually.be.rejectedWith(Error);
     });
 
-    it('should not pull files', async () => {
+    it('should not pull files', async function () {
       const clasp = await initClaspInstance({});
       expect(clasp.files.pull()).to.eventually.be.rejectedWith(Error);
     });
 
-    afterEach(() => {
+    afterEach(function () {
       mockfs.restore();
     });
   });
 
-  describe('with valid project, root directory, no ignore file', () => {
-    beforeEach(() => {
+  describe('with valid project, root directory, no ignore file', function () {
+    beforeEach(function () {
       mockfs({
         'dist/appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'dist/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -289,7 +297,7 @@ describe('File operations', () => {
       });
     });
 
-    it('should collect local files from src dir, non recursively and with default ignore', async () => {
+    it('should collect local files from src dir, non recursively and with default ignore', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -297,7 +305,7 @@ describe('File operations', () => {
       expect(foundFiles).to.have.length(3);
     });
 
-    it('should push files with flat names', async () => {
+    it('should push files with flat names', async function () {
       nock('https://script.googleapis.com')
         .put(/\/v1\/projects\/.*\/content/, body => {
           expect(body.files).to.have.length(3);
@@ -320,7 +328,7 @@ describe('File operations', () => {
       expect(pushedFiles).to.have.length(3);
     });
 
-    it('should pull files into src directory', async () => {
+    it('should pull files into src directory', async function () {
       nock('https://script.googleapis.com')
         .get(/\/v1\/projects\/.*\/content/)
         .reply(200, {
@@ -347,13 +355,13 @@ describe('File operations', () => {
       expect(pulledFiles[1].localPath).to.equal('dist/Code.js');
     });
 
-    afterEach(() => {
+    afterEach(function () {
       mockfs.restore();
     });
   });
 
-  describe('with valid project, root directory, ignore file', () => {
-    beforeEach(() => {
+  describe('with valid project, root directory, ignore file', function () {
+    beforeEach(function () {
       mockfs({
         '.claspignore': mockfs.load(path.resolve(__dirname, '../fixtures/dot-claspignore.txt')),
         'dist/appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
@@ -368,7 +376,7 @@ describe('File operations', () => {
       });
     });
 
-    it('should collect local files recursively', async () => {
+    it('should collect local files recursively', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -376,13 +384,13 @@ describe('File operations', () => {
       expect(foundFiles).to.have.length(3);
     });
 
-    afterEach(() => {
+    afterEach(function () {
       mockfs.restore();
     });
   });
 
-  describe('with valid project, ignore file', () => {
-    beforeEach(() => {
+  describe('with valid project, ignore file', function () {
+    beforeEach(function () {
       mockfs({
         '.claspignore': mockfs.load(path.resolve(__dirname, '../fixtures/dot-claspignore.txt')),
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
@@ -400,7 +408,7 @@ describe('File operations', () => {
       });
     });
 
-    it('should collect local files recursively', async () => {
+    it('should collect local files recursively', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -408,7 +416,7 @@ describe('File operations', () => {
       expect(foundFiles).to.have.length(3);
     });
 
-    it('should get untracked files', async () => {
+    it('should get untracked files', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -416,7 +424,7 @@ describe('File operations', () => {
       expect(foundFiles).to.have.length(5);
     });
 
-    it('should collapse untracked files to common roots', async () => {
+    it('should collapse untracked files to common roots', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
@@ -427,7 +435,7 @@ describe('File operations', () => {
       expect(foundFiles).to.include('src/readme.md');
     });
 
-    afterEach(() => {
+    afterEach(function () {
       mockfs.restore();
     });
   });

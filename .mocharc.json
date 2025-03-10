@@ -2,7 +2,9 @@
   "extension": ["ts"],
   "timeout": 20000,
   "spec": "test/**/*.ts",
-  "require": "ts-node/register",
+  "require": [
+    "source-map-support/register.js"
+  ],
   "loader": "ts-node/esm",
   "watch-files": [
     "src",

@@ -1,7 +1,6 @@
 import cliTruncate from 'cli-truncate';
 import inquirer from 'inquirer';
 
-import isReachable from 'is-reachable';
 import open from 'open';
 import ora from 'ora';
 import {Clasp} from '../core/clasp.js';

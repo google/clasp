@@ -10,6 +10,7 @@ import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import {initClaspInstance} from '../../src/core/clasp.js';
+import {resetMocks, setupMocks} from '../mocks.js';
 
 use(chaiSubset);
 use(chaiAsPromised);
@@ -26,19 +27,19 @@ function mockCredentials() {
 }
 
 function shouldFailFunctionOperationsWhenNotSetup() {
-  it('should fail to run a function', async () => {
+  it('should fail to run a function', async function () {
     const clasp = await initClaspInstance({
       credentials: mockCredentials(),
     });
     return expect(clasp.functions.runFunction('myFunction', [])).to.eventually.be.rejectedWith(Error);
   });
-  it('should fail to run a function with string argument', async () => {
+  it('should fail to run a function with string argument', async function () {
     const clasp = await initClaspInstance({
       credentials: mockCredentials(),
     });
     return expect(clasp.functions.runFunction('myFunction', ['test'])).to.eventually.be.rejectedWith(Error);
   });
-  it('should fail to run a function with object argument', async () => {
+  it('should fail to run a function with object argument', async function () {
     const clasp = await initClaspInstance({
       credentials: mockCredentials(),
     });
@@ -46,25 +47,33 @@ function shouldFailFunctionOperationsWhenNotSetup() {
   });
 }
 
-describe('Function operations', () => {
-  describe('with no project, no credentials', () => {
-    beforeEach(() => {
+describe('Function operations', function () {
+  beforeEach(function () {
+    setupMocks();
+  });
+
+  afterEach(function () {
+    resetMocks();
+  });
+
+  describe('with no project, no credentials', function () {
+    beforeEach(function () {
       mockfs({});
     });
     shouldFailFunctionOperationsWhenNotSetup();
     afterEach(mockfs.restore);
   });
 
-  describe('with no project, authenticated', () => {
-    beforeEach(() => {
+  describe('with no project, authenticated', function () {
+    beforeEach(function () {
       mockfs({});
     });
     shouldFailFunctionOperationsWhenNotSetup();
     afterEach(mockfs.restore);
   });
 
-  describe('with project, authenticated', () => {
-    beforeEach(() => {
+  describe('with project, authenticated', function () {
+    beforeEach(function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -80,7 +89,7 @@ describe('Function operations', () => {
     });
     afterEach(mockfs.restore);
 
-    it('should run a function', async () => {
+    it('should run a function', async function () {
       nock('https://script.googleapis.com')
         .post(/\/v1\/scripts\/.*:run/, body => {
           expect(body.function).to.equal('myFunction');
@@ -99,7 +108,7 @@ describe('Function operations', () => {
       const res = await clasp.functions.runFunction('myFunction', []);
       expect(res.response?.result).to.equal('Hello');
     });
-    it('should run a function with string argument', async () => {
+    it('should run a function with string argument', async function () {
       nock('https://script.googleapis.com')
         .post(/\/v1\/scripts\/.*:run/, body => {
           expect(body.function).to.equal('myFunction');
@@ -120,7 +129,7 @@ describe('Function operations', () => {
       expect(res.response?.result).to.equal('Hello');
     });
 
-    it('should run a function with object argument', async () => {
+    it('should run a function with object argument', async function () {
       nock('https://script.googleapis.com')
         .post(/\/v1\/scripts\/.*:run/, body => {
           nock('https://script.googleapis.com');
@@ -143,8 +152,8 @@ describe('Function operations', () => {
     });
   });
 
-  describe('with invalid project, authenticated', () => {
-    beforeEach(() => {
+  describe('with invalid project, authenticated', function () {
+    beforeEach(function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
