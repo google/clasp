@@ -1,0 +1,16 @@
+{
+    "token": {
+      "access_token": "mock-access-token",
+      "scope": "https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/service.management https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/script.webapp.deploy https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/logging.read https://www.googleapis.com/auth/script.deployments openid",
+      "token_type": "Bearer",
+      "id_token": "mock-id-token",
+      "expiry_date": 1737679731213,
+      "refresh_token": "mock-refresh-token"
+    },
+    "oauth2ClientSettings": {
+      "clientId": "1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com",
+      "clientSecret": "mock-secret",
+      "redirectUri": "http://localhost"
+    },
+    "isLocalCreds": false
+  }  

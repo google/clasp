@@ -38,7 +38,7 @@ To use `clasp run`, you need to complete 5 steps:
     - Application type: **Desktop App**
     - **Create** > **OK**
     - Download the file (⬇), move it to your directory, and name it `creds.json`. Please keep this file secret!
-1. Call `clasp login --creds creds.json`
+1. Call `clasp login --user <name> --creds creds.json`
 1. Add the following to `appsscript.json`:
       ```json
       "executionApi": {
@@ -76,4 +76,4 @@ To run functions that use these scopes, you must add the scopes to your Apps Scr
 - `File > Project Properties > Scopes`
 - Add these scopes to your `appsscript.json`.
 - Log in again: `clasp login --creds creds.json`. This will add these scopes to your credentials.
-- `clasp run sendMail`
+- `clasp run --user <name> sendMail`

@@ -1,13 +1,12 @@
 {
-  "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "lib": ["ESNext"],
-    "module": "ES2020",
-    "moduleResolution": "Node",
+    "lib": ["esnext", "dom"],
+    "module": "Node16",
+    "moduleResolution": "node16",
     "newLine": "lf",
     "noImplicitAny": true,
     "noImplicitThis": true,
@@ -20,14 +19,25 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "stripInternal": true,
-    "suppressExcessPropertyErrors": true,
-    "suppressImplicitAnyIndexErrors": true,
     "target": "es2019",
-
-    "importHelpers": true // canary: will cause runtime error if `tslib` is necessary
+    "importHelpers": true,
+    "plugins": [
+      {
+        "transform": "@formatjs/ts-transformer",
+        "import": "transform",
+        "type": "config",
+        "overrideIdFn": "[sha512:contenthash:base64:6]",
+        "ast": true
+      }
+    ] 
   },
   "include": [
     "src/**/*.ts",
     "test/**/*.ts"
-  ]
+  ],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true,
+    "compiler": "ts-patch/compiler"
+  },
 }
