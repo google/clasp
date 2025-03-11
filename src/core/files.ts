@@ -144,7 +144,7 @@ export class Files {
     const script = google.script({version: 'v1', auth: credentials});
     try {
       const requestOptions = {scriptId, versionNumber};
-      debug('Fetchign script content, request %o', requestOptions);
+      debug('Fetching script content, request %o', requestOptions);
       const response = await script.projects.getContent(requestOptions);
       const files = response.data.files ?? [];
       return files.map(f => {
@@ -175,7 +175,7 @@ export class Files {
 
     // Read all filenames as a flattened tree
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-    const filelist = await getLocalFiles(contentDir, ignorePatterns, recursive);
+    const filelist = Array.from(await getLocalFiles(contentDir, ignorePatterns, recursive));
     const checkDuplicate = createFilenameConflictChecker();
     const files = await Promise.all(
       filelist.map(async filename => {
