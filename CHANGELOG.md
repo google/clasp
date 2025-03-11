@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1-alpha1](https://github.com/google/clasp/compare/v3.0.0-alpha1...v3.0.1-alpha1) (2025-03-11)
+
+
+### Bug Fixes
+
+* Add missing import from "open", not caught by typescript due to being browser api ([907d80f](https://github.com/google/clasp/commit/907d80f9e5d81dde387c783a86553134bf219a64))
+
 ## [3.0.0-alpha1](https://github.com/google/clasp/compare/v3.0.0-alpha...v3.0.0-alpha1) (2025-03-11)
 
 
