@@ -9,7 +9,7 @@ import {mockListVersions, mockOAuthRefreshRequest, resetMocks, setupMocks} from 
 import {runCommand} from './utils.js';
 
 import {chaiFileExists} from '../helpers.js';
-import mock from 'mock-fs';
+
 use(chaiFileExists);
 
 const __filename = fileURLToPath(import.meta.url);

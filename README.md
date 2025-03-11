@@ -191,7 +191,7 @@ Note that if using a service account, service accounts can not own scripts. To u
 
 ### Ignore File (`.claspignore`)
 
-Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to not upload on `clasp push`. Steps:
+Like `.gitignore`, `.claspignore` allows you to ignore files that you do not wish to upload on `clasp push`. Steps:
 
 1. Create a file called `.claspignore` in your project's root directory.
 1. Add patterns to be excluded from `clasp push`. _Note_: The `.claspignore` patterns are applied by [multimatch](https://github.com/sindresorhus/multimatch), which is different from `.gitignore`, especially for directories. To ignore a directory, use syntax like `**/node_modules/**`.
