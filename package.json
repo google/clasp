@@ -6,7 +6,7 @@
   "exports": "./build/src/index.js",
   "main": "build/src/index.js",
   "engines": {
-    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+    "node": " >=20.0.0"
   },
   "bin": {
     "clasp": "build/src/index.js"
