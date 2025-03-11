@@ -5,7 +5,6 @@ import {expect} from 'chai';
 import {use} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
-import sinon from 'sinon';
 import {
   mockCreateBoundScript,
   mockCreateScript,
@@ -15,10 +14,9 @@ import {
   setupMocks,
 } from '../mocks.js';
 import {runCommand} from './utils.js';
-
 import {getDefaultProjectName} from '../../src/commands/create-script.js';
-
 import {chaiFileExists} from '../helpers.js';
+
 use(chaiFileExists);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -109,11 +107,6 @@ describe('Create script command', function () {
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
         ),
       });
-    });
-
-    afterEach(function () {
-      mockfs.restore();
-      sinon.restore();
     });
 
     it('should give error if .clasp.json exists', async function () {

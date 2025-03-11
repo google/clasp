@@ -14,6 +14,7 @@ import {
   mockScriptDownloadError,
   resetMocks,
   setupMocks,
+  forceInteractiveMode,
 } from '../mocks.js';
 import {runCommand} from './utils.js';
 
@@ -88,6 +89,7 @@ describe('Clone script command', function () {
       mockScriptDownload({
         scriptId: 'mock-script-id',
       });
+      forceInteractiveMode(true); // Force TTY for CI
       sinon.stub(inquirer, 'prompt').resolves({scriptId: 'mock-script-id'});
       const out = await runCommand(['clone']);
       expect('appsscript.json').to.be.a.realFile;
@@ -96,7 +98,7 @@ describe('Clone script command', function () {
     });
 
     it('should give an error if no script and not interactive', async function () {
-      sinon.stub(process.stdout, 'isTTY').value(false);
+      forceInteractiveMode(false);
       const out = await runCommand(['clone']);
       return expect(out.stderr).to.contain('No script ID');
     });
@@ -126,11 +128,6 @@ describe('Clone script command', function () {
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
         ),
       });
-    });
-
-    afterEach(function () {
-      mockfs.restore();
-      sinon.restore();
     });
 
     it('should give error if .clasp.json exists', async function () {

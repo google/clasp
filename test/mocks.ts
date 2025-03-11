@@ -2,6 +2,11 @@ import {expect} from 'chai';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import sinon from 'sinon';
+import {claspEnv} from '../src/commands/utils.js';
+
+export function forceInteractiveMode(value: boolean) {
+  claspEnv.isInteractive = value;  
+}
 
 export function setupMocks() {
   nock.disableNetConnect();
@@ -13,6 +18,7 @@ export function resetMocks() {
   nock.cleanAll();
   nock.enableNetConnect();
   sinon.restore();
+  claspEnv.isInteractive = process.stdout.isTTY;
 }
 
 export function mockOAuthRefreshRequest() {

@@ -7,7 +7,7 @@ import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
-import {mockDeleteDeployment, mockListDeployments, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
+import {mockDeleteDeployment, mockListDeployments, mockOAuthRefreshRequest, resetMocks, setupMocks, forceInteractiveMode} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 import {chaiFileExists} from '../helpers.js';
@@ -51,6 +51,7 @@ describe('Delete deployment command', function () {
         scriptId: 'mock-script-id',
         deploymentId: 'mock-deployment-id',
       });
+      forceInteractiveMode(true);
       sinon.stub(inquirer, 'prompt').resolves({deploymentId: 'mock-deployment-id'});
       const out = await runCommand(['delete-deployment']);
       return expect(out.stdout).to.contain('Deleted deployment');

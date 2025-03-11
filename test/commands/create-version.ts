@@ -7,7 +7,7 @@ import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
-import {mockCreateVersion, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
+import {mockCreateVersion, mockOAuthRefreshRequest, resetMocks, setupMocks, forceInteractiveMode} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 import {chaiFileExists} from '../helpers.js';
@@ -42,6 +42,7 @@ describe('Create version command', function () {
         description: 'test version',
         version: 1,
       });
+      forceInteractiveMode(true);
       sinon.stub(inquirer, 'prompt').resolves({description: 'test version'});
       const out = await runCommand(['create-version']);
       return expect(out.stdout).to.contain('Created version');

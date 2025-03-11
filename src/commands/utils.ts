@@ -84,8 +84,13 @@ export function ellipsize(value: string, length: number) {
   return cliTruncate(value, length, {preferTruncationOnSpace: true}).padEnd(length);
 }
 
+// Exporting and wrapping to allow it to be toggled in tests
+export const claspEnv = {
+  isInteractive: process.stdout.isTTY
+}
+
 export function isInteractive() {
-  return process.stdout.isTTY;
+  return claspEnv.isInteractive;
 }
 
 export async function openUrl(url: string) {
