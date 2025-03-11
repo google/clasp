@@ -269,7 +269,9 @@ Specifies the file extension for **local** script files in your Apps Script proj
 
 ### `filePushOrder` (optional)
 
-Specifies the files that should be pushed first, useful for scripts that rely on order of execution. All other files are pushed after this list of files.
+Specifies the files that should be pushed first, useful for scripts that rely on order of execution. All other files are pushed after this list of files, sorted by name.
+
+Note that file paths are relative to directory containing .clasp.json. If `rootDir` is also set, any files listed should include that path as well.
 
 
 ## Reference
