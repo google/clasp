@@ -21,8 +21,8 @@
     "watch": "tspc --project tsconfig.json --watch",
     "prepare": "npm run compile",
     "lint": "npm run check",
-    "test": "nyc mocha",
-    "coverage": "nyc --cache false report --reporter=text-lcov | coveralls",
+    "test": "mocha",
+    "test:coverage": "c8 mocha",
     "prettier": "biome format src test --write",
     "check": "biome check src test && npm run compile",
     "clean": "rm -rf build",
@@ -38,21 +38,6 @@
       "src/messages/"
     ],
     "outfile": "src/messages/messages.js"
-  },
-  "nyc": {
-    "extends": "@istanbuljs/nyc-config-typescript",
-    "include": [
-      "src/**/*.ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "reporter": [
-      "text-summary",
-      "html"
-    ],
-    "sourceMap": true,
-    "instrument": true
   },
   "repository": {
     "type": "git",
@@ -130,10 +115,10 @@
     "@types/sinon": "^17.0.4",
     "@types/tmp": "^0.2.6",
     "@types/wtfnode": "^0.7.3",
+    "c8": "^10.1.3",
     "chai": "^5.1.2",
     "chai-as-promised": "^8.0.1",
     "chai-subset": "^1.6.0",
-    "coveralls": "^3.1.1",
     "mocha": "^11.1.0",
     "mock-fs": "^5.4.1",
     "nock": "^14.0.0",
