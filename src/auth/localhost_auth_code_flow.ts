@@ -5,6 +5,7 @@ import {OAuth2Client} from 'google-auth-library';
 import enableDestroy from 'server-destroy';
 import {intl} from '../intl.js';
 import {AuthorizationCodeFlow, parseAuthResponseUrl} from './auth_code_flow.js';
+import open from 'open';
 
 export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
   protected server: Server | undefined;
