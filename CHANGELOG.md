@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.0-alpha1](https://github.com/google/clasp/compare/v3.0.0-alpha...v3.0.0-alpha1) (2025-03-11)
+
+
+### Miscellaneous Chores
+
+* Release 3.0.0-alpha1 ([483a075](https://github.com/google/clasp/commit/483a0755a6d66125e0efa59bac2d3e9cb12f5a7b))
+
 ## [3.0.0-alpha](https://github.com/google/clasp/compare/v2.5.0...v3.0.0-alpha) (2025-03-11)
 
 ### ⚠ BREAKING CHANGES
