@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.3.1](https://github.com/google/clasp/compare/v2.5.0...v2.3.1) (2025-03-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* CLI syntax changed for some commands, specifically the `apis` command group.
+* Flattens the command structure so it is consistent. Previously some commands were subcommands, others had flags that radically changed behavior, etc. While most commands are compatible, some lesser used commands have been renamed.
+
+### Bug Fixes
+
+* Don't write files on clone if unable to fetch proejct ([#824](https://github.com/google/clasp/issues/824)) ([5f7e06f](https://github.com/google/clasp/commit/5f7e06f565d11852108d330c03dada28895c22d7))
+* Speed up directory crawling ([588d1bc](https://github.com/google/clasp/commit/588d1bc8df14568bc3dd7d331f3adde44f784f9e))
+
+
+### Miscellaneous Chores
+
+* Improve readability of command code ([b30e694](https://github.com/google/clasp/commit/b30e69460e781b6c72a01f2234cd2636359b9373))
+* Improve readability of command code ([b30e694](https://github.com/google/clasp/commit/b30e69460e781b6c72a01f2234cd2636359b9373))
+* Release 2.3.1 ([44e5dd7](https://github.com/google/clasp/commit/44e5dd774d7f082718f97fa308fab9d9c0a67cc5))
+
 ## [2.5.0](https://github.com/google/clasp/compare/v2.4.2...v2.5.0) (2025-01-09)
 
 
