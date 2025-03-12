@@ -6,8 +6,8 @@
 
 To use `clasp run`, you need to complete 5 steps:
 
-- Set up the **Project ID** in your `.clasp.json` if missing.
-- Create an **OAuth Client ID** (Other). Download as `creds.json`.
+- Set up a **Project ID** in your `.clasp.json` if missing.
+- Create an **OAuth Client ID** (Desktop App). Download as `creds.json`.
 - `clasp login --creds creds.json` with this downloaded file.
 - Add the following to `appsscript.json`:
   ```json
@@ -73,7 +73,8 @@ Many Apps Script functions require special OAuth Scopes (Gmail, Drive, etc.).
 To run functions that use these scopes, you must add the scopes to your Apps Script manifest and `clasp login` again.
 
 - `clasp open`
-- `File > Project Properties > Scopes`
-- Add these scopes to your `appsscript.json`.
+- At the left, click **Overview**.
+  - View the scopes under "Project OAuth Scopes."
+- Add these scopes to your `appsscript.json` in the `oauthScopes` property array.
 - Log in again: `clasp login --creds creds.json`. This will add these scopes to your credentials.
 - `clasp run --user <name> sendMail`
