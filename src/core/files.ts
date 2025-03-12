@@ -11,7 +11,6 @@ import normalizePath from 'normalize-path';
 import pMap from 'p-map';
 
 import {ClaspOptions, assertAuthenticated, assertScriptConfigured, handleApiError} from './utils.js';
-import { file } from 'mock-fs/lib/filesystem.js';
 
 const debug = Debug('clasp:core');
 
@@ -93,10 +92,10 @@ function getFileExtension(type: string | null | undefined, fileExtensions: Recor
   // TODO - Include project setting override
   const extensionFor = (type: string, defaultValue: string) => {
     if (fileExtensions[type] && fileExtensions[type][0]) {
-      return fileExtensions[type][0]
+      return fileExtensions[type][0];
     }
     return defaultValue;
-  }
+  };
   switch (type) {
     case 'SERVER_JS':
       return extensionFor('SERVER_JS', '.js');
@@ -362,6 +361,16 @@ export class Files {
         }
       }
       handleApiError(error);
+    }
+  }
+
+  checkMissingFilesFromPushOrder(pushedFiles: ProjectFile[]) {
+    const missingFiles = [];
+    for (const path of this.options.files.filePushOrder ?? []) {
+      const wasPushed = pushedFiles.find(f => f.localPath === path);
+      if (!wasPushed) {
+        missingFiles.push(path);
+      }
     }
   }
 

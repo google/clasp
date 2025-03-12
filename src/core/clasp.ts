@@ -11,7 +11,6 @@ import {Logs} from './logs.js';
 import {Project} from './project.js';
 import {Services} from './services.js';
 import {ClaspOptions, ensureStringArray} from './utils.js';
-import { script } from 'googleapis/build/src/apis/script/index.js';
 
 const debug = Debug('clasp:core');
 
@@ -144,13 +143,12 @@ function readFileExtensions(config: any | undefined) {
       ext = `.${ext}`;
     }
     return ext;
-  }
-  return {
-    'SERVER_JS': scriptExtensions.map(fixupExtension),
-    'HTML': htmlExtensions.map(fixupExtension),
-    'JSON': jsonExtensions.map(fixupExtension),
   };
-
+  return {
+    SERVER_JS: scriptExtensions.map(fixupExtension),
+    HTML: htmlExtensions.map(fixupExtension),
+    JSON: jsonExtensions.map(fixupExtension),
+  };
 }
 async function findProjectRootdDir(configFilePath?: string) {
   debug('Searching for project root');
