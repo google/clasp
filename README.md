@@ -263,9 +263,25 @@ You must [associate Google Script project with Google Cloud Platform](https://gi
 
 Even if you do not set this manually, clasp will ask this via a prompt to you at the required time.
 
-### `fileExtension` (optional)
+### `fileExtension` (deprecated, optional)
 
 Specifies the file extension for **local** script files in your Apps Script project.
+
+### `scriptExtensions` (optional)
+
+Specifies the file extensions for **local** script files in your Apps Script project. May be a string or array of strings. Files matching the extension will be considered scripts files.
+
+When pulling files, the first extension listed is used to write files.
+
+Defaults to `[".js", ".gs"]`
+
+### `htmlExtensions` (optional)
+
+Specifies the file extensions for **local** HTML files in your Apps Script project. May be a string or array of strings. Files matching the extension will be considered HTML files.
+
+When pulling files, the first extension listed is used to write files.
+
+Defaults to `[".html"]`
 
 ### `filePushOrder` (optional)
 
