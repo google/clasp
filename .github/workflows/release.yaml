@@ -6,12 +6,15 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - run: npm ci
+      - uses: actions/setup-node@v3
         with:
           node-version: 22
           registry-url: 'https://wombat-dressing-room.appspot.com'
-      - run: npm ci
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.WOMBAT_DRESSING_ROOM_TOKEN}}
