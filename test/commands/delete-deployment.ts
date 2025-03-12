@@ -7,7 +7,14 @@ import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
-import {mockDeleteDeployment, mockListDeployments, mockOAuthRefreshRequest, resetMocks, setupMocks, forceInteractiveMode} from '../mocks.js';
+import {
+  forceInteractiveMode,
+  mockDeleteDeployment,
+  mockListDeployments,
+  mockOAuthRefreshRequest,
+  resetMocks,
+  setupMocks,
+} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 import {chaiFileExists} from '../helpers.js';

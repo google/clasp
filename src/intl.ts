@@ -30,6 +30,7 @@ function loadMessages(_locale: string) {
 
 const cache = createIntlCache();
 const locale = getLocale();
+const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 debug('Using locale: %s', locale);
 
@@ -37,6 +38,7 @@ export const intl = createIntl(
   {
     // Locale of the application
     locale,
+    timeZone: localTimeZone,
     defaultLocale: 'en',
     messages: loadMessages(locale),
   },

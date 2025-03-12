@@ -86,8 +86,8 @@ export function ellipsize(value: string, length: number) {
 
 // Exporting and wrapping to allow it to be toggled in tests
 export const claspEnv = {
-  isInteractive: process.stdout.isTTY
-}
+  isInteractive: process.stdout.isTTY,
+};
 
 export function isInteractive() {
   return claspEnv.isInteractive;

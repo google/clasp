@@ -2,10 +2,10 @@ import {createServer} from 'http';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
 import {OAuth2Client} from 'google-auth-library';
+import open from 'open';
 import enableDestroy from 'server-destroy';
 import {intl} from '../intl.js';
 import {AuthorizationCodeFlow, parseAuthResponseUrl} from './auth_code_flow.js';
-import open from 'open';
 
 export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
   protected server: Server | undefined;

@@ -5,7 +5,7 @@ import sinon from 'sinon';
 import {claspEnv} from '../src/commands/utils.js';
 
 export function forceInteractiveMode(value: boolean) {
-  claspEnv.isInteractive = value;  
+  claspEnv.isInteractive = value;
 }
 
 export function setupMocks() {
@@ -97,8 +97,7 @@ export function mockListVersions({scriptId = 'mock-script-id'}: {scriptId?: stri
           versionNumber: 2,
           description: 'Test version 2',
           createTime: new Date().toISOString(),
-        }
-
+        },
       ],
     });
 }

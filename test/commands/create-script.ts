@@ -5,6 +5,8 @@ import {expect} from 'chai';
 import {use} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
+import {getDefaultProjectName} from '../../src/commands/create-script.js';
+import {chaiFileExists} from '../helpers.js';
 import {
   mockCreateBoundScript,
   mockCreateScript,
@@ -14,8 +16,6 @@ import {
   setupMocks,
 } from '../mocks.js';
 import {runCommand} from './utils.js';
-import {getDefaultProjectName} from '../../src/commands/create-script.js';
-import {chaiFileExists} from '../helpers.js';
 
 use(chaiFileExists);
 

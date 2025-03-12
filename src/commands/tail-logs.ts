@@ -114,8 +114,9 @@ function formatEntry(entry: loggingV2.Schema$LogEntry, options: FormatOptions): 
   functionName = functionName.padEnd(15);
   payloadData = payloadData.padEnd(20);
 
+  const localizedTime = intl.formatTime(new Date(timestamp ?? ''));
   if (options.simplified) {
     return `${coloredSeverity} ${functionName} ${payloadData}`;
   }
-  return `${coloredSeverity} ${timestamp} ${functionName} ${payloadData}`;
+  return `${coloredSeverity} ${localizedTime} ${functionName} ${payloadData}`;
 }

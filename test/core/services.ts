@@ -9,7 +9,14 @@ import {OAuth2Client} from 'google-auth-library';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import {initClaspInstance} from '../../src/core/clasp.js';
-import {mockDisableService, mockEnableService, mockListApis, mockListEnabledServices, resetMocks, setupMocks} from '../mocks.js';
+import {
+  mockDisableService,
+  mockEnableService,
+  mockListApis,
+  mockListEnabledServices,
+  resetMocks,
+  setupMocks,
+} from '../mocks.js';
 use(chaiSubset);
 use(chaiAsPromised);
 
@@ -108,8 +115,8 @@ describe('Service operations', function () {
 
     it('should enable an api in manifest', async function () {
       mockEnableService({
-          projectId: 'mock-gcp-project',
-          serviceName: 'docs.googleapis.com',
+        projectId: 'mock-gcp-project',
+        serviceName: 'docs.googleapis.com',
       });
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
@@ -123,8 +130,8 @@ describe('Service operations', function () {
       mockDisableService({
         projectId: 'mock-gcp-project',
         serviceName: 'gmail.googleapis.com',
-    });
-    const clasp = await initClaspInstance({
+      });
+      const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
 

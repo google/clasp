@@ -8,13 +8,13 @@ import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
 import {
+  forceInteractiveMode,
   mockListScripts,
   mockOAuthRefreshRequest,
   mockScriptDownload,
   mockScriptDownloadError,
   resetMocks,
   setupMocks,
-  forceInteractiveMode,
 } from '../mocks.js';
 import {runCommand} from './utils.js';
 

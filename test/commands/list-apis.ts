@@ -60,6 +60,5 @@ describe('List APIs command', function () {
       const out = await runCommand(['list-apis']);
       return expect(out.stdout).to.not.contain('ignored');
     });
-
   });
 });

@@ -504,7 +504,5 @@ describe('File operations', function () {
       expect(pulledFiles[1].localPath).to.equal('Code.ts');
       expect(pulledFiles[2].localPath).to.equal('Page.htmlx');
     });
-
   });
-
 });
