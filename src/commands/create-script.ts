@@ -21,7 +21,7 @@ interface CommandOption {
 }
 
 export const command = new Command('create-script')
-  .command('create')
+  .alias('create')
   .description('Create a script')
   .option(
     '--type <type>',
