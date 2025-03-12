@@ -434,9 +434,77 @@ describe('File operations', function () {
       expect(foundFiles).to.not.include('node_modules/test/file1.js');
       expect(foundFiles).to.include('src/readme.md');
     });
-
-    afterEach(function () {
-      mockfs.restore();
-    });
   });
+
+  describe('with project with extensions set', function () {
+    beforeEach(function () {
+      mockfs({
+        '.claspignore': mockfs.load(path.resolve(__dirname, '../fixtures/dot-claspignore.txt')),
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'OtherCode.ts': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'Ignored.gs': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'page.htmlx': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
+        'ignored.html': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-extensions.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+
+    it('should collect only files matching extensions', async function () {
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      const foundFiles = await clasp.files.collectLocalFiles();
+      expect(foundFiles).to.have.length(4);
+      expect(foundFiles).to.not.contain('ignored.html');
+      expect(foundFiles).to.not.contain('Ignored.gs');
+    });
+
+    it('should get untracked files', async function () {
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      const foundFiles = await clasp.files.getUntrackedFiles();
+      expect(foundFiles).to.contain('ignored.html');
+      expect(foundFiles).to.contain('Ignored.gs');
+    });
+
+    it('should use first extension when saving.', async function () {
+      nock('https://script.googleapis.com')
+        .get(/\/v1\/projects\/.*\/content/)
+        .reply(200, {
+          scriptId: 'mock-script-id',
+          files: [
+            {
+              name: 'appsscript',
+              type: 'JSON',
+              source: '{ "timeZone": "America/Los_Angeles", "dependencies": {}, "exceptionLogging": "STACKDRIVER"}',
+            },
+            {
+              name: 'Code',
+              type: 'SERVER_JS',
+              source: 'function helloWorld() {\n  console.log("Hello, world!");\n}',
+            },
+            {
+              name: 'Page',
+              type: 'HTML',
+              source: '<html/>',
+            },
+          ],
+        });
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      const pulledFiles = await clasp.files.pull();
+      expect(pulledFiles).to.have.length(3);
+      expect(pulledFiles[0].localPath).to.equal('appsscript.json');
+      expect(pulledFiles[1].localPath).to.equal('Code.ts');
+      expect(pulledFiles[2].localPath).to.equal('Page.htmlx');
+    });
+
+  });
+
 });

@@ -11,6 +11,7 @@ import normalizePath from 'normalize-path';
 import pMap from 'p-map';
 
 import {ClaspOptions, assertAuthenticated, assertScriptConfigured, handleApiError} from './utils.js';
+import { file } from 'mock-fs/lib/filesystem.js';
 
 const debug = Debug('clasp:core');
 
@@ -73,29 +74,36 @@ function createFilenameConflictChecker() {
   };
 }
 
-function getFileType(fileName: string) {
-  const extension = path.extname(fileName).toUpperCase();
-  if (['.GS', '.JS'].includes(extension)) {
+function getFileType(fileName: string, fileExtensions: Record<string, string[]>) {
+  const originalExtension = path.extname(fileName);
+  const extension = originalExtension.toLowerCase();
+  if (fileExtensions['SERVER_JS']?.includes(extension)) {
     return 'SERVER_JS';
   }
-  if (extension === '.JSON' && path.basename(fileName) === 'appsscript.json') {
-    return 'JSON';
-  }
-  if (extension === '.HTML') {
+  if (fileExtensions['HTML']?.includes(extension)) {
     return 'HTML';
+  }
+  if (fileExtensions['JSON']?.includes(extension) && path.basename(fileName, originalExtension) === 'appsscript') {
+    return 'JSON';
   }
   return undefined;
 }
 
-function getFileExtension(type: string | null | undefined) {
+function getFileExtension(type: string | null | undefined, fileExtensions: Record<string, string[]>) {
   // TODO - Include project setting override
+  const extensionFor = (type: string, defaultValue: string) => {
+    if (fileExtensions[type] && fileExtensions[type][0]) {
+      return fileExtensions[type][0]
+    }
+    return defaultValue;
+  }
   switch (type) {
     case 'SERVER_JS':
-      return 'js';
+      return extensionFor('SERVER_JS', '.js');
     case 'JSON':
-      return 'json';
+      return extensionFor('JSON', '.json');
     case 'HTML':
-      return 'html';
+      return extensionFor('HTML', '.html');
     default:
       throw new Error('Invalid file type', {
         cause: {
@@ -142,14 +150,15 @@ export class Files {
     const contentDir = this.options.files.contentDir;
     const scriptId = this.options.project.scriptId;
     const script = google.script({version: 'v1', auth: credentials});
+    const fileExtensionMap = this.options.files.fileExtensions;
     try {
       const requestOptions = {scriptId, versionNumber};
       debug('Fetching script content, request %o', requestOptions);
       const response = await script.projects.getContent(requestOptions);
       const files = response.data.files ?? [];
       return files.map(f => {
-        const ext = getFileExtension(f.type);
-        const localPath = path.relative(process.cwd(), path.resolve(contentDir, `${f.name}.${ext}`));
+        const ext = getFileExtension(f.type, fileExtensionMap);
+        const localPath = path.relative(process.cwd(), path.resolve(contentDir, `${f.name}${ext}`));
 
         const file = {
           localPath: localPath,
@@ -177,6 +186,7 @@ export class Files {
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
     const filelist = Array.from(await getLocalFiles(contentDir, ignorePatterns, recursive));
     const checkDuplicate = createFilenameConflictChecker();
+    const fileExtensionMap = this.options.files.fileExtensions;
     const files = await Promise.all(
       filelist.map(async filename => {
         const localPath = path.relative(process.cwd(), path.join(contentDir, filename));
@@ -184,7 +194,7 @@ export class Files {
         const parsedPath = path.parse(resolvedPath);
         let remotePath = path.format({dir: normalizePath(parsedPath.dir), name: parsedPath.name});
 
-        const type = getFileType(localPath);
+        const type = getFileType(localPath, fileExtensionMap);
         if (!type) {
           debug('Ignoring unsupported file %s', localPath);
           return undefined;

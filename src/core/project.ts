@@ -317,7 +317,9 @@ export class Project {
       scriptId: this.options.project.scriptId,
       rootDir: srcDir,
       projectId: this.options.project.projectId,
-      fileExtension: this.options.files.fileExtension,
+      scriptExtensions: this.options.files.fileExtensions['SERVER_JS'],
+      htmlExtensions: this.options.files.fileExtensions['HTML'],
+      jsonExtensions: this.options.files.fileExtensions['JSON'],
       filePushOrder: [],
     };
     await fs.writeFile(this.options.configFilePath, JSON.stringify(settings, null, 2));

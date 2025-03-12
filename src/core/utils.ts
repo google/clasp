@@ -13,7 +13,7 @@ export type FileOptions = {
   ignoreFilePath?: string;
   ignorePatterns: string[];
   filePushOrder?: string[];
-  fileExtension?: string;
+  fileExtensions: Record<string, string[]>;
 };
 
 export type ProjectOptions = {
@@ -191,4 +191,26 @@ export function handleApiError(error: unknown): never {
       error: error,
     },
   });
+}
+
+
+export function ensureStringArray(value: string | string[]): string[] {
+  if (typeof value === 'string') {
+    return [value];
+  } else if (Array.isArray(value)) {
+    // Ensure all elements in the array are strings.
+    if (value.every((item) => typeof item === 'string')) {
+      return value;
+    } else {
+      // Handle cases where the array contains non-string elements.
+      // You could throw an error, filter out non-strings, or convert them to strings.
+      // Example: filter out non-strings
+      return value.filter((item) => typeof item === 'string');
+    }
+  } else {
+    // Handle cases where the value is neither a string nor an array of strings.
+    // You could throw an error or return an empty array.
+    // Example: return an empty array
+    return [];
+  }
 }

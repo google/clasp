@@ -10,7 +10,8 @@ import {Functions} from './functions.js';
 import {Logs} from './logs.js';
 import {Project} from './project.js';
 import {Services} from './services.js';
-import {ClaspOptions} from './utils.js';
+import {ClaspOptions, ensureStringArray} from './utils.js';
+import { script } from 'googleapis/build/src/apis/script/index.js';
 
 const debug = Debug('clasp:core');
 
@@ -87,7 +88,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
         ignoreFilePath: ignoreFile,
         ignorePatterns: ignoreRules,
         filePushOrder: [],
-        fileExtension: 'js',
+        fileExtensions: readFileExtensions({}),
       },
     });
   }
@@ -98,7 +99,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
 
   const content = await fs.readFile(projectRoot.configPath, {encoding: 'utf8'});
   const config = JSON.parse(content);
-  const fileExtension = config.fileExtension || 'js';
+  const fileExtensions = readFileExtensions(config);
   const filePushOrder = config.filePushOrder || [];
   const contentDir = path.resolve(projectRoot.rootDir, config.srcDir || config.rootDir || '.');
   return new Clasp({
@@ -110,7 +111,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
       ignoreFilePath: ignoreFile,
       ignorePatterns: ignoreRules,
       filePushOrder: filePushOrder,
-      fileExtension: fileExtension,
+      fileExtensions: fileExtensions,
     },
     project: {
       scriptId: config.scriptId,
@@ -120,6 +121,37 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   });
 }
 
+function readFileExtensions(config: any | undefined) {
+  let scriptExtensions = ['js', 'gs'];
+  let htmlExtensions = ['html'];
+  let jsonExtensions = ['json'];
+  if (config?.fileExtension) {
+    // legacy fileExtension setting
+    scriptExtensions = [config.fileExtension];
+  }
+  if (config?.scriptExtensions) {
+    scriptExtensions = ensureStringArray(config.scriptExtensions);
+  }
+  if (config?.htmlExtensions) {
+    htmlExtensions = ensureStringArray(config.htmlExtensions);
+  }
+  if (config?.jsonExtensions) {
+    jsonExtensions = ensureStringArray(config.jsonExtensions);
+  }
+  const fixupExtension = (ext: string) => {
+    ext = ext.toLowerCase().trim();
+    if (!ext.startsWith('.')) {
+      ext = `.${ext}`;
+    }
+    return ext;
+  }
+  return {
+    'SERVER_JS': scriptExtensions.map(fixupExtension),
+    'HTML': htmlExtensions.map(fixupExtension),
+    'JSON': jsonExtensions.map(fixupExtension),
+  };
+
+}
 async function findProjectRootdDir(configFilePath?: string) {
   debug('Searching for project root');
   if (configFilePath) {
