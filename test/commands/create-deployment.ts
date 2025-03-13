@@ -2,7 +2,6 @@ import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
-import {use} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import {
@@ -14,9 +13,9 @@ import {
   setupMocks,
 } from '../mocks.js';
 import {runCommand} from './utils.js';
+import { useChaiExtensions } from '../helpers.js';
 
-import {chaiFileExists} from '../helpers.js';
-use(chaiFileExists);
+useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

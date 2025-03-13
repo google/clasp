@@ -179,7 +179,7 @@ export class Files {
 
     const contentDir = this.options.files.contentDir;
     const ignorePatterns = this.options.files.ignorePatterns ?? [];
-    const recursive = this.options.files.ignoreFilePath !== undefined;
+    const recursive = !this.options.files.skipSubdirectories;
 
     // Read all filenames as a flattened tree
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"

@@ -321,6 +321,7 @@ export class Project {
       htmlExtensions: this.options.files.fileExtensions['HTML'],
       jsonExtensions: this.options.files.fileExtensions['JSON'],
       filePushOrder: [],
+      skipSubdirectories: this.options.files.skipSubdirectories,
     };
     await fs.writeFile(this.options.configFilePath, JSON.stringify(settings, null, 2));
   }

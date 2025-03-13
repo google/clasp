@@ -87,6 +87,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
         ignoreFilePath: ignoreFile,
         ignorePatterns: ignoreRules,
         filePushOrder: [],
+        skipSubdirectories: false,
         fileExtensions: readFileExtensions({}),
       },
     });
@@ -111,6 +112,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
       ignorePatterns: ignoreRules,
       filePushOrder: filePushOrder,
       fileExtensions: fileExtensions,
+      skipSubdirectories: config.ignoreSubdirectories,
     },
     project: {
       scriptId: config.scriptId,

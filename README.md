@@ -289,6 +289,13 @@ Specifies the files that should be pushed first, useful for scripts that rely on
 
 Note that file paths are relative to directory containing .clasp.json. If `rootDir` is also set, any files listed should include that path as well.
 
+### `skipSubdirectories` (optional)
+
+For backwards compatibility with previous behavior where subdirectories
+are ignored if a `.claspignore` file is not present. Clasp provides default
+ignore rules, making the previous warning and behavior confusing. If you
+need to force clasp to ignore subdirectories and do not want to construct
+a `.claspignore` file, set this option to true.
 
 ## Reference
 

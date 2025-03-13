@@ -14,6 +14,7 @@ export type FileOptions = {
   ignorePatterns: string[];
   filePushOrder?: string[];
   fileExtensions: Record<string, string[]>;
+  skipSubdirectories: boolean;
 };
 
 export type ProjectOptions = {

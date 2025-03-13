@@ -1,20 +1,17 @@
 import path from 'path';
 
 import {fileURLToPath} from 'url';
-import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import {expect} from 'chai';
 import {OAuth2Client} from 'google-auth-library';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import {initClaspInstance} from '../../src/core/clasp.js';
 
-import {chaiFileExists} from '../helpers.js';
 import {resetMocks, setupMocks} from '../mocks.js';
+import { useChaiExtensions } from '../helpers.js';
 
-use(chaiFileExists);
-
-use(chaiAsPromised);
+useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -1,5 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import chaiAsPromised from 'chai-as-promised';
+import chaiSubset from 'chai-subset';
+import {use} from 'chai';
+
+export function useChaiExtensions() {
+  use(chaiAsPromised);
+  use(chaiSubset);
+  use(chaiFileExists);
+}
 
 declare global {
   namespace Chai {

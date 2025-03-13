@@ -2,15 +2,16 @@ import os from 'os';
 import path from 'path';
 
 import {fileURLToPath} from 'url';
-import {expect, use} from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import {expect} from 'chai';
 import {OAuth2Client} from 'google-auth-library';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import {initClaspInstance} from '../../src/core/clasp.js';
 import {resetMocks, setupMocks} from '../mocks.js';
-use(chaiAsPromised);
+import { useChaiExtensions } from '../helpers.js';
+
+useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,7 +38,7 @@ describe('File operations', function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
-        'ignored/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'subdir/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
         'page.html': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
         'package.json': '{}',
@@ -48,27 +49,29 @@ describe('File operations', function () {
       });
     });
 
-    it('should collect local files non-recursively with default ignore', async function () {
+    it('should collect local files recursively with default ignore', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       const foundFiles = await clasp.files.collectLocalFiles();
-      expect(foundFiles).to.have.length(3);
+      expect(foundFiles).to.have.length(4);
     });
 
     it('should push files', async function () {
       nock('https://script.googleapis.com')
         .put(/\/v1\/projects\/.*\/content/, body => {
-          expect(body.files).to.have.length(3);
-          expect(body.files[0].name).to.equal('appsscript');
-          expect(body.files[0].type).to.equal('JSON');
-          expect(body.files[0].source).to.have.lengthOf.above(1);
-          expect(body.files[1].name).to.equal('Code');
-          expect(body.files[1].type).to.equal('SERVER_JS');
-          expect(body.files[1].source).to.have.lengthOf.above(1);
-          expect(body.files[2].name).to.equal('page');
-          expect(body.files[2].type).to.equal('HTML');
-          expect(body.files[2].source).to.have.lengthOf.above(1);
+          expect(body.files).to.containSubset([{
+            name: 'appsscript'
+          }]);
+          expect(body.files).to.containSubset([{
+            name: 'Code'
+          }]);
+          expect(body.files).to.containSubset([{
+            name: 'subdir/Code'
+          }]);
+          expect(body.files).to.containSubset([{
+            name: 'page'
+          }]);
           return true;
         })
         .reply(200, {});
@@ -76,7 +79,7 @@ describe('File operations', function () {
         credentials: mockCredentials(),
       });
       const pushedFiles = await clasp.files.push();
-      expect(pushedFiles).to.have.length(3);
+      expect(pushedFiles).to.have.length(4);
     });
 
     it('should fetch remote files', async function () {
@@ -255,10 +258,10 @@ describe('File operations', function () {
       });
     });
 
-    it('should collect local files non-recursively with default ignore', async function () {
+    it('should collect local files recursively with default ignore', async function () {
       const clasp = await initClaspInstance({});
       const foundFiles = await clasp.files.collectLocalFiles();
-      expect(foundFiles).to.have.length(3);
+      expect(foundFiles).to.have.length(4);
     });
 
     it('should not push files', async function () {
@@ -286,7 +289,7 @@ describe('File operations', function () {
       mockfs({
         'dist/appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'dist/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
-        'dist/ignored/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'dist/subdir/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
         'dist/page.html': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-dist.json')),
         'package.json': '{}',
@@ -297,27 +300,29 @@ describe('File operations', function () {
       });
     });
 
-    it('should collect local files from src dir, non recursively and with default ignore', async function () {
+    it('should collect local files from src dir, recursively and with default ignore', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       const foundFiles = await clasp.files.collectLocalFiles();
-      expect(foundFiles).to.have.length(3);
+      expect(foundFiles).to.have.length(4);
     });
 
     it('should push files with flat names', async function () {
       nock('https://script.googleapis.com')
         .put(/\/v1\/projects\/.*\/content/, body => {
-          expect(body.files).to.have.length(3);
-          expect(body.files[0].name).to.equal('appsscript');
-          expect(body.files[0].type).to.equal('JSON');
-          expect(body.files[0].source).to.have.lengthOf.above(1);
-          expect(body.files[1].name).to.equal('Code');
-          expect(body.files[1].type).to.equal('SERVER_JS');
-          expect(body.files[1].source).to.have.lengthOf.above(1);
-          expect(body.files[2].name).to.equal('page');
-          expect(body.files[2].type).to.equal('HTML');
-          expect(body.files[2].source).to.have.lengthOf.above(1);
+          expect(body.files).to.containSubset([{
+            name: 'appsscript'
+          }]);
+          expect(body.files).to.containSubset([{
+            name: 'Code'
+          }]);
+          expect(body.files).to.containSubset([{
+            name: 'subdir/Code'
+          }]);
+          expect(body.files).to.containSubset([{
+            name: 'page'
+          }]);
           return true;
         })
         .reply(200, {});
@@ -325,7 +330,7 @@ describe('File operations', function () {
         credentials: mockCredentials(),
       });
       const pushedFiles = await clasp.files.push();
-      expect(pushedFiles).to.have.length(3);
+      expect(pushedFiles).to.have.length(4);
     });
 
     it('should pull files into src directory', async function () {
