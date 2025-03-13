@@ -478,6 +478,19 @@ To update/redeploy an existing deployment, provide the deployment ID.
 - `clasp create-deployment --deploymentId abcd1234` (redeploy and create new version)
 - `clasp create-deployment -V 7 -d "Updates sidebar logo." -i abdc1234`
 
+### Redeploy
+
+Updates an existing deployment. Same as `create-deployment -i id`.
+
+#### Options
+
+- `-V <version>` `--versionNumber <version>`: The project version to deploy at.
+- `-d <description>` `--description <description>`: The deployment description.
+
+#### Examples
+
+- `clasp update-deployment abcd1234` (redeploy and create new version)
+
 ### Undeploy
 
 Undeploys a deployment of a script.
