@@ -7,8 +7,8 @@
 To use `clasp run`, you need to complete 5 steps:
 
 - Set up the **Project ID** in your `.clasp.json` if missing.
-- Create an **OAuth Client ID** (Other). Download as `creds.json`.
-- `clasp login --creds creds.json` with this downloaded file.
+- Create an **OAuth Client ID** of type `Desktop Application`. Download as `client_secret.json`.
+- `clasp login --creds client_secret.json` with this downloaded file.
 - Add the following to `appsscript.json`:
   ```json
   "executionApi": {
