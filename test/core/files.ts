@@ -8,8 +8,8 @@ import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import {initClaspInstance} from '../../src/core/clasp.js';
+import {useChaiExtensions} from '../helpers.js';
 import {resetMocks, setupMocks} from '../mocks.js';
-import { useChaiExtensions } from '../helpers.js';
 
 useChaiExtensions();
 
@@ -60,18 +60,26 @@ describe('File operations', function () {
     it('should push files', async function () {
       nock('https://script.googleapis.com')
         .put(/\/v1\/projects\/.*\/content/, body => {
-          expect(body.files).to.containSubset([{
-            name: 'appsscript'
-          }]);
-          expect(body.files).to.containSubset([{
-            name: 'Code'
-          }]);
-          expect(body.files).to.containSubset([{
-            name: 'subdir/Code'
-          }]);
-          expect(body.files).to.containSubset([{
-            name: 'page'
-          }]);
+          expect(body.files).to.containSubset([
+            {
+              name: 'appsscript',
+            },
+          ]);
+          expect(body.files).to.containSubset([
+            {
+              name: 'Code',
+            },
+          ]);
+          expect(body.files).to.containSubset([
+            {
+              name: 'subdir/Code',
+            },
+          ]);
+          expect(body.files).to.containSubset([
+            {
+              name: 'page',
+            },
+          ]);
           return true;
         })
         .reply(200, {});
@@ -311,18 +319,26 @@ describe('File operations', function () {
     it('should push files with flat names', async function () {
       nock('https://script.googleapis.com')
         .put(/\/v1\/projects\/.*\/content/, body => {
-          expect(body.files).to.containSubset([{
-            name: 'appsscript'
-          }]);
-          expect(body.files).to.containSubset([{
-            name: 'Code'
-          }]);
-          expect(body.files).to.containSubset([{
-            name: 'subdir/Code'
-          }]);
-          expect(body.files).to.containSubset([{
-            name: 'page'
-          }]);
+          expect(body.files).to.containSubset([
+            {
+              name: 'appsscript',
+            },
+          ]);
+          expect(body.files).to.containSubset([
+            {
+              name: 'Code',
+            },
+          ]);
+          expect(body.files).to.containSubset([
+            {
+              name: 'subdir/Code',
+            },
+          ]);
+          expect(body.files).to.containSubset([
+            {
+              name: 'page',
+            },
+          ]);
           return true;
         })
         .reply(200, {});

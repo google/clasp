@@ -5,6 +5,7 @@ import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import {getDefaultProjectName} from '../../src/commands/create-script.js';
+import {useChaiExtensions} from '../helpers.js';
 import {
   mockCreateBoundScript,
   mockCreateScript,
@@ -14,7 +15,6 @@ import {
   setupMocks,
 } from '../mocks.js';
 import {runCommand} from './utils.js';
-import { useChaiExtensions } from '../helpers.js';
 
 useChaiExtensions();
 

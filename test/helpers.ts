@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import {use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiSubset from 'chai-subset';
-import {use} from 'chai';
 
 export function useChaiExtensions() {
   use(chaiAsPromised);

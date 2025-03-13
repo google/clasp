@@ -7,6 +7,7 @@ import {OAuth2Client} from 'google-auth-library';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import {initClaspInstance} from '../../src/core/clasp.js';
+import {useChaiExtensions} from '../helpers.js';
 import {
   mockDisableService,
   mockEnableService,
@@ -15,7 +16,6 @@ import {
   resetMocks,
   setupMocks,
 } from '../mocks.js';
-import { useChaiExtensions } from '../helpers.js';
 
 useChaiExtensions();
 

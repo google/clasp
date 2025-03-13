@@ -4,9 +4,9 @@ import {fileURLToPath} from 'url';
 import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
+import {useChaiExtensions} from '../helpers.js';
 import {mockListDeployments, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
-import { useChaiExtensions } from '../helpers.js';
 
 useChaiExtensions();
 

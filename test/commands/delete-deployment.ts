@@ -6,6 +6,7 @@ import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
+import {useChaiExtensions} from '../helpers.js';
 import {
   forceInteractiveMode,
   mockDeleteDeployment,
@@ -15,10 +16,8 @@ import {
   setupMocks,
 } from '../mocks.js';
 import {runCommand} from './utils.js';
-import { useChaiExtensions } from '../helpers.js';
 
 useChaiExtensions();
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

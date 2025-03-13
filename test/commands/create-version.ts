@@ -6,9 +6,9 @@ import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
+import {useChaiExtensions} from '../helpers.js';
 import {forceInteractiveMode, mockCreateVersion, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
-import { useChaiExtensions } from '../helpers.js';
 
 useChaiExtensions();
 

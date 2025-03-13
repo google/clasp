@@ -8,8 +8,8 @@ import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import {initClaspInstance} from '../../src/core/clasp.js';
+import {useChaiExtensions} from '../helpers.js';
 import {resetMocks, setupMocks} from '../mocks.js';
-import { useChaiExtensions } from '../helpers.js';
 
 useChaiExtensions();
 
