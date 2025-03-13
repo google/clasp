@@ -54,7 +54,7 @@ export const command = new Command('run-function')
         return;
       }
 
-      if (response && response.result) {
+      if (response && response.result !== undefined) {
         console.log(response.result);
       } else {
         const msg = intl.formatMessage({
