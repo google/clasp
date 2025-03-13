@@ -27,6 +27,9 @@ import {makeProgram} from './commands/program.js';
 
 const debug = Debug('clasp:cli');
 
+// Suppress warnings about punycode and other issues caused by dependencies
+process.removeAllListeners('warning');
+
 // Ensure any unhandled exception won't go unnoticed
 loudRejection();
 
