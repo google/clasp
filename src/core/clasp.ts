@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import {OAuth2Client} from 'google-auth-library';
 import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
+import {getUserInfo} from '../auth/auth.js';
 import {Files} from './files.js';
 import {Functions} from './functions.js';
 import {Logs} from './logs.js';
@@ -47,6 +48,19 @@ export class Clasp {
     this.project = new Project(options);
     this.logs = new Logs(options);
     this.functions = new Functions(options);
+  }
+
+  async authorizedUser() {
+    if (!this.options.credentials) {
+      return undefined;
+    }
+    try {
+      const user = await getUserInfo(this.options.credentials);
+      return user?.id;
+    } catch (err) {
+      debug('Unable to fetch user info, %O', err);
+    }
+    return undefined;
   }
 
   withScriptId(scriptId: string) {

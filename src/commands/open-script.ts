@@ -1,5 +1,6 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
+import {INCLUDE_USER_HINT_IN_URL} from '../experiments.js';
 import {intl} from '../intl.js';
 import {openUrl} from './utils.js';
 
@@ -19,6 +20,10 @@ export const command = new Command('open-script')
       this.error(msg);
     }
 
-    const url = `https://script.google.com/d/${scriptId}/edit`;
-    await openUrl(url);
+    const url = new URL(`https://script.google.com/d/${scriptId}/edit`);
+    if (INCLUDE_USER_HINT_IN_URL) {
+      const userHint = await clasp.authorizedUser();
+      url.searchParams.set('authUser', userHint ?? '');
+    }
+    await openUrl(url.toString());
   });

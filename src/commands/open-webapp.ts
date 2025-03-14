@@ -1,6 +1,7 @@
 import {Command} from 'commander';
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
+import {INCLUDE_USER_HINT_IN_URL} from '../experiments.js';
 import {intl} from '../intl.js';
 import {ellipsize, isInteractive, openUrl} from './utils.js';
 
@@ -49,7 +50,7 @@ export const command = new Command('open-web-app')
 
     if (!deploymentId) {
       const msg = intl.formatMessage({
-        defaultMessage: 'Deployment ID is requrired.',
+        defaultMessage: 'Deployment ID is required.',
       });
       this.error(msg);
     }
@@ -67,6 +68,10 @@ export const command = new Command('open-web-app')
       this.error(msg);
     }
 
-    const url = webAppEntry.webApp.url;
-    await openUrl(url);
+    const url = new URL(webAppEntry.webApp.url);
+    if (INCLUDE_USER_HINT_IN_URL) {
+      const userHint = await clasp.authorizedUser();
+      url.searchParams.set('authUser', userHint ?? '');
+    }
+    await openUrl(url.toString());
   });
