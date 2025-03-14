@@ -17,7 +17,7 @@ jobs:
       PROJECT_ID: ${{ vars.TEST_PROJECT_ID }}
     strategy:
       matrix:
-        node-version: [22]
+        node-version: [20]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - uses: actions/checkout@v2
