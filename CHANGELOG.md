@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.0.2-alpha](https://github.com/google/clasp/compare/v3.0.1-alpha1...v3.0.2-alpha) (2025-03-14)
+
+
+### Features
+
+* Add file extension settings for HTML ([e4dd863](https://github.com/google/clasp/commit/e4dd863de347e3f1747d7aff283432e9f8eb4697))
+* Display logs in local time ([8952aff](https://github.com/google/clasp/commit/8952aff81abc986788c1e4daca8c416ee3813d7f))
+* Move pdate deployment into a separate command ([#752](https://github.com/google/clasp/issues/752)) ([e4dd025](https://github.com/google/clasp/commit/e4dd025377b8961dfbd8ce5170112563d40f5ff1))
+
+
+### Bug Fixes
+
+* Clarify filePushOrder behavior ([eea22cb](https://github.com/google/clasp/commit/eea22cba387fd92e571d7c1ebe322be1c360972a))
+* Fix create-script command/alias names ([55a33c6](https://github.com/google/clasp/commit/55a33c6a4780172c16ff8ee7316631787c9f13e5))
+* Suppress punycode deprecation warning temporarily until dependencies updated ([ec352e5](https://github.com/google/clasp/commit/ec352e57c3184a23dd203f1468f7ecbfa820cc98))
+* Tighten result check on run to correctly output falsy values [#770](https://github.com/google/clasp/issues/770) ([0a3947b](https://github.com/google/clasp/commit/0a3947ba6a6f14cfcbf7f8693949044064eb2738))
+* Update run instructions to correct oauth client type ([#997](https://github.com/google/clasp/issues/997)) ([55793c9](https://github.com/google/clasp/commit/55793c9b2eaf762ac93283c64b032ab84efb1c5d))
+
+
+### Miscellaneous Chores
+
+* Release 3.0.2-alpha ([e820d08](https://github.com/google/clasp/commit/e820d08667787a4a8dae2cc8a514b886a31195fc))
+
 ## [3.0.1-alpha1](https://github.com/google/clasp/compare/v3.0.0-alpha1...v3.0.1-alpha1) (2025-03-11)
 
 
