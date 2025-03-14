@@ -30,6 +30,7 @@ export const command = new Command('push')
             defaultMessage: 'Skipping push.',
           });
           console.log(msg);
+          return;
         }
       }
       const spinnerMsg = intl.formatMessage({

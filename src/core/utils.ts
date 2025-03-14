@@ -174,7 +174,7 @@ export function handleApiError(error: unknown): never {
     throw new Error('Unexpected error', {
       cause: {
         code: 'UNEPECTED_ERROR',
-        message: String(error),
+        message: new String(error),
         error: error,
       },
     });

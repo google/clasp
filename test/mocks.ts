@@ -30,32 +30,41 @@ export function mockOAuthRefreshRequest() {
   });
 }
 
-export function mockScriptDownload({scriptId = 'mock-script-id', version}: {scriptId: string; version?: number}) {
+export function mockScriptDownload({
+  scriptId = 'mock-script-id',
+  version,
+  files = [
+    {
+      name: 'appsscript',
+      type: 'JSON',
+      source: '{ "timeZone": "America/Los_Angeles", "dependencies": {}, "exceptionLogging": "STACKDRIVER"}',
+    },
+    {
+      name: 'Code',
+      type: 'SERVER_JS',
+      source: 'function helloWorld() {\n  console.log("Hello, world!");\n}',
+    },
+  ],
+}: {scriptId: string; version?: number; files?: Array<{name: string; type: string; source: string}>}) {
   const query = version ? {versionNumber: version} : {};
-  nock('https://script.googleapis.com')
-    .get(`/v1/projects/${scriptId}/content`)
-    .query(query)
-    .reply(200, {
-      scriptId,
-      files: [
-        {
-          name: 'appsscript',
-          type: 'JSON',
-          source: '{ "timeZone": "America/Los_Angeles", "dependencies": {}, "exceptionLogging": "STACKDRIVER"}',
-        },
-        {
-          name: 'Code',
-          type: 'SERVER_JS',
-          source: 'function helloWorld() {\n  console.log("Hello, world!");\n}',
-        },
-      ],
-    });
+  nock('https://script.googleapis.com').get(`/v1/projects/${scriptId}/content`).query(query).reply(200, {
+    scriptId,
+    files,
+  });
 }
 
 export function mockScriptDownloadError({
   scriptId = 'mock-script-id',
   statusCode = 400,
-  body = {},
+  body = {
+    error: {
+      errors: [
+        {
+          message: 'Mock error',
+        },
+      ],
+    },
+  },
 }: {scriptId?: string; statusCode?: number; body?: any}) {
   nock('https://script.googleapis.com').get(`/v1/projects/${scriptId}/content`).reply(statusCode, body);
 }
@@ -385,4 +394,8 @@ export function mockListLogEntries({
       entries,
       nextPageToken: undefined,
     });
+}
+
+export function mockScriptPush({scriptId = 'mock-script-id'}: {scriptId?: string}) {
+  nock('https://script.googleapis.com').put(`/v1/projects/${scriptId}/content`).reply(200, {});
 }
