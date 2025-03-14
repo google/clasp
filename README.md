@@ -118,22 +118,22 @@ There are several template projects on GitHub that show how to transform Typescr
 
 #### Command renames
 
-Clasp 3.x introdces some breaking changes from 2.x. For common use cases these changes should not impact usage, but some lesser used commands have been restructured and renamed to improve consistency.
+Clasp 3.x introduces some breaking changes from 2.x. For common use cases these changes should not impact usage, but some lesser used commands have been restructured and renamed to improve consistency.
 
 | 2.x                        | 3.x                                    |
 |----------------------------|----------------------------------------|
-|open                        | open-script                            |
-|open --web                  | open-web-app                           |
-|open --addon                | open-container                         |
-|open --creds                | open-credentials-setup                 |
-|login --creds <file>        | login -u <name> --creds <file>         |
-|logs --open                 | open-logs                              |
-|logs --setup                | N/A                                    |
-|apis --open                 | open-api-console                       |
-|apis enable <api>           | enable-api <api>                       |
-|apis disable <api>          | disable-api <api>                      |
-|settings                    | N/A                                    |
-|----------------------------|----------------------------------------|
+|`open`                        | `open-script`                        |
+|`open --web`                  | `open-web-app`                       |
+|`open --addon`                | `open-container`                     |
+|`open --creds`                | `open-credentials-setup`             |
+|`login --creds <file>`        | `login -u <name> --creds <file>`     |
+|`logs --open`                 | `open-logs`                          |
+|`logs --setup`                | N/A                                  |
+|`apis --open`                 | `open-api-console`                   |
+|`apis enable <api>`           | `enable-api <api>`                   |
+|`apis disable <api>`          | `disable-api <api>`                  |
+|`deploy -i <id>`              | `update-deployment <id>`             |
+|`settings`                    | N/A                                  |
 
 Other commands have also been renamed but retain aliases for compatibility.
 
