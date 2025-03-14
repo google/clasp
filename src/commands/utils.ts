@@ -6,7 +6,7 @@ import ora from 'ora';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
 
-export async function assertScriptConfigured(clasp: Clasp) {
+export function assertScriptConfigured(clasp: Clasp) {
   if (clasp.project.scriptId) {
     return;
   }
@@ -17,7 +17,7 @@ export async function assertScriptConfigured(clasp: Clasp) {
   throw new Error(msg);
 }
 
-export async function assertGcpProjectConfigured(clasp: Clasp) {
+export function assertGcpProjectConfigured(clasp: Clasp) {
   if (clasp.project.projectId) {
     return;
   }
@@ -87,6 +87,7 @@ export function ellipsize(value: string, length: number) {
 // Exporting and wrapping to allow it to be toggled in tests
 export const claspEnv = {
   isInteractive: process.stdout.isTTY,
+  isBrowserPresent: process.stdout.isTTY,
 };
 
 export function isInteractive() {
@@ -94,7 +95,7 @@ export function isInteractive() {
 }
 
 export async function openUrl(url: string) {
-  if (!isInteractive()) {
+  if (!claspEnv.isBrowserPresent) {
     const msg = intl.formatMessage(
       {
         defaultMessage: 'Open {url} in your browser to continue.',

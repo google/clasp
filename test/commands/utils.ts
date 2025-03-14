@@ -44,7 +44,8 @@ export async function runCommand(args: string[], passthrough = true): Promise<Co
     await clasp.parseAsync(['node', 'index.js', ...args]);
   } catch (err) {
     if (err !== EXIT_SENTINEL) {
-      console.log(err);
+      result.exitCode = 1;
+      console.error(err);
     }
   } finally {
     process.stdout.write = originalStdout;

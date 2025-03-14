@@ -58,7 +58,7 @@ describe('Enable API command', function () {
 
     it('should reject unknown services', async function () {
       const out = await runCommand(['enable-api', 'xyz']);
-      expect(out.stdout).to.contain('not a valid');
+      expect(out.stderr).to.contain('not a valid');
     });
   });
 });

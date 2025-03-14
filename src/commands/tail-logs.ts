@@ -60,6 +60,7 @@ export const command = new Command('tail-logs')
 
     assertGcpProjectConfigured(clasp);
 
+    console.log('PAST', clasp.project.projectId);
     await fetchAndPrintLogs();
 
     if (watch) {
@@ -90,6 +91,10 @@ function formatEntry(entry: loggingV2.Schema$LogEntry, options: FormatOptions): 
     return undefined;
   }
 
+  if (!timestamp) {
+    return undefined;
+  }
+
   let functionName = resource.labels?.['function_name'] ?? 'N/A';
   let payloadData = '';
 
@@ -114,9 +119,21 @@ function formatEntry(entry: loggingV2.Schema$LogEntry, options: FormatOptions): 
   functionName = functionName.padEnd(15);
   payloadData = payloadData.padEnd(20);
 
-  const localizedTime = intl.formatTime(new Date(timestamp ?? ''));
+  const localizedTime = getLocalISODateTime(new Date(timestamp));
+
   if (options.simplified) {
     return `${coloredSeverity} ${functionName} ${payloadData}`;
   }
   return `${coloredSeverity} ${localizedTime} ${functionName} ${payloadData}`;
+}
+
+function getLocalISODateTime(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }

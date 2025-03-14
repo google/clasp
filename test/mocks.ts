@@ -11,6 +11,7 @@ export function forceInteractiveMode(value: boolean) {
 export function setupMocks() {
   nock.disableNetConnect();
   mockfs({});
+  claspEnv.isBrowserPresent = false;
 }
 
 export function resetMocks() {
@@ -19,6 +20,7 @@ export function resetMocks() {
   nock.enableNetConnect();
   sinon.restore();
   claspEnv.isInteractive = process.stdout.isTTY;
+  claspEnv.isBrowserPresent = process.stdout.isTTY;
 }
 
 export function mockOAuthRefreshRequest() {
@@ -351,5 +353,36 @@ export function mockListEnabledServices({projectId = 'mock-project-id'}: {projec
           },
         },
       ],
+    });
+}
+
+export function mockListLogEntries({
+  projectId = 'mock-gcp-project',
+  timestamp = '2023-10-27T10:00:00Z',
+  entries = [
+    {
+      timestamp,
+      logName: `projects/${projectId}/logs/stdout`,
+      severity: 'INFO',
+      insertId: 'test-insert-id',
+      resource: {
+        type: 'app_script_function',
+        labels: {
+          project_id: projectId,
+          function_name: 'myFunction',
+        },
+      },
+      textPayload: 'test log',
+    },
+  ],
+}: {projectId?: string; timestamp?: string; entries?: object[]} = {}) {
+  nock('https://logging.googleapis.com')
+    .post(/\/v2\/entries:list/, body => {
+      expect(body.resourceNames).to.eql([`projects/${projectId}`]);
+      return true;
+    })
+    .reply(200, {
+      entries,
+      nextPageToken: undefined,
     });
 }
