@@ -70,8 +70,7 @@ export const command = new Command('clone-script')
       files.forEach(f => console.log(`└─ ${f.localPath}`));
       const successMessage = intl.formatMessage(
         {
-          defaultMessage: `Warning: files in subfolder are not accounted for unless you set a .claspignore file.
-        Cloned {count, plural, 
+          defaultMessage: `Cloned {count, plural, 
           =0 {no files.}
           one {one file.}
           other {# files}}.`,
