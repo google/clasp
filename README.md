@@ -182,6 +182,13 @@ https://www.googleapis.com/auth/userinfo.profile
 https://www.googleapis.com/auth/cloud-platform
 ```
 
+### Allow-list clasp
+
+If your organization restricts authorization for third-party apps, you may either:
+
+* Request your admin allow-list clasp's client id `1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com`
+* Set up an internal-only GCP project for clasp as described in the previous section.
+
 ### Service accounts
 
 Use the `--adc` option on any command to read credentials from the environemtn using Google Cloud's [application default credentials](https://cloud.google.com/docs/authentication/application-default-credentials) mechanism.
