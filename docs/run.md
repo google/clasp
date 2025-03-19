@@ -8,7 +8,7 @@ To use `clasp run`, you need to complete 5 steps:
 
 - Set up the **Project ID** in your `.clasp.json` if missing.
 - Create an **OAuth Client ID** of type `Desktop Application`. Download as `client_secret.json`.
-- `clasp login --creds client_secret.json` with this downloaded file.
+- `clasp login --creds client_secret.json --user <key>` with this downloaded file.
 - Add the following to `appsscript.json`:
   ```json
   "executionApi": {
@@ -33,12 +33,13 @@ To use `clasp run`, you need to complete 5 steps:
     - If the `Project Number` is missing,
       - Click `Change Project`, paste the PROJECT_NUMBER, and click `Set project`
 1. Use your own OAuth 2 client. Create one by following these instructions:
-    - `clasp open --creds`
+    - `clasp open-credentials-setup`
     - Press **Create credentials** > **OAuth client ID**
     - Application type: **Desktop App**
     - **Create** > **OK**
-    - Download the file (⬇), move it to your directory, and name it `creds.json`. Please keep this file secret!
-1. Call `clasp login --user <name> --creds creds.json`
+    - Download the file (⬇), move it to your directory, and name it `client_secret.json`. Please keep this file secret!
+1. Ensure that the [scopes required to run the script are listed in `appsscript.json`](https://developers.google.com/apps-script/concepts/scopes#set-explicit).
+1. Call `clasp login --user <name> --use-project-scopes --creds client_secret.json`
 1. Add the following to `appsscript.json`:
       ```json
       "executionApi": {
@@ -74,6 +75,6 @@ To run functions that use these scopes, you must add the scopes to your Apps Scr
 
 - `clasp open`
 - `File > Project Properties > Scopes`
-- Add these scopes to your `appsscript.json`.
-- Log in again: `clasp login --creds creds.json`. This will add these scopes to your credentials.
+- Add these [scopes to your `appsscript.json`](https://developers.google.com/apps-script/concepts/scopes#set-explicit).
+- Log in again: `clasp login --user <name> --use-project-scopes --creds creds.json`. This will add these scopes to your credentials.
 - `clasp run --user <name> sendMail`
