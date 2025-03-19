@@ -81,7 +81,7 @@ clasp
 - [`clasp clone-script <scriptId | scriptURL> [versionNumber] [--rootDir <dir>]`](#clone)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch] [--force]`](#push)
-- [`clasp status [--json]`](#status)
+- [`clasp show-file-status [--json]`](#status)
 - [`clasp open-script](#open)
 - [`clasp list-deployments`](#deployments)
 - [`clasp create-deployment [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
@@ -322,7 +322,6 @@ Logs the user in. Saves the client credentials to a `.clasprc.json` file in the 
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
 - `--creds <file>`: Use custom credentials used for `clasp run`. Saves a `.clasprc.json` file to current working directory. This file should be private!
-- `--status`: Print who you are currently logged in as, if anyone.
 - `--redirect-port <port>`: Specify a custom port for the local redirect server during the login process. Useful for environments where a specific port is required.
 
 #### Examples
