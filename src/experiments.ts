@@ -10,12 +10,7 @@ export function isEnabled(experimentName: string, defaultValue = false) {
     return true;
   }
 
-  if (envVarValue.toLowerCase() === 'false' || envVarValue === '0') {
-    return false;
-  }
-
-  // If it's not a boolean, return the raw string value (for string experiments)
-  return envVarValue;
+  return false;
 }
 
 export const INCLUDE_USER_HINT_IN_URL = isEnabled('enable_user_hints');
