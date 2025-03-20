@@ -24,6 +24,7 @@ import Debug from 'debug';
 import loudRejection from 'loud-rejection';
 
 import {makeProgram} from './commands/program.js';
+import { CommanderError } from 'commander';
 
 const debug = Debug('clasp:cli');
 
@@ -41,7 +42,9 @@ try {
   await program.parseAsync(process.argv);
 } catch (error) {
   debug('Error: %O', error);
-  if (error instanceof Error) {
+  if (error instanceof CommanderError) {
+    debug('Ignoring commander error, output already logged');
+  } else if (error instanceof Error) {
     process.exitCode = 1;
     console.error(error.message);
   } else {
