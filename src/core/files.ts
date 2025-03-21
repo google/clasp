@@ -1,6 +1,6 @@
 import path from 'path';
 import chalk from 'chalk';
-import chokidar from 'chokidar';
+import chokidar, {Matcher} from 'chokidar';
 import Debug from 'debug';
 import {fdir} from 'fdir';
 import fs from 'fs/promises';
@@ -39,8 +39,14 @@ async function getLocalFiles(rootDir: string, ignorePatterns: string[], recursiv
     fdirBuilder = fdirBuilder.withMaxDepth(0);
   }
   const files = await fdirBuilder.crawl(rootDir).withPromise();
-  const filteredFiles = micromatch.not(files, ignorePatterns, {dot: true});
-  debug('Filtered %d files from ignore rules', files.length - filteredFiles.length);
+  let filteredFiles: string[];
+  if (ignorePatterns && ignorePatterns.length) {
+    filteredFiles = micromatch.not(files, ignorePatterns, {dot: true});
+    debug('Filtered %d files from ignore rules', files.length - filteredFiles.length);
+  } else {
+    debug('Ignore rules are empty, using all files.');
+    filteredFiles = files;
+  }
   filteredFiles.sort((a, b) => a.localeCompare(b));
   return filteredFiles[Symbol.iterator]();
 }
@@ -222,13 +228,17 @@ export class Files {
     const onChange = async (path: string) => {
       collector(path);
     };
+    let matcher: Matcher | undefined;
+    if (ignorePatterns && ignorePatterns.length) {
+      matcher = file => {
+        return micromatch.not([file], ignorePatterns, {dot: true}).length === 0;
+      };
+    }
     const watcher = chokidar.watch(this.options.files.contentDir, {
       persistent: true,
       ignoreInitial: true,
       cwd: this.options.files.contentDir,
-      ignored: file => {
-        return micromatch.not([file], ignorePatterns, {dot: true}).length === 0;
-      },
+      ignored: matcher,
     });
     watcher.on('ready', onReady); // Push on start
     watcher.on('add', onChange);

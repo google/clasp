@@ -526,4 +526,28 @@ describe('File operations', function () {
       expect(pulledFiles[2].localPath).to.equal('Page.htmlx');
     });
   });
+
+  describe('with valid project, empty ignore file', function () {
+    beforeEach(function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'subdir/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'page.html': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
+        '.claspignore': '',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+
+    it('should collect local files', async function () {
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      const foundFiles = await clasp.files.collectLocalFiles();
+      expect(foundFiles).to.have.length(4);
+    });
+  });
 });
