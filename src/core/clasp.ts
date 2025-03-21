@@ -131,7 +131,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
     project: {
       scriptId: config.scriptId,
       projectId: config.projectId,
-      parentId: config.parentId,
+      parentId: firstValue(config.parentId),
     },
   });
 }
@@ -244,4 +244,11 @@ async function hasReadAccess(path: string): Promise<boolean> {
     return false;
   }
   return true;
+}
+
+function firstValue<T>(values: T | T[] | undefined): T | undefined {
+  if (Array.isArray(values) && values.length > 0) {
+    return values[0];
+  }
+  return values as T | undefined;
 }

@@ -316,6 +316,7 @@ export class Project {
     const settings = {
       scriptId: this.options.project.scriptId,
       rootDir: srcDir,
+      parentId: this.options.project.parentId,
       projectId: this.options.project.projectId,
       scriptExtensions: this.options.files.fileExtensions['SERVER_JS'],
       htmlExtensions: this.options.files.fileExtensions['HTML'],
