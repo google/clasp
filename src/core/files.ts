@@ -191,7 +191,7 @@ export class Files {
         const localPath = path.relative(process.cwd(), path.join(contentDir, filename));
         const resolvedPath = path.relative(contentDir, localPath);
         const parsedPath = path.parse(resolvedPath);
-        let remotePath = path.format({dir: normalizePath(parsedPath.dir), name: parsedPath.name});
+        let remotePath = normalizePath(path.format({ dir: parsedPath.dir, name: parsedPath.name }));
 
         const type = getFileType(localPath, fileExtensionMap);
         if (!type) {
