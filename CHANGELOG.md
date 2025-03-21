@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.0.3-alpha](https://github.com/google/clasp/compare/v3.0.2-alpha...v3.0.3-alpha) (2025-03-21)
+
+
+### Bug Fixes
+
+* Correctly ignore errors fetching userinfo when logging in with custom creds. ([#1040](https://github.com/google/clasp/issues/1040)) ([6c894f2](https://github.com/google/clasp/commit/6c894f210f96d07a6992a997ddc21e93b0e3b387))
+* Ensure parent ID is saved in .clasp.json ([e2e902c](https://github.com/google/clasp/commit/e2e902c9335cc13859bda81ab7248b9331df4a81))
+* Fix duplicate output of some error messages ([82e921f](https://github.com/google/clasp/commit/82e921fb4f28d71002a77cd617a5a1e72eadb69b))
+* Remove other instance of .claspignore file warning as now obsolete ([0b29163](https://github.com/google/clasp/commit/0b291637b2bb26ddf00094d6773bd100c4a59ae8))
+* Skip micromatch when ignore file is empty ([#1043](https://github.com/google/clasp/issues/1043)) ([121dd26](https://github.com/google/clasp/commit/121dd260a7539cf3d51a406b6752dec9e5ff0beb))
+* Update documentation on how to accomodate policy restrictions on 3P apps ([#940](https://github.com/google/clasp/issues/940)) ([e35cb84](https://github.com/google/clasp/commit/e35cb84098da4658b91ad934bca5810a3f4a242e))
+* Update run instructions for 3.x ([f75059e](https://github.com/google/clasp/commit/f75059e83df85ba043a299393a4d5611e0c77eb5))
+
 ## [3.0.2-alpha](https://github.com/google/clasp/compare/v3.0.1-alpha1...v3.0.2-alpha) (2025-03-14)
 
 
