@@ -23,8 +23,8 @@
 import Debug from 'debug';
 import loudRejection from 'loud-rejection';
 
+import {CommanderError} from 'commander';
 import {makeProgram} from './commands/program.js';
-import { CommanderError } from 'commander';
 
 const debug = Debug('clasp:cli');
 
