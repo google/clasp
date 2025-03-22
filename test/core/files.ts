@@ -39,6 +39,7 @@ describe('File operations', function () {
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
         'subdir/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'subdir/subdir/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
         'page.html': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
         'package.json': '{}',
@@ -54,7 +55,7 @@ describe('File operations', function () {
         credentials: mockCredentials(),
       });
       const foundFiles = await clasp.files.collectLocalFiles();
-      expect(foundFiles).to.have.length(4);
+      expect(foundFiles).to.have.length(5);
     });
 
     it('should push files', async function () {
