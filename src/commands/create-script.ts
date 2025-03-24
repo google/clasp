@@ -68,7 +68,7 @@ export const command = new Command('create-script')
       const url = `https://drive.google.com/open?id=${parentId}`;
       const successMessage = intl.formatMessage(
         {
-          defaultMessage: 'Created new container: [url}',
+          defaultMessage: 'Created new container: {url}',
         },
         {
           url,
