@@ -43,6 +43,7 @@
 
 * CLI syntax changed for some commands. Flattens the command structure so it is consistent.
 * Typescript is no longer transpiled by clasp. Use Typescript + Rollup or another bundler to transpile code before pushing.
+* When using the --rootDir option to create or clone a script, the `.clasp.json` file is always created in the current working directory and the relative path to the specified directory is saved in the .clasp.json file.
 
 ### Features
 
