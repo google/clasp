@@ -77,7 +77,7 @@ export const command = new Command('push')
       console.log(msg);
     };
 
-    const stopWatching = clasp.files.watchLocalFiles(onReady, async paths => {
+    const stopWatching = await clasp.files.watchLocalFiles(onReady, async paths => {
       if (!(await onChange(paths))) {
         stopWatching();
       }

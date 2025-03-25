@@ -126,13 +126,16 @@ function debounceFileChanges<T>(callback: (files: T[]) => Promise<void> | void, 
   return function (path: T) {
     // Already tracked as changed, ignore
     if (collectedPaths.includes(path)) {
+      debug('Ignoring pending file change for path %s', path);
       return;
     }
 
+    debug('Debouncing change for path %s', path);
     collectedPaths.push(path);
 
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
+      debug('Firing debounced file');
       callback(collectedPaths);
       collectedPaths = [];
     }, delayMs);
@@ -226,12 +229,18 @@ export class Files {
     const collector = debounceFileChanges(onFilesChanged, 500);
 
     const onChange = async (path: string) => {
+      debug('Have file changes: %s', path);
       collector(path);
     };
     let matcher: Matcher | undefined;
     if (ignorePatterns && ignorePatterns.length) {
-      matcher = file => {
-        return micromatch.not([file], ignorePatterns, {dot: true}).length === 0;
+      matcher = (file, stats) => {
+        if (!stats?.isFile()) {
+          return false;
+        }
+        file = path.relative(this.options.files.projectRootDir, file);
+        const ignore = micromatch.not([file], ignorePatterns, {dot: true}).length === 0;
+        return ignore;
       };
     }
     const watcher = chokidar.watch(this.options.files.contentDir, {
@@ -244,8 +253,13 @@ export class Files {
     watcher.on('add', onChange);
     watcher.on('change', onChange);
     watcher.on('unlink', onChange);
-
-    return async () => await watcher.close();
+    watcher.on('error', err => {
+      debug('Unexpected error during watch: %O', err);
+    });
+    return async () => {
+      debug('Stopping watch');
+      await watcher.close();
+    };
   }
 
   async getChangedFiles(): Promise<ProjectFile[]> {
