@@ -61,17 +61,20 @@ export const command = new Command('create-script')
       const spinnerMsg = intl.formatMessage({
         defaultMessage: 'Creating script...',
       });
-      const {parentId} = await withSpinner(
+      const {parentId, scriptId} = await withSpinner(
         spinnerMsg,
         async () => await clasp.project.createWithContainer(name, mimeType),
       );
-      const url = `https://drive.google.com/open?id=${parentId}`;
+      const parentUrl = `https://drive.google.com/open?id=${parentId}`;
+      const scriptUrl = `https://script.google.com/d/${scriptId}/edit`;
       const successMessage = intl.formatMessage(
         {
-          defaultMessage: 'Created new container: {url}',
+          defaultMessage: 'Created new document: {parentUrl}{br}Created new script: {scriptUrl}',
         },
         {
-          url,
+          parentUrl,
+          scriptUrl,
+          br: '\n',
         },
       );
       console.log(successMessage);
@@ -80,14 +83,20 @@ export const command = new Command('create-script')
         defaultMessage: 'Creating script...',
       });
       const scriptId = await withSpinner(spinnerMsg, async () => await clasp.project.createScript(name, parentId));
-
-      const url = `https://script.google.com/d/${scriptId}/edit`;
+      const parentUrl = `https://drive.google.com/open?id=${parentId}`;
+      const scriptUrl = `https://script.google.com/d/${scriptId}/edit`;
       const successMessage = intl.formatMessage(
         {
-          defaultMessage: 'Created new script: {url}',
+          defaultMessage: `Created new script: {scriptUrl}{parentId, select,
+            undefined {}
+            other {{br}Bound to document: {parentUrl}}
+          }`,
         },
         {
-          url,
+          parentId,
+          parentUrl,
+          scriptUrl,
+          br: '\n',
         },
       );
       console.log(successMessage);
