@@ -111,9 +111,10 @@ robust support for Typescript features along with ESM module and NPM package sup
 
 There are several template projects on GitHub that show how to transform Typescript code into Apps Script that are all excellent choices.
 
-* https://github.com/sqrrrl/apps-script-typescript-rollup-starter
 * https://github.com/WildH0g/apps-script-engine-template
 * https://github.com/tomoyanakano/clasp-typescript-template
+* https://github.com/google/aside
+* https://github.com/sqrrrl/apps-script-typescript-rollup-starter
 
 
 #### Command renames
