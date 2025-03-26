@@ -372,8 +372,8 @@ describe('File operations', function () {
       });
       const pulledFiles = await clasp.files.pull();
       expect(pulledFiles).to.have.length(2);
-      expect(pulledFiles[0].localPath).to.equal('dist/appsscript.json');
-      expect(pulledFiles[1].localPath).to.equal('dist/Code.js');
+      expect(pulledFiles[0].localPath).to.equal(path.normalize('dist/appsscript.json'));
+      expect(pulledFiles[1].localPath).to.equal(path.normalize('dist/Code.js'));
     });
 
     afterEach(function () {
@@ -450,10 +450,10 @@ describe('File operations', function () {
         credentials: mockCredentials(),
       });
       const foundFiles = await clasp.files.getUntrackedFiles();
-      expect(foundFiles).to.include('node_modules/');
-      expect(foundFiles).to.not.include('node_modules/test/');
-      expect(foundFiles).to.not.include('node_modules/test/file1.js');
-      expect(foundFiles).to.include('src/readme.md');
+      expect(foundFiles).to.include(path.normalize('node_modules/'));
+      expect(foundFiles).to.not.include(path.normalize('node_modules/test/'));
+      expect(foundFiles).to.not.include(path.normalize('node_modules/test/file1.js'));
+      expect(foundFiles).to.include(path.normalize('src/readme.md'));
     });
   });
 
