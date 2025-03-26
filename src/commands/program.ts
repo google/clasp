@@ -29,7 +29,7 @@ import {command as tailLogsCommand} from './tail-logs.js';
 
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';
-import {readPackageUpSync} from 'read-pkg-up';
+import {readPackageUpSync} from 'read-package-up';
 import {initAuth} from '../auth/auth.js';
 import {initClaspInstance} from '../core/clasp.js';
 import {intl} from '../intl.js';
