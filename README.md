@@ -152,7 +152,7 @@ Examples:
 clasp login # Saves as default credentials
 clasp clone # User not specified, runs using default credentials
 clasp login --user testaccount # Authorized new named credentials
-claso run-function --user testaccount myFunction # Runs function as test account
+clasp run-function --user testaccount myFunction # Runs function as test account
 ```
 
 ### Bring your own project/credentials
