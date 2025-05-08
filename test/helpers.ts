@@ -2,11 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import chaiSubset from 'chai-subset';
 
 export function useChaiExtensions() {
   use(chaiAsPromised);
-  use(chaiSubset);
   use(chaiFileExists);
 }
 
