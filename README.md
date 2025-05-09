@@ -81,7 +81,7 @@ clasp
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch] [--force]`](#push)
 - [`clasp show-file-status [--json]`](#status)
-- [`clasp open-script](#open)
+- [`clasp open-script`](#open)
 - [`clasp list-deployments`](#deployments)
 - [`clasp create-deployment [--versionNumber <version>] [--description <description>] [--deploymentId <id>]`](#deploy)
 - [`clasp delete-deployment [deploymentId] [--all]`](#undeploy)
@@ -97,7 +97,7 @@ clasp
 - [`clasp list-apis`](#apis)
 - [`clasp enable-api<api>`](#apis)
 - [`clasp disable-api <api>`](#apis)
-- [`clasp run-function [function]`](#clas-run)
+- [`clasp run-function [function]`](#clasp-run)
 
 ## Guides
 
@@ -143,7 +143,7 @@ Most command require user authorization. Run `clasp login` to authorize access t
 
 #### Multiple user support
 
-Use the global `--user` option to switch between accounts. THis support both running clasp as different users as well as when invoking the `clasp run-function` command.
+Use the global `--user` option to switch between accounts. This supports both running clasp as different users as well as when invoking the `clasp run-function` command.
 
 Examples:
 
@@ -151,7 +151,7 @@ Examples:
 clasp login # Saves as default credentials
 clasp clone # User not specified, runs using default credentials
 clasp login --user testaccount # Authorized new named credentials
-claso run-function --user testaccount myFunction # Runs function as test account
+clasp run-function --user testaccount myFunction # Runs function as test account
 ```
 
 ### Bring your own project/credentials
@@ -160,9 +160,9 @@ While clasp includes a default OAuth client, using your own project is recommend
 
 1. [Create a new project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) in the Google Cloud Developer Console.
 1. [Create an OAuth client](https://support.google.com/cloud/answer/15549257?hl=en#:~:text=To%20create%20an%20OAuth%202.0,are%20yet%20to%20do%20so.). The client type must be `Desktop Application`. Download and save the generated client secrets file. This is required when authorizing using the`clasp login --creds <filename>` command.
-1. [Enable services](https://cloud.google.com/endpoints/docs/openapi/enable-api). For full functionaliy, clasp requires the following:
-  * Apps SCript API - `script.googleapis.com` (required)
-  * Service Usage API - `serviceusage.googleapis.com` (require to list/enable/disable APIs)
+1. [Enable services](https://cloud.google.com/endpoints/docs/openapi/enable-api). For full functionality, clasp requires the following:
+  * Apps Script API - `script.googleapis.com` (required)
+  * Service Usage API - `serviceusage.googleapis.com` (required to list/enable/disable APIs)
   * Google Drive API - `drive.googleapis.com` (required to list scripts, create container-bound scripts)
   - Cloud Logging API - `logging.googleapis.com` (required to read logs)
 
@@ -191,7 +191,7 @@ If your organization restricts authorization for third-party apps, you may eithe
 
 ### Service accounts
 
-Use the `--adc` option on any command to read credentials from the environemtn using Google Cloud's [application default credentials](https://cloud.google.com/docs/authentication/application-default-credentials) mechanism.
+Use the `--adc` option on any command to read credentials from the environment using Google Cloud's [application default credentials](https://cloud.google.com/docs/authentication/application-default-credentials) mechanism.
 
 Note that if using a service account, service accounts can not own scripts. To use a service account to push or pull files from Apps Script, the scripts must be shared with the service account with the appropriate role (e.g. `Editor` in able to push.)
 
