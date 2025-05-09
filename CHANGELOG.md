@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.4-alpha](https://github.com/google/clasp/compare/v3.0.3-alpha...v3.0.4-alpha) (2025-05-09)
+
+
+### Bug Fixes
+
+* Normalize file paths in file operations for Windows compatibility ([#1044](https://github.com/google/clasp/issues/1044)) ([edd619f](https://github.com/google/clasp/commit/edd619fb92da07a960beadd14b7de5a0f96f0e25))
+
 ## [3.0.3-alpha](https://github.com/google/clasp/compare/v3.0.2-alpha...v3.0.3-alpha) (2025-03-25)
 
 
