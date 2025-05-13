@@ -1,19 +1,26 @@
-import fs from 'fs-extra';
+import {Command} from 'commander';
+import {AuthInfo} from '../auth/auth.js';
+import {intl} from '../intl.js';
 
-import {Conf} from '../conf.js';
+export const command = new Command('logout').description('Logout of clasp').action(async function (
+  this: Command,
+): Promise<void> {
+  const auth: AuthInfo = this.opts().auth;
 
-const config = Conf.get();
-
-const deleteIfExists = (file: string | undefined) => {
-  if (file && fs.existsSync(file)) {
-    fs.unlinkSync(file);
+  if (!auth.credentialStore) {
+    const msg = intl.formatMessage({
+      defaultMessage: 'No credential store found, unable to log out.',
+    });
+    this.error(msg);
   }
-};
 
-/**
- * Logs out the user by deleting credentials.
- */
-export default async (): Promise<void> => {
-  deleteIfExists(config.auth);
-  deleteIfExists(config.authLocal);
-};
+  if (!auth.credentials) {
+    return;
+  }
+
+  auth.credentialStore?.delete(auth.user);
+  const successMessage = intl.formatMessage({
+    defaultMessage: 'Deleted credentials.',
+  });
+  console.log(successMessage);
+});

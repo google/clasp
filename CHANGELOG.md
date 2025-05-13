@@ -1,5 +1,79 @@
 # Changelog
 
+## [3.0.2-alpha](https://github.com/google/clasp/compare/v3.0.1-alpha1...v3.0.2-alpha) (2025-03-14)
+
+
+### Features
+
+* Add file extension settings for HTML ([e4dd863](https://github.com/google/clasp/commit/e4dd863de347e3f1747d7aff283432e9f8eb4697))
+* Display logs in local time ([8952aff](https://github.com/google/clasp/commit/8952aff81abc986788c1e4daca8c416ee3813d7f))
+* Move pdate deployment into a separate command ([#752](https://github.com/google/clasp/issues/752)) ([e4dd025](https://github.com/google/clasp/commit/e4dd025377b8961dfbd8ce5170112563d40f5ff1))
+
+
+### Bug Fixes
+
+* Clarify filePushOrder behavior ([eea22cb](https://github.com/google/clasp/commit/eea22cba387fd92e571d7c1ebe322be1c360972a))
+* Fix create-script command/alias names ([55a33c6](https://github.com/google/clasp/commit/55a33c6a4780172c16ff8ee7316631787c9f13e5))
+* Suppress punycode deprecation warning temporarily until dependencies updated ([ec352e5](https://github.com/google/clasp/commit/ec352e57c3184a23dd203f1468f7ecbfa820cc98))
+* Tighten result check on run to correctly output falsy values [#770](https://github.com/google/clasp/issues/770) ([0a3947b](https://github.com/google/clasp/commit/0a3947ba6a6f14cfcbf7f8693949044064eb2738))
+* Update run instructions to correct oauth client type ([#997](https://github.com/google/clasp/issues/997)) ([55793c9](https://github.com/google/clasp/commit/55793c9b2eaf762ac93283c64b032ab84efb1c5d))
+
+
+### Miscellaneous Chores
+
+* Release 3.0.2-alpha ([e820d08](https://github.com/google/clasp/commit/e820d08667787a4a8dae2cc8a514b886a31195fc))
+
+## [3.0.1-alpha1](https://github.com/google/clasp/compare/v3.0.0-alpha1...v3.0.1-alpha1) (2025-03-11)
+
+
+### Bug Fixes
+
+* Add missing import from "open", not caught by typescript due to being browser api ([907d80f](https://github.com/google/clasp/commit/907d80f9e5d81dde387c783a86553134bf219a64))
+
+## [3.0.0-alpha1](https://github.com/google/clasp/compare/v3.0.0-alpha...v3.0.0-alpha1) (2025-03-11)
+
+
+### Miscellaneous Chores
+
+* Release 3.0.0-alpha1 ([483a075](https://github.com/google/clasp/commit/483a0755a6d66125e0efa59bac2d3e9cb12f5a7b))
+
+## [3.0.0-alpha](https://github.com/google/clasp/compare/v2.5.0...v3.0.0-alpha) (2025-03-11)
+
+### ⚠ BREAKING CHANGES
+
+* CLI syntax changed for some commands. Flattens the command structure so it is consistent.
+* Typescript is no longer transpiled by clasp. Use Typescript + Rollup or another bundler to transpile code before pushing.
+
+### Features
+
+* Added `--user` option to allow easy switching between authorized users.
+
+### Bug Fixes
+
+* Don't write files on clone if unable to fetch proejct ([#824](https://github.com/google/clasp/issues/824)) ([5f7e06f](https://github.com/google/clasp/commit/5f7e06f565d11852108d330c03dada28895c22d7))
+* Speed up directory crawling ([588d1bc](https://github.com/google/clasp/commit/588d1bc8df14568bc3dd7d331f3adde44f784f9e))
+* Fix `--no-localhost` option during authorization
+
+## [2.5.0](https://github.com/google/clasp/compare/v2.4.2...v2.5.0) (2025-01-09)
+
+
+### Features
+
+* Add support for custom redirect port in clasp login ([#1020](https://github.com/google/clasp/issues/1020)) ([d55832e](https://github.com/google/clasp/commit/d55832e59d63c480ae591f7d1ecba457ebfafb7b))
+
+
+### Bug Fixes
+
+* Don't write files on clone if unable to fetch project ([#824](https://github.com/google/clasp/issues/824)) ([b3b292a](https://github.com/google/clasp/commit/b3b292acfcc9bb191a3f4171601b8c420c187546))
+* Rethrow error so command exits with error status ([#1019](https://github.com/google/clasp/issues/1019)) ([29ac629](https://github.com/google/clasp/commit/29ac62988b970b1905fe2601828bf7dcaac47b54))
+
+## [2.4.2](https://github.com/google/clasp/compare/v2.4.1...v2.4.2) (2022-09-26)
+
+
+### Bug Fixes
+
+* remove online check ([#936](https://github.com/google/clasp/issues/936)) ([6775d9f](https://github.com/google/clasp/commit/6775d9f674886ac11ee2a23d59cbe62dd141d97b))
+
 ### [2.4.1](https://www.github.com/google/clasp/compare/v2.4.0...v2.4.1) (2021-08-09)
 
 

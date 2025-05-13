@@ -1,0 +1,5 @@
+{
+  "scriptId": "mock-script-id",
+  "scriptExtensions": [".ts", ".js"],
+  "htmlExtensions": [".htmlx"]
+}

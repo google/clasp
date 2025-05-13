@@ -1,67 +1,164 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import {fileURLToPath} from 'url';
 import {expect} from 'chai';
-import {spawnSync} from 'child_process';
-import fs from 'fs-extra';
-import {after, before, describe, it} from 'mocha';
-
+import inquirer from 'inquirer';
+import {afterEach, beforeEach, describe, it} from 'mocha';
+import mockfs from 'mock-fs';
+import sinon from 'sinon';
+import {runCommand} from '../../test/commands/utils.js';
+import {useChaiExtensions} from '../../test/helpers.js';
 import {
-  CLASP,
-  CLASP_SETTINGS,
-  TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API,
-  TEST_CODE_JS,
-  TEST_PAGE_HTML,
-} from '../constants.js';
-import {cleanup, setup, setupTemporaryDirectory} from '../functions.js';
+  forceInteractiveMode,
+  mockOAuthRefreshRequest,
+  mockScriptDownload,
+  mockScriptPush,
+  resetMocks,
+  setupMocks,
+} from '../../test/mocks.js';
 
-describe('Test clasp push function', () => {
-  before(setup);
-  it('should push local project correctly', () => {
-    fs.writeFileSync('Code.js', TEST_CODE_JS);
-    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json');
-    const result = spawnSync(CLASP, ['push'], {encoding: 'utf8', input: 'y'});
-    expect(result.stdout).to.contain('Pushed 2 files.');
-    expect(result.status).to.equal(0);
-  });
-  // TODO: this test needs to be updated
-  it.skip('should return non-0 exit code when push failed', () => {
-    fs.writeFileSync('.claspignore', '**/**\n!Code.js\n!appsscript.json\n!unexpected_file');
-    fs.writeFileSync('unexpected_file', TEST_CODE_JS);
-    const result = spawnSync(CLASP, ['push'], {encoding: 'utf8'});
-    expect(result.stderr).to.contain('Invalid value at');
-    expect(result.stderr).to.contain('UNEXPECTED_FILE');
-    expect(result.stderr).to.contain('Files to push were:');
-    expect(result.status).to.equal(1);
-  });
-  after(cleanup);
-});
+useChaiExtensions();
 
-describe('Test clasp push with no `.claspignore`', () => {
-  it('should push local project correctly', () => {
-    const tmpdir = setupTemporaryDirectory([
-      {file: '.clasp.json', data: CLASP_SETTINGS.valid},
-      {file: 'appsscript.json', data: TEST_APPSSCRIPT_JSON_WITHOUT_RUN_API},
-      {file: 'Code.js', data: TEST_CODE_JS},
-      {file: 'page.html', data: TEST_PAGE_HTML},
-    ]);
-    const result = spawnSync(CLASP, ['push'], {
-      encoding: 'utf8',
-      cwd: tmpdir,
-      input: 'y',
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+describe('Push command', function () {
+  beforeEach(function () {
+    setupMocks();
+    mockOAuthRefreshRequest();
+  });
+
+  afterEach(function () {
+    resetMocks();
+  });
+
+  describe('With project, authenticated', function () {
+    beforeEach(function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
     });
-    expect(result.stdout).to.contain('Code.js');
-    expect(result.stdout).to.contain('page.html');
-    expect(result.stdout).to.contain('Pushed 3 files.');
-    expect(result.status).to.equal(0);
-    // TODO: cleanup by del/rimraf tmpdir
+
+    it('should push files if changed', async function () {
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+        files: [
+          {
+            name: 'appsscript',
+            type: 'JSON',
+            source: fs.readFileSync('appsscript.json', 'utf8').toString(),
+          },
+        ],
+      });
+      mockScriptPush({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['push']);
+      expect(out.stdout).to.contain('Pushed 2 files');
+    });
+
+    it('should push files from the rootDir if changed', async function () {
+      mockfs({
+        'dist/appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+        'dist/Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-dist.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+        files: [
+          {
+            name: 'appsscript',
+            type: 'JSON',
+            source: fs.readFileSync('dist/appsscript.json', 'utf8').toString(),
+          },
+        ],
+      });
+      mockScriptPush({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['push']);
+      expect(out.stdout).to.contain('Pushed 2 files');
+    });
+
+    it('should handle manifest update prompt', async function () {
+      mockfs({
+        'appsscript.json': '{ "timeZone": "America/Los_Angeles" }',
+        'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      forceInteractiveMode(true);
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+        files: [
+          {
+            name: 'appsscript',
+            type: 'JSON',
+            source: '',
+          },
+        ],
+      });
+      mockScriptPush({
+        scriptId: 'mock-script-id',
+      });
+      sinon.stub(inquirer, 'prompt').resolves({overwrite: true});
+      const out = await runCommand(['push']);
+      expect(out.stdout).to.contain('Pushed 2 files');
+    });
+
+    it('should skip push on manifest update reject', async function () {
+      mockfs({
+        'appsscript.json': '{ "timeZone": "America/Los_Angeles" }',
+        'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      forceInteractiveMode(true);
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+        files: [
+          {
+            name: 'appsscript',
+            type: 'JSON',
+            source: '',
+          },
+        ],
+      });
+      mockScriptPush({
+        scriptId: 'mock-script-id',
+      });
+      sinon.stub(inquirer, 'prompt').resolves({overwrite: false});
+      const out = await runCommand(['push']);
+      expect(out.stdout).to.contain('Skipping push');
+      expect(out.stdout).to.not.contain('Pushed 2 files');
+    });
   });
-  before(setup);
-  // TODO: this test needs to be updated
-  it.skip('should return non-0 exit code when push failed', () => {
-    fs.writeFileSync('unexpected_file', TEST_CODE_JS);
-    const result = spawnSync(CLASP, ['push'], {encoding: 'utf8'});
-    expect(result.stderr).to.contain('Invalid value at');
-    expect(result.stderr).to.contain('UNEXPECTED_FILE');
-    expect(result.stderr).to.contain('Files to push were:');
-    expect(result.status).to.equal(1);
+
+  describe('Without project, authenticated', function () {
+    beforeEach(function () {
+      mockfs({
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+
+    it('should reject missing project id', async function () {
+      const out = await runCommand(['push']);
+      expect(out.stderr).to.contain('Project settings not found.');
+    });
   });
-  after(cleanup);
 });

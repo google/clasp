@@ -1,0 +1,13 @@
+{ 
+    "timeZone": "America/Los_Angeles",
+    "dependencies": {
+        "enabledAdvancedServices": [
+        {
+            "userSymbol": "Gmail",
+            "version": "v1",
+            "serviceId": "gmail"
+        }
+        ]
+    },
+    "exceptionLogging": "STACKDRIVER"
+}
