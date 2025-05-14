@@ -1,63 +1,61 @@
-import {driveV2, loadAPICredentials} from '../auth.js';
-import {deleteClaspJsonPrompt, deleteDriveFilesPrompt} from '../inquirer.js';
-import {LOG} from '../messages.js';
-import {checkIfOnlineOrDie, deleteProject, getProjectSettings, spinner, stopSpinner} from '../utils.js';
+import {Command} from 'commander';
+import inquirer from 'inquirer';
+import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
+import {isInteractive, withSpinner} from './utils.js';
 
 interface CommandOption {
   readonly force?: boolean;
 }
 
-/**
- * Delete an Apps Script project.
- * @param options.foce {boolean} force Bypass any confirmation messages.
- */
-export default async (options: CommandOption): Promise<void> => {
-  // Handle common errors.
-  await checkIfOnlineOrDie();
-  await loadAPICredentials();
+export const command = new Command('delete')
+  .description('Delete a project')
+  .option(
+    '-f, --force',
+    'Bypass any confirmation messages. It’s not a good idea to do this unless you want to run clasp from a script.',
+  )
+  .action(async function (this: Command, options: CommandOption) {
 
-  // Create defaults.
-  const {force} = options;
+    const {force} = options;
 
-  const projectSettings = await getProjectSettings();
-  const parentIds = projectSettings.parentId || [];
-  const hasParents = !!parentIds.length;
+    const clasp: Clasp = this.opts().clasp;
 
-  //ask confirmation
-  if (!force && !(await deleteDriveFilesPrompt(hasParents)).answer) {
-    return;
-  }
+    const scriptId = clasp.project.scriptId;
+    if (!scriptId) {
+      const msg = intl.formatMessage({
+        defaultMessage: 'Script ID not set, unable to delete the script.',
+      });
+      this.error(msg);
+    }
 
-  //delete the drive files
-  if (hasParents) {
-    await deleteDriveFiles(parentIds);
-  } else {
-    await deleteDriveFiles([projectSettings.scriptId]);
-  }
+    //ask confirmation
+    if (!force && isInteractive()) {
+      const promptDeleteDriveFiles = intl.formatMessage({
+        defaultMessage: 'Are you sure you want to delete the script?',
+      });
+      const answerDeleteDriveFiles = await inquirer.prompt([
+        {
+          default: false,
+          message: promptDeleteDriveFiles,
+          name: 'answer',
+          type: 'confirm',
+        },
+      ]);
+      if (!answerDeleteDriveFiles.answer) {
+        return;
+      }
+    }
 
-  // TODO: delete .clasp.json //
-  if (force || (await deleteClaspJsonPrompt()).answer) {
-    await deleteProject();
-  }
+    const spinnerMsg = intl.formatMessage({
+      defaultMessage: 'Deleting your scripts...',
+    });
+    await withSpinner(spinnerMsg, async () => await clasp.project.trashScript(scriptId));
 
-  console.log(LOG.DELETE_DRIVE_FILE_FINISH);
-};
-
-/**
- * Delete Files on Drive.
- *
- * @param {string[]} fileIds the list of ids
- */
-const deleteDriveFiles = async (fileIds: string[]): Promise<void> => {
-  for (let i = 0; i < fileIds.length; i++) {
-    const currId = fileIds[i];
-
-    // CLI Spinner
-    spinner.start(LOG.DELETE_DRIVE_FILE_START(currId));
-
-    // Delete Apps Script project
-    await driveV2.files.trash({fileId: currId});
-  }
-
-  stopSpinner();
-};
+    const successMessage = intl.formatMessage(
+      {
+        defaultMessage: 'Deleted script {scriptId}',
+      },
+      {scriptId},
+    );
+    console.log(successMessage);
+  });

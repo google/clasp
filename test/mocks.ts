@@ -239,6 +239,18 @@ export function mockDeleteDeployment({
   nock('https://script.googleapis.com').delete(`/v1/projects/${scriptId}/deployments/${deploymentId}`).reply(200, {});
 }
 
+export function mockTrashScript({scriptId = 'mock-script-id'}: {scriptId?: string} = {}) {
+  nock('https://www.googleapis.com')
+    .patch(`/drive/v3/files/${scriptId}`, body => {
+      expect(body).to.deep.equal({trashed: true});
+      return true;
+    })
+    .reply(200, {
+      id: scriptId,
+      trashed: true,
+    });
+}
+
 export function mockListDeployments({scriptId = 'mock-script-id'}: {scriptId?: string}) {
   nock('https://script.googleapis.com')
     .get(`/v1/projects/${scriptId}/deployments`)

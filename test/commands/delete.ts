@@ -1,62 +1,44 @@
-import fs from 'fs-extra';
+import os from 'os';
+import path from 'path';
+import {fileURLToPath} from 'url';
 import {expect} from 'chai';
-import {spawnSync} from 'child_process';
-import {before, describe, it} from 'mocha';
-import {Conf} from '../../src/conf.js';
+import {afterEach, beforeEach, describe, it} from 'mocha';
+import mockfs from 'mock-fs';
+import {useChaiExtensions} from '../helpers.js';
+import {mockOAuthRefreshRequest, mockTrashScript, resetMocks, setupMocks} from '../mocks.js';
+import {runCommand} from './utils.js';
 
-// import {LOG} from '../../src/messages.js';
-import {CLASP} from '../constants.js';
-import {cleanup, setup} from '../functions.js';
-import {LOG} from '../../src/messages.js';
+useChaiExtensions();
 
-const config = Conf.get();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-describe('Test clasp delete function with standalone script', () => {
-  before(setup);
-  it('should create a new project correctly before delete', () => {
-    spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(CLASP, ['create', '--type', 'standalone', '--title', 'myTitleToDelete'], {
-      encoding: 'utf8',
-    });
-    expect(result.status).to.equal(0);
+describe('Delete script command', function () {
+  beforeEach(function () {
+    setupMocks();
+    mockOAuthRefreshRequest();
   });
 
-  it('should delete the new project correctly', () => {
-    const result = spawnSync(CLASP, ['delete', '-f'], {
-      encoding: 'utf8',
-    });
-    expect(result.stdout).to.contains(LOG.DELETE_DRIVE_FILE_FINISH);
-    expect(fs.existsSync(config.projectConfig!)).to.be.false;
-    expect(result.status).to.equal(0);
-  });
-  after(cleanup);
-});
-
-describe('Test clasp delete function with a parent project', () => {
-  before(setup);
-  it('should create a new project correctly before delete', () => {
-    spawnSync('rm', ['.clasp.json']);
-    const result = spawnSync(CLASP, ['create', '--type', 'sheets', '--title', 'myTitleToDelete'], {
-      encoding: 'utf8',
-    });
-    expect(result.status).to.equal(0);
+  afterEach(function () {
+    resetMocks();
   });
 
-  it('should ask if delete the parent project', () => {
-    const result = spawnSync(CLASP, ['delete'], {
-      encoding: 'utf8',
+  describe('With standalone script', function () {
+    beforeEach(function () {
+      mockfs({
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
     });
-    expect(result.stdout).to.contain(LOG.DELETE_DRIVE_FILE_WITH_PARENT_CONFIRM);
-    expect(result.status).to.equal(0);
-  });
 
-  it('should delete the new project correctly', () => {
-    const result = spawnSync(CLASP, ['delete', '-f'], {
-      encoding: 'utf8',
+    it('should delete a script', async function () {
+      mockTrashScript({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['delete', '-f']);
+      expect(out.stdout).to.contain('Deleted script mock-script-id');
     });
-    expect(result.stdout).to.contains(LOG.DELETE_DRIVE_FILE_FINISH);
-    expect(fs.existsSync(config.projectConfig!)).to.be.false;
-    expect(result.status).to.equal(0);
   });
-  after(cleanup);
 });
