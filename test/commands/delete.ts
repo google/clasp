@@ -2,13 +2,13 @@ import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
+import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
+import sinon from 'sinon';
 import {useChaiExtensions} from '../helpers.js';
 import {mockOAuthRefreshRequest, mockTrashScript, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
-import sinon from 'sinon';
-import inquirer from 'inquirer';
 
 useChaiExtensions();
 
@@ -47,14 +47,14 @@ describe('Delete script command', function () {
       mockTrashScript({
         scriptId: 'mock-script-id',
       });
-      sinon.stub(inquirer, 'prompt').resolves({ answer: false });
+      sinon.stub(inquirer, 'prompt').resolves({answer: false});
       const out = await runCommand(['delete']);
       expect(out.stdout).to.not.contain('Deleted script');
     });
 
     it('should delete the script if user confirms', async function () {
-      mockTrashScript({ scriptId: 'mock-script-id' });
-      sinon.stub(inquirer, 'prompt').resolves({ answer: true });
+      mockTrashScript({scriptId: 'mock-script-id'});
+      sinon.stub(inquirer, 'prompt').resolves({answer: true});
       const out = await runCommand(['delete']);
       expect(out.stdout).to.contain('Deleted script mock-script-id');
     });

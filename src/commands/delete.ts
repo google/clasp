@@ -15,7 +15,6 @@ export const command = new Command('delete')
     'Bypass any confirmation messages. It’s not a good idea to do this unless you want to run clasp from a script.',
   )
   .action(async function (this: Command, options: CommandOption) {
-
     const {force} = options;
 
     const clasp: Clasp = this.opts().clasp;
