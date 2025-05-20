@@ -86,10 +86,7 @@ export class Project {
         },
       };
       debug('Trashing script with request %O', requestOptions);
-      const res = await drive.files.update(requestOptions);
-      if (!res.data.trashed) {
-        throw new Error('Unexpected error, the script has not been trashed.');
-      }
+      await drive.files.update(requestOptions);
     } catch (error) {
       handleApiError(error);
     }
