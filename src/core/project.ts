@@ -72,6 +72,26 @@ export class Project {
     }
   }
 
+  async trashScript(fileId: string): Promise<void> {
+    debug('Deleting script %s', fileId);
+    assertAuthenticated(this.options);
+
+    const credentials = this.options.credentials;
+    const drive = google.drive({version: 'v3', auth: credentials});
+    try {
+      const requestOptions = {
+        fileId,
+        requestBody: {
+          trashed: true,
+        },
+      };
+      debug('Trashing script with request %O', requestOptions);
+      await drive.files.update(requestOptions);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
   async createWithContainer(name: string, mimeType: string): Promise<{scriptId: string; parentId: string}> {
     debug('Creating container bound script %s (%s)', name, mimeType);
     assertAuthenticated(this.options);
