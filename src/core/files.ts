@@ -416,7 +416,10 @@ export class Files {
         debug('Skipping empty file.');
         return;
       }
-      await fs.mkdir(path.dirname(file.localPath), {recursive: true});
+      const localDirname = path.dirname(file.localPath);
+      if (localDirname !== ".") {
+        await fs.mkdir(localDirname, {recursive: true});
+      }
       await fs.writeFile(file.localPath, file.source);
     };
     return await pMap(files, mapper);
