@@ -2,11 +2,14 @@ import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
+import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
+import sinon from 'sinon';
 import {runCommand} from '../../test/commands/utils.js';
 import {useChaiExtensions} from '../../test/helpers.js';
 import {
+  forceInteractiveMode,
   mockOAuthRefreshRequest,
   mockScriptDownload,
   mockScriptDownloadError,
@@ -84,6 +87,78 @@ describe('Pull command', function () {
       expect(out.stdout).to.not.contain('Pulled 2 files');
       expect(out.exitCode).to.not.equal(0);
     });
+
+
+    it('should prompt to delete unused files and delete when confirmed', async function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        'local-only.js': 'console.log("local only");',
+        'ignored.txt': 'ignored file',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      forceInteractiveMode(true);
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({deleteFile: true});
+      const out = await runCommand(['pull', '--deleteUnusedFiles']);
+      sinon.assert.called(promptStub);
+      expect(out.stdout).to.contain('Deleted local-only.js');
+      expect(out.stdout).to.contain('Pulled 2 files');
+      expect('local-only.js').to.not.be.a.realFile;
+      expect('ignored.txt').to.be.a.realFile;
+    });
+
+    it('should prompt to delete unused files and not delete when not confirmed', async function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        'local-only.js': 'console.log("local only");',
+        'ignored.txt': 'ignored file',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      forceInteractiveMode(true);
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({deleteFile: false}); 
+      const out = await runCommand(['pull', '--deleteUnusedFiles']);
+      sinon.assert.called(promptStub);
+      expect(out.stdout).to.not.contain('Deleted local-only.js'); 
+      expect(out.stdout).to.contain('Pulled 2 files');
+      expect('local-only.js').to.be.a.realFile;
+      expect('ignored.txt').to.be.a.realFile;
+    });
+
+    it('should delete unused files without prompting when force flag is used', async function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        'local-only.js': 'console.log("local only");',
+        'ignored.txt': 'ignored file',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({deleteFile: true});
+      const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
+      sinon.assert.notCalled(promptStub);
+      expect(out.stdout).to.contain('Pulled 2 files');
+      expect('local-only.js').to.not.be.a.realFile;
+      expect('ignored.txt').to.be.a.realFile;
+    });
+
   });
   describe('Without project, authenticated', function () {
     beforeEach(function () {
