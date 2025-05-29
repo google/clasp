@@ -84,8 +84,6 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
       if (!confirm.deleteFile) {
         continue;
       }
-      console.log('XXXXXXXXXXXXXXXXXXXXXXXXX');
-
     }
 
     await fs.unlink(file.localPath);
