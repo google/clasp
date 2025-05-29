@@ -88,7 +88,6 @@ describe('Pull command', function () {
       expect(out.exitCode).to.not.equal(0);
     });
 
-
     it('should prompt to delete unused files and delete when confirmed', async function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
@@ -128,10 +127,10 @@ describe('Pull command', function () {
         scriptId: 'mock-script-id',
       });
       forceInteractiveMode(true);
-      const promptStub = sinon.stub(inquirer, 'prompt').resolves({deleteFile: false}); 
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({deleteFile: false});
       const out = await runCommand(['pull', '--deleteUnusedFiles']);
       sinon.assert.called(promptStub);
-      expect(out.stdout).to.not.contain('Deleted local-only.js'); 
+      expect(out.stdout).to.not.contain('Deleted local-only.js');
       expect(out.stdout).to.contain('Pulled 2 files');
       expect('local-only.js').to.be.a.realFile;
       expect('ignored.txt').to.be.a.realFile;
@@ -158,7 +157,6 @@ describe('Pull command', function () {
       expect('local-only.js').to.not.be.a.realFile;
       expect('ignored.txt').to.be.a.realFile;
     });
-
   });
   describe('Without project, authenticated', function () {
     beforeEach(function () {

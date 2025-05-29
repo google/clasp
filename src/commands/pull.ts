@@ -1,10 +1,10 @@
-import fs from 'fs/promises';
 import {Command} from 'commander';
+import fs from 'fs/promises';
+import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
+import {ProjectFile} from '../core/files.js';
 import {intl} from '../intl.js';
 import {isInteractive, withSpinner} from './utils.js';
-import { ProjectFile } from '../core/files.js';
-import inquirer from 'inquirer';
 
 interface CommandOption {
   readonly versionNumber?: number;
@@ -22,7 +22,6 @@ export const command = new Command('pull')
 
     const versionNumber = options.versionNumber;
     const forceDelete = options.force;
-
 
     let spinnerMsg = intl.formatMessage({
       defaultMessage: 'Checking local files...',
@@ -59,14 +58,14 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
   if (!filesToDelete || filesToDelete.length === 0) {
     return;
   }
-  let skipConfirmation = forceDelete;
+  const skipConfirmation = forceDelete;
 
   if (!isInteractive() && !forceDelete) {
     const msg = intl.formatMessage({
       defaultMessage: 'You are not in an interactive terminal and --force not used. Skipping file deletion.',
     });
     console.warn(msg);
-    return;    
+    return;
   }
 
   for (const file of filesToDelete) {
@@ -87,8 +86,6 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
     }
 
     await fs.unlink(file.localPath);
-    console.log(
-      intl.formatMessage({defaultMessage: 'Deleted {file}'}, {file: file.localPath}),
-    );
+    console.log(intl.formatMessage({defaultMessage: 'Deleted {file}'}, {file: file.localPath}));
   }
 }

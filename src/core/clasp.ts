@@ -30,6 +30,7 @@ export type InitOptions = {
   credentials?: OAuth2Client;
   configFile?: string;
   ignoreFile?: string;
+  rootDir?: string;
 };
 
 export class Clasp {
@@ -87,8 +88,9 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   debug('Initializing clasp instance');
   const projectRoot = await findProjectRootdDir(options.configFile);
   if (!projectRoot) {
-    debug('No project found, defaulting to cwd');
-    const rootDir = path.resolve(process.cwd());
+    const dir = options.rootDir ?? process.cwd();
+    debug(`No project found, defaulting to ${dir}`);
+    const rootDir = path.resolve(dir);
     const configFilePath = path.resolve(rootDir, '.clasp.json');
     const ignoreFile = await findIgnoreFile(rootDir, options.ignoreFile);
     const ignoreRules = await loadIgnoreFileOrDefaults(ignoreFile);

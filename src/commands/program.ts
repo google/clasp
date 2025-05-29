@@ -25,6 +25,7 @@ import {command as runCommand} from './run-function.js';
 import {command as setupLogsCommand} from './setup-logs.js';
 import {command as authStatusCommand} from './show-authorized-user.js';
 import {command as filesStatusCommand} from './show-file-status.js';
+import {command as mcpCommand} from './start-mcp.js';
 import {command as tailLogsCommand} from './tail-logs.js';
 
 import {dirname} from 'path';
@@ -34,10 +35,15 @@ import {initAuth} from '../auth/auth.js';
 import {initClaspInstance} from '../core/clasp.js';
 import {intl} from '../intl.js';
 
-export function makeProgram(exitOveride?: (err: CommanderError) => void) {
+export function getVersion() {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const manifest = readPackageUpSync({cwd: __dirname});
   const version = manifest ? manifest.packageJson.version : 'unknown';
+  return version;
+}
+
+export function makeProgram(exitOveride?: (err: CommanderError) => void) {
+  const version = getVersion();
 
   const program = new Command();
 
@@ -117,6 +123,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     listCommand,
     createVersionCommand,
     listVersionsCommand,
+    mcpCommand,
   ];
 
   for (const cmd of commandsToAdd) {

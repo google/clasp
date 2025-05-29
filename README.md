@@ -394,6 +394,8 @@ Updates local files with Apps Script project.
 #### Options
 
 - `--versionNumber <number>`: The version number of the project to retrieve.
+- `--deleteUnusedFiles`: Deletes local files that would have been pushed that were not returned by the server. Prompts for confirmation
+- `--force`: Used with `--deleteUnusedFiles` to automatically confirm. Use with caution.
 
 #### Examples
 
@@ -540,6 +542,23 @@ Lists your most recent Apps Script projects.
 #### Examples
 
 - `clasp list-scripts`: Prints `helloworld1 – xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ...`
+
+### MCP (EXPERIMENTAL)
+
+Runs clasp in MCP (model context protocol) mode for use with coding agents. Configure clasp as a local tool using STDIO transport. While running in MCP mode clasp uses the same credentials as
+normal when used as a CLI. Run `clasp login` ahead of time to authorize.
+
+When used in MCP mode clasp does not need to be started from the project directory. The project directoy is specified in the tool calls. Switching projects does not require a restart of the MCP server, while switching credentials does.
+
+This feature is experimental and currently offers a limited subset of tools for agents. Feedback is welcome.
+
+#### Options
+
+N/A
+
+#### Examples
+
+- `clasp mcp`
 
 ## Advanced Commands
 
