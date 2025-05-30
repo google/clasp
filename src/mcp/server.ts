@@ -1,5 +1,5 @@
 import path from 'path';
-import {McpServer, ResourceTemplate} from '@modelcontextprotocol/sdk/server/mcp.js';
+import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {TextContent} from '@modelcontextprotocol/sdk/types.js';
 import {mkdir} from 'fs/promises';
 import {z} from 'zod';
