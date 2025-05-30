@@ -110,6 +110,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     createDeploymentCommand,
     deleteDeploymentCOmand,
     listDeploymentsCommand,
+    updateDeploymentCommand,
     disableApiCommand,
     enableApiCommand,
     listApisCommand,
@@ -121,13 +122,12 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     tailLogsCommand,
     openScriptCommand,
     openContainerCommand,
-    openWebappCommand,
+    openWebAppCommand,
     runCommand,
     listCommand,
     createVersionCommand,
     listVersionsCommand,
     mcpCommand,
-    updateDeploymentCommand,
   ];
 
   for (const cmd of commandsToAdd) {
