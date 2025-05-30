@@ -26,15 +26,22 @@ interface CommandOptions extends GlobalOptions {}
 export const command = new Command('list-versions')
   .alias('versions')
   .description('List versions of a script')
-  .action(async function (this: Command): Promise<void> {
+  .argument('[scriptId]', 'Apps Script ID to list deployments for')
+  .option('--json', 'Show list in JSON form')
+  .action(async function (
+    this: Command,
+    scriptId?: string,
+    opts?: { json: boolean }
+  ): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
     const clasp: Clasp = options.clasp;
+    // const clasp: Clasp = this.opts().clasp;
 
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching versions...',
     });
-    const versions = await withSpinner(spinnerMsg, async () => {
-      return clasp.project.listVersions();
+    const versions = await withSpinner(spinnerMsg, () => {
+      return clasp.project.listVersions(scriptId);
     });
 
     if (options.json) {
@@ -64,16 +71,21 @@ export const command = new Command('list-versions')
     console.log(successMessage);
 
     versions.results.reverse();
-    versions.results.forEach(version => {
-      const msg = intl.formatMessage(
-        {
-          defaultMessage: '{version, number} - {description, select, undefined {No description} other {{description}}}',
-        },
-        {
-          version: version.versionNumber,
-          description: version.description,
-        },
-      );
-      console.log(msg);
-    });
+    if (options?.json) {
+      console.log(JSON.stringify(versions, null, 2));
+    } else {
+      versions.results.forEach(version => {
+        const msg = intl.formatMessage(
+          {
+            defaultMessage:
+              '{version, number} - {description, select, undefined {No description} other {{description}}}',
+          },
+          {
+            version: version.versionNumber,
+            description: version.description,
+          },
+        );
+        console.log(msg);
+      });
+    }
   });
