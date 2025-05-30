@@ -189,7 +189,7 @@ If your organization restricts authorization for third-party apps, you may eithe
 * Request your admin allow-list clasp's client id `1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com`
 * Set up an internal-only GCP project for clasp as described in the previous section.
 
-### Service accounts
+### Service accounts (EXPERIMENTAL/NOT WORKING)
 
 Use the `--adc` option on any command to read credentials from the environment using Google Cloud's [application default credentials](https://cloud.google.com/docs/authentication/application-default-credentials) mechanism.
 
