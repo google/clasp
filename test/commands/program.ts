@@ -1,8 +1,7 @@
-
-import {describe, it} from 'mocha';
 import {expect} from 'chai';
+import {describe, it} from 'mocha';
 
-import { makeProgram } from '../../src/commands/program.js';
+import {makeProgram} from '../../src/commands/program.js';
 
 describe('Consistency between imported and registered commands', () => {
   const expectedCommands = [
@@ -24,6 +23,7 @@ describe('Consistency between imported and registered commands', () => {
     'open-credentials-setup',
     'open-logs',
     'open-script',
+    'open-web-app',
     'pull',
     'push',
     'run-function',

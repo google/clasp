@@ -19,6 +19,7 @@ import {command as openContainerCommand} from './open-container.js';
 import {command as openAuthCommand} from './open-credentials.js';
 import {command as openLogsCommand} from './open-logs.js';
 import {command as openScriptCommand} from './open-script.js';
+import {command as openWebappCommand} from './open-webapp.js';
 import {command as pullCommand} from './pull.js';
 import {command as pushCommand} from './push.js';
 import {command as runCommand} from './run-function.js';
@@ -120,6 +121,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     tailLogsCommand,
     openScriptCommand,
     openContainerCommand,
+    openWebappCommand,
     runCommand,
     listCommand,
     createVersionCommand,
