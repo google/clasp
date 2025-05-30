@@ -27,6 +27,7 @@ import {command as authStatusCommand} from './show-authorized-user.js';
 import {command as filesStatusCommand} from './show-file-status.js';
 import {command as mcpCommand} from './start-mcp.js';
 import {command as tailLogsCommand} from './tail-logs.js';
+import {command as updateDeploymentCommand} from './update-deployment.js';
 
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';
@@ -124,6 +125,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     createVersionCommand,
     listVersionsCommand,
     mcpCommand,
+    updateDeploymentCommand,
   ];
 
   for (const cmd of commandsToAdd) {
