@@ -122,7 +122,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     tailLogsCommand,
     openScriptCommand,
     openContainerCommand,
-    openWebAppCommand,
+    openWebappCommand,
     runCommand,
     listCommand,
     createVersionCommand,

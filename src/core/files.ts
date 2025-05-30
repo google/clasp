@@ -417,7 +417,7 @@ export class Files {
         return;
       }
       const localDirname = path.dirname(file.localPath);
-      if (localDirname !== ".") {
+      if (localDirname !== '.') {
         await fs.mkdir(localDirname, {recursive: true});
       }
       await fs.writeFile(file.localPath, file.source);
