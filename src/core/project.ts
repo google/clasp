@@ -162,19 +162,27 @@ export class Project {
     }
   }
 
-  async listVersions() {
+  async listVersions(scriptId?: string) {
     debug('Fetching versions');
     assertAuthenticated(this.options);
-    assertScriptConfigured(this.options);
 
-    const scriptId = this.options.project.scriptId;
+    const getScriptId = (scriptId?: string) => {
+      if (typeof scriptId === 'string') {
+        return scriptId
+      }
+
+      assertScriptConfigured(this.options);
+
+      return this.options.project.scriptId;
+    }
+
     const credentials = this.options.credentials;
 
     const script = google.script({version: 'v1', auth: credentials});
     try {
       return fetchWithPages(async (pageSize, pageToken) => {
         const requestOptions = {
-          scriptId,
+          scriptId: getScriptId(scriptId),
           pageSize,
           pageToken,
         };
@@ -190,24 +198,32 @@ export class Project {
     }
   }
 
-  async listDeployments() {
+  async listDeployments(scriptId?: string) {
     debug('Listing deployments');
     assertAuthenticated(this.options);
-    assertScriptConfigured(this.options);
 
-    const scriptId = this.options.project.scriptId;
     const credentials = this.options.credentials;
+    const getScriptId = (scriptId?: string) => {
+      if (typeof scriptId === 'string') {
+        return scriptId
+      }
+
+      assertScriptConfigured(this.options);
+
+      return this.options.project.scriptId;
+    }
 
     const script = google.script({version: 'v1', auth: credentials});
     try {
       return fetchWithPages(async (pageSize, pageToken) => {
         const requestOptions = {
-          scriptId,
+          scriptId: getScriptId(scriptId),
           pageSize,
           pageToken,
         };
         debug('Fetching deployments with request %O', requestOptions);
         const res = await script.projects.deployments.list(requestOptions);
+
         return {
           results: res.data.deployments ?? [],
           pageToken: res.data.nextPageToken ?? undefined,
