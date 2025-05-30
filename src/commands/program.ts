@@ -19,6 +19,7 @@ import {command as openContainerCommand} from './open-container.js';
 import {command as openAuthCommand} from './open-credentials.js';
 import {command as openLogsCommand} from './open-logs.js';
 import {command as openScriptCommand} from './open-script.js';
+import {command as openWebappCommand} from './open-webapp.js';
 import {command as pullCommand} from './pull.js';
 import {command as pushCommand} from './push.js';
 import {command as runCommand} from './run-function.js';
@@ -28,7 +29,6 @@ import {command as filesStatusCommand} from './show-file-status.js';
 import {command as mcpCommand} from './start-mcp.js';
 import {command as tailLogsCommand} from './tail-logs.js';
 import {command as updateDeploymentCommand} from './update-deployment.js';
-import {command as openWebAppCommand} from './open-webapp.js';
 
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';
