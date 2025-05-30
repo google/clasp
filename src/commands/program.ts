@@ -27,6 +27,8 @@ import {command as authStatusCommand} from './show-authorized-user.js';
 import {command as filesStatusCommand} from './show-file-status.js';
 import {command as mcpCommand} from './start-mcp.js';
 import {command as tailLogsCommand} from './tail-logs.js';
+import {command as updateDeploymentCommand} from './update-deployment.js';
+import {command as openWebAppCommand} from './open-webapp.js';
 
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';
@@ -108,6 +110,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     createDeploymentCommand,
     deleteDeploymentCOmand,
     listDeploymentsCommand,
+    updateDeploymentCommand,
     disableApiCommand,
     enableApiCommand,
     listApisCommand,
@@ -119,6 +122,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     tailLogsCommand,
     openScriptCommand,
     openContainerCommand,
+    openWebAppCommand,
     runCommand,
     listCommand,
     createVersionCommand,
