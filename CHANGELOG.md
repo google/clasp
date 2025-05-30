@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.5-alpha](https://github.com/google/clasp/compare/v3.0.4-alpha...v3.0.5-alpha) (2025-05-30)
+
+
+### Features
+
+* Add -d option to delete files removed in the server script ([#291](https://github.com/google/clasp/issues/291)). ([bf03b1d](https://github.com/google/clasp/commit/bf03b1d77e841b837b30e043e98883902f227739))
+* Experimental mcp command to run clasp as an MCP server for use with coding agents ([ed90dbc](https://github.com/google/clasp/commit/ed90dbcf45d03985c381dfa945f5142178822c54))
+
 ## [3.0.4-alpha](https://github.com/google/clasp/compare/v3.0.3-alpha...v3.0.4-alpha) (2025-05-09)
 
 
