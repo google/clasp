@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.0.6-alpha](https://github.com/google/clasp/compare/v3.0.5-alpha...v3.0.6-alpha) (2025-05-30)
+
+
+### Bug Fixes
+
+* Add missing commands ([#1063](https://github.com/google/clasp/issues/1063)) ([ec9184f](https://github.com/google/clasp/commit/ec9184f6535a4c042d27f7fccb6e453683aad7f1))
+* check if local path's dirname is not root ([#1061](https://github.com/google/clasp/issues/1061)) ([c4f02dd](https://github.com/google/clasp/commit/c4f02dd70c3a5ddb7e7dcf6d278fb0431c8b717f))
+* lint ([a289881](https://github.com/google/clasp/commit/a2898814b47a6392111bdb3daa774cf3fdae71b2))
+
 ## [3.0.5-alpha](https://github.com/google/clasp/compare/v3.0.4-alpha...v3.0.5-alpha) (2025-05-30)
 
 

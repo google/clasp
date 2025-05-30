@@ -1,6 +1,6 @@
 {
   "name": "@google/clasp",
-  "version": "3.0.5-alpha",
+  "version": "3.0.6-alpha",
   "description": "Develop Apps Script Projects locally",
   "type": "module",
   "exports": "./build/src/index.js",
