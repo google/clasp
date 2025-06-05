@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Integration tests for the `clasp list-deployments` (or `clasp deployments`) command.
+ * These tests verify that the command correctly lists the deployments associated with
+ * an Apps Script project.
+ */
+
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -25,9 +31,12 @@ import {runCommand} from './utils.js';
 useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Test suite for the 'clasp list-deployments' command.
 describe('List deployments command', function () {
+  // Setup mocks before each test and reset after.
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -37,8 +46,10 @@ describe('List deployments command', function () {
     resetMocks();
   });
 
+  // Tests for listing deployments when a .clasp.json file exists and the user is authenticated.
   describe('With project, authenticated', function () {
     beforeEach(function () {
+      // Set up a mock filesystem with .clasp.json and authenticated .clasprc.json.
       mockfs({
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -47,10 +58,13 @@ describe('List deployments command', function () {
       });
     });
 
+    // Test that the command successfully lists deployments.
     it('should list deployments', async function () {
-      mockListDeployments({scriptId: 'mock-script-id'});
+      // Mock the API call to list deployments for the project.
+      mockListDeployments({scriptId: 'mock-script-id'}); // Assumes scriptId in fixture is 'mock-script-id'.
       const out = await runCommand(['list-deployments']);
-      return expect(out.stdout).to.contain('mock-deployment-id');
+      // Check if the output contains an expected deployment ID from the mock.
+      expect(out.stdout).to.contain('mock-deployment-id');
     });
   });
 });

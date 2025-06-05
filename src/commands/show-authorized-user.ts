@@ -12,33 +12,50 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Implements the `clasp show-authorized-user` command.
+ * This command displays information about the currently authenticated Google user,
+ * specifically their email address, or indicates if the user is not logged in.
+ */
+
 import {Command} from 'commander';
 import {AuthInfo, getUserInfo} from '../auth/auth.js';
 import {intl} from '../intl.js';
 
+/**
+ * Command to display information about the currently authorized Google user.
+ * Shows the user's email if logged in, or a message indicating no user is logged in.
+ */
 export const command = new Command('show-authorized-user')
-  .description('Show information about the current authorizations state.')
+  .description('Show information about the current authorized Google user for clasp.')
+  /**
+   * Action handler for the `show-authorized-user` command.
+   * @this Command Instance of the commander Command.
+   */
   .action(async function (this: Command): Promise<void> {
-    const auth: AuthInfo = this.opts().auth;
+    const auth: AuthInfo = this.opts().auth; // AuthInfo is pre-initialized by program.ts hook
 
+    // Check if there are active credentials.
     if (!auth.credentials) {
-      const msg = intl.formatMessage({
-        defaultMessage: 'Not logged in.',
+      const notLoggedInMsg = intl.formatMessage({
+        defaultMessage: 'You are not currently logged in to clasp.',
       });
-      console.log(msg);
+      console.log(notLoggedInMsg);
       return;
     }
 
+    // Fetch and display user information if credentials exist.
     const user = await getUserInfo(auth.credentials);
-    const msg = intl.formatMessage(
+    const displayMsg = intl.formatMessage(
       {
         defaultMessage: `{email, select,
-        undefined {You are logged in as an unknown user.}
-        other {You are logged in as {email}.}}`,
+          undefined {Logged in, but could not retrieve user email.}
+          other {Currently logged in as: {email}}
+        }`,
       },
       {
-        email: user?.email,
+        email: user?.email, // user.email might be undefined if getUserInfo fails or returns no email
       },
     );
-    console.log(msg);
+    console.log(displayMsg);
   });

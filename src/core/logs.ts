@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Provides functionality to retrieve Apps Script project logs
+ * from Google Cloud Logging. It requires the project to be associated with
+ * a Google Cloud Platform (GCP) project.
+ */
+
 import Debug from 'debug';
 import {google} from 'googleapis';
 
@@ -20,44 +26,64 @@ import {ClaspOptions, assertAuthenticated, assertGcpProjectConfigured, handleApi
 
 const debug = Debug('clasp:core');
 
+/**
+ * Manages the retrieval of log entries for an Apps Script project
+ * from Google Cloud Logging.
+ */
 export class Logs {
   private options: ClaspOptions;
 
+  /**
+   * Constructs a Logs manager instance.
+   * @param options The Clasp configuration options, expected to include credentials and GCP project ID.
+   */
   constructor(options: ClaspOptions) {
     this.options = options;
   }
 
-  async getLogEntries(since?: Date) {
-    debug('Fetching logs');
-    assertAuthenticated(this.options);
-    assertGcpProjectConfigured(this.options);
-    const credentials = this.options.credentials;
+  /**
+   * Fetches log entries for the configured GCP project.
+   * Can optionally filter logs to retrieve only those created since a specific date.
+   * @param since Optional Date object. If provided, only logs newer than this date will be fetched.
+   * @returns A promise that resolves with an object containing the log entries (`results`)
+   *          and a boolean indicating if there were `partialResults` (more pages available).
+   *          Throws an error if authentication or configuration is missing, or if the API call fails.
+   */
+  async getLogEntries(since?: Date): Promise<{results: logging_v2.Schema$LogEntry[]; partialResults: boolean}> {
+    debug('Fetching Cloud Logs for project. Since: %s', since?.toISOString() ?? 'N/A');
+    assertAuthenticated(this.options); // Ensure user is authenticated.
+    assertGcpProjectConfigured(this.options); // Ensure GCP project ID is available.
 
-    const projectId = this.options.project.projectId;
+    const {credentials, project} = this.options;
     const logger = google.logging({version: 'v2', auth: credentials});
 
-    // Create a time filter (timestamp >= "2016-11-29T23:00:00Z")
-    // https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
+    // Construct the filter for fetching logs.
+    // If 'since' is provided, filter by timestamp. Otherwise, fetch all (recent) logs.
+    // See: https://cloud.google.com/logging/docs/view/advanced-filters#search-by-time
     const filter = since ? `timestamp >= "${since.toISOString()}"` : '';
 
     try {
-      return fetchWithPages(async (pageSize, pageToken) => {
-        const res = await logger.entries.list({
+      // Use fetchWithPages utility to handle pagination of log entries.
+      const logResults = await fetchWithPages(async (pageSize, pageToken) => {
+        const response = await logger.entries.list({
           requestBody: {
-            resourceNames: [`projects/${projectId}`],
+            resourceNames: [`projects/${project.projectId!}`], // projectId is asserted by assertGcpProjectConfigured.
             filter,
-            orderBy: 'timestamp desc',
+            orderBy: 'timestamp desc', // Get newest logs first (though they are reversed later for display).
             pageSize,
             pageToken,
           },
         });
         return {
-          results: res.data.entries || [],
-          nextPageToken: res.data.nextPageToken,
+          results: response.data.entries ?? [], // Ensure results is always an array.
+          nextPageToken: response.data.nextPageToken ?? undefined,
         };
       });
+      debug(`Fetched ${logResults.results.length} log entries.`);
+      return logResults;
     } catch (error) {
-      handleApiError(error);
+      // Handle API errors using the standardized handler.
+      return handleApiError(error);
     }
   }
 }

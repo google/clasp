@@ -12,6 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Integration tests for the `clasp push` command.
+ * These tests cover various scenarios for pushing local file changes to an Apps Script project, including:
+ * - Pushing files when local changes are detected compared to the remote project.
+ * - Pushing files from a specified root directory.
+ * - Handling manifest file (appsscript.json) updates, with and without the --force flag.
+ * - Interactive prompts for manifest updates and skipping pushes if declined.
+ * - Behavior when no local project (.clasp.json) is configured.
+ */
+
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -35,9 +45,12 @@ import {
 useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Test suite for the 'clasp push' command.
 describe('Push command', function () {
+  // Setup mocks before each test and reset after.
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -47,8 +60,10 @@ describe('Push command', function () {
     resetMocks();
   });
 
-  describe('With project, authenticated', function () {
+  // Tests for pushing files when local project files and .clasp.json exist, and the user is authenticated.
+  describe('With local project files and .clasp.json, authenticated', function () {
     beforeEach(function () {
+      // Default mock filesystem: a basic project with appsscript.json, Code.js, and .clasp.json.
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
@@ -59,35 +74,47 @@ describe('Push command', function () {
       });
     });
 
+    // Test pushing files when local 'Code.js' has changed compared to the (mocked) remote version.
     it('should push files if changed', async function () {
+      // Mock script download: remote 'appsscript.json' is the same, but 'Code.js' will be different
+      // as `mockScriptDownload` by default provides a different 'Code.js' source than the local fixture.
+      // This setup ensures that `getChangedFiles` detects a change in 'Code.js'.
       mockScriptDownload({
         scriptId: 'mock-script-id',
         files: [
           {
-            name: 'appsscript',
+            name: 'appsscript', // Remote name for appsscript.json
             type: 'JSON',
-            source: fs.readFileSync('appsscript.json', 'utf8').toString(),
+            source: fs.readFileSync('appsscript.json', 'utf8').toString(), // Same as local
           },
+          // 'Code.js' is implicitly different due to mockScriptDownload's default.
         ],
       });
+      // Mock the API call to push files.
       mockScriptPush({
         scriptId: 'mock-script-id',
       });
       const out = await runCommand(['push']);
-      expect(out.stdout).to.contain('Pushed 2 files');
+      // Expect that 'Code.js' and potentially 'appsscript.json' (if considered changed by logic) are pushed.
+      // The mockPush logs the number of files it "receives".
+      expect(out.stdout).to.contain('Pushed 2 files'); // Expecting appsscript.json and Code.js
     });
 
+    // Test pushing files when `rootDir` is specified in .clasp.json.
     it('should push files from the rootDir if changed', async function () {
+      // Filesystem setup with source files in 'dist/' and .clasp.json pointing to 'dist/' as rootDir.
       mockfs({
         'dist/appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
         'dist/Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
-        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-dist.json')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-dist.json')), // Sets "rootDir": "dist"
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
         ),
       });
+      // Simulate remote 'appsscript.json' being the same as local 'dist/appsscript.json'.
+      // 'Code.js' will be different by default from mockScriptDownload.
       mockScriptDownload({
-        scriptId: 'mock-script-id',
+        scriptId: 'mock-script-id', // Assumes scriptId in dot-clasp-dist.json
         files: [
           {
             name: 'appsscript',
@@ -100,40 +127,38 @@ describe('Push command', function () {
         scriptId: 'mock-script-id',
       });
       const out = await runCommand(['push']);
-      expect(out.stdout).to.contain('Pushed 2 files');
+      expect(out.stdout).to.contain('Pushed 2 files'); // appsscript.json and Code.js from 'dist/'
     });
 
-    it('should handle manifest update prompt', async function () {
+    // Test handling of manifest update when user confirms via interactive prompt.
+    it('should handle manifest update prompt and push if confirmed', async function () {
+      // Setup local manifest different from what mockScriptDownload will return as "remote".
       mockfs({
-        'appsscript.json': '{ "timeZone": "America/Los_Angeles" }',
+        'appsscript.json': '{ "timeZone": "America/Los_Angeles", "exceptionLogging": "STACKDRIVER" }', // Local change
         'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
         ),
       });
-      forceInteractiveMode(true);
+      forceInteractiveMode(true); // Ensure interactive prompt.
+      // Simulate remote manifest being different (empty source).
       mockScriptDownload({
         scriptId: 'mock-script-id',
-        files: [
-          {
-            name: 'appsscript',
-            type: 'JSON',
-            source: '',
-          },
-        ],
+        files: [{name: 'appsscript', type: 'JSON', source: '{"timeZone":"UTC"}'}],
       });
-      mockScriptPush({
-        scriptId: 'mock-script-id',
-      });
-      sinon.stub(inquirer, 'prompt').resolves({overwrite: true});
+      mockScriptPush({scriptId: 'mock-script-id'});
+      // Stub inquirer to simulate user confirming the overwrite.
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({overwrite: true});
       const out = await runCommand(['push']);
-      expect(out.stdout).to.contain('Pushed 2 files');
+      promptStub.restore();
+      expect(out.stdout).to.contain('Pushed 2 files'); // Manifest and Code.js
     });
 
+    // Test skipping push when user rejects manifest update via interactive prompt.
     it('should skip push on manifest update reject', async function () {
-      mockfs({
-        'appsscript.json': '{ "timeZone": "America/Los_Angeles" }',
+      mockfs({ // Similar setup as above with a changed local manifest.
+        'appsscript.json': '{ "timeZone": "America/New_York" }',
         'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -141,28 +166,27 @@ describe('Push command', function () {
         ),
       });
       forceInteractiveMode(true);
+      // Simulate remote manifest being different.
       mockScriptDownload({
         scriptId: 'mock-script-id',
-        files: [
-          {
-            name: 'appsscript',
-            type: 'JSON',
-            source: '',
-          },
-        ],
+        files: [{name: 'appsscript', type: 'JSON', source: '{"timeZone":"UTC"}'}],
       });
-      mockScriptPush({
-        scriptId: 'mock-script-id',
-      });
-      sinon.stub(inquirer, 'prompt').resolves({overwrite: false});
+      // mockScriptPush should not be called if user rejects.
+      const pushMock = mockScriptPush({scriptId: 'mock-script-id'});
+      // Stub inquirer to simulate user denying the overwrite.
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({overwrite: false});
       const out = await runCommand(['push']);
-      expect(out.stdout).to.contain('Skipping push');
-      expect(out.stdout).to.not.contain('Pushed 2 files');
+      promptStub.restore();
+      expect(out.stdout).to.contain('Push canceled by user'); // Check for skip message.
+      expect(out.stdout).to.not.contain('Pushed'); // Should not have pushed any files.
+      expect(pushMock.isDone()).to.be.false; // Verify the push API was not called.
     });
   });
 
-  describe('Without project, authenticated', function () {
+  // Tests for attempting to push when no local .clasp.json project file is configured.
+  describe('Without local project (.clasp.json missing), authenticated', function () {
     beforeEach(function () {
+      // Mock filesystem with only authentication, no .clasp.json.
       mockfs({
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),

@@ -12,54 +12,69 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Tests for the main `clasp` CLI program setup.
+ * These tests ensure that all command modules defined in `src/commands/`
+ * are correctly registered with the main `commander` program instance.
+ * This helps catch issues where a new command is created but not added
+ * to the main program.
+ */
+
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
 
 import {makeProgram} from '../../src/commands/program.js';
 
+// Test suite to ensure all defined commands are correctly registered with the main CLI program.
 describe('Consistency between imported and registered commands', () => {
+  // This list should be manually kept in sync with the actual commands available in clasp.
+  // It serves as an explicit checklist for command registration.
   const expectedCommands = [
-    'clone-script',
-    'create-deployment',
-    'create-script',
-    'create-version',
-    'delete-deployment',
+    'clone-script', // Alias: clone
+    'create-deployment', // Alias: deploy
+    'create-script', // Alias: create
+    'create-version', // Alias: version
+    'delete-deployment', // Alias: undeploy
     'disable-api',
     'enable-api',
-    'list-apis',
-    'list-deployments',
-    'list-scripts',
-    'list-versions',
+    'list-apis', // Alias: apis
+    'list-deployments', // Alias: deployments
+    'list-scripts', // Alias: list
+    'list-versions', // Alias: versions
     'login',
     'logout',
-    'open-api-console',
+    'open-api-console', // No alias, specific name
     'open-container',
-    'open-credentials-setup',
+    'open-credentials-setup', // No alias
     'open-logs',
     'open-script',
     'open-web-app',
     'pull',
     'push',
-    'run-function',
+    'run-function', // Alias: run
     'setup-logs',
-    'show-authorized-user',
-    'show-file-status',
-    'start-mcp-server',
-    'tail-logs',
-    'update-deployment',
+    'show-authorized-user', // No alias
+    'show-file-status', // Alias: status
+    'start-mcp-server', // Alias: mcp
+    'tail-logs', // Alias: logs
+    'update-deployment', // Alias: redeploy
   ];
 
-  it('should register all imported commands', () => {
-    const program = makeProgram();
+  // Test to ensure that every command in the `expectedCommands` list is found
+  // among the commands registered in the main program.
+  it('should register all expected commands', () => {
+    const program = makeProgram(); // Create an instance of the main commander program.
+    const registeredCommands = program.commands.map(cmd => cmd.name()); // Get names of all registered commands.
 
-    const registeredCommands = program.commands.map(cmd => cmd.name());
-    for (const cmdName of expectedCommands) {
-      expect(registeredCommands).to.contain(cmdName);
+    for (const expectedCommandName of expectedCommands) {
+      expect(registeredCommands).to.contain(expectedCommandName, `Command '${expectedCommandName}' is expected but not registered.`);
     }
   });
 
-  it('should have the same number of registered commands as imports', () => {
+  // Test to ensure that the number of registered commands matches the number of expected commands.
+  // This helps catch cases where extra, unexpected commands might have been registered.
+  it('should have the exact number of registered commands as expected', () => {
     const program = makeProgram();
-    expect(program.commands).to.length(expectedCommands.length);
+    expect(program.commands.length).to.equal(expectedCommands.length, 'The number of registered commands does not match the expected count.');
   });
 });

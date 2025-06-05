@@ -18,6 +18,12 @@
  */
 
 /**
+ * @fileoverview Main executable entry point for the `clasp` Command Line Interface.
+ * This file includes the shebang for node execution, sets up global error handling,
+ * initializes the command-line argument parser (commander), and runs the main program.
+ */
+
+/**
  * clasp - The Apps Script CLI
  */
 import Debug from 'debug';
@@ -28,27 +34,37 @@ import {makeProgram} from './commands/program.js';
 
 const debug = Debug('clasp:cli');
 
-// Suppress warnings about punycode and other issues caused by dependencies
+// Suppress warnings about punycode and other issues often caused by transitive dependencies.
+// These are generally not actionable by the end-user of clasp.
 process.removeAllListeners('warning');
 
-// Ensure any unhandled exception won't go unnoticed
+// Make sure any unhandled promise rejections are logged loudly to the console
+// instead of failing silently. This helps in debugging.
 loudRejection();
 
+// Initialize the commander program which defines all CLI commands and options.
 const program = makeProgram();
 
+// Main execution block for the CLI.
 try {
-  debug('Running clasp with args: %s', process.argv.join(' '));
-  // User input is provided from the process' arguments
+  debug('Running clasp with arguments: %s', process.argv.join(' '));
+  // Parse command-line arguments and execute the appropriate command.
+  // Commander.js handles routing to the correct subcommand action.
   await program.parseAsync(process.argv);
 } catch (error) {
-  debug('Error: %O', error);
+  // Catch and handle errors that occur during command parsing or execution.
+  debug('An error occurred during clasp execution: %O', error);
   if (error instanceof CommanderError) {
-    debug('Ignoring commander error, output already logged');
+    // CommanderError is usually handled by Commander itself (e.g., displaying help for unknown commands).
+    // Logging here is for debug purposes; often no further action is needed for these.
+    debug('CommanderError encountered (usually informational, already handled by commander): %s', error.message);
   } else if (error instanceof Error) {
-    process.exitCode = 1;
-    console.error(error.message);
+    // For standard JavaScript errors, set an exit code and print the error message.
+    process.exitCode = 1; // Indicate failure.
+    console.error(error.message); // Show the error to the user.
   } else {
+    // For unknown error types, set an exit code and log a generic error message.
     process.exitCode = 1;
-    console.error('Unknown error', error);
+    console.error('An unknown error occurred during execution.', error);
   }
 }

@@ -12,6 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Integration tests for the `clasp create-version` (or `clasp version`) command.
+ * These tests cover scenarios such as:
+ * - Creating a new immutable version of a script.
+ * - Prompting for a description in interactive mode if not provided.
+ * - Using a description provided as a command-line argument.
+ */
+
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -27,9 +35,12 @@ import {runCommand} from './utils.js';
 useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Test suite for the 'clasp create-version' command.
 describe('Create version command', function () {
+  // Setup mocks before each test and reset after.
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -39,8 +50,10 @@ describe('Create version command', function () {
     resetMocks();
   });
 
+  // Tests for creating versions when a .clasp.json file exists and the user is authenticated.
   describe('With project, authenticated', function () {
     beforeEach(function () {
+      // Set up a mock filesystem with .clasp.json and authenticated .clasprc.json.
       mockfs({
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -49,25 +62,32 @@ describe('Create version command', function () {
       });
     });
 
+    // Test creating a version when no description is provided on the command line,
+    // expecting an interactive prompt for the description.
     it('should create version and prompt for description when not set', async function () {
+      // Mock the API call to create a version, expecting 'test version' as description from the prompt.
       mockCreateVersion({
         scriptId: 'mock-script-id',
-        description: 'test version',
+        description: 'test version', // This description should match what the stubbed prompt returns.
         version: 1,
       });
-      forceInteractiveMode(true);
-      sinon.stub(inquirer, 'prompt').resolves({description: 'test version'});
+      forceInteractiveMode(true); // Ensure isInteractive() returns true.
+      // Stub inquirer.prompt to simulate user entering 'test version'.
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({description: 'test version'});
       const out = await runCommand(['create-version']);
-      return expect(out.stdout).to.contain('Created version');
+      promptStub.restore(); // Restore original inquirer.prompt.
+      expect(out.stdout).to.contain('Created version');
     });
 
+    // Test creating a version with the description provided as a command-line argument.
     it('should use provided description', async function () {
+      // Mock the API call, expecting the description 'test'.
       mockCreateVersion({
         scriptId: 'mock-script-id',
         description: 'test',
         version: 1,
       });
-      const out = await runCommand(['create-version', 'test']);
+      const out = await runCommand(['create-version', 'test']); // 'test' is the description argument.
       return expect(out.stdout).to.contain('Created version');
     });
   });

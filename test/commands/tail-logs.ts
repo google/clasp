@@ -12,6 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Integration tests for the `clasp tail-logs` (or `clasp logs`) command.
+ * These tests verify the command's ability to:
+ * - Display Cloud Logs for a project.
+ * - Format logs as plain text, JSON, or simplified text.
+ * - Prompt for a GCP project ID if not configured and in interactive mode.
+ * - Handle cases where the GCP project ID is missing in non-interactive mode.
+ */
+
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -28,9 +37,12 @@ import {useChaiExtensions} from '../helpers.js';
 useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Test suite for the 'clasp tail-logs' command.
 describe('Tail logs command', function () {
+  // Setup mocks before each test and reset after.
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -40,37 +52,45 @@ describe('Tail logs command', function () {
     resetMocks();
   });
 
-  describe('With project, authenticated', function () {
+  // Tests for tailing logs when a .clasp.json file with a GCP project ID exists and the user is authenticated.
+  describe('With GCP project configured, authenticated', function () {
     beforeEach(function () {
+      // Set up a mock filesystem with .clasp.json containing a GCP projectId and authenticated .clasprc.json.
       mockfs({
-        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-gcp-project.json')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-gcp-project.json')), // This fixture should have a projectId.
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
         ),
       });
     });
 
-    it('should print logs', async function () {
+    // Test default log output format.
+    it('should print logs in default format', async function () {
+      // Mock the API call to list log entries.
       mockListLogEntries({
-        projectId: 'mock-gcp-project',
+        projectId: 'mock-gcp-project', // Must match projectId in the .clasp.json fixture.
       });
       const out = await runCommand(['tail-logs']);
-      expect(out.stdout).to.contain('INFO');
-      expect(out.stdout).to.contain('myFunction');
-      expect(out.stdout).to.contain('test log');
+      expect(out.stdout).to.contain('INFO'); // Check for severity.
+      expect(out.stdout).to.contain('myFunction'); // Check for function name.
+      expect(out.stdout).to.contain('test log'); // Check for payload.
+      expect(out.stdout).to.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/); // Check for timestamp.
     });
 
-    it('should print logs in json', async function () {
+    // Test JSON output format.
+    it('should print logs in JSON format when --json is used', async function () {
       mockListLogEntries({
         projectId: 'mock-gcp-project',
       });
       const out = await runCommand(['tail-logs', '--json']);
+      // Check for characteristic JSON output elements.
       expect(out.stdout).to.contain('"severity": "INFO"');
       expect(out.stdout).to.contain('"function_name": "myFunction"');
       expect(out.stdout).to.contain('"textPayload": "test log"');
     });
 
-    it('should print logs without timestamps', async function () {
+    // Test simplified output format (no timestamps).
+    it('should print logs without timestamps when --simplified is used', async function () {
       mockListLogEntries({
         projectId: 'mock-gcp-project',
       });
@@ -78,35 +98,43 @@ describe('Tail logs command', function () {
       expect(out.stdout).to.contain('INFO');
       expect(out.stdout).to.contain('myFunction');
       expect(out.stdout).to.contain('test log');
-      expect(out.stdout).to.not.contain('GMT');
+      expect(out.stdout).to.not.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/); // Timestamp should be absent.
     });
 
-    it('should prompt for project id', async function () {
+    // Test interactive prompt for GCP project ID if not found in .clasp.json.
+    it('should prompt for project ID if not configured and in interactive mode', async function () {
+      // Override mock filesystem to use a .clasp.json without a projectId.
       mockfs({
-        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')), // No projectId here.
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
         ),
       });
       mockListLogEntries({
-        projectId: 'mock-gcp-project',
+        projectId: 'entered-mock-gcp-project', // Simulate this ID will be entered by the user.
       });
-      forceInteractiveMode(true);
-      sinon.stub(inquirer, 'prompt').resolves({projectId: 'mock-gcp-project'});
+      forceInteractiveMode(true); // Ensure interactive mode.
+      // Stub inquirer.prompt to simulate user entering the project ID.
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({projectId: 'entered-mock-gcp-project'});
       const out = await runCommand(['tail-logs']);
-      expect(out.stdout).to.contain('INFO');
+      promptStub.restore();
+      expect(out.stdout).to.contain('INFO'); // Logs should be fetched after projectId is provided.
     });
 
-    it('should use alias', async function () {
+    // Test using the 'logs' alias for the command.
+    it('should work with "logs" alias', async function () {
       mockListLogEntries({
         projectId: 'mock-gcp-project',
       });
-      const out = await runCommand(['logs']);
+      const out = await runCommand(['logs']); // Using the alias.
       expect(out.stdout).to.contain('INFO');
     });
   });
-  describe('Without project, authenticated', function () {
+
+  // Tests for scenarios where GCP project ID might be missing.
+  describe('Without GCP project configured, authenticated', function () {
     beforeEach(function () {
+      // Filesystem with .clasp.json that *lacks* a projectId.
       mockfs({
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(

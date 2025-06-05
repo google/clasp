@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Integration tests for the `clasp list-versions` (or `clasp versions`) command.
+ * These tests verify that the command correctly lists the immutable versions
+ * of an Apps Script project.
+ */
+
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -25,9 +31,12 @@ import {runCommand} from './utils.js';
 useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Test suite for the 'clasp list-versions' command.
 describe('List versions command', function () {
+  // Setup mocks before each test and reset after.
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -37,8 +46,10 @@ describe('List versions command', function () {
     resetMocks();
   });
 
+  // Tests for listing versions when a .clasp.json file exists and the user is authenticated.
   describe('With project, authenticated', function () {
     beforeEach(function () {
+      // Set up a mock filesystem with .clasp.json and authenticated .clasprc.json.
       mockfs({
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -47,10 +58,14 @@ describe('List versions command', function () {
       });
     });
 
-    it('should list scripts', async function () {
-      mockListVersions({scriptId: 'mock-script-id'});
+    // Test that the command successfully lists script versions.
+    // The 'it' description was "should list scripts", corrected to "should list versions".
+    it('should list versions', async function () {
+      // Mock the API call to list versions for the project.
+      mockListVersions({scriptId: 'mock-script-id'}); // Assumes scriptId in fixture is 'mock-script-id'.
       const out = await runCommand(['list-versions']);
-      return expect(out.stdout).to.contain('Test version 1');
+      // Check if the output contains an expected version description from the mock.
+      expect(out.stdout).to.contain('Test version 1');
     });
   });
 });

@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Builds and configures a Model Context Protocol (MCP) server
+ * that exposes core `clasp` functionalities as tools. This allows programmatic
+ * interaction with `clasp` operations such as pushing, pulling, creating,
+ * cloning, and listing Apps Script projects.
+ */
+
 import path from 'path';
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {TextContent} from '@modelcontextprotocol/sdk/types.js';
@@ -22,15 +29,21 @@ import {getDefaultProjectName} from '../commands/create-script.js';
 import {getVersion} from '../commands/program.js';
 import {initClaspInstance} from '../core/clasp.js';
 
-export function buildMcpServer(auth: AuthInfo) {
+/**
+ * Builds and configures an MCP server with tools for interacting with `clasp`.
+ * @param auth Authenticated `AuthInfo` object for authorizing `clasp` operations.
+ * @returns The configured `McpServer` instance.
+ */
+export function buildMcpServer(auth: AuthInfo): McpServer {
   const server = new McpServer({
-    name: 'Clasp',
-    version: getVersion(),
+    name: 'Clasp', // Name of the MCP server.
+    version: getVersion(), // Version of clasp, used for MCP server versioning.
   });
 
+  // Tool to push local files to the Apps Script project.
   server.tool(
     'push_files',
-    'Pushes the local Apps Script project to the remote server.',
+    'Uploads all local Apps Script project files from a specified directory to the remote Google Apps Script server, overwriting existing remote files.',
     {
       projectDir: z
         .string()
@@ -46,62 +59,58 @@ export function buildMcpServer(auth: AuthInfo) {
       readOnlyHint: false,
     },
     async ({projectDir}) => {
+      // Validate input: projectDir is required.
       if (!projectDir) {
         return {
           isError: true,
-          content: [
-            {
-              type: 'text',
-              text: 'Project directory is required.',
-            },
-          ],
+          content: [{type: 'text', text: 'Error: Project directory is required for push_files tool.'}],
         };
       }
 
-      const clasp = await initClaspInstance({
-        credentials: auth.credentials,
-        configFile: projectDir,
-        rootDir: projectDir,
-      });
-
       try {
-        const files = await clasp.files.push();
-        const fileList: Array<TextContent> = files.map(file => ({
+        // Initialize a Clasp instance scoped to the provided project directory.
+        const clasp = await initClaspInstance({
+          credentials: auth.credentials,
+          configFile: projectDir, // Tells clasp where to find .clasp.json
+          rootDir: projectDir,    // Sets the base for file operations if contentDir is relative
+        });
+
+        // Perform the push operation.
+        const pushedFiles = await clasp.files.push();
+        const fileListMessage: TextContent[] = pushedFiles.map(file => ({
           type: 'text',
-          text: `Updated file: ${path.resolve(file.localPath)}`,
+          text: `  - Pushed: ${path.relative(projectDir, file.localPath) || path.basename(file.localPath)}`,
         }));
+
         return {
           status: 'success',
           content: [
             {
               type: 'text',
-              text: `Pushed project in ${projectDir} to remote server successfully.`,
+              text: `Successfully pushed ${pushedFiles.length} file(s) from "${projectDir}" to script ID "${clasp.project.scriptId}".`,
             },
-            ...fileList,
+            ...fileListMessage,
           ],
           structuredContent: {
             scriptId: clasp.project.scriptId,
-            projectDir: projectDir,
-            files: files.map(file => path.resolve(file.localPath)),
+            projectDirectory: path.resolve(projectDir), // Absolute path
+            pushedFiles: pushedFiles.map(file => path.resolve(file.localPath)),
           },
         };
-      } catch (err) {
+      } catch (error) {
+        // Handle errors during the push operation.
         return {
           isError: true,
-          content: [
-            {
-              type: 'text',
-              text: `Error pushing project: ${err.message}`,
-            },
-          ],
+          content: [{type: 'text', text: `Error pushing project files from "${projectDir}": ${error.message}`}],
         };
       }
     },
   );
 
+  // Tool to pull files from the Apps Script project to the local filesystem.
   server.tool(
     'pull_files',
-    'Pulls files from Apps Script project to local file system.',
+    'Downloads all files from the remote Google Apps Script project to a specified local directory, overwriting local files if they exist.',
     {
       projectDir: z
         .string()
@@ -117,61 +126,58 @@ export function buildMcpServer(auth: AuthInfo) {
       readOnlyHint: false,
     },
     async ({projectDir}) => {
+      // Validate input: projectDir is required.
       if (!projectDir) {
         return {
           isError: true,
-          content: [
-            {
-              type: 'text',
-              text: 'Project directory is required.',
-            },
-          ],
+          content: [{type: 'text', text: 'Error: Project directory is required for pull_files tool.'}],
         };
       }
 
-      const clasp = await initClaspInstance({
-        credentials: auth.credentials,
-        configFile: projectDir,
-        rootDir: projectDir,
-      });
-
       try {
-        const files = await clasp.files.pull();
-        const fileList: Array<TextContent> = files.map(file => ({
+        // Initialize a Clasp instance for the specified project directory.
+        const clasp = await initClaspInstance({
+          credentials: auth.credentials,
+          configFile: projectDir,
+          rootDir: projectDir,
+        });
+
+        // Perform the pull operation.
+        const pulledFiles = await clasp.files.pull();
+        const fileListMessage: TextContent[] = pulledFiles.map(file => ({
           type: 'text',
-          text: `Updated file: ${path.resolve(file.localPath)}`,
+          text: `  - Pulled: ${path.relative(projectDir, file.localPath) || path.basename(file.localPath)}`,
         }));
+
         return {
+          status: 'success',
           content: [
             {
               type: 'text',
-              text: `Pushed project in ${projectDir} to remote server successfully.`,
+              text: `Successfully pulled ${pulledFiles.length} file(s) for script ID "${clasp.project.scriptId}" into "${projectDir}".`,
             },
-            ...fileList,
+            ...fileListMessage,
           ],
           structuredContent: {
             scriptId: clasp.project.scriptId,
-            projectDir: projectDir,
-            files: files.map(file => path.resolve(file.localPath)),
+            projectDirectory: path.resolve(projectDir),
+            pulledFiles: pulledFiles.map(file => path.resolve(file.localPath)),
           },
         };
-      } catch (err) {
+      } catch (error) {
+        // Handle errors during the pull operation.
         return {
           isError: true,
-          content: [
-            {
-              type: 'text',
-              text: `Error pushing project: ${err.message}`,
-            },
-          ],
+          content: [{type: 'text', text: `Error pulling project files into "${projectDir}": ${error.message}`}],
         };
       }
     },
   );
 
+  // Tool to create a new Apps Script project.
   server.tool(
     'create_project',
-    'Create a new apps script project.',
+    'Creates a new standalone Google Apps Script project and initializes it in a specified local directory.',
     {
       projectDir: z.string().describe('The local directory where the Apps Script project will be created.'),
       sourceDir: z
@@ -192,70 +198,76 @@ export function buildMcpServer(auth: AuthInfo) {
       idempotentHint: false,
       readOnlyHint: false,
     },
-    async ({projectDir, sourceDir, projectName}) => {
+    async ({projectDir, sourceDir, projectName: inputProjectName}) => {
+      // Validate input: projectDir is required.
       if (!projectDir) {
         return {
           isError: true,
-          content: [
-            {
-              type: 'text',
-              text: 'Project directory is required.',
-            },
-          ],
+          content: [{type: 'text', text: 'Error: Project directory is required for create_project tool.'}],
         };
       }
 
-      await mkdir(projectDir, {recursive: true});
-
-      if (!projectName) {
-        projectName = getDefaultProjectName(projectDir);
-      }
-
-      const clasp = await initClaspInstance({
-        credentials: auth.credentials,
-        configFile: projectDir,
-        rootDir: projectDir,
-      });
-      clasp.withContentDir(sourceDir ?? '.');
       try {
-        const id = await clasp.project.createScript(projectName);
-        const files = await clasp.files.pull();
+        // Ensure the target local project directory exists.
+        await mkdir(projectDir, {recursive: true});
+
+        // Determine project name: use provided, or infer from directory name.
+        const projectName = inputProjectName || getDefaultProjectName(projectDir);
+
+        // Initialize Clasp for the new project directory.
+        // `initClaspInstance` will create a default .clasp.json structure if one doesn't exist.
+        const clasp = await initClaspInstance({
+          credentials: auth.credentials,
+          configFile: path.join(projectDir, '.clasp.json'), // Specify path for potential new .clasp.json
+          rootDir: projectDir,
+        });
+
+        // Set content directory if specified, otherwise it defaults to rootDir.
+        if (sourceDir) {
+          clasp.withContentDir(sourceDir);
+        }
+
+        // Create the new Apps Script project on the server.
+        const newScriptId = await clasp.project.createScript(projectName);
+        // Pull the default files created by Apps Script (e.g., Code.gs, appsscript.json).
+        const pulledFiles = await clasp.files.pull();
+        // Save the new scriptId and other settings to .clasp.json.
         await clasp.project.updateSettings();
-        const fileList: Array<TextContent> = files.map(file => ({
+
+        const fileListMessage: TextContent[] = pulledFiles.map(file => ({
           type: 'text',
-          text: `Updated file: ${path.resolve(file.localPath)}`,
+          text: `  - Created local file: ${path.relative(projectDir, file.localPath) || path.basename(file.localPath)}`,
         }));
+
         return {
+          status: 'success',
           content: [
             {
               type: 'text',
-              text: `Created project ${id} in ${projectDir} successfully.`,
+              text: `Successfully created new Apps Script project "${projectName}" (ID: ${newScriptId}) in "${projectDir}".`,
             },
-            ...fileList,
+            ...fileListMessage,
           ],
           structuredContent: {
-            scriptId: id,
-            projectDir: projectDir,
-            files: files.map(file => path.resolve(file.localPath)),
+            scriptId: newScriptId,
+            projectDirectory: path.resolve(projectDir),
+            sourceDirectory: sourceDir ? path.resolve(projectDir, sourceDir) : path.resolve(projectDir),
+            createdFiles: pulledFiles.map(file => path.resolve(file.localPath)),
           },
         };
-      } catch (err) {
+      } catch (error) {
         return {
           isError: true,
-          content: [
-            {
-              type: 'text',
-              text: `Error pushing project: ${err.message}`,
-            },
-          ],
+          content: [{type: 'text', text: `Error creating project in "${projectDir}": ${error.message}`}],
         };
       }
     },
   );
 
+  // Tool to clone an existing Apps Script project to a local directory.
   server.tool(
     'clone_project',
-    'Clones and pulls an existing Apps Script project to a local directory.',
+    'Clones an existing Google Apps Script project (by its Script ID) to a specified local directory.',
     {
       projectDir: z.string().describe('The local directory where the Apps Script project will be created.'),
       sourceDir: z
@@ -273,78 +285,67 @@ export function buildMcpServer(auth: AuthInfo) {
       idempotentHint: false,
       readOnlyHint: false,
     },
-    async ({projectDir, sourceDir, scriptId}) => {
+    async ({projectDir, sourceDir, scriptId: scriptIdToClone}) => {
+      // Validate inputs.
       if (!projectDir) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: 'text',
-              text: 'Project directory is required.',
-            },
-          ],
-        };
+        return {isError: true, content: [{type: 'text', text: 'Error: Project directory is required for clone_project tool.'}]};
       }
-
-      await mkdir(projectDir, {recursive: true});
-
-      if (!scriptId) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: 'text',
-              text: 'Script ID is required.',
-            },
-          ],
-        };
+      if (!scriptIdToClone) {
+        return {isError: true, content: [{type: 'text', text: 'Error: Script ID is required to clone a project.'}]};
       }
-
-      const clasp = await initClaspInstance({
-        credentials: auth.credentials,
-        configFile: projectDir,
-        rootDir: projectDir,
-      });
-      clasp.withContentDir(sourceDir ?? '.').withScriptId(scriptId);
 
       try {
-        const files = await clasp.files.pull();
-        clasp.project.updateSettings();
-        const fileList: Array<TextContent> = files.map(file => ({
+        // Ensure the target local project directory exists.
+        await mkdir(projectDir, {recursive: true});
+
+        // Initialize Clasp for the new project directory, associating it with the scriptId to clone.
+        const clasp = await initClaspInstance({
+          credentials: auth.credentials,
+          configFile: path.join(projectDir, '.clasp.json'), // Define where .clasp.json will be created
+          rootDir: projectDir,
+        });
+        clasp.withContentDir(sourceDir ?? '.'); // Set source directory, defaults to projectDir.
+        clasp.withScriptId(scriptIdToClone);   // Associate with the remote script.
+
+        // Pull files from the remote project.
+        const pulledFiles = await clasp.files.pull();
+        // Save the project settings (scriptId, rootDir) to .clasp.json.
+        await clasp.project.updateSettings();
+
+        const fileListMessage: TextContent[] = pulledFiles.map(file => ({
           type: 'text',
-          text: `Updated file: ${path.resolve(file.localPath)}`,
+          text: `  - Cloned file: ${path.relative(projectDir, file.localPath) || path.basename(file.localPath)}`,
         }));
+
         return {
+          status: 'success',
           content: [
             {
               type: 'text',
-              text: `Cloned project ${scriptId} in ${projectDir} successfully.`,
+              text: `Successfully cloned project ID "${scriptIdToClone}" into "${projectDir}".`,
             },
-            ...fileList,
+            ...fileListMessage,
           ],
           structuredContent: {
-            scriptId: scriptId,
-            projectDir: projectDir,
-            files: files.map(file => path.resolve(file.localPath)),
+            scriptId: scriptIdToClone,
+            projectDirectory: path.resolve(projectDir),
+            sourceDirectory: sourceDir ? path.resolve(projectDir, sourceDir) : path.resolve(projectDir),
+            clonedFiles: pulledFiles.map(file => path.resolve(file.localPath)),
           },
         };
-      } catch (err) {
+      } catch (error) {
         return {
           isError: true,
-          content: [
-            {
-              type: 'text',
-              text: `Error pushing project: ${err.message}`,
-            },
-          ],
+          content: [{type: 'text', text: `Error cloning project ID "${scriptIdToClone}" into "${projectDir}": ${error.message}`}],
         };
       }
     },
   );
 
+  // Tool to list Apps Script projects accessible to the authenticated user.
   server.tool(
     'list_projects',
-    'List Apps Script projects',
+    'Lists all Google Apps Script projects accessible to the authenticated user.',
     {},
     {
       title: 'List Apps Script projects',
@@ -354,39 +355,42 @@ export function buildMcpServer(auth: AuthInfo) {
       readOnlyHint: false,
     },
     async () => {
-      const clasp = await initClaspInstance({
-        credentials: auth.credentials,
-      });
       try {
-        const scripts = await clasp.project.listScripts();
-        const scriptList: Array<TextContent> = scripts.results.map(script => ({
+        // Initialize a Clasp instance (doesn't need to be project-specific for listing).
+        const clasp = await initClaspInstance({
+          credentials: auth.credentials,
+        });
+
+        // Fetch the list of scripts.
+        const scriptListResponse = await clasp.project.listScripts();
+        const scripts = scriptListResponse.results;
+
+        const scriptListMessages: TextContent[] = scripts.map(script => ({
           type: 'text',
-          text: `${script.name} (${script.id})`,
+          text: `  - ${script.name} (ID: ${script.id})`,
         }));
+
         return {
+          status: 'success',
           content: [
             {
               type: 'text',
-              text: `Found ${scripts.results.length} Apps Script projects (script ID in parentheses):`,
+              text: `Found ${scripts.length} Apps Script project(s):`,
             },
-            ...scriptList,
+            ...scriptListMessages,
           ],
           structuredContent: {
-            scripts: scripts.results.map(script => ({
+            projects: scripts.map(script => ({
               scriptId: script.id,
               name: script.name,
             })),
+            partialResults: scriptListResponse.partialResults,
           },
         };
-      } catch (err) {
+      } catch (error) {
         return {
           isError: true,
-          content: [
-            {
-              type: 'text',
-              text: `Error listing projects: ${err.message}`,
-            },
-          ],
+          content: [{type: 'text', text: `Error listing projects: ${error.message}`}],
         };
       }
     },

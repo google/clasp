@@ -12,7 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Names / Paths
+/**
+ * @fileoverview Defines project-wide constants used throughout the clasp application.
+ * This includes names, filenames, and other static values.
+ */
+
+/**
+ * The official name of the Command Line Interface (CLI) tool.
+ */
 export const PROJECT_NAME = 'clasp';
+
+/**
+ * The base name of the Apps Script project manifest file.
+ * The full filename is typically `appsscript.json`.
+ */
 export const PROJECT_MANIFEST_BASENAME = 'appsscript';
+
+/**
+ * The full filename of the Apps Script project manifest file.
+ */
 export const PROJECT_MANIFEST_FILENAME = `${PROJECT_MANIFEST_BASENAME}.json`;

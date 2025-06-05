@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Provides functionality to interact with Apps Script functions,
+ * including listing available function names and executing functions remotely.
+ */
+
 import Debug from 'debug';
 import {google} from 'googleapis';
 
@@ -19,59 +24,104 @@ import {ClaspOptions, assertAuthenticated, assertScriptConfigured, handleApiErro
 
 const debug = Debug('clasp:core');
 
+/**
+ * Manages operations related to Apps Script functions, such as listing
+ * and executing them.
+ */
 export class Functions {
   private options: ClaspOptions;
 
+  /**
+   * Constructs a Functions manager instance.
+   * @param options The Clasp configuration options.
+   */
   constructor(options: ClaspOptions) {
     this.options = options;
   }
 
-  async getFunctionNames(): Promise<Array<string>> {
-    debug('Fetching runnable functions');
-    assertAuthenticated(this.options);
-    assertScriptConfigured(this.options);
+  /**
+   * Fetches the names of all top-level functions in the Apps Script project.
+   * This is useful for providing a list of functions that can be run.
+   * @returns A promise that resolves with an array of function names.
+   */
+  async getFunctionNames(): Promise<string[]> {
+    debug('Fetching list of runnable functions from the project...');
+    assertAuthenticated(this.options); // Ensure user is authenticated.
+    assertScriptConfigured(this.options); // Ensure project (scriptId) is configured.
 
-    const credentials = this.options.credentials;
-    const scriptId = this.options.project.scriptId;
-
-    const script = google.script({version: 'v1', auth: credentials});
-    const res = await script.projects.getContent({scriptId});
-
-    const files = res.data.files;
-    const functions: string[] = [];
-    if (!files) {
-      return functions;
-    }
-
-    return files.flatMap(file => file.functionSet?.values ?? []).map(func => func.name!);
-  }
-
-  async runFunction(functionName: string, parameters: unknown[], devMode = true) {
-    debug('Running script function %s', functionName);
-    assertAuthenticated(this.options);
-    assertScriptConfigured(this.options);
-
-    const credentials = this.options.credentials;
-    const scriptId = this.options.project.scriptId;
+    const {credentials, project} = this.options;
     const script = google.script({version: 'v1', auth: credentials});
 
     try {
-      const request = {
-        scriptId,
-        requestBody: {
+      const response = await script.projects.getContent({scriptId: project.scriptId!}); // scriptId is asserted.
+      const projectFiles = response.data.files;
+      if (!projectFiles) {
+        debug('No files found in the project content response.');
+        return [];
+      }
+      // Extract function names from the functionSet of each file.
+      const functionNames = projectFiles.flatMap(file => file.functionSet?.values ?? []).map(func => func.name!);
+      debug(`Found ${functionNames.length} function(s): ${functionNames.join(', ')}`);
+      return functionNames;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  }
+
+  /**
+   * Executes a specified Apps Script function remotely.
+   * @param functionName The name of the function to execute.
+   * @param parameters An array of parameters to pass to the function.
+   * @param devMode If true, executes the function in development mode (latest code);
+   *                otherwise, executes the currently deployed version (if any). Defaults to true.
+   * @returns A promise that resolves with the response from the function execution,
+   *          or throws an error if the execution fails. The structure of the response
+   *          depends on what the Apps Script function returns.
+   */
+  async runFunction(functionName: string, parameters: unknown[], devMode = true): Promise<unknown> {
+    debug(`Executing Apps Script function: ${functionName} with devMode: ${devMode}`);
+    assertAuthenticated(this.options);
+    assertScriptConfigured(this.options);
+
+    const {credentials, project} = this.options;
+    const script = google.script({version: 'v1', auth: credentials});
+
+    try {
+      const requestPayload = {
+        scriptId: project.scriptId!, // scriptId is asserted.
+        requestBody: { // This is the ScriptExecutionRequest
           function: functionName,
-          parameters: parameters ?? [],
+          parameters: parameters ?? [], // Ensure parameters is an array, even if empty.
           devMode,
         },
       };
-      debug('Running function with request: %O', request);
-      const res = await script.scripts.run(request);
-      if (!res.data) {
-        throw new Error('Function returned undefined');
+      debug('Executing function with request payload: %O', requestPayload);
+      const response = await script.scripts.run(requestPayload);
+
+      // The response.data is an Operation object.
+      // If done is true, the result or error is directly in this Operation object.
+      // If done is false, it implies a long-running operation (not typical for simple function calls via API).
+      if (!response.data) {
+        // This case should ideally be handled by GaxiosError, but as a safeguard:
+        throw new Error('No data received from function execution.');
       }
-      return res.data;
+      if (response.data.error) {
+        // Handle cases where the function execution itself resulted in an error within Apps Script.
+        // This is different from an API call error.
+        debug('Function execution resulted in an error: %O', response.data.error);
+        // Re-throw or process the error as needed. For now, re-throwing a simplified error.
+        // The `handleApiError` might not be suitable here as this is not an API transport error.
+        // Consider a more specific error type or structure if detailed Apps Script errors need to be propagated.
+        const scriptError = response.data.error.details && response.data.error.details.length > 0 ?
+          response.data.error.details[0].errorMessage : response.data.error.message;
+        throw new Error(`Error during script function execution: ${scriptError || 'Unknown error'}`);
+      }
+      // Return the actual result of the Apps Script function.
+      return response.data.response?.result;
     } catch (error) {
-      handleApiError(error);
+      // This catches API call errors (e.g., network issues, auth problems, invalid request to `scripts.run`)
+      // and also any errors thrown from the try block above (like the re-thrown scriptError).
+      return handleApiError(error);
     }
   }
 }

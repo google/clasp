@@ -12,6 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Integration tests for the `clasp delete-deployment` (or `clasp undeploy`) command.
+ * These tests cover scenarios such as:
+ * - Deleting a specific deployment by its ID.
+ * - Interactively prompting the user to select a deployment to delete when no ID is provided.
+ * - Using the `--all` flag to delete all existing deployments for a project.
+ */
+
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -34,9 +42,12 @@ import {runCommand} from './utils.js';
 useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Test suite for the 'clasp delete-deployment' command.
 describe('Delete deployment command', function () {
+  // Setup mocks before each test and reset after.
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -46,8 +57,10 @@ describe('Delete deployment command', function () {
     resetMocks();
   });
 
+  // Tests for deleting deployments when a .clasp.json file exists and the user is authenticated.
   describe('With project, authenticated', function () {
     beforeEach(function () {
+      // Set up a mock filesystem with .clasp.json and authenticated .clasprc.json.
       mockfs({
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -56,29 +69,40 @@ describe('Delete deployment command', function () {
       });
     });
 
+    // Test deleting a deployment by providing its ID directly.
     it('should delete a deployment', async function () {
+      // Mock the API call to delete the specified deployment.
       mockDeleteDeployment({
         scriptId: 'mock-script-id',
         deploymentId: 'mock-deployment-id',
       });
       const out = await runCommand(['delete-deployment', 'mock-deployment-id']);
-      return expect(out.stdout).to.contain('Deleted deployment');
+      expect(out.stdout).to.contain('Deleted deployment');
     });
 
+    // Test interactive prompt for deployment ID when none is provided.
     it('should prompt for deployment', async function () {
+      // Mock listing deployments to provide choices for the prompt.
       mockListDeployments({scriptId: 'mock-script-id'});
+      // Mock deletion of the deployment that will be "selected" by the stubbed prompt.
       mockDeleteDeployment({
         scriptId: 'mock-script-id',
-        deploymentId: 'mock-deployment-id',
+        deploymentId: 'mock-deployment-id', // This ID should match the stubbed prompt's resolution.
       });
-      forceInteractiveMode(true);
-      sinon.stub(inquirer, 'prompt').resolves({deploymentId: 'mock-deployment-id'});
+      forceInteractiveMode(true); // Ensure isInteractive() returns true.
+      // Stub inquirer.prompt to simulate user selecting 'mock-deployment-id'.
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({deploymentId: 'mock-deployment-id'});
       const out = await runCommand(['delete-deployment']);
-      return expect(out.stdout).to.contain('Deleted deployment');
+      promptStub.restore(); // Restore original inquirer.prompt.
+      expect(out.stdout).to.contain('Deleted deployment');
     });
 
+    // Test deleting all deployments using the --all flag.
     it('should delete all if specified', async function () {
+      // Mock listing deployments, which will be iterated through for deletion.
       mockListDeployments({scriptId: 'mock-script-id'});
+      // Mock the deletion for each deployment that `mockListDeployments` returns (excluding HEAD deployments).
+      // This assumes `mockListDeployments` returns 'mock-deployment-id' and 'mock-deployment-id-2' as deletable.
       mockDeleteDeployment({
         scriptId: 'mock-script-id',
         deploymentId: 'mock-deployment-id',

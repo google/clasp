@@ -12,6 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Integration tests for the `clasp clone` command.
+ * These tests cover various scenarios including:
+ * - Cloning by script ID or URL.
+ * - Cloning a specific version of a script.
+ * - Using a custom root directory for the cloned project.
+ * - Interactive prompts when no script ID is provided.
+ * - Error handling for invalid script IDs or existing projects.
+ */
+
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -35,20 +45,26 @@ import {runCommand} from './utils.js';
 useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Test suite for the 'clasp clone' command.
 describe('Clone script command', function () {
+  // Setup mocks before each test and reset after.
   beforeEach(function () {
-    setupMocks();
-    mockOAuthRefreshRequest();
+    setupMocks(); // Sets up nock and mock-fs.
+    mockOAuthRefreshRequest(); // Mocks the OAuth token refresh request.
   });
 
   afterEach(function () {
-    resetMocks();
+    resetMocks(); // Restores filesystem and nock.
   });
 
+  // Tests for cloning into a directory that does not already contain a .clasp.json project file.
+  // Assumes the user is authenticated.
   describe('With clean dir, authenticated', function () {
     beforeEach(function () {
+      // Set up a mock filesystem with an authenticated .clasprc.json file.
       mockfs({
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
@@ -102,9 +118,17 @@ describe('Clone script command', function () {
       mockScriptDownload({
         scriptId: 'mock-script-id',
       });
-      forceInteractiveMode(true); // Force TTY for CI
-      sinon.stub(inquirer, 'prompt').resolves({scriptId: 'mock-script-id'});
+      // Mock the API call to list available scripts for the user to choose from.
+      mockListScripts();
+      // Mock the download of the selected script's content.
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      forceInteractiveMode(true); // Ensure `isInteractive()` returns true for this test.
+      // Stub `inquirer.prompt` to simulate user selecting 'mock-script-id'.
+      const promptStub = sinon.stub(inquirer, 'prompt').resolves({scriptId: 'mock-script-id'});
       const out = await runCommand(['clone']);
+      promptStub.restore(); // Restore original inquirer.prompt behavior.
       expect('appsscript.json').to.be.a.realFile;
       expect('Code.js').to.be.a.realFile;
       expect(out.stdout).to.contain('Cloned');
@@ -124,17 +148,24 @@ describe('Clone script command', function () {
       return expect(out.stderr).to.contain('Invalid script ID');
     });
 
+    // This test verifies that if the script download (clone) fails,
+    // the .clasp.json file (project configuration) is not created locally.
     it('should not write .clasp.json if unable to clone', async function () {
+      // Mock an error response for the script content download.
       mockScriptDownloadError({
         scriptId: 'mock-script-id',
       });
       await runCommand(['clone', 'mock-script-id']);
-      expect('.clasp.json').to.not.be.a.realFile;
+      // Assert that the .clasp.json file was not created.
+      expect('.clasp.json').to.not.be.a.realFile();
     });
   });
 
+  // Tests for attempting to clone into a directory that already contains a .clasp.json file.
+  // Assumes the user is authenticated.
   describe('With existing project, authenticated', function () {
     beforeEach(function () {
+      // Set up a mock filesystem with an existing .clasp.json and authenticated .clasprc.json.
       mockfs({
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(

@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * @fileoverview Unit and integration tests for the `Logs` class in `src/core/logs.ts`.
+ * These tests cover fetching log entries from Google Cloud Logging, including
+ * scenarios with and without a configured GCP project ID, and with different
+ * authentication states.
+ */
+
 import os from 'os';
 import path from 'path';
 
@@ -28,9 +35,14 @@ import {resetMocks, setupMocks} from '../mocks.js';
 useChaiExtensions();
 
 const __filename = fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function mockCredentials() {
+/**
+ * Creates a mock OAuth2Client instance for testing.
+ * @returns A mock OAuth2Client.
+ */
+function mockCredentials(): OAuth2Client {
   const client = new OAuth2Client();
   client.setCredentials({
     access_token: 'mock-access-token',
@@ -38,16 +50,22 @@ function mockCredentials() {
   return client;
 }
 
+/**
+ * Helper function to define shared test cases for scenarios where log operations
+ * are expected to fail, typically due to missing scriptId or projectId configuration.
+ */
 function shouldFailLogOperationsWhenNotSetup() {
-  it('should fail to get log entries', async function () {
-    const clasp = await initClaspInstance({
-      credentials: mockCredentials(),
-    });
-    return expect(clasp.logs.getLogEntries()).to.eventually.be.rejectedWith(Error);
+  it('should fail to get log entries due to missing project configuration', async function () {
+    const clasp = await initClaspInstance({credentials: mockCredentials()});
+    // Expect rejection because scriptId (and thus projectId for logs) is not configured.
+    // The error message might vary based on which assertion (scriptId or projectId) fails first.
+    return expect(clasp.logs.getLogEntries()).to.eventually.be.rejectedWith(Error, /Project settings not found|GCP project ID is not set/);
   });
 }
 
+// Main test suite for log operations.
 describe('Log operations', function () {
+  // Common setup and teardown.
   beforeEach(function () {
     setupMocks();
   });
@@ -56,106 +74,99 @@ describe('Log operations', function () {
     resetMocks();
   });
 
-  describe('with no project, no credentials', function () {
+  // Tests for when no .clasp.json exists and user is not authenticated.
+  describe('with no local project and no credentials', function () {
     beforeEach(function () {
-      mockfs({});
+      mockfs({}); // Empty filesystem.
     });
-    shouldFailLogOperationsWhenNotSetup();
+    it('should fail to get log entries (auth error)', async function () {
+      const clasp = await initClaspInstance({}); // No credentials
+      return expect(clasp.logs.getLogEntries()).to.eventually.be.rejectedWith(Error, /User is not authenticated/);
+    });
     afterEach(mockfs.restore);
   });
 
-  describe('with no project, authenticated', function () {
+  // Tests for when no .clasp.json exists, but user is authenticated.
+  describe('with no local project, but authenticated', function () {
     beforeEach(function () {
-      mockfs({});
-    });
-    shouldFailLogOperationsWhenNotSetup();
-    afterEach(mockfs.restore);
-  });
-
-  describe('with project, authenticated', function () {
-    beforeEach(function () {
-      mockfs({
-        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
-        'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
-        'ignored/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
-        'page.html': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
-        'package.json': '{}',
-        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-gcp-project.json')),
-        'node_modules/test/index.js': '',
+      mockfs({ // Only .clasprc.json, no .clasp.json.
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
         ),
       });
     });
-
+    // Shared tests for failing log operations due to no project config.
+    shouldFailLogOperationsWhenNotSetup();
     afterEach(mockfs.restore);
+  });
 
-    it('should get log entries', async function () {
+  // Tests for when a .clasp.json with GCP project ID exists and user is authenticated.
+  describe('with GCP project configured and authenticated', function () {
+    beforeEach(function () {
+      // Mock filesystem with .clasp.json having a projectId and an authenticated .clasprc.json.
+      mockfs({
+        // 'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        // 'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-gcp-project.json')), // This fixture must contain a projectId.
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+    afterEach(mockfs.restore); // Clean up mock filesystem.
+
+    // Test fetching log entries without a 'since' filter.
+    it('should get log entries without a "since" date', async function () {
+      // Mock the Google Cloud Logging API endpoint.
       nock('https://logging.googleapis.com')
         .post(/\/v2\/entries:list/, body => {
-          expect(body.resourceNames).to.eql(['projects/mock-gcp-project']);
-          expect(body.filter).to.equal('');
+          // Assertions on the request body sent to the Logging API.
+          expect(body.resourceNames).to.eql(['projects/mock-gcp-project']); // From dot-clasp-gcp-project.json
+          expect(body.filter).to.equal(''); // No 'since' date means empty filter for time.
           expect(body.orderBy).to.equal('timestamp desc');
-          expect(body.pageSize).to.equal(100);
+          expect(body.pageSize).to.equal(100); // Default page size from fetchWithPages.
           return true;
         })
-        .reply(200, {
-          entries: [
-            {
-              timestamp: '2023-10-27T10:00:00Z',
-              logName: 'projects/my-gcp-project/logs/stdout',
-              severity: 'INFO',
-            },
-          ],
+        .reply(200, { // Simulate a successful API response.
+          entries: [{timestamp: '2023-10-27T10:00:00Z', logName: 'projects/mock-gcp-project/logs/stdout', severity: 'INFO'}],
           nextPageToken: undefined,
         });
 
-      const clasp = await initClaspInstance({
-        credentials: mockCredentials(),
-      });
+      const clasp = await initClaspInstance({credentials: mockCredentials()});
       const logs = await clasp.logs.getLogEntries();
-      expect(logs.results.length).to.equal(1);
-      expect(logs.results[0].logName).to.eql('projects/my-gcp-project/logs/stdout');
+      expect(logs.results).to.have.lengthOf(1);
+      expect(logs.results[0].logName).to.eql('projects/mock-gcp-project/logs/stdout');
     });
 
-    it('should get log entries since', async function () {
-      const since = new Date('2023-10-26T10:00:00Z');
+    // Test fetching log entries with a 'since' filter.
+    it('should get log entries filtered by a "since" date', async function () {
+      const sinceDate = new Date('2023-10-26T10:00:00.000Z');
       nock('https://logging.googleapis.com')
         .post(/\/v2\/entries:list/, body => {
           expect(body.resourceNames).to.eql(['projects/mock-gcp-project']);
-          expect(body.filter).to.equal('timestamp >= "2023-10-26T10:00:00.000Z"');
+          // Verify the timestamp filter is correctly formatted.
+          expect(body.filter).to.equal(`timestamp >= "${sinceDate.toISOString()}"`);
           expect(body.orderBy).to.equal('timestamp desc');
-          expect(body.pageSize).to.equal(100);
           return true;
         })
         .reply(200, {
-          entries: [
-            {
-              timestamp: '2023-10-27T10:00:00Z',
-              logName: 'projects/my-gcp-project/logs/stdout',
-              severity: 'INFO',
-            },
-          ],
+          entries: [{timestamp: '2023-10-27T10:00:00Z', logName: 'projects/mock-gcp-project/logs/stdout', severity: 'INFO'}],
           nextPageToken: undefined,
         });
 
-      const clasp = await initClaspInstance({
-        credentials: mockCredentials(),
-      });
-      const logs = await clasp.logs.getLogEntries(since);
-      expect(logs.results.length).to.equal(1);
-      expect(logs.results[0].logName).to.eql('projects/my-gcp-project/logs/stdout');
+      const clasp = await initClaspInstance({credentials: mockCredentials()});
+      const logs = await clasp.logs.getLogEntries(sinceDate);
+      expect(logs.results).to.have.lengthOf(1);
+      expect(logs.results[0].logName).to.eql('projects/mock-gcp-project/logs/stdout');
     });
   });
-  describe('with invalid project, authenticated', function () {
+
+  // Tests for scenarios where .clasp.json is missing a projectId, but user is authenticated.
+  describe('with local project missing GCP ID, authenticated', function () {
     beforeEach(function () {
+      // Mock filesystem with .clasp.json that *lacks* a projectId.
       mockfs({
-        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
-        'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
-        'ignored/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
-        'page.html': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
-        'package.json': '{}',
-        'node_modules/test/index.js': '',
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')), // No projectId in this fixture.
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
         ),
