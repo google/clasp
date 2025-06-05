@@ -1,3 +1,24 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview This file is the main entry point for the `clasp` CLI.
+ * It sets up the `commander` program, registers all available subcommands,
+ * defines global options, and initializes shared resources like authentication
+ * and the `Clasp` instance before any subcommand action is executed.
+ */
+
 import {Command, CommanderError, Option} from 'commander';
 import {PROJECT_NAME} from '../constants.js';
 
@@ -37,69 +58,83 @@ import {initAuth} from '../auth/auth.js';
 import {initClaspInstance} from '../core/clasp.js';
 import {intl} from '../intl.js';
 
-export function getVersion() {
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-  const manifest = readPackageUpSync({cwd: __dirname});
+/**
+ * Retrieves the version of the clasp package from its package.json.
+ * @returns The version string (e.g., "1.2.3") or "unknown" if not found.
+ */
+export function getVersion(): string {
+  // Determine the directory of the current module.
+  const currentModuleDir = dirname(fileURLToPath(import.meta.url));
+  // Find the closest package.json upwards from the current module directory.
+  const manifest = readPackageUpSync({cwd: currentModuleDir});
   const version = manifest ? manifest.packageJson.version : 'unknown';
   return version;
 }
 
-export function makeProgram(exitOveride?: (err: CommanderError) => void) {
+/**
+ * Creates and configures the main Commander program for the clasp CLI.
+ * @param exitOverride Optional function to override the default exit behavior of Commander, useful for testing.
+ * @returns The configured Commander program instance.
+ */
+export function makeProgram(exitOverride?: (err: CommanderError) => void): Command {
   const version = getVersion();
-
   const program = new Command();
 
-  program.exitOverride(exitOveride);
+  // Configure program behavior.
+  if (exitOverride) {
+    program.exitOverride(exitOverride);
+  }
+  program.storeOptionsAsProperties(false); // Recommended by Commander for new projects.
 
-  program.storeOptionsAsProperties(false);
+  // Define program metadata.
+  program
+    .version(version, '-v, --version', 'Output the current version of clasp.')
+    .name(PROJECT_NAME)
+    .usage('<command> [options]')
+    .description(`${PROJECT_NAME} - The Apps Script CLI. Manage your Apps Script projects from the command line.`);
 
-  /**
-   * Displays clasp version
-   */
-  program.version(version, '-v, --version', 'output the current version');
-  program.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
-
+  // Global hook executed before any command action.
+  // This initializes shared resources like AuthInfo and Clasp instances.
   program.hook('preAction', async (_, cmd) => {
-    const opts = cmd.optsWithGlobals();
+    const globalOptions = cmd.optsWithGlobals();
 
+    // Initialize authentication based on global options.
     const auth = await initAuth({
-      authFilePath: opts.auth,
-      userKey: opts.user,
-      useApplicationDefaultCredentials: opts.adc,
+      authFilePath: globalOptions.auth,
+      userKey: globalOptions.user,
+      useApplicationDefaultCredentials: globalOptions.adc,
     });
+
+    // Initialize the Clasp instance for core operations.
     const clasp = await initClaspInstance({
       credentials: auth.credentials,
-      configFile: opts.project,
-      ignoreFile: opts.ignore,
+      configFile: globalOptions.project,
+      ignoreFile: globalOptions.ignore,
     });
 
+    // Make auth and clasp instances available to the command being executed.
     cmd.setOptionValue('clasp', clasp);
     cmd.setOptionValue('auth', auth);
   });
 
-  /**
-   * Path to an auth file, or to a folder with a '.clasprc.json' file.
-   */
+  // Define global options applicable to all commands.
   program.addOption(
-    new Option('-A, --auth <file>', "path to an auth file or a folder with a '.clasprc.json' file.").env(
-      'clasp_config_auth',
-    ),
+    new Option('-A, --auth <file>', "Path to a custom auth file or a directory containing a '.clasprc.json' file. Overrides default.")
+      .env('CLASP_CONFIG_AUTH'), // Allow setting via environment variable.
+  );
+  program.option('-u, --user <name>', "Specify a named user credential profile. Defaults to 'default'.", 'default');
+  program.option('--adc', 'Use Application Default Credentials from the environment for authentication.');
+  program.addOption(
+    new Option('-I, --ignore <file>', "Path to a custom ignore file or a directory containing a '.claspignore' file. Overrides default.")
+      .env('CLASP_CONFIG_IGNORE'),
+  );
+  program.addOption(
+    new Option('-P, --project <file>', "Path to a custom project file or a directory containing a '.clasp.json' file. Overrides default.")
+      .env('CLASP_CONFIG_PROJECT'),
   );
 
-  program.option('-u,--user <name>', 'Store named credentials. If unspecified, the "default" user is used.', 'default');
-  program.option('--adc', 'Use the application default credentials from the environemnt.');
-  program.addOption(
-    new Option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.").env(
-      'clasp_config_ignore',
-    ),
-  );
-  program.addOption(
-    new Option('-P, --project <file>', "path to a project file or to a folder with a '.clasp.json' file.").env(
-      'clasp_config_project',
-    ),
-  );
-
-  const commandsToAdd = [
+  // List of all command modules to be registered with the program.
+  const commandsToRegister = [
     loginCommand,
     logoutCommand,
     openAuthCommand,
@@ -127,27 +162,34 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     listCommand,
     createVersionCommand,
     listVersionsCommand,
-    mcpCommand,
+    mcpCommand, // Model Context Protocol server command
   ];
 
-  for (const cmd of commandsToAdd) {
-    program.addCommand(cmd);
-    cmd.copyInheritedSettings(program);
+  // Register each command with the main program.
+  for (const commandModule of commandsToRegister) {
+    program.addCommand(commandModule);
+    // Ensure subcommands inherit global options.
+    commandModule.copyInheritedSettings(program);
   }
 
-  program.on('command:*', async function (this: Command, op) {
-    const msg = intl.formatMessage(
+  // Handle unknown commands.
+  program.on('command:*', async function (this: Command, operands) {
+    const unknownCommand = operands[0];
+    const errorMsg = intl.formatMessage(
       {
-        defaultMessage: 'Unknown command "clasp {command}"',
+        defaultMessage: 'Unknown command: "clasp {command}". See "clasp --help" for a list of available commands.',
       },
       {
-        command: op[0],
+        command: unknownCommand,
       },
     );
-    this.error(msg as string);
+    // Commander's error display is preferred, so use its built-in error mechanism.
+    // This will also respect program.exitOverride if set.
+    this.error(errorMsg, {exitCode: 1}); // Specify exit code for clarity.
   });
 
-  program.error;
+  // Note: `program.error` is a method, not something to be assigned or called directly here.
+  // Custom error handling can be done via `program.exitOverride` or by letting Commander handle it.
 
   return program;
 }

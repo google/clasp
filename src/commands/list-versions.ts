@@ -1,50 +1,74 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Implements the `clasp versions` or `clasp list-versions` command.
+ * This command lists all immutable versions of an Apps Script project,
+ * along with their version numbers and descriptions.
+ */
+
 import {Command} from 'commander';
 
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
 import {withSpinner} from './utils.js';
 
+/**
+ * Command to list all immutable versions of an Apps Script project.
+ * Displays the version number and description for each version.
+ */
 export const command = new Command('list-versions')
   .alias('versions')
-  .description('List versions of a script')
+  .description('List an Apps Script project\'s immutable versions.')
+  /**
+   * Action handler for the `list-versions` command.
+   * @this Command Instance of the commander Command.
+   */
   .action(async function (this: Command): Promise<void> {
     const clasp: Clasp = this.opts().clasp;
 
-    const spinnerMsg = intl.formatMessage({
+    const fetchingMsg = intl.formatMessage({
       defaultMessage: 'Fetching versions...',
     });
-    const versions = await withSpinner(spinnerMsg, async () => {
-      return await clasp.project.listVersions();
+    // Retrieve all versions for the project.
+    const versionsResponse = await withSpinner(fetchingMsg, async () => {
+      return clasp.project.listVersions();
     });
 
-    if (versions.results.length === 0) {
-      const msg = intl.formatMessage({
-        defaultMessage: 'No deployed versions of script.',
+    if (versionsResponse.results.length === 0) {
+      const noVersionsMsg = intl.formatMessage({
+        defaultMessage: 'No versions found for this script.',
       });
-      this.error(msg);
+      this.error(noVersionsMsg); // Error out if no versions exist, as it's unusual.
     }
 
-    const successMessage = intl.formatMessage(
+    const foundMsg = intl.formatMessage(
       {
-        defaultMessage: 'Found {count, plural, one {# version} other {# versions}}.',
+        defaultMessage: 'Found {count, plural, one {# version} other {# versions}} for project {scriptId}:',
       },
       {
-        count: versions.results.length,
+        count: versionsResponse.results.length,
+        scriptId: clasp.project.scriptId,
       },
     );
-    console.log(successMessage);
+    console.log(foundMsg);
 
-    versions.results.reverse();
-    versions.results.forEach(version => {
-      const msg = intl.formatMessage(
-        {
-          defaultMessage: '{version, number} - {description, select, undefined {No description} other {{description}}}',
-        },
-        {
-          version: version.versionNumber,
-          description: version.description,
-        },
-      );
-      console.log(msg);
+    // Display versions in reverse chronological order (newest first).
+    versionsResponse.results.reverse();
+    versionsResponse.results.forEach(version => {
+      const description = version.description ?? intl.formatMessage({defaultMessage: 'No description'});
+      const versionNumStr = version.versionNumber?.toString() ?? 'N/A';
+      console.log(`${versionNumStr.padStart(4)} - ${description}`);
     });
   });
