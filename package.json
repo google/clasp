@@ -22,7 +22,7 @@
     "prepare": "npm run compile",
     "lint": "npm run check",
     "test": "mocha",
-    "test:coverage": "c8 mocha",
+    "test:coverage": "c8 --reports-dir coverage --reporter=text --reporter=html --reporter=lcov mocha",
     "prettier": "biome format src test --write",
     "check": "biome check src test && npm run compile",
     "clean": "rm -rf build",
