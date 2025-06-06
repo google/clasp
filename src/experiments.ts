@@ -12,6 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file provides functionality for managing experimental features in clasp
+// through environment variables, allowing features to be toggled on or off.
+
+/**
+ * Checks if an experimental feature is enabled via environment variables.
+ * The environment variable is expected to be in the format `CLASP_EXPERIMENT_NAME_IN_UPPERCASE`.
+ * Truthy values are 'true' (case-insensitive) or '1'.
+ * @param {string} experimentName - The name of the experiment (e.g., "enable_user_hints").
+ * @param {boolean} [defaultValue=false] - The default value if the environment variable is not set.
+ * @returns {boolean} True if the experiment is enabled, false otherwise.
+ */
 export function isEnabled(experimentName: string, defaultValue = false) {
   const envVarName = `CLASP_${experimentName.toUpperCase()}`;
   const envVarValue = process.env[envVarName];

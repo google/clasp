@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the main `Clasp` class, which orchestrates all core
+// functionalities of the CLI, including configuration management, API
+// interactions, and file operations.
+
 import path from 'path';
 import Debug from 'debug';
 import {findUpSync} from 'find-up';
@@ -40,6 +44,13 @@ const DEFAULT_CLASP_IGNORE = [
   'node_modules/**',
 ];
 
+/**
+ * Options for initializing a Clasp instance.
+ * @property {OAuth2Client} [credentials] - Optional OAuth2 client for authentication.
+ * @property {string} [configFile] - Path to the .clasp.json configuration file or its directory.
+ * @property {string} [ignoreFile] - Path to the .claspignore file or its directory.
+ * @property {string} [rootDir] - The root directory of the project if no config file is found. Defaults to process.cwd().
+ */
 export type InitOptions = {
   credentials?: OAuth2Client;
   configFile?: string;
@@ -47,6 +58,11 @@ export type InitOptions = {
   rootDir?: string;
 };
 
+/**
+ * Main class for interacting with Google Apps Script projects.
+ * It encapsulates all core functionalities like file management,
+ * project settings, API interactions, and authentication.
+ */
 export class Clasp {
   private options: ClaspOptions;
   readonly services: Services;
@@ -55,6 +71,10 @@ export class Clasp {
   readonly logs: Logs;
   readonly functions: Functions;
 
+  /**
+   * Creates an instance of the Clasp class.
+   * @param {ClaspOptions} options - Configuration options for the Clasp instance.
+   */
   constructor(options: ClaspOptions) {
     debug('Creating clasp instance with options: %O', options);
     this.options = options;
@@ -78,6 +98,13 @@ export class Clasp {
     return undefined;
   }
 
+  /**
+   * Configures the Clasp instance with a specific Apps Script project ID.
+   * This is a fluent method and returns the `Clasp` instance for chaining.
+   * @param {string} scriptId - The ID of the Apps Script project.
+   * @returns {this} The current Clasp instance.
+   * @throws {Error} If the project is already set.
+   */
   withScriptId(scriptId: string) {
     if (this.options.project) {
       throw new Error('Science project already set, create new instance instead');
@@ -89,6 +116,14 @@ export class Clasp {
     return this;
   }
 
+  /**
+   * Sets the content directory for the project files.
+   * This directory is where clasp looks for source files (e.g., `.js`, `.html`).
+   * If a relative path is provided, it's resolved against the project's root directory.
+   * This is a fluent method and returns the `Clasp` instance for chaining.
+   * @param {string} contentDir - The path to the content directory.
+   * @returns {this} The current Clasp instance.
+   */
   withContentDir(contentDir: string) {
     if (!path.isAbsolute(contentDir)) {
       contentDir = path.resolve(this.options.files.projectRootDir, contentDir);
@@ -98,40 +133,60 @@ export class Clasp {
   }
 }
 
+/**
+ * Initializes and returns a Clasp instance.
+ * This function searches for project configuration files (`.clasp.json`, `.claspignore`),
+ * loads them if found, or sets up default configurations if not. It then creates
+ * and returns a new `Clasp` object configured with these settings.
+ * @param {InitOptions} options - Options for initializing the Clasp instance.
+ * @returns {Promise<Clasp>} A promise that resolves to a configured Clasp instance.
+ */
 export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   debug('Initializing clasp instance');
+  // Attempt to find the project root directory and .clasp.json config file.
   const projectRoot = await findProjectRootdDir(options.configFile);
+
+  // If no .clasp.json is found, set up a default Clasp instance.
   if (!projectRoot) {
+    // Use the provided rootDir option or default to the current working directory.
     const dir = options.rootDir ?? process.cwd();
     debug(`No project found, defaulting to ${dir}`);
     const rootDir = path.resolve(dir);
+    // Default path for .clasp.json if one were to be created.
     const configFilePath = path.resolve(rootDir, '.clasp.json');
     const ignoreFile = await findIgnoreFile(rootDir, options.ignoreFile);
     const ignoreRules = await loadIgnoreFileOrDefaults(ignoreFile);
+    // Create a Clasp instance with default file settings and no project-specific config.
     return new Clasp({
       credentials: options.credentials,
-      configFilePath,
+      configFilePath, // Path where .clasp.json would be.
       files: {
         projectRootDir: rootDir,
-        contentDir: rootDir,
+        contentDir: rootDir, // By default, content directory is the root directory.
         ignoreFilePath: ignoreFile,
         ignorePatterns: ignoreRules,
-        filePushOrder: [],
-        skipSubdirectories: false,
-        fileExtensions: readFileExtensions({}),
+        filePushOrder: [], // No specific push order.
+        skipSubdirectories: false, // Process subdirectories by default.
+        fileExtensions: readFileExtensions({}), // Default file extensions.
       },
+      // No project options (scriptId, projectId, parentId) as .clasp.json was not found.
     });
   }
 
+  // If .clasp.json is found, load its configuration.
   debug('Project config found at %s', projectRoot.configPath);
   const ignoreFile = await findIgnoreFile(projectRoot.rootDir, options.ignoreFile);
   const ignoreRules = await loadIgnoreFileOrDefaults(ignoreFile);
 
   const content = await fs.readFile(projectRoot.configPath, {encoding: 'utf8'});
-  const config = JSON.parse(content);
+  const config = JSON.parse(content); // Parse the JSON content of .clasp.json.
+
+  // Determine file extensions, push order, and content directory from the loaded config.
   const fileExtensions = readFileExtensions(config);
-  const filePushOrder = config.filePushOrder || [];
+  const filePushOrder = config.filePushOrder || []; // Default to empty array if not specified.
+  // Content directory can be specified by `srcDir` or `rootDir` in .clasp.json, defaulting to project root.
   const contentDir = path.resolve(projectRoot.rootDir, config.srcDir || config.rootDir || '.');
+
   return new Clasp({
     credentials: options.credentials,
     configFilePath: projectRoot.configPath,
@@ -153,13 +208,15 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
 }
 
 function readFileExtensions(config: any | undefined) {
-  let scriptExtensions = ['js', 'gs'];
-  let htmlExtensions = ['html'];
-  let jsonExtensions = ['json'];
+  let scriptExtensions = ['js', 'gs']; // Default script file extensions.
+  let htmlExtensions = ['html']; // Default HTML file extensions.
+  let jsonExtensions = ['json']; // Default JSON file extensions (primarily for appsscript.json).
+
+  // Support for legacy `fileExtension` setting (singular).
   if (config?.fileExtension) {
-    // legacy fileExtension setting
     scriptExtensions = [config.fileExtension];
   }
+  // Support for current `scriptExtensions` setting (plural, array).
   if (config?.scriptExtensions) {
     scriptExtensions = ensureStringArray(config.scriptExtensions);
   }
@@ -169,6 +226,8 @@ function readFileExtensions(config: any | undefined) {
   if (config?.jsonExtensions) {
     jsonExtensions = ensureStringArray(config.jsonExtensions);
   }
+
+  // Ensure all extensions are lowercase and start with a dot.
   const fixupExtension = (ext: string) => {
     ext = ext.toLowerCase().trim();
     if (!ext.startsWith('.')) {

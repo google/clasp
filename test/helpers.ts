@@ -12,11 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file provides helper functions and custom Chai assertions for use in
+// the test suite, such as checking for file existence.
+
 import * as fs from 'fs';
 import * as path from 'path';
 import {use} from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+/**
+ * Registers custom Chai extensions used in the test suite.
+ * This includes `chai-as-promised` for easier promise testing and
+ * the custom `realFile` assertion.
+ */
 export function useChaiExtensions() {
   use(chaiAsPromised);
   use(chaiFileExists);
@@ -30,6 +38,17 @@ declare global {
   }
 }
 
+/**
+ * A custom Chai assertion plugin to check if a path exists and is a file.
+ * Adds the `.realFile` assertion to Chai.
+ *
+ * Example usage:
+ * ```
+ * expect('path/to/your/file.txt').to.be.a.realFile();
+ * ```
+ * @param {Chai.ChaiStatic} chai - The Chai instance.
+ * @param {Chai.ChaiUtils} utils - Chai utility functions.
+ */
 export function chaiFileExists(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils): void {
   const Assertion = chai.Assertion;
 

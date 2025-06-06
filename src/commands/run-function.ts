@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'run-function' (alias 'run') command for the clasp CLI.
+
 import chalk from 'chalk';
 import {Command} from 'commander';
 import fuzzy from 'fuzzy';
@@ -37,29 +39,38 @@ export const command = new Command('run-function')
     let params: unknown[] = [];
 
     if (options.params) {
+      // Parameters for the function are expected to be a JSON-encoded array.
       params = JSON.parse(options.params);
     }
 
+    // If no function name is provided and the session is interactive,
+    // fetch all function names from the project and prompt the user to select one.
     if (!functionName && isInteractive()) {
       const allFunctions = await clasp.functions.getFunctionNames();
+      // `inquirer-autocomplete-standalone` provides a fuzzy-searchable list.
       const source = async (input = '') =>
         fuzzy.filter(input, allFunctions).map(element => ({
-          value: element.original,
+          value: element.original, // The original function name is the value.
         }));
       const prompt = intl.formatMessage({
         defaultMessage: 'Selection a function name',
       });
       functionName = await autocomplete({
         message: prompt,
-        source,
+        source, // Source function for the autocomplete.
       });
     }
+
+    // Attempt to run the function.
     try {
+      // `clasp.functions.runFunction` calls the Apps Script API.
       const {error, response} = await withSpinner(`Running function: ${functionName}`, async () => {
         return await clasp.functions.runFunction(functionName, params, devMode);
       });
 
+      // Handle the API response.
       if (error && error.details) {
+        // If the API returned an error in the `error.details` field (common for script execution errors).
         const {errorMessage, scriptStackTraceElements} = error.details[0];
         const msg = intl.formatMessage({
           defaultMessage: 'Exception:',
@@ -69,15 +80,19 @@ export const command = new Command('run-function')
       }
 
       if (response && response.result !== undefined) {
+        // If the function executed successfully and returned a result.
         console.log(response.result);
       } else {
+        // If the function execution didn't produce a result or an error in the expected format.
         const msg = intl.formatMessage({
           defaultMessage: 'No response.',
         });
         console.log(chalk.red(msg));
       }
     } catch (error) {
+      // Handle errors thrown by `clasp.functions.runFunction` or other issues.
       if (error.cause?.code === 'NOT_AUTHORIZED') {
+        // Specific error for lack of permissions.
         const msg = intl.formatMessage({
           defaultMessage:
             'Unable to run script function. Please make sure you have permission to run the script function.',
@@ -85,11 +100,13 @@ export const command = new Command('run-function')
         this.error(msg);
       }
       if (error.cause?.code === 'NOT_FOUND') {
+        // Specific error if the function or script (as API executable) is not found.
         const msg = intl.formatMessage({
           defaultMessage: 'Script function not found. Please make sure script is deployed as API executable.',
         });
         this.error(msg);
       }
+      // Re-throw other errors to be caught by the global error handler.
       throw error;
     }
   });

@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file contains tests for the main program setup, ensuring all commands
+// are correctly registered.
+
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
 

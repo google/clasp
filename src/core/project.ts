@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the `Project` class, which is responsible for managing
+// Google Apps Script project metadata, lifecycle operations (creation, versions,
+// deployments), and local project configuration settings.
+
 import Debug from 'debug';
 import fs from 'fs/promises';
 import {google} from 'googleapis';
@@ -30,6 +34,12 @@ type Script = {
   id: string;
 };
 
+/**
+ * Manages Google Apps Script project settings and interactions with the
+ * Apps Script API for operations like creating projects, versions,
+ * and deployments. It also handles reading and writing the local
+ * `.clasp.json` configuration file and the `appsscript.json` manifest.
+ */
 export class Project {
   private options: ClaspOptions;
 
@@ -50,11 +60,24 @@ export class Project {
   }
 
   // TODO - Do we need the assertion or can just use accessor?
+  /**
+   * Retrieves the Google Cloud Platform (GCP) project ID associated with the script.
+   * Asserts that the script is configured before returning the ID.
+   * @returns {string | undefined} The GCP project ID, or undefined if not set.
+   * @throws {Error} If the script is not configured.
+   */
   getProjectId(): string | undefined {
     assertScriptConfigured(this.options);
     return this.options.project.projectId;
   }
 
+  /**
+   * Creates a new standalone Apps Script project.
+   * @param {string} name - The title for the new script project.
+   * @param {string} [parentId] - Optional ID of a Google Drive folder to create the script in.
+   * @returns {Promise<string>} A promise that resolves to the script ID of the newly created project.
+   * @throws {Error} If there's an API error or authentication issues.
+   */
   async createScript(name: string, parentId?: string): Promise<string> {
     debug('Creating script %s', name);
     assertAuthenticated(this.options);
@@ -86,6 +109,14 @@ export class Project {
     }
   }
 
+  /**
+   * Creates a new Google Drive file (e.g., Sheet, Doc) and a bound Apps Script project for it.
+   * @param {string} name - The title for the new Drive file and script project.
+   * @param {string} mimeType - The MIME type of the Drive file to create (e.g., 'application/vnd.google-apps.spreadsheet').
+   * @returns {Promise<{scriptId: string; parentId: string}>} A promise that resolves to an object
+   * containing the script ID and the parent Drive file ID.
+   * @throws {Error} If there's an API error or authentication issues.
+   */
   async createWithContainer(name: string, mimeType: string): Promise<{scriptId: string; parentId: string}> {
     debug('Creating container bound script %s (%s)', name, mimeType);
     assertAuthenticated(this.options);
@@ -98,6 +129,7 @@ export class Project {
 
     const credentials = this.options.credentials;
     const drive = google.drive({version: 'v3', auth: credentials});
+    // Create the container file (e.g., Google Sheet, Doc) using the Drive API.
     try {
       const requestOptions = {
         requestBody: {
@@ -107,7 +139,7 @@ export class Project {
       };
       debug('Creating project with request %O', requestOptions);
       const res = await drive.files.create(requestOptions);
-      parentId = res.data.id;
+      parentId = res.data.id; // Get the ID of the newly created container file.
       debug('Created container %s', parentId);
       if (!parentId) {
         throw new Error('Unexpected error, container ID missing from response.');
@@ -116,13 +148,21 @@ export class Project {
       handleApiError(error);
     }
 
+    // Once the container is created, create an Apps Script project bound to it.
     const scriptId = await this.createScript(name, parentId);
     return {
-      parentId,
+      parentId, // Return the ID of the container.
       scriptId,
     };
   }
 
+  /**
+   * Lists Apps Script projects accessible by the authenticated user from Google Drive.
+   * @returns {Promise<{results: Script[], partialResults: boolean} | undefined>}
+   * A promise that resolves to an object containing an array of script projects
+   * (with name and ID) and a flag indicating if results are partial, or undefined on error.
+   * @throws {Error} If there's an API error or authentication issues.
+   */
   async listScripts() {
     debug('Fetching scripts');
     assertAuthenticated(this.options);
@@ -149,6 +189,12 @@ export class Project {
     }
   }
 
+  /**
+   * Creates a new immutable version of the Apps Script project.
+   * @param {string} [description=''] - An optional description for the new version.
+   * @returns {Promise<number>} A promise that resolves to the newly created version number.
+   * @throws {Error} If there's an API error or authentication/configuration issues.
+   */
   async version(description = ''): Promise<number> {
     debug('Creating version: %s', description);
     assertAuthenticated(this.options);
@@ -176,6 +222,13 @@ export class Project {
     }
   }
 
+  /**
+   * Lists all immutable versions of the Apps Script project.
+   * @returns {Promise<{results: script_v1.Schema$Version[], partialResults: boolean} | undefined>}
+   * A promise that resolves to an object containing an array of version objects
+   * and a flag indicating if results are partial, or undefined on error.
+   * @throws {Error} If there's an API error or authentication/configuration issues.
+   */
   async listVersions() {
     debug('Fetching versions');
     assertAuthenticated(this.options);
@@ -204,6 +257,13 @@ export class Project {
     }
   }
 
+  /**
+   * Lists all deployments for the Apps Script project.
+   * @returns {Promise<{results: script_v1.Schema$Deployment[], partialResults: boolean} | undefined>}
+   * A promise that resolves to an object containing an array of deployment objects
+   * and a flag indicating if results are partial, or undefined on error.
+   * @throws {Error} If there's an API error or authentication/configuration issues.
+   */
   async listDeployments() {
     debug('Listing deployments');
     assertAuthenticated(this.options);
@@ -232,11 +292,22 @@ export class Project {
     }
   }
 
+  /**
+   * Creates a new deployment or updates an existing one for the Apps Script project.
+   * If `versionNumber` is not provided, a new script version is created with the given `description`.
+   * @param {string} [description=''] - Description for the new version (if created) or deployment.
+   * @param {string} [deploymentId] - Optional ID of an existing deployment to update. If not provided, a new deployment is created.
+   * @param {number} [versionNumber] - Optional specific script version number to deploy.
+   * @returns {Promise<script_v1.Schema$Deployment>} A promise that resolves to the deployment object.
+   * @throws {Error} If there's an API error or authentication/configuration issues.
+   */
   async deploy(description = '', deploymentId?: string, versionNumber?: number): Promise<script_v1.Schema$Deployment> {
     debug('Deploying project: %s (%s)', description, versionNumber ?? 'HEAD');
     assertAuthenticated(this.options);
     assertScriptConfigured(this.options);
 
+    // If no specific versionNumber is provided for deployment,
+    // create a new version of the script with the given description.
     if (versionNumber === undefined) {
       versionNumber = await this.version(description);
     }
@@ -248,9 +319,10 @@ export class Project {
 
     try {
       let deployment: script_v1.Schema$Deployment | undefined;
+      // If no deploymentId is provided, create a new deployment.
       if (!deploymentId) {
         const requestOptions = {
-          scriptId: scriptId,
+          scriptId: scriptId, // The scriptId must be provided in the request body for create.
           requestBody: {
             description: description ?? '',
             versionNumber: versionNumber,
@@ -261,14 +333,15 @@ export class Project {
         const res = await script.projects.deployments.create(requestOptions);
         deployment = res.data;
       } else {
+        // If a deploymentId is provided, update the existing deployment.
         const requestOptions = {
-          scriptId: scriptId,
-          deploymentId: deploymentId,
+          scriptId: scriptId, // Path parameter for the scriptId.
+          deploymentId: deploymentId, // Path parameter for the deploymentId to update.
           requestBody: {
             deploymentConfig: {
               description: description ?? '',
               versionNumber: versionNumber,
-              scriptId: scriptId,
+              scriptId: scriptId, // The scriptId also needs to be in the deploymentConfig.
               manifestFileName: 'appsscript',
             },
           },
@@ -277,12 +350,20 @@ export class Project {
         const res = await script.projects.deployments.update(requestOptions);
         deployment = res.data;
       }
-      return deployment;
+      return deployment; // Return the created or updated deployment object.
     } catch (error) {
       handleApiError(error);
     }
   }
 
+  /**
+   * Retrieves the entry points for a specific deployment of the Apps Script project.
+   * Entry points define how the script can be executed (e.g., as a web app, API executable).
+   * @param {string} deploymentId - The ID of the deployment.
+   * @returns {Promise<script_v1.Schema$EntryPoint[] | undefined>} A promise that resolves to an array
+   * of entry point objects, or undefined if an error occurs.
+   * @throws {Error} If there's an API error or authentication/configuration issues.
+   */
   async entryPoints(deploymentId: string) {
     assertAuthenticated(this.options);
     assertScriptConfigured(this.options);
@@ -300,6 +381,12 @@ export class Project {
     }
   }
 
+  /**
+   * Deletes a specific deployment of the Apps Script project.
+   * @param {string} deploymentId - The ID of the deployment to delete.
+   * @returns {Promise<void>} A promise that resolves when the deployment is deleted.
+   * @throws {Error} If there's an API error or authentication/configuration issues.
+   */
   async undeploy(deploymentId: string): Promise<void> {
     debug('Deleting deployment %s', deploymentId);
     assertAuthenticated(this.options);
@@ -322,6 +409,12 @@ export class Project {
     }
   }
 
+  /**
+   * Writes the current project settings (script ID, root directory, parent ID, project ID,
+   * file extensions, push order, skip subdirectories) to the `.clasp.json` file.
+   * @returns {Promise<void>} A promise that resolves when the settings are written.
+   * @throws {Error} If the script is not configured or there's a file system error.
+   */
   async updateSettings(): Promise<void> {
     debug('Updating settings');
     assertScriptConfigured(this.options);
@@ -341,6 +434,13 @@ export class Project {
     await fs.writeFile(this.options.configFilePath, JSON.stringify(settings, null, 2));
   }
 
+  /**
+   * Sets the Google Cloud Platform (GCP) project ID for the current Apps Script project
+   * and updates the `.clasp.json` file.
+   * @param {string | undefined} projectId - The GCP project ID to set.
+   * @returns {Promise<void>} A promise that resolves when the project ID is set and settings are updated.
+   * @throws {Error} If the script is not configured.
+   */
   async setProjectId(projectId: string | undefined): Promise<void> {
     debug('Setting project ID %s in file %s', projectId, this.options.configFilePath);
     assertScriptConfigured(this.options);
@@ -348,10 +448,19 @@ export class Project {
     this.updateSettings();
   }
 
+  /**
+   * Checks if a script project is currently configured (i.e., if a script ID is set).
+   * @returns {boolean} True if a script ID is set, false otherwise.
+   */
   exists(): boolean {
     return this.options.project?.scriptId !== undefined;
   }
 
+  /**
+   * Reads and parses the `appsscript.json` manifest file from the project's content directory.
+   * @returns {Promise<Manifest>} A promise that resolves to the parsed manifest object.
+   * @throws {Error} If the script is not configured or the manifest file cannot be read/parsed.
+   */
   async readManifest(): Promise<Manifest> {
     debug('Reading manifest');
     assertScriptConfigured(this.options);

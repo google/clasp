@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'push' command for the clasp CLI.
+
 import path from 'path';
 import {Command} from 'commander';
 import inquirer from 'inquirer';
@@ -33,26 +35,32 @@ export const command = new Command('push')
     const clasp: Clasp = this.opts().clasp;
 
     const watch = options.watch;
-    let force = options.force;
+    let force = options.force; // Store the force option, as it can be updated by confirmManifestUpdate
 
+    // Defines the action to take when a file change is detected (either initially or during watch mode).
     const onChange = async (paths: string[]) => {
+      // Check if the manifest file (appsscript.json) is among the changed files.
       const isManifestUpdated = paths.findIndex(p => path.basename(p) === 'appsscript.json') !== -1;
+      // If the manifest is updated and not using --force, prompt the user for confirmation.
       if (isManifestUpdated && !force) {
-        force = await confirmManifestUpdate();
+        force = await confirmManifestUpdate(); // Update force based on user's choice.
         if (!force) {
+          // If user declines manifest overwrite, skip the push.
           const msg = intl.formatMessage({
             defaultMessage: 'Skipping push.',
           });
           console.log(msg);
-          return;
+          return; // Exit onChange without pushing.
         }
       }
       const spinnerMsg = intl.formatMessage({
         defaultMessage: 'Pushing files...',
       });
+      // Perform the push operation using the core `clasp.files.push()` method.
       const files = await withSpinner(spinnerMsg, async () => {
         return await clasp.files.push();
       });
+      // Log the result of the push.
       const successMessage = intl.formatMessage(
         {
           defaultMessage: `Pushed {count, plural, 
@@ -66,24 +74,29 @@ export const command = new Command('push')
       );
       console.log(successMessage);
       files.forEach(f => console.log(`└─ ${f.localPath}`));
-      return true;
+      return true; // Indicate that the push was attempted (or successfully skipped by user).
     };
 
+    // Initial check for pending changes when the command is first run.
     const pendingChanges = await clasp.files.getChangedFiles();
     if (pendingChanges.length) {
+      // If there are changes, map them to their paths and call onChange.
       const paths = pendingChanges.map(f => f.localPath);
       await onChange(paths);
     } else {
+      // If no changes, inform the user.
       const msg = intl.formatMessage({
         defaultMessage: 'Script is already up to date.',
       });
       console.log(msg);
     }
 
+    // If not in watch mode, exit after the initial push attempt.
     if (!watch) {
       return;
     }
 
+    // Setup for watch mode.
     const onReady = async () => {
       const msg = intl.formatMessage({
         defaultMessage: 'Waiting for changes...',
@@ -91,7 +104,11 @@ export const command = new Command('push')
       console.log(msg);
     };
 
+    // Start watching local files. The `onChange` function will be called on subsequent changes.
+    // `watchLocalFiles` returns a function to stop the watcher.
     const stopWatching = await clasp.files.watchLocalFiles(onReady, async paths => {
+      // If onChange returns undefined (e.g. user skipped manifest push), it implies we should stop watching.
+      // This can happen if the user cancels the manifest push in interactive mode.
       if (!(await onChange(paths))) {
         stopWatching();
       }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file contains tests for the core project management functionalities.
+
 import path from 'path';
 
 import {fileURLToPath} from 'url';
@@ -47,8 +49,11 @@ describe('Project operations', function () {
     resetMocks();
   });
 
+  // Test suite for scenarios where the user is authenticated but no local .clasp.json project file exists.
+  // Most operations that require a script ID should fail or be limited.
   describe('with no project, authenticated', function () {
     beforeEach(function () {
+      // Mock an empty filesystem, representing no local project configuration.
       mockfs({});
     });
 
@@ -218,8 +223,11 @@ describe('Project operations', function () {
     });
   });
 
+  // Test suite for scenarios where a local .clasp.json project file exists and the user is authenticated.
+  // This suite tests operations on an already configured/cloned project.
   describe('with project, authenticated', function () {
     beforeEach(function () {
+      // Mock a filesystem with a .clasp.json and other typical project files.
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),

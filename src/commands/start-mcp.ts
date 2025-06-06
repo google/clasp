@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'start-mcp-server' (alias 'mcp') command for the
+// clasp CLI.
+
 import {Command} from 'commander';
 
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'clone-script' command for the clasp CLI.
+
 import {Command} from 'commander';
 import inquirer from 'inquirer';
 
@@ -38,14 +40,18 @@ export const command = new Command('clone-script')
 
     clasp.withContentDir(rootDir ?? '.');
 
+    // Determine the script ID to clone.
+    // Priority: 1. Directly provided scriptId argument. 2. Extracted from a URL. 3. Selected from a list in interactive mode.
     if (scriptId) {
+      // If a scriptId is provided, check if it's a full URL and extract the ID.
       const match = scriptId.match(/https:\/\/script\.google\.com\/d\/([^/]+)\/.*/);
       if (match) {
-        scriptId = match[1];
+        scriptId = match[1]; // Use the extracted ID from the URL.
       } else {
-        scriptId = scriptId.trim();
+        scriptId = scriptId.trim(); // Otherwise, use the provided ID as is (after trimming).
       }
     } else if (isInteractive()) {
+      // If no scriptId is provided and the session is interactive, prompt the user to choose.
       const projects = await clasp.project.listScripts();
       const choices = projects.results.map(file => ({
         name: `${file.name.padEnd(20)} - https://script.google.com/d/${file.id}/edit`,
@@ -75,12 +81,19 @@ export const command = new Command('clone-script')
       const cloningScriptMsg = intl.formatMessage({
         defaultMessage: 'Cloning script...',
       });
+      // Perform the cloning operation:
+      // 1. Configure the clasp instance with the determined script ID.
+      // 2. Pull the files from the remote project (optionally a specific version).
+      // 3. Update the local .clasp.json project settings file.
       const files = await withSpinner(cloningScriptMsg, async () => {
         clasp = clasp.withScriptId(scriptId);
         const files = await clasp.files.pull(versionNumber);
+        // After successfully pulling files, update the local project settings (e.g., .clasp.json)
+        // to reflect the cloned scriptId and other relevant configurations.
         clasp.project.updateSettings();
         return files;
       });
+      // Log the paths of the cloned files.
       files.forEach(f => console.log(`└─ ${f.localPath}`));
       const successMessage = intl.formatMessage(
         {
@@ -95,12 +108,14 @@ export const command = new Command('clone-script')
       );
       console.log(successMessage);
     } catch (error) {
+      // Handle specific error codes from the API, like an invalid script ID.
       if (error.cause?.code === 'INVALID_ARGUMENT') {
         const msg = intl.formatMessage({
           defaultMessage: 'Invalid script ID.',
         });
-        this.error(msg);
+        this.error(msg); // Output a user-friendly error and exit.
       }
+      // For other errors, rethrow to be caught by the global error handler.
       throw error;
     }
   });

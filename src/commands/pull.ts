@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'pull' command for the clasp CLI.
+
 import {Command} from 'commander';
 import fs from 'fs/promises';
 import inquirer from 'inquirer';
@@ -37,22 +39,32 @@ export const command = new Command('pull')
     const versionNumber = options.versionNumber;
     const forceDelete = options.force;
 
+    // First, collect a list of current local files before pulling.
+    // This is used to determine which files might need to be deleted if --deleteUnusedFiles is active.
     let spinnerMsg = intl.formatMessage({
       defaultMessage: 'Checking local files...',
     });
     const localFiles = await clasp.files.collectLocalFiles();
+
+    // Perform the pull operation from the remote Apps Script project.
+    // This fetches the files (optionally a specific version) and writes them to the local filesystem.
     spinnerMsg = intl.formatMessage({
       defaultMessage: 'Pulling files...',
     });
     const files = await withSpinner(spinnerMsg, async () => {
-      return await clasp.files.pull(versionNumber);
+      return await clasp.files.pull(versionNumber); // `clasp.files.pull` handles fetching and writing.
     });
 
+    // If the --deleteUnusedFiles option is used, identify and delete local files
+    // that are no longer present in the remote project.
     if (options.deleteUnusedFiles) {
+      // Compare the initial list of local files with the files just pulled.
+      // Any file in `localFiles` that is not in `files` (the pulled files) is considered unused.
       const filesToDelete = localFiles.filter(f => !files.find(p => p.localPath === f.localPath));
       await deleteLocalFiles(filesToDelete, forceDelete);
     }
 
+    // Log the paths of the pulled files.
     files.forEach(f => console.log(`└─ ${f.localPath}`));
     const successMessage = intl.formatMessage(
       {
@@ -70,10 +82,12 @@ export const command = new Command('pull')
 
 async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = false) {
   if (!filesToDelete || filesToDelete.length === 0) {
-    return;
+    return; // No files to delete.
   }
   const skipConfirmation = forceDelete;
 
+  // If not in an interactive terminal and --force is not used, skip deletion with a warning.
+  // This prevents accidental deletion in non-interactive environments like CI scripts.
   if (!isInteractive() && !forceDelete) {
     const msg = intl.formatMessage({
       defaultMessage: 'You are not in an interactive terminal and --force not used. Skipping file deletion.',
@@ -83,7 +97,9 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
   }
 
   for (const file of filesToDelete) {
+    let doDelete = true; // Assume deletion unless confirmation is required and denied.
     if (!skipConfirmation) {
+      // If not forcing, prompt the user to confirm deletion for each file.
       const confirm = await inquirer.prompt({
         type: 'confirm',
         name: 'deleteFile',
@@ -94,12 +110,12 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
           {file: file.localPath},
         ),
       });
-      if (!confirm.deleteFile) {
-        continue;
-      }
+      doDelete = confirm.deleteFile;
     }
 
-    await fs.unlink(file.localPath);
-    console.log(intl.formatMessage({defaultMessage: 'Deleted {file}'}, {file: file.localPath}));
+    if (doDelete) {
+      await fs.unlink(file.localPath); // Delete the file from the local system.
+      console.log(intl.formatMessage({defaultMessage: 'Deleted {file}'}, {file: file.localPath}));
+    }
   }
 }

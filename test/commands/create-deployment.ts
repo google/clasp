@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file contains tests for the 'create-deployment' command.
+
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -54,6 +56,9 @@ describe('Create deployment command', function () {
       });
     });
 
+    // This test case verifies the default behavior of 'deploy' command:
+    // it should create a new script version (if no version is specified)
+    // and then create a new deployment using that version with a default description.
     it('should create version and use default description', async function () {
       mockCreateVersion({
         scriptId: 'mock-script-id',

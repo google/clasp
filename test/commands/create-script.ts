@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file contains tests for the 'create-script' command.
+
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -45,8 +47,11 @@ describe('Create script command', function () {
     resetMocks();
   });
 
+  // Test suite for 'create' command scenarios where the user is authenticated
+  // and there is no existing .clasp.json file (i.e., creating a new project locally).
   describe('With project, authenticated', function () {
     beforeEach(function () {
+      // Mock filesystem with only the global authentication file.
       mockfs({
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
@@ -54,6 +59,10 @@ describe('Create script command', function () {
       });
     });
 
+    // This test case verifies the default behavior of 'create' (no specific type or title).
+    // It should create a standalone script with a default name derived from the current directory
+    // and then clone the initial files.
+    // Note: The test name 'should create a version' seems to be a misnomer from a previous copy-paste.
     it('should create a version', async function () {
       mockCreateScript({
         scriptId: 'mock-script-id',
@@ -124,6 +133,8 @@ describe('Create script command', function () {
 
     it('should give error if .clasp.json exists', async function () {
       const out = await runCommand(['create']);
+      // Verifies that the create command fails if a .clasp.json file already exists,
+      // to prevent accidentally overwriting an existing project setup.
       return expect(out.stderr).to.contain('already exists');
     });
   });

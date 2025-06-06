@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file implements the `AuthorizationCodeFlow` for local development
+// environments. It starts a local HTTP server to receive the authorization
+// code after the user grants permission.
+
 import {createServer} from 'http';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
@@ -21,6 +25,12 @@ import enableDestroy from 'server-destroy';
 import {intl} from '../intl.js';
 import {AuthorizationCodeFlow, parseAuthResponseUrl} from './auth_code_flow.js';
 
+/**
+ * Implements the Authorization Code Flow by starting a local HTTP server
+ * to act as the redirect URI. This is suitable for CLI environments
+ * where a browser can be opened and a local server can receive the
+ * authorization code.
+ */
 export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
   protected server: Server | undefined;
   protected port = 0;
@@ -29,11 +39,19 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
     super(oauth2client);
   }
 
+  /**
+   * Starts a local HTTP server and returns its address as the redirect URI.
+   * The server will listen on the configured port (or a random available port if 0).
+   * @returns {Promise<string>} The local redirect URI (e.g., "http://localhost:1234").
+   * @throws {Error} If the server cannot be started (e.g., port in use).
+   */
   async getRedirectUri(): Promise<string> {
     this.server = await new Promise<Server>((resolve, reject) => {
       const s = createServer();
-      enableDestroy(s);
+      enableDestroy(s); // Allows the server to be destroyed gracefully.
+      // Try to listen on the specified port (or a random one if port is 0).
       s.listen(this.port, () => resolve(s)).on('error', (err: NodeJS.ErrnoException) => {
+        // Handle common server errors like port already in use.
         if (err.code === 'EADDRINUSE') {
           const msg = intl.formatMessage(
             {
@@ -64,6 +82,15 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
     return `http://localhost:${port}`;
   }
 
+  /**
+   * Prompts the user to authorize by opening the provided authorization URL
+   * in their default web browser. It then waits for the local server (started by
+   * `getRedirectUri`) to receive the callback containing the authorization code.
+   * @param {string} authorizationUrl - The URL to open for user authorization.
+   * @returns {Promise<string>} The authorization code extracted from the redirect.
+   * @throws {Error} If the server is not started, the request URL is missing, or an error
+   * parameter is present in the redirect URL.
+   */
   async promptAndReturnCode(authorizationUrl: string) {
     return await new Promise<string>((resolve, reject) => {
       if (!this.server) {
@@ -75,19 +102,22 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
           reject(new Error('Missing URL in request'));
           return;
         }
-        const {code, error} = parseAuthResponseUrl(request.url);
+        const {code, error} = parseAuthResponseUrl(request.url); // Extract code or error from the redirect URL.
         if (code) {
-          resolve(code);
+          resolve(code); // Successfully obtained the authorization code.
         } else {
-          reject(error);
+          reject(error); // An error occurred during authorization.
         }
+        // Send a simple response to the browser.
         const msg = intl.formatMessage({
           defaultMessage: 'Logged in! You may close this page.',
         });
         response.end(msg);
       });
+      // Open the authorization URL in the user's default browser.
       void open(authorizationUrl);
 
+      // Log the authorization URL to the console as a fallback or for visibility.
       const msg = intl.formatMessage(
         {
           defaultMessage: '`🔑 Authorize clasp by visiting this url:\n{url}\n',
@@ -97,6 +127,6 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
         },
       );
       console.log(msg);
-    }).finally(() => this.server?.destroy());
+    }).finally(() => this.server?.destroy()); // Ensure the server is destroyed after completion or error.
   }
 }

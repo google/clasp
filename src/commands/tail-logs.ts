@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'tail-logs' (alias 'logs') command for the clasp CLI.
+
 import chalk, {ChalkInstance} from 'chalk';
 import {Command} from 'commander';
 import {logging_v2 as loggingV2} from 'googleapis';
