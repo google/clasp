@@ -102,9 +102,11 @@ export class FileCredentialStore implements CredentialStore {
     store.tokens[user] = undefined;
 
     if (user === 'default') {
-      // Remove legacy keys if default user
+      // If the 'default' user's token is deleted, we also clean up any potential
+      // top-level V1 credential keys to ensure a clean state and prevent
+      // V1 credentials from being loaded unintentionally after a V3 'default' delete.
       store = {
-        tokens: store.tokens,
+        tokens: store.tokens, // Keep other named tokens if they exist
       };
     }
     this.writeFile(store);
@@ -132,24 +134,32 @@ export class FileCredentialStore implements CredentialStore {
     const store: FileContents = this.readFile();
     const credentials = store.tokens?.[user] as StoredCredential;
     if (credentials) {
-      return credentials;
+      return credentials; // Modern V3 token found for the user.
     }
+
+    // The following logic attempts to load legacy V1 credentials
+    // ONLY if the requested user is 'default' and no V3 'default' token was found.
     if (user !== 'default') {
-      return null;
+      return null; // For non-default users, only V3 tokens are considered.
     }
+
+    // Check for V1 local file format (usually from older .clasprc.json in project root)
     if (hasLegacyLocalCredentials(store)) {
-      // Support previous un
+      // Convert V1 local format to StoredCredential format.
       return {
         type: 'authorized_user',
-        ...store.token,
+        ...store.token, // Spread V1 token properties
         client_id: store.oauth2ClientSettings?.clientId,
         client_secret: store.oauth2ClientSettings?.clientSecret,
       };
     }
+    // Check for V1 global file format (usually from older ~/.clasprc.json)
     if (hasLegacyGlobalCredentials(store)) {
+      // Convert V1 global format to StoredCredential format.
+      // Note: Default client_id and client_secret are used here as global V1 didn't store them.
       return {
         type: 'authorized_user',
-        access_token: store.access_token,
+        access_token: store.access_token, // Map V1 fields
         refresh_token: store.refresh_token,
         expiry_date: store.exprity_date,
         token_type: store.token_type,

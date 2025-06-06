@@ -52,6 +52,18 @@ const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 debug('Using locale: %s', locale);
 
+/**
+ * Internationalization instance configured with the user's detected locale
+ * (or 'en' as default). This object is used for formatting localized messages,
+ * dates, numbers, etc., throughout the application.
+ * It is created using `@formatjs/intl`.
+ *
+ * Example usage:
+ * ```
+ * import {intl} from './intl.js';
+ * const message = intl.formatMessage({defaultMessage: "Hello, world!"});
+ * ```
+ */
 export const intl = createIntl(
   {
     // Locale of the application

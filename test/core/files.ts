@@ -49,8 +49,11 @@ describe('File operations', function () {
     resetMocks();
   });
 
+  // Test suite for file operations under ideal conditions: a valid project configuration exists,
+  // the user is authenticated, and no .claspignore file is present (so default ignores apply).
   describe('with valid project, no ignore file', function () {
     beforeEach(function () {
+      // Mock a typical project setup.
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -106,9 +109,10 @@ describe('File operations', function () {
       expect(pushedFiles).to.have.length(4);
     });
 
+    // Verifies that `fetchRemote` correctly retrieves and maps files from the API.
     it('should fetch remote files', async function () {
       nock('https://script.googleapis.com')
-        .get(/\/v1\/projects\/.*\/content/)
+        .get(/\/v1\/projects\/.*\/content/) // Mocks the GetContent call.
         .reply(200, {
           scriptId: 'mock-script-id',
           files: [
@@ -217,12 +221,15 @@ describe('File operations', function () {
     });
 
     afterEach(function () {
-      mockfs.restore();
+      mockfs.restore(); // Clean up mock filesystem.
     });
   });
 
+  // Test suite for scenarios where the local project setup is invalid (e.g., missing .clasp.json),
+  // even if the user is authenticated. Most operations should fail.
   describe('with invalid project, authenticated', function () {
     beforeEach(function () {
+      // Mock a filesystem that lacks a .clasp.json, representing an uninitialized or misconfigured project.
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -269,8 +276,11 @@ describe('File operations', function () {
     });
   });
 
+  // Test suite for scenarios where a valid local project exists (.clasp.json is present)
+  // but the user is not authenticated (no .clasprc.json).
   describe('with valid project, unauthenticated', function () {
     beforeEach(function () {
+      // Mock a filesystem with project config but no global auth file.
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -308,8 +318,11 @@ describe('File operations', function () {
     });
   });
 
+  // Test suite for projects where the 'rootDir' in .clasp.json specifies a subdirectory
+  // for source files, and no .claspignore file is present.
   describe('with valid project, root directory, no ignore file', function () {
     beforeEach(function () {
+      // .clasp.json in this fixture points 'rootDir' to 'dist/'.
       mockfs({
         'dist/appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
         'dist/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
@@ -365,9 +378,10 @@ describe('File operations', function () {
       expect(pushedFiles).to.have.length(4);
     });
 
+    // Verifies that `pull` correctly places files into the specified 'rootDir' (e.g., 'dist/').
     it('should pull files into src directory', async function () {
       nock('https://script.googleapis.com')
-        .get(/\/v1\/projects\/.*\/content/)
+        .get(/\/v1\/projects\/.*\/content/) // Mocks the GetContent API call.
         .reply(200, {
           scriptId: 'mock-script-id',
           files: [
@@ -397,8 +411,10 @@ describe('File operations', function () {
     });
   });
 
+  // Test suite for projects with a 'rootDir' specified in .clasp.json and an active .claspignore file.
   describe('with valid project, root directory, ignore file', function () {
     beforeEach(function () {
+      // .clasp.json points to 'dist/', and .claspignore has specific rules.
       mockfs({
         '.claspignore': mockfs.load(path.resolve(__dirname, '../fixtures/dot-claspignore.txt')),
         'dist/appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
@@ -426,6 +442,7 @@ describe('File operations', function () {
     });
   });
 
+  // Test suite for projects with a .claspignore file but no 'rootDir' (source files at project root).
   describe('with valid project, ignore file', function () {
     beforeEach(function () {
       mockfs({
@@ -461,20 +478,27 @@ describe('File operations', function () {
       expect(foundFiles).to.have.length(5);
     });
 
+    // This test checks the logic in `getUntrackedFiles` that groups multiple untracked files
+    // under their closest common parent directory if that parent itself isn't part of the project.
     it('should collapse untracked files to common roots', async function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
       const foundFiles = await clasp.files.getUntrackedFiles();
-      expect(foundFiles).to.include(path.normalize('node_modules/'));
+      expect(foundFiles).to.include(path.normalize('node_modules/')); // node_modules itself is untracked.
+      // Individual files or subdirectories within an already reported untracked root should not be listed.
       expect(foundFiles).to.not.include(path.normalize('node_modules/test/'));
       expect(foundFiles).to.not.include(path.normalize('node_modules/test/file1.js'));
-      expect(foundFiles).to.include(path.normalize('src/readme.md'));
+      expect(foundFiles).to.include(path.normalize('src/readme.md')); // Individual untracked file.
     });
   });
 
+  // Test suite for projects where `.clasp.json` specifies custom `fileExtensions`
+  // for different Apps Script file types (SERVER_JS, HTML).
   describe('with project with extensions set', function () {
     beforeEach(function () {
+      // .clasp.json in this fixture defines custom extensions like .ts for SERVER_JS
+      // and .htmlx for HTML.
       mockfs({
         '.claspignore': mockfs.load(path.resolve(__dirname, '../fixtures/dot-claspignore.txt')),
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
@@ -539,10 +563,12 @@ describe('File operations', function () {
       expect(pulledFiles).to.have.length(3);
       expect(pulledFiles[0].localPath).to.equal('appsscript.json');
       expect(pulledFiles[1].localPath).to.equal('Code.ts');
-      expect(pulledFiles[2].localPath).to.equal('Page.htmlx');
+      expect(pulledFiles[2].localPath).to.equal('Page.htmlx'); // HTML file should use .htmlx.
     });
   });
 
+  // Test suite to ensure that an empty .claspignore file behaves as if no ignore file was present
+  // (i.e., only default ignores apply).
   describe('with valid project, empty ignore file', function () {
     beforeEach(function () {
       mockfs({

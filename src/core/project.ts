@@ -129,6 +129,7 @@ export class Project {
 
     const credentials = this.options.credentials;
     const drive = google.drive({version: 'v3', auth: credentials});
+    // Create the container file (e.g., Google Sheet, Doc) using the Drive API.
     try {
       const requestOptions = {
         requestBody: {
@@ -138,7 +139,7 @@ export class Project {
       };
       debug('Creating project with request %O', requestOptions);
       const res = await drive.files.create(requestOptions);
-      parentId = res.data.id;
+      parentId = res.data.id; // Get the ID of the newly created container file.
       debug('Created container %s', parentId);
       if (!parentId) {
         throw new Error('Unexpected error, container ID missing from response.');
@@ -147,9 +148,10 @@ export class Project {
       handleApiError(error);
     }
 
+    // Once the container is created, create an Apps Script project bound to it.
     const scriptId = await this.createScript(name, parentId);
     return {
-      parentId,
+      parentId, // Return the ID of the container.
       scriptId,
     };
   }
@@ -304,6 +306,8 @@ export class Project {
     assertAuthenticated(this.options);
     assertScriptConfigured(this.options);
 
+    // If no specific versionNumber is provided for deployment,
+    // create a new version of the script with the given description.
     if (versionNumber === undefined) {
       versionNumber = await this.version(description);
     }
@@ -315,9 +319,10 @@ export class Project {
 
     try {
       let deployment: script_v1.Schema$Deployment | undefined;
+      // If no deploymentId is provided, create a new deployment.
       if (!deploymentId) {
         const requestOptions = {
-          scriptId: scriptId,
+          scriptId: scriptId, // The scriptId must be provided in the request body for create.
           requestBody: {
             description: description ?? '',
             versionNumber: versionNumber,
@@ -328,14 +333,15 @@ export class Project {
         const res = await script.projects.deployments.create(requestOptions);
         deployment = res.data;
       } else {
+        // If a deploymentId is provided, update the existing deployment.
         const requestOptions = {
-          scriptId: scriptId,
-          deploymentId: deploymentId,
+          scriptId: scriptId, // Path parameter for the scriptId.
+          deploymentId: deploymentId, // Path parameter for the deploymentId to update.
           requestBody: {
             deploymentConfig: {
               description: description ?? '',
               versionNumber: versionNumber,
-              scriptId: scriptId,
+              scriptId: scriptId, // The scriptId also needs to be in the deploymentConfig.
               manifestFileName: 'appsscript',
             },
           },
@@ -344,7 +350,7 @@ export class Project {
         const res = await script.projects.deployments.update(requestOptions);
         deployment = res.data;
       }
-      return deployment;
+      return deployment; // Return the created or updated deployment object.
     } catch (error) {
       handleApiError(error);
     }

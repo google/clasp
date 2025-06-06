@@ -48,8 +48,10 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
   async getRedirectUri(): Promise<string> {
     this.server = await new Promise<Server>((resolve, reject) => {
       const s = createServer();
-      enableDestroy(s);
+      enableDestroy(s); // Allows the server to be destroyed gracefully.
+      // Try to listen on the specified port (or a random one if port is 0).
       s.listen(this.port, () => resolve(s)).on('error', (err: NodeJS.ErrnoException) => {
+        // Handle common server errors like port already in use.
         if (err.code === 'EADDRINUSE') {
           const msg = intl.formatMessage(
             {
@@ -100,19 +102,22 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
           reject(new Error('Missing URL in request'));
           return;
         }
-        const {code, error} = parseAuthResponseUrl(request.url);
+        const {code, error} = parseAuthResponseUrl(request.url); // Extract code or error from the redirect URL.
         if (code) {
-          resolve(code);
+          resolve(code); // Successfully obtained the authorization code.
         } else {
-          reject(error);
+          reject(error); // An error occurred during authorization.
         }
+        // Send a simple response to the browser.
         const msg = intl.formatMessage({
           defaultMessage: 'Logged in! You may close this page.',
         });
         response.end(msg);
       });
+      // Open the authorization URL in the user's default browser.
       void open(authorizationUrl);
 
+      // Log the authorization URL to the console as a fallback or for visibility.
       const msg = intl.formatMessage(
         {
           defaultMessage: '`🔑 Authorize clasp by visiting this url:\n{url}\n',
@@ -122,6 +127,6 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
         },
       );
       console.log(msg);
-    }).finally(() => this.server?.destroy());
+    }).finally(() => this.server?.destroy()); // Ensure the server is destroyed after completion or error.
   }
 }

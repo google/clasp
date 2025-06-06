@@ -21,6 +21,13 @@
 
 // Also see:
 // https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/appsscript.json
+
+/**
+ * Represents a Google Advanced Service that can be enabled in an Apps Script project.
+ * @property {string} userSymbol - The symbol used to access the service in the script (e.g., "Drive", "Sheets").
+ * @property {string} serviceId - The identifier for the service (e.g., "drive", "sheets").
+ * @property {string} version - The version of the service to be used (e.g., "v3", "v4").
+ */
 export interface AdvancedService {
   readonly userSymbol: string;
   readonly serviceId: string;

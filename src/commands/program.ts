@@ -89,20 +89,31 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
   program.version(version, '-v, --version', 'output the current version');
   program.name(PROJECT_NAME).usage('<command> [options]').description(`${PROJECT_NAME} - The Apps Script CLI`);
 
+  // This hook runs before any command's action handler.
+  // It's used to initialize authentication and the main Clasp instance,
+  // making them available to all command actions.
   program.hook('preAction', async (_, cmd) => {
+    // `optsWithGlobals()` retrieves all options, including global ones like --auth, --project, etc.
     const opts = cmd.optsWithGlobals();
 
+    // Initialize authentication based on global options.
+    // This will load existing credentials or prepare for a new auth flow if needed.
     const auth = await initAuth({
-      authFilePath: opts.auth,
-      userKey: opts.user,
-      useApplicationDefaultCredentials: opts.adc,
-    });
-    const clasp = await initClaspInstance({
-      credentials: auth.credentials,
-      configFile: opts.project,
-      ignoreFile: opts.ignore,
+      authFilePath: opts.auth, // Path to .clasprc.json
+      userKey: opts.user, // User key for multi-user support
+      useApplicationDefaultCredentials: opts.adc, // Flag for using ADC
     });
 
+    // Initialize the main Clasp instance with the (potentially) authenticated client
+    // and paths to project config and ignore files.
+    const clasp = await initClaspInstance({
+      credentials: auth.credentials, // Pass the OAuth2 client (if authenticated)
+      configFile: opts.project, // Path to .clasp.json
+      ignoreFile: opts.ignore, // Path to .claspignore
+    });
+
+    // Make the initialized `clasp` and `auth` objects available to the
+    // actual command's action function via its options.
     cmd.setOptionValue('clasp', clasp);
     cmd.setOptionValue('auth', auth);
   });

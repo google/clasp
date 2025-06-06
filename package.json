@@ -56,6 +56,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@formatjs/intl": "^3.1.6",
+    "@modelcontextprotocol/sdk": "^1.12.1",
     "chalk": "^5.4.1",
     "chokidar": "^4.0.3",
     "cli-truncate": "^4.0.0",
@@ -72,7 +73,6 @@
     "inquirer-autocomplete-standalone": "^0.8.1",
     "loud-rejection": "^2.2.0",
     "micromatch": "^4.0.8",
-    "@modelcontextprotocol/sdk": "^1.12.1",
     "normalize-path": "^3.0.0",
     "open": "^10.1.2",
     "ora": "^8.1.1",

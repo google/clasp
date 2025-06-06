@@ -23,8 +23,23 @@ import {SetNonNullable, SetRequired, SetRequiredDeep} from 'type-fest';
 
 const debug = Debug('clasp:core');
 
+/**
+ * Utility type from 'type-fest' to make specified keys K of T non-nullable and required.
+ * @template T - The base type.
+ * @template K - The keys to make non-nullable and required.
+ */
 export type SetNotEmpty<T, K extends keyof T> = SetNonNullable<SetRequired<T, K>>;
 
+/**
+ * Defines options related to file management for a clasp project.
+ * @property {string} projectRootDir - The root directory of the clasp project.
+ * @property {string} contentDir - The directory containing the script source files, relative to projectRootDir.
+ * @property {string} [ignoreFilePath] - Path to the .claspignore file.
+ * @property {string[]} ignorePatterns - An array of glob patterns for files/directories to ignore.
+ * @property {string[]} [filePushOrder] - An optional array specifying the order in which files should be pushed.
+ * @property {Record<string, string[]>} fileExtensions - A map of Apps Script file types (e.g., "SERVER_JS", "HTML") to their corresponding local file extensions (e.g., [".js", ".gs"]).
+ * @property {boolean} skipSubdirectories - If true, files in subdirectories of contentDir are not processed.
+ */
 export type FileOptions = {
   projectRootDir: string;
   contentDir: string;
@@ -35,14 +50,30 @@ export type FileOptions = {
   skipSubdirectories: boolean;
 };
 
+/**
+ * Defines options related to the Apps Script project itself.
+ * @property {string} [scriptId] - The ID of the Apps Script project.
+ * @property {string} [projectId] - The Google Cloud Platform (GCP) project ID linked to the Apps Script project.
+ * @property {string} [parentId] - The ID of the Google Drive folder or file that is the parent of a container-bound script.
+ */
 export type ProjectOptions = {
   scriptId?: string;
   projectId?: string;
   parentId?: string;
 };
 
+/**
+ * Utility type that makes the `scriptId` property of `ProjectOptions` required.
+ */
 export type ProjectOptionsWithScript = SetRequired<ProjectOptions, 'scriptId'>;
 
+/**
+ * Defines the overall configuration options for a Clasp instance.
+ * @property {OAuth2Client} [credentials] - The OAuth2 client used for authentication.
+ * @property {string} configFilePath - Path to the .clasp.json configuration file.
+ * @property {ProjectOptions} [project] - Options related to the Apps Script project.
+ * @property {FileOptions} files - Options related to file management.
+ */
 export type ClaspOptions = {
   credentials?: OAuth2Client;
   configFilePath: string;
@@ -50,7 +81,17 @@ export type ClaspOptions = {
   files: FileOptions;
 };
 
+/**
+ * Utility type that makes the `credentials` property of `ClaspOptions` required.
+ */
 export type ClaspOptionsWithCredentials = SetRequired<ClaspOptions, 'credentials'>;
+
+/**
+ * Asserts that the provided ClaspOptions include credentials.
+ * Throws an error if credentials are not set. This also acts as a type guard.
+ * @param {ClaspOptions} options - The Clasp options to check.
+ * @throws {Error} If `options.credentials` is not set.
+ */
 export function assertAuthenticated(options: ClaspOptions): asserts options is ClaspOptionsWithCredentials {
   if (!options.credentials) {
     debug('Credentials not set in options: %O', options);
@@ -62,10 +103,22 @@ export function assertAuthenticated(options: ClaspOptions): asserts options is C
   }
 }
 
+/**
+ * Utility type that makes specific project and file configuration properties within `ClaspOptions` required.
+ * Ensures `configFilePath`, `project`, `project.scriptId`, `files.projectRootDir`, and `files.contentDir` are set.
+ */
 export type ClaspOptionsWithScript = SetRequiredDeep<
   ClaspOptions,
   'configFilePath' | 'project' | 'project.scriptId' | 'files.projectRootDir' | 'files.contentDir'
 >;
+
+/**
+ * Asserts that the provided ClaspOptions include essential script project configurations.
+ * Throws an error if `scriptId`, `projectRootDir`, `configFilePath`, or `contentDir` are missing.
+ * This also acts as a type guard.
+ * @param {ClaspOptions} options - The Clasp options to check.
+ * @throws {Error} If essential script configurations are missing.
+ */
 export function assertScriptConfigured(options: ClaspOptions): asserts options is ClaspOptionsWithScript {
   if (
     !options.project?.scriptId ||
@@ -82,7 +135,17 @@ export function assertScriptConfigured(options: ClaspOptions): asserts options i
   }
 }
 
+/**
+ * Utility type that extends `ClaspOptionsWithScript` to also require `project.projectId`.
+ */
 export type ClaspOptionsWithGcpProject = SetRequiredDeep<ClaspOptionsWithScript, 'project.projectId'>;
+
+/**
+ * Asserts that the provided ClaspOptions include a GCP project ID, in addition to base script configurations.
+ * Throws an error if `projectId` is missing. This also acts as a type guard.
+ * @param {ClaspOptions} options - The Clasp options to check.
+ * @throws {Error} If `options.project.projectId` is not set.
+ */
 export function assertGcpProjectConfigured(options: ClaspOptions): asserts options is ClaspOptionsWithGcpProject {
   assertScriptConfigured(options);
   if (!options.project?.projectId) {
@@ -124,7 +187,7 @@ export async function fetchWithPages<T>(
   options?: PageOptions,
 ): Promise<Results<T>> {
   const {pageSize, maxPages, maxResults} = pageOptionsWithDefaults(options);
-  let pageToken = undefined;
+  let pageToken: string | undefined = undefined;
   let pageCount = 0;
 
   const results: Array<T> = [];
@@ -165,6 +228,11 @@ type DetailedGaxiosError = {
   }>;
 };
 
+/**
+ * Checks if an error object is a GaxiosError with detailed error information.
+ * @param {unknown} error - The error object to check.
+ * @returns {boolean} True if the error is a GaxiosError with details, false otherwise.
+ */
 function isDetailedError(error: unknown): error is GaxiosError & DetailedGaxiosError {
   if (!error) {
     return false;
@@ -186,12 +254,19 @@ const ERROR_CODES: Record<number, string> = {
   404: 'NOT_FOUND',
 };
 
+/**
+ * Standardized error handler for Google API errors (GaxiosError).
+ * It extracts a meaningful message and error code, then re-throws a new error.
+ * @param {unknown} error - The error received from a Google API call.
+ * @throws {Error} A new error with a structured cause including the original error,
+ * a clasp-specific error code, and the message.
+ */
 export function handleApiError(error: unknown): never {
   debug('Handling API error: %O', error);
   if (!(error instanceof GaxiosError)) {
     throw new Error('Unexpected error', {
       cause: {
-        code: 'UNEPECTED_ERROR',
+        code: 'UNEXPECTED_ERROR',
         message: new String(error),
         error: error,
       },
@@ -212,6 +287,15 @@ export function handleApiError(error: unknown): never {
   });
 }
 
+/**
+ * Ensures that a value is an array of strings.
+ * If the input is a single string, it's wrapped in an array.
+ * If it's already an array of strings, it's returned as is.
+ * If it's an array containing non-string elements, those elements are filtered out.
+ * If the input is neither a string nor an array, an empty array is returned.
+ * @param {string | string[]} value - The value to process.
+ * @returns {string[]} An array of strings.
+ */
 export function ensureStringArray(value: string | string[]): string[] {
   if (typeof value === 'string') {
     return [value];
