@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file contains tests for the 'push' command.
+
 import fs from 'fs';
 import os from 'os';
 import path from 'path';

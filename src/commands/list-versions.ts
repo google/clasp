@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'list-versions' (alias 'versions') command for the
+// clasp CLI.
+
 import {Command} from 'commander';
 
 import {Clasp} from '../core/clasp.js';

@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file manages the synchronization of files between the local filesystem
+// and the Google Apps Script project. It handles pulling, pushing, collecting
+// local files, watching for changes, and resolving file types and conflicts.
+
 import path from 'path';
 import chalk from 'chalk';
 import chokidar, {Matcher} from 'chokidar';
@@ -156,13 +160,30 @@ function debounceFileChanges<T>(callback: (files: T[]) => Promise<void> | void, 
   };
 }
 
+/**
+ * Manages operations related to project files, including fetching remote files,
+ * collecting local files based on ignore patterns, watching for local changes,
+ * pushing local changes to the remote project, and pulling remote files
+ * to the local filesystem.
+ */
 export class Files {
   private options: ClaspOptions;
 
+  /**
+   * Constructs a new Files instance.
+   * @param {ClaspOptions} options - Configuration options for file operations.
+   */
   constructor(options: ClaspOptions) {
     this.options = options;
   }
 
+  /**
+   * Fetches the content of a script project from Google Drive.
+   * @param {number} [versionNumber] - Optional version number to fetch.
+   * If not specified, the latest version (HEAD) is fetched.
+   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of project files.
+   * @throws {Error} If there's an API error or authentication/configuration issues.
+   */
   async fetchRemote(versionNumber?: number): Promise<ProjectFile[]> {
     debug('Fetching remote files, version %s', versionNumber ?? 'HEAD');
     assertAuthenticated(this.options);
@@ -196,6 +217,12 @@ export class Files {
     }
   }
 
+  /**
+   * Collects all local files in the project's content directory, respecting ignore patterns.
+   * It reads the content of each file and determines its type.
+   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of local project files.
+   * @throws {Error} If the project is not configured or there's a file conflict.
+   */
   async collectLocalFiles(): Promise<ProjectFile[]> {
     debug('Collecting local files');
     assertScriptConfigured(this.options);
@@ -235,6 +262,13 @@ export class Files {
     return files.filter((f: ProjectFile | undefined): f is ProjectFile => f !== undefined);
   }
 
+  /**
+   * Watches for changes in local project files and triggers callbacks.
+   * @param {() => Promise<void> | void} onReady - Callback executed when the watcher is ready.
+   * @param {(files: string[]) => Promise<void> | void} onFilesChanged - Callback executed
+   * when files are added, changed, or deleted, with a debounced list of changed file paths.
+   * @returns {() => Promise<void>} A function that can be called to stop watching.
+   */
   watchLocalFiles(
     onReady: () => Promise<void> | void,
     onFilesChanged: (files: string[]) => Promise<void> | void,
@@ -276,6 +310,11 @@ export class Files {
     };
   }
 
+  /**
+   * Compares local files with remote files (HEAD version) to identify changes.
+   * A file is considered changed if it's new locally or its content differs from the remote version.
+   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of project files that have changed.
+   */
   async getChangedFiles(): Promise<ProjectFile[]> {
     const [localFiles, remoteFiles] = await Promise.all([this.collectLocalFiles(), this.fetchRemote()]);
 
@@ -288,6 +327,13 @@ export class Files {
     }, []);
   }
 
+  /**
+   * Identifies files present in the local content directory that are not tracked
+   * by the Apps Script project (i.e., not in `.claspignore` or `appsscript.json`'s `filePushOrder`
+   * and not matching supported file extensions).
+   * @returns {Promise<string[]>} A promise that resolves to an array of untracked file paths,
+   * collapsed to their common parent directories where applicable.
+   */
   async getUntrackedFiles(): Promise<string[]> {
     debug('Collecting untracked files');
     assertScriptConfigured(this.options);
@@ -332,6 +378,14 @@ export class Files {
     return untrackedFilesArray;
   }
 
+  /**
+   * Pushes local project files to the Google Apps Script project.
+   * Files are sorted according to `filePushOrder` from the manifest if specified.
+   * Handles API errors, including syntax errors in pushed files.
+   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of files that were pushed.
+   * Returns an empty array if no files were found to push.
+   * @throws {Error} If there's an API error, authentication/configuration issues, or a syntax error in the code.
+   */
   async push() {
     debug('Pushing files');
     assertAuthenticated(this.options);
@@ -402,6 +456,13 @@ export class Files {
     }
   }
 
+  /**
+   * Checks if any files specified in the `filePushOrder` of the manifest
+   * were not actually pushed. This can help identify misconfigurations.
+   * @param {ProjectFile[]} pushedFiles - An array of files that were successfully pushed.
+   * @returns {void} This method does not return a value but may have side effects (e.g. logging) if implemented.
+   * Currently, it only calculates missing files but doesn't do anything with the result.
+   */
   checkMissingFilesFromPushOrder(pushedFiles: ProjectFile[]) {
     const missingFiles = [];
     for (const path of this.options.files.filePushOrder ?? []) {
@@ -412,6 +473,14 @@ export class Files {
     }
   }
 
+  /**
+   * Fetches remote project files (optionally a specific version) and writes them
+   * to the local filesystem, overwriting existing files.
+   * @param {number} [version] - Optional version number to pull. If not specified,
+   * the latest version (HEAD) is pulled.
+   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of files that were pulled.
+   * @throws {Error} If there's an API error or authentication/configuration issues.
+   */
   async pull(version?: number) {
     debug('Pulling files');
     assertAuthenticated(this.options);

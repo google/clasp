@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// This file is the main entry point for the clasp CLI. It sets up the command
+// parsing, executes the appropriate command, and handles top-level errors.
 
 /**
  * @license

@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file implements the `AuthorizationCodeFlow` for local development
+// environments. It starts a local HTTP server to receive the authorization
+// code after the user grants permission.
+
 import {createServer} from 'http';
 import type {IncomingMessage, Server, ServerResponse} from 'http';
 import type {AddressInfo} from 'net';
@@ -21,6 +25,12 @@ import enableDestroy from 'server-destroy';
 import {intl} from '../intl.js';
 import {AuthorizationCodeFlow, parseAuthResponseUrl} from './auth_code_flow.js';
 
+/**
+ * Implements the Authorization Code Flow by starting a local HTTP server
+ * to act as the redirect URI. This is suitable for CLI environments
+ * where a browser can be opened and a local server can receive the
+ * authorization code.
+ */
 export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
   protected server: Server | undefined;
   protected port = 0;
@@ -29,6 +39,12 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
     super(oauth2client);
   }
 
+  /**
+   * Starts a local HTTP server and returns its address as the redirect URI.
+   * The server will listen on the configured port (or a random available port if 0).
+   * @returns {Promise<string>} The local redirect URI (e.g., "http://localhost:1234").
+   * @throws {Error} If the server cannot be started (e.g., port in use).
+   */
   async getRedirectUri(): Promise<string> {
     this.server = await new Promise<Server>((resolve, reject) => {
       const s = createServer();
@@ -64,6 +80,15 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
     return `http://localhost:${port}`;
   }
 
+  /**
+   * Prompts the user to authorize by opening the provided authorization URL
+   * in their default web browser. It then waits for the local server (started by
+   * `getRedirectUri`) to receive the callback containing the authorization code.
+   * @param {string} authorizationUrl - The URL to open for user authorization.
+   * @returns {Promise<string>} The authorization code extracted from the redirect.
+   * @throws {Error} If the server is not started, the request URL is missing, or an error
+   * parameter is present in the redirect URL.
+   */
   async promptAndReturnCode(authorizationUrl: string) {
     return await new Promise<string>((resolve, reject) => {
       if (!this.server) {

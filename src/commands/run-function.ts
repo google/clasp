@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'run-function' (alias 'run') command for the clasp CLI.
+
 import chalk from 'chalk';
 import {Command} from 'commander';
 import fuzzy from 'fuzzy';

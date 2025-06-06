@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'pull' command for the clasp CLI.
+
 import {Command} from 'commander';
 import fs from 'fs/promises';
 import inquirer from 'inquirer';

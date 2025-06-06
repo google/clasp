@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'create-script' (alias 'create') command for the clasp
+// CLI.
+
 import path from 'node:path';
 import {Command} from 'commander';
 import inflection from 'inflection';
@@ -141,8 +144,10 @@ export const command = new Command('create-script')
   });
 
 /**
- * Gets default project name.
- * @return {string} default project name.
+ * Generates a default project name based on the current directory's basename.
+ * It humanizes the directory name (e.g., 'my-project-folder' becomes 'My project folder').
+ * @param {string} dir - The directory path from which to derive the project name.
+ * @returns {string} The humanized default project name.
  */
 export function getDefaultProjectName(dir: string) {
   const dirName = path.basename(dir);

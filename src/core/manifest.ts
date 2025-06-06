@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines TypeScript interfaces that represent the structure and
+// properties of the Google Apps Script project manifest file (appsscript.json).
+
 export interface EnabledAdvancedService {
   userSymbol: string;
   serviceId: string;

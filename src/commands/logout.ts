@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'logout' command for the clasp CLI.
+
 import {Command} from 'commander';
 import {AuthInfo} from '../auth/auth.js';
 import {intl} from '../intl.js';

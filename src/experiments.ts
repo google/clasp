@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file provides functionality for managing experimental features in clasp
+// through environment variables, allowing features to be toggled on or off.
+
 export function isEnabled(experimentName: string, defaultValue = false) {
   const envVarName = `CLASP_${experimentName.toUpperCase()}`;
   const envVarValue = process.env[envVarName];

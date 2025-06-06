@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file sets up the main CLI program for clasp. It initializes commander,
+// defines global options, registers all command modules, and handles
+// versioning and error handling.
+
 import {Command, CommanderError, Option} from 'commander';
 import {PROJECT_NAME} from '../constants.js';
 
@@ -51,6 +55,10 @@ import {initAuth} from '../auth/auth.js';
 import {initClaspInstance} from '../core/clasp.js';
 import {intl} from '../intl.js';
 
+/**
+ * Retrieves the version of the clasp CLI from its package.json.
+ * @returns {string} The version string, or 'unknown' if it cannot be determined.
+ */
 export function getVersion() {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   const manifest = readPackageUpSync({cwd: __dirname});
@@ -58,6 +66,14 @@ export function getVersion() {
   return version;
 }
 
+/**
+ * Creates and configures the main Commander program for the clasp CLI.
+ * This includes setting the version, defining global options, registering all commands,
+ * and setting up pre-action hooks for auth and Clasp instance initialization.
+ * @param { (err: CommanderError) => void } [exitOveride] - Optional function to override
+ * the default exit behavior of Commander, primarily for testing.
+ * @returns {Command} The configured Commander program instance.
+ */
 export function makeProgram(exitOveride?: (err: CommanderError) => void) {
   const version = getVersion();
 

@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file provides utility types, assertion functions, and helper functions
+// (like for API pagination and error handling) used across the core modules
+// of clasp.
+
 import Debug from 'debug';
 import {OAuth2Client} from 'google-auth-library';
 import {GaxiosError} from 'googleapis-common';

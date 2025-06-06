@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'clone-script' command for the clasp CLI.
+
 import {Command} from 'commander';
 import inquirer from 'inquirer';
 

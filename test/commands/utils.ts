@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file contains utility functions for testing clasp commands, primarily
+// the `runCommand` function to execute commands and capture their output.
+
 import {makeProgram} from '../../src/commands/program.js';
 
 export interface CommandResult {

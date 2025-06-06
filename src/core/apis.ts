@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the interface for Google Advanced Services and lists all
+// publicly available Advanced Services that can be used in Apps Script projects.
+
 /**
  * Google API Types
  */

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the 'login' command for the clasp CLI.
+
 /**
  * Clasp command method bodies.
  */

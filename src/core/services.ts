@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the `Services` class, which handles the management of
+// Google Cloud Platform (GCP) services and Advanced Google Services for an
+// Apps Script project, including enabling, disabling, and listing services.
+
 import path from 'path';
 import Debug from 'debug';
 import fs from 'fs/promises';
@@ -30,6 +34,11 @@ export type Service = {
   description: string;
 };
 
+/**
+ * Manages the Google Cloud Platform (GCP) services and Advanced Google Services
+ * associated with an Apps Script project. This includes listing available and
+ * enabled services, as well as enabling or disabling services for the project.
+ */
 export class Services {
   private options: ClaspOptions;
 
@@ -37,6 +46,14 @@ export class Services {
     this.options = config;
   }
 
+  /**
+   * Retrieves a list of Google Cloud Platform (GCP) services that are currently
+   * enabled for the associated Apps Script project.
+   * @returns {Promise<Service[] | undefined>} A promise that resolves to an array of enabled
+   * services (with id, name, and description), or undefined if an error occurs.
+   * Filters for services that are also listed as public advanced services.
+   * @throws {Error} If the GCP project is not configured or authentication fails.
+   */
   async getEnabledServices() {
     debug('Fetching enabled services');
     assertGcpProjectConfigured(this.options);
@@ -89,6 +106,13 @@ export class Services {
     }
   }
 
+  /**
+   * Retrieves a list of all publicly available Google Advanced Services that can be
+   * enabled for an Apps Script project.
+   * @returns {Promise<Service[] | undefined>} A promise that resolves to an array of available
+   * services (with id, name, and description), or undefined if an error occurs.
+   * @throws {Error} If there's an API error.
+   */
   async getAvailableServices() {
     debug('Fetching available services');
     const discovery = google.discovery({version: 'v1'});
@@ -112,6 +136,17 @@ export class Services {
     }
   }
 
+  /**
+   * Enables a specified Google Advanced Service for the Apps Script project.
+   * This involves two steps:
+   * 1. Enabling the corresponding service in the Google Cloud Platform (GCP) project.
+   * 2. Updating the `appsscript.json` manifest file to include the service in its dependencies.
+   * @param {string} serviceName - The service ID (e.g., 'sheets', 'docs') of the service to enable.
+   * @returns {Promise<void>} A promise that resolves when the service is enabled.
+   * @throws {Error} If the service name is not provided, the manifest file doesn't exist,
+   * the service is not a valid advanced service, or if there's an API error or
+   * authentication/configuration issue.
+   */
   async enableService(serviceName: string): Promise<void> {
     debug('Enabling service %s', serviceName);
     assertGcpProjectConfigured(this.options);
@@ -164,6 +199,17 @@ export class Services {
     }
   }
 
+  /**
+   * Disables a specified Google Advanced Service for the Apps Script project.
+   * This involves two steps:
+   * 1. Disabling the corresponding service in the Google Cloud Platform (GCP) project.
+   * 2. Removing the service from the `appsscript.json` manifest file's dependencies.
+   * @param {string} serviceName - The service ID (e.g., 'sheets', 'docs') of the service to disable.
+   * @returns {Promise<void>} A promise that resolves when the service is disabled.
+   * @throws {Error} If the service name is not provided, the manifest file doesn't exist,
+   * the service is not a valid advanced service, or if there's an API error or
+   * authentication/configuration issue.
+   */
   async disableService(serviceName: string): Promise<void> {
     debug('Disabling service %s', serviceName);
 

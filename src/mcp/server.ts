@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file builds and configures a Model Context Protocol (MCP) server
+// that exposes clasp functionalities (like push, pull, create, clone, list)
+// as remotely callable tools for programmatic interaction.
+
 import path from 'path';
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {TextContent} from '@modelcontextprotocol/sdk/types.js';

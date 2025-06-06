@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file sets up internationalization (i18n) for the clasp CLI using
+// @formatjs/intl. It detects the user's locale and provides an `intl`
+// object for formatting localized messages.
+
 import {createIntl, createIntlCache} from '@formatjs/intl';
 import Debug from 'debug';
 

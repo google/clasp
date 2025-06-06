@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file provides mock implementations and setup/teardown functions for
+// testing clasp. It uses `nock` to mock HTTP requests to Google APIs and
+// `mock-fs` to simulate file system interactions, enabling isolated and
+// deterministic tests.
+
 import {expect} from 'chai';
 import mockfs from 'mock-fs';
 import nock from 'nock';

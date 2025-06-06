@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file defines the main `Clasp` class, which orchestrates all core
+// functionalities of the CLI, including configuration management, API
+// interactions, and file operations.
+
 import path from 'path';
 import Debug from 'debug';
 import {findUpSync} from 'find-up';
@@ -47,6 +51,11 @@ export type InitOptions = {
   rootDir?: string;
 };
 
+/**
+ * Main class for interacting with Google Apps Script projects.
+ * It encapsulates all core functionalities like file management,
+ * project settings, API interactions, and authentication.
+ */
 export class Clasp {
   private options: ClaspOptions;
   readonly services: Services;
@@ -55,6 +64,10 @@ export class Clasp {
   readonly logs: Logs;
   readonly functions: Functions;
 
+  /**
+   * Creates an instance of the Clasp class.
+   * @param {ClaspOptions} options - Configuration options for the Clasp instance.
+   */
   constructor(options: ClaspOptions) {
     debug('Creating clasp instance with options: %O', options);
     this.options = options;
@@ -78,6 +91,13 @@ export class Clasp {
     return undefined;
   }
 
+  /**
+   * Configures the Clasp instance with a specific Apps Script project ID.
+   * This is a fluent method and returns the `Clasp` instance for chaining.
+   * @param {string} scriptId - The ID of the Apps Script project.
+   * @returns {this} The current Clasp instance.
+   * @throws {Error} If the project is already set.
+   */
   withScriptId(scriptId: string) {
     if (this.options.project) {
       throw new Error('Science project already set, create new instance instead');
@@ -89,6 +109,14 @@ export class Clasp {
     return this;
   }
 
+  /**
+   * Sets the content directory for the project files.
+   * This directory is where clasp looks for source files (e.g., `.js`, `.html`).
+   * If a relative path is provided, it's resolved against the project's root directory.
+   * This is a fluent method and returns the `Clasp` instance for chaining.
+   * @param {string} contentDir - The path to the content directory.
+   * @returns {this} The current Clasp instance.
+   */
   withContentDir(contentDir: string) {
     if (!path.isAbsolute(contentDir)) {
       contentDir = path.resolve(this.options.files.projectRootDir, contentDir);

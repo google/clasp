@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file provides helper functions and custom Chai assertions for use in
+// the test suite, such as checking for file existence.
+
 import * as fs from 'fs';
 import * as path from 'path';
 import {use} from 'chai';
