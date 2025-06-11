@@ -23,15 +23,15 @@ import {withSpinner} from './utils.js';
 export const command = new Command('list-deployments')
   .alias('deployments')
   .description('List deployment ids of a script')
-  .action(async function (this: Command): Promise<void> {
+  .argument('[scriptId]', 'Apps Script ID to list deployments for')
+  .option('--json', 'Show list in JSON form')
+  .action(async function (this: Command, stringId?: string, options?: {json: boolean}): Promise<void> {
     const clasp: Clasp = this.opts().clasp;
 
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching deployments...',
     });
-    const deployments = await withSpinner(spinnerMsg, async () => {
-      return await clasp.project.listDeployments();
-    });
+    const deployments = await withSpinner(spinnerMsg, () => clasp.project.listDeployments(stringId));
 
     if (!deployments.results.length) {
       const msg = intl.formatMessage({
@@ -49,11 +49,16 @@ export const command = new Command('list-deployments')
       },
     );
     console.log(successMessage);
-    deployments.results
-      .filter(d => d.deploymentConfig && d.deploymentId)
-      .forEach(d => {
-        const versionString = d.deploymentConfig?.versionNumber ? `@${d.deploymentConfig.versionNumber}` : '@HEAD';
-        const description = d.deploymentConfig?.description ? `- ${d.deploymentConfig.description}` : '';
-        console.log(`- ${d.deploymentId} ${versionString} ${description}`);
-      });
+    if (options?.json) {
+      console.log(JSON.stringify(deployments, null, 2));
+      return;
+    } else {
+      deployments.results
+        .filter(d => d.deploymentConfig && d.deploymentId)
+        .forEach(d => {
+          const versionString = d.deploymentConfig?.versionNumber ? `@${d.deploymentConfig.versionNumber}` : '@HEAD';
+          const description = d.deploymentConfig?.description ? `- ${d.deploymentConfig.description}` : '';
+          console.log(`- ${d.deploymentId} ${versionString} ${description}`);
+        });
+    }
   });
