@@ -15,21 +15,17 @@
 // This file defines the 'list-deployments' (alias 'deployments') command for
 // the clasp CLI.
 
-import { Command } from 'commander';
-import { Clasp } from '../core/clasp.js';
-import { intl } from '../intl.js';
-import { withSpinner } from './utils.js';
+import {Command} from 'commander';
+import {Clasp} from '../core/clasp.js';
+import {intl} from '../intl.js';
+import {withSpinner} from './utils.js';
 
 export const command = new Command('list-deployments')
   .alias('deployments')
   .description('List deployment ids of a script')
   .argument('[scriptId]', 'Apps Script ID to list deployments for')
   .option('--json', 'Show list in JSON form')
-  .action(async function (
-    this: Command,
-    stringId?: string,
-    options?: { json: boolean }
-  ): Promise<void> {
+  .action(async function (this: Command, stringId?: string, options?: {json: boolean}): Promise<void> {
     const clasp: Clasp = this.opts().clasp;
 
     const spinnerMsg = intl.formatMessage({

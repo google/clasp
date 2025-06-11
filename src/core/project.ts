@@ -234,13 +234,13 @@ export class Project {
 
     const getScriptId = (scriptId?: string) => {
       if (typeof scriptId === 'string') {
-        return scriptId
+        return scriptId;
       }
 
       assertScriptConfigured(this.options);
 
       return this.options.project.scriptId;
-    }
+    };
 
     const credentials = this.options.credentials;
 
@@ -278,13 +278,13 @@ export class Project {
     const credentials = this.options.credentials;
     const getScriptId = (scriptId?: string) => {
       if (typeof scriptId === 'string') {
-        return scriptId
+        return scriptId;
       }
 
       assertScriptConfigured(this.options);
 
       return this.options.project.scriptId;
-    }
+    };
 
     const script = google.script({version: 'v1', auth: credentials});
     try {
