@@ -93,20 +93,27 @@ export const command = new Command('clone-script')
         clasp.project.updateSettings();
         return files;
       });
-      // Log the paths of the cloned files.
-      files.forEach(f => console.log(`└─ ${f.localPath}`));
-      const successMessage = intl.formatMessage(
-        {
-          defaultMessage: `Cloned {count, plural, 
+
+      const outputAsJson = this.optsWithGlobals().json ?? false;
+      if (outputAsJson) {
+        const clonedFiles = files.map(f => f.localPath);
+        console.log(JSON.stringify({clonedFiles}, null, 2));
+      } else {
+        // Log the paths of the cloned files.
+        files.forEach(f => console.log(`└─ ${f.localPath}`));
+        const successMessage = intl.formatMessage(
+          {
+            defaultMessage: `Cloned {count, plural,
           =0 {no files.}
           one {one file.}
           other {# files}}.`,
-        },
-        {
-          count: files.length,
-        },
-      );
-      console.log(successMessage);
+          },
+          {
+            count: files.length,
+          },
+        );
+        console.log(successMessage);
+      }
     } catch (error) {
       // Handle specific error codes from the API, like an invalid script ID.
       if (error.cause?.code === 'INVALID_ARGUMENT') {

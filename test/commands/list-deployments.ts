@@ -54,5 +54,61 @@ describe('List deployments command', function () {
       const out = await runCommand(['list-deployments']);
       return expect(out.stdout).to.contain('mock-deployment-id');
     });
+
+    it('should list deployments in JSON format', async function () {
+      mockListDeployments({scriptId: 'mock-script-id'});
+      const out = await runCommand(['list-deployments', '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      const expectedDeployments = [
+        {deploymentId: 'head-deployment-id', version: undefined, description: 'Head deployment'},
+        {deploymentId: 'mock-deployment-id', version: 1, description: 'lorem ipsum'},
+        {deploymentId: 'mock-deployment-id-2', version: 2, description: 'lorem ipsum'},
+      ];
+
+      expect(jsonResponse.deployments).to.be.an('array');
+      // Order might not be guaranteed unless the command sorts it, the mock provides a fixed order.
+      // Using deep.members to be robust against order changes if any.
+      expect(jsonResponse.deployments).to.deep.members(expectedDeployments);
+      expect(jsonResponse.deployments.length).to.equal(expectedDeployments.length);
+
+      expect(out.stdout).to.not.contain('Found'); // Text from normal output
+    });
+
+    it('should list deployments using alias "deployments" in JSON format', async function () {
+      mockListDeployments({scriptId: 'mock-script-id'});
+      const out = await runCommand(['deployments', '--json']); // Using alias
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      const expectedDeployments = [
+        {deploymentId: 'head-deployment-id', version: undefined, description: 'Head deployment'},
+        {deploymentId: 'mock-deployment-id', version: 1, description: 'lorem ipsum'},
+        {deploymentId: 'mock-deployment-id-2', version: 2, description: 'lorem ipsum'},
+      ];
+
+      expect(jsonResponse.deployments).to.deep.members(expectedDeployments);
+      expect(jsonResponse.deployments.length).to.equal(expectedDeployments.length);
+      expect(out.stdout).to.not.contain('Found');
+    });
+
+    it('should output empty array for no deployments in JSON format', async function () {
+      // Direct nock usage for empty deployments list as mockListDeployments is not flexible enough
+      nock('https://script.googleapis.com')
+        .get(`/v1/projects/mock-script-id/deployments`)
+        .query(true)
+        .reply(200, {deployments: []});
+
+      const out = await runCommand(['list-deployments', '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      expect(jsonResponse).to.deep.equal({deployments: []});
+      expect(out.stdout).to.not.contain('No deployments.'); // Text from normal output
+    });
   });
 });

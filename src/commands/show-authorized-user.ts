@@ -23,24 +23,34 @@ export const command = new Command('show-authorized-user')
   .action(async function (this: Command): Promise<void> {
     const auth: AuthInfo = this.opts().auth;
 
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+
     if (!auth.credentials) {
-      const msg = intl.formatMessage({
-        defaultMessage: 'Not logged in.',
-      });
-      console.log(msg);
+      if (outputAsJson) {
+        console.log(JSON.stringify({email: null}, null, 2));
+      } else {
+        const msg = intl.formatMessage({
+          defaultMessage: 'Not logged in.',
+        });
+        console.log(msg);
+      }
       return;
     }
 
     const user = await getUserInfo(auth.credentials);
-    const msg = intl.formatMessage(
-      {
-        defaultMessage: `{email, select,
-        undefined {You are logged in as an unknown user.}
-        other {You are logged in as {email}.}}`,
-      },
-      {
-        email: user?.email,
-      },
-    );
-    console.log(msg);
+    if (outputAsJson) {
+      console.log(JSON.stringify({email: user?.email}, null, 2));
+    } else {
+      const msg = intl.formatMessage(
+        {
+          defaultMessage: `{email, select,
+          undefined {You are logged in as an unknown user.}
+          other {You are logged in as {email}.}}`,
+        },
+        {
+          email: user?.email,
+        },
+      );
+      console.log(msg);
+    }
   });

@@ -140,6 +140,56 @@ describe('Clone script command', function () {
       await runCommand(['clone', 'mock-script-id']);
       expect('.clasp.json').to.not.be.a.realFile; // Verifies that the config file was not created.
     });
+
+    it('should clone a project with scriptId and output JSON', async function () {
+      const expectedFiles = [
+        {name: 'appsscript', type: 'JSON', source: '{ "timeZone": "America/New_York" }', localPath: 'appsscript.json'},
+        {name: 'Code', type: 'SERVER_JS', source: 'function main() {}', localPath: 'Code.js'},
+      ];
+      mockScriptDownload({
+        scriptId: 'mock-script-id-json',
+        files: expectedFiles.map(f => ({name: f.name, type: f.type, source: f.source})),
+      });
+      const out = await runCommand(['clone', 'mock-script-id-json', '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({ clonedFiles: ['appsscript.json', 'Code.js'] });
+
+      expect(out.stdout).to.not.contain('Cloned');
+      expect('appsscript.json').to.be.a.realFile();
+      expect('Code.js').to.be.a.realFile();
+      // Verify .clasp.json is created with the correct scriptId
+      const claspJsonContent = JSON.parse(await mockfs.promises.readFile('.clasp.json', 'utf8'));
+      expect(claspJsonContent.scriptId).to.equal('mock-script-id-json');
+    });
+
+    it('should clone with rootDir and output JSON', async function () {
+      const rootDir = 'myClonedProject';
+      const expectedFiles = [
+        {name: 'appsscript', type: 'JSON', source: '{ "timeZone": "Europe/London" }', localPath: `${rootDir}/appsscript.json`},
+        {name: 'main', type: 'SERVER_JS', source: 'function runMe() {}', localPath: `${rootDir}/main.js`},
+      ];
+      mockScriptDownload({
+        scriptId: 'mock-script-id-json-rootdir',
+        files: expectedFiles.map(f => ({name: f.name, type: f.type, source: f.source})),
+      });
+
+      const out = await runCommand(['clone', 'mock-script-id-json-rootdir', '--rootDir', rootDir, '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      // localPath in ProjectFile from clasp.files.pull is relative to project root (which includes rootDir)
+      // but the command outputs paths relative to CWD if rootDir is used for storage.
+      // The JSON output for clonedFiles should be relative to the project's manifest (.clasp.json) location.
+      expect(jsonResponse).to.deep.equal({ clonedFiles: ['appsscript.json', 'main.js'].map(f => path.join(rootDir, f)) });
+
+      expect(out.stdout).to.not.contain('Cloned');
+      expect(path.join(rootDir, 'appsscript.json')).to.be.a.realFile();
+      expect(path.join(rootDir, 'main.js')).to.be.a.realFile();
+      const claspJsonContent = JSON.parse(await mockfs.promises.readFile(path.join(rootDir, '.clasp.json'), 'utf8'));
+      expect(claspJsonContent.scriptId).to.equal('mock-script-id-json-rootdir');
+    });
   });
 
   // Test suite for scenarios where a .clasp.json file already exists in the directory,

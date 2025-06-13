@@ -33,6 +33,7 @@ export const command = new Command('push')
   .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changes.')
   .action(async function (this: Command, options: CommandOption) {
     const clasp: Clasp = this.opts().clasp;
+    const globalOptions = this.optsWithGlobals(); // Get global options once
 
     const watch = options.watch;
     let force = options.force; // Store the force option, as it can be updated by confirmManifestUpdate
@@ -60,20 +61,30 @@ export const command = new Command('push')
       const files = await withSpinner(spinnerMsg, async () => {
         return await clasp.files.push();
       });
-      // Log the result of the push.
-      const successMessage = intl.formatMessage(
-        {
-          defaultMessage: `Pushed {count, plural, 
-        =0 {no files.}
-        one {one file.}
-        other {# files}}.`,
-        },
-        {
-          count: files.length,
-        },
-      );
-      console.log(successMessage);
-      files.forEach(f => console.log(`└─ ${f.localPath}`));
+
+      const outputAsJson = globalOptions.json ?? false;
+      if (outputAsJson) {
+        if (files.length > 0) {
+          const pushedFilesPaths = files.map(f => f.localPath);
+          console.log(JSON.stringify({pushedFiles: pushedFilesPaths}, null, 2));
+        }
+        // If no files were pushed, output nothing, consistent with other commands.
+      } else {
+        // Log the result of the push.
+        const successMessage = intl.formatMessage(
+          {
+            defaultMessage: `Pushed {count, plural,
+          =0 {no files.}
+          one {one file.}
+          other {# files}}.`,
+          },
+          {
+            count: files.length,
+          },
+        );
+        console.log(successMessage);
+        files.forEach(f => console.log(`└─ ${f.localPath}`));
+      }
       return true; // Indicate that the push was attempted (or successfully skipped by user).
     };
 
@@ -84,11 +95,15 @@ export const command = new Command('push')
       const paths = pendingChanges.map(f => f.localPath);
       await onChange(paths);
     } else {
-      // If no changes, inform the user.
-      const msg = intl.formatMessage({
-        defaultMessage: 'Script is already up to date.',
-      });
-      console.log(msg);
+      const outputAsJson = globalOptions.json ?? false;
+      if (!outputAsJson) {
+        // If no changes, inform the user (unless JSON output is requested).
+        const msg = intl.formatMessage({
+          defaultMessage: 'Script is already up to date.',
+        });
+        console.log(msg);
+      }
+      // If JSON output is requested and no changes, output nothing.
     }
 
     // If not in watch mode, exit after the initial push attempt.

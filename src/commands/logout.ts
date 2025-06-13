@@ -35,8 +35,14 @@ export const command = new Command('logout').description('Logout of clasp').acti
   }
 
   auth.credentialStore?.delete(auth.user);
-  const successMessage = intl.formatMessage({
-    defaultMessage: 'Deleted credentials.',
-  });
-  console.log(successMessage);
+
+  const outputAsJson = this.optsWithGlobals().json ?? false;
+  if (outputAsJson) {
+    console.log(JSON.stringify({status: 'success'}, null, 2));
+  } else {
+    const successMessage = intl.formatMessage({
+      defaultMessage: 'Deleted credentials.',
+    });
+    console.log(successMessage);
+  }
 });

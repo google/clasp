@@ -101,15 +101,21 @@ export const command = new Command('login')
     });
 
     const user = await getUserInfo(credentials);
-    const msg = intl.formatMessage(
-      {
-        defaultMessage: `{email, select,
-        undefined {You are logged in as an unknown user.}
-        other {You are logged in as {email}.}}`,
-      },
-      {
-        email: user?.email,
-      },
-    );
-    console.log(msg);
+
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      console.log(JSON.stringify({email: user?.email}, null, 2));
+    } else {
+      const msg = intl.formatMessage(
+        {
+          defaultMessage: `{email, select,
+          undefined {You are logged in as an unknown user.}
+          other {You are logged in as {email}.}}`,
+        },
+        {
+          email: user?.email,
+        },
+      );
+      console.log(msg);
+    }
   });

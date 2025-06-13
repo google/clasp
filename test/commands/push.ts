@@ -161,6 +161,76 @@ describe('Push command', function () {
       expect(out.stdout).to.contain('Skipping push');
       expect(out.stdout).to.not.contain('Pushed 2 files');
     });
+
+    it('should push files if changed and output JSON', async function () {
+      // Modify Code.js to ensure it's different from default mockScriptDownload content
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+        'Code.js': 'function newCode() { console.log("changed"); }', // Changed content
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+
+      mockScriptDownload({ scriptId: 'mock-script-id' }); // Standard remote files
+      mockScriptPush({ scriptId: 'mock-script-id' });
+
+      const out = await runCommand(['push', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      // Expect both files if Code.js changed, as appsscript.json might be pushed too.
+      // The actual pushed files are determined by Files.prototype.push after diffing.
+      // Assuming both are pushed due to changes or default behavior.
+      // The Files.prototype.push() method returns all local files that are not ignored.
+      // So it will list all project files.
+      expect(jsonResponse.pushedFiles).to.have.deep.members(['appsscript.json', 'Code.js']);
+      expect(out.stdout).to.not.contain('Pushed');
+    });
+
+    it('should output nothing for JSON if no files changed', async function () {
+      // Local files are identical to default mockScriptDownload content
+       mockfs({
+        'appsscript.json': '{ "timeZone": "America/Los_Angeles", "dependencies": {}, "exceptionLogging": "STACKDRIVER"}',
+        'Code.js': 'function helloWorld() {\n  console.log("Hello, world!");\n}',
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      mockScriptDownload({ scriptId: 'mock-script-id' }); // content matches above
+      const scriptPushStub = sinon.stub(mockScriptPush({ scriptId: 'mock-script-id' })); // To check if called
+
+      const out = await runCommand(['push', '--json']);
+      expect(out.stdout.trim()).to.equal('');
+      // Potentially, scriptPushStub should not have been called if clasp.files.getChangedFiles() was empty.
+      // However, the `push` command logic calls onChange if getChangedFiles > 0, OR if it's empty it prints "up to date".
+      // The `onChange` itself calls `clasp.files.push()`. `clasp.files.push()` doesn't re-check for changes, it just pushes all local files.
+      // This means even if getChangedFiles is empty, if we proceed to the actual push part, it pushes all.
+      // The test for "Script is already up to date" relies on getChangedFiles.length being 0.
+      // The JSON logic is: if `files.length > 0` (from `clasp.files.push()`), then print.
+      // If `getChangedFiles` is empty, `onChange` isn't called, so `clasp.files.push` isn't called.
+      // Thus, `files.length` would be effectively 0 for the JSON output part. Correct.
+    });
+
+    it('should push files from rootDir and output JSON', async function () {
+       mockfs({
+        'dist/appsscript.json': '{ "timeZone": "America/New_York" }', // Changed content
+        'dist/Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-dist.json')), // rootDir: dist
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      mockScriptDownload({ scriptId: 'mock-script-id' }); // Standard remote files
+      mockScriptPush({ scriptId: 'mock-script-id' });
+
+      const out = await runCommand(['push', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse.pushedFiles).to.have.deep.members(['dist/appsscript.json', 'dist/Code.js']);
+    });
+
   });
 
   describe('Without project, authenticated', function () {

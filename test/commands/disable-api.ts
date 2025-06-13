@@ -76,5 +76,32 @@ describe('Disable API command', function () {
       const out = await runCommand(['disable-api', 'xyz']);
       expect(out.stderr).to.contain('not a valid');
     });
+
+    it('should disable a service in manifest and output JSON', async function () {
+      const serviceToDisable = 'gmail';
+      const fullServiceName = `${serviceToDisable}.googleapis.com`;
+      mockDisableService({
+        projectId: 'mock-gcp-project',
+        serviceName: fullServiceName,
+      });
+
+      const out = await runCommand(['disable-api', serviceToDisable, '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({disabledApi: serviceToDisable});
+
+      expect(out.stdout).to.not.contain(`Disabled ${serviceToDisable} API`);
+
+      const manifest = JSON.parse(fs.readFileSync('appsscript.json', 'utf8'));
+      expect(manifest).to.not.containSubset({
+        dependencies: {
+          enabledAdvancedServices: [
+            {
+              serviceId: serviceToDisable,
+            },
+          ],
+        },
+      });
+    });
   });
 });

@@ -62,16 +62,31 @@ export const command = new Command('run-function')
     }
 
     // Attempt to run the function.
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+
     try {
       // `clasp.functions.runFunction` calls the Apps Script API.
-      const {error, response} = await withSpinner(`Running function: ${functionName}`, async () => {
+      const {error: apiError, response} = await withSpinner(`Running function: ${functionName}`, async () => {
         return await clasp.functions.runFunction(functionName, params, devMode);
       });
 
-      // Handle the API response.
-      if (error && error.details) {
+      if (outputAsJson) {
+        if (apiError && apiError.details) {
+          console.log(JSON.stringify({error: apiError.details[0]}, null, 2));
+        } else if (response && response.result !== undefined) {
+          console.log(JSON.stringify({response: response.result}, null, 2));
+        } else if (apiError) { // Catch other forms of apiError not in details
+          console.log(JSON.stringify({error: apiError}, null, 2));
+        } else {
+          console.log(JSON.stringify({error: 'No response or error details from API.'}, null, 2));
+        }
+        return;
+      }
+
+      // Handle the API response (non-JSON output)
+      if (apiError && apiError.details) {
         // If the API returned an error in the `error.details` field (common for script execution errors).
-        const {errorMessage, scriptStackTraceElements} = error.details[0];
+        const {errorMessage, scriptStackTraceElements} = apiError.details[0];
         const msg = intl.formatMessage({
           defaultMessage: 'Exception:',
         });
@@ -89,9 +104,18 @@ export const command = new Command('run-function')
         });
         console.log(chalk.red(msg));
       }
-    } catch (error) {
+    } catch (err) {
       // Handle errors thrown by `clasp.functions.runFunction` or other issues.
-      if (error.cause?.code === 'NOT_AUTHORIZED') {
+      if (outputAsJson) {
+        // Ensure err is an Error object for consistent message access
+        const errorObject = err instanceof Error ? err : new Error(String(err));
+        console.log(JSON.stringify({error: errorObject.message, cause: errorObject.cause}, null, 2));
+        // Potentially exit here if this is considered a final state for JSON output
+        // process.exitCode = 1; // Or some other way to signal error if needed
+        return;
+      }
+
+      if (err.cause?.code === 'NOT_AUTHORIZED') {
         // Specific error for lack of permissions.
         const msg = intl.formatMessage({
           defaultMessage:
@@ -99,7 +123,7 @@ export const command = new Command('run-function')
         });
         this.error(msg);
       }
-      if (error.cause?.code === 'NOT_FOUND') {
+      if (err.cause?.code === 'NOT_FOUND') {
         // Specific error if the function or script (as API executable) is not found.
         const msg = intl.formatMessage({
           defaultMessage: 'Script function not found. Please make sure script is deployed as API executable.',
@@ -107,6 +131,6 @@ export const command = new Command('run-function')
         this.error(msg);
       }
       // Re-throw other errors to be caught by the global error handler.
-      throw error;
+      throw err;
     }
   });

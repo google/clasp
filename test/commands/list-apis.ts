@@ -75,5 +75,33 @@ describe('List APIs command', function () {
       const out = await runCommand(['list-apis']);
       return expect(out.stdout).to.not.contain('ignored');
     });
+
+    it('should list enabled and available APIs in JSON format', async function () {
+      mockListApis(); // Provides 'docs', 'gmail', 'ignored'
+      mockListEnabledServices({ // Enables 'docs.googleapis.com'
+        projectId: 'mock-gcp-project',
+      });
+
+      const out = await runCommand(['list-apis', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      // Based on mocks: 'docs' is enabled. 'docs' and 'gmail' are available (ignored is filtered).
+      const expectedEnabledApis = [
+        {name: 'docs', description: 'Reads and writes Google Docs documents.'},
+      ];
+      const expectedAvailableApis = [
+        {name: 'docs', description: 'Reads and writes Google Docs documents.'},
+        {name: 'gmail', description: 'The Gmail API lets you view and manage Gmail mailbox data like threads, messages, and labels.'},
+      ];
+
+      expect(jsonResponse.enabledApis).to.deep.members(expectedEnabledApis);
+      expect(jsonResponse.enabledApis.length).to.equal(expectedEnabledApis.length);
+      expect(jsonResponse.availableApis).to.deep.members(expectedAvailableApis);
+      expect(jsonResponse.availableApis.length).to.equal(expectedAvailableApis.length);
+
+      expect(out.stdout).to.not.contain('# Currently enabled APIs:');
+      expect(out.stdout).to.not.contain('# List of available APIs:');
+    });
   });
 });

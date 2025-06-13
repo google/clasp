@@ -139,6 +139,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
       'clasp_config_project',
     ),
   );
+  program.option('--json', 'Output in JSON format');
 
   const commandsToAdd = [
     loginCommand,

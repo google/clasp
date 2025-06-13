@@ -30,13 +30,13 @@ interface CommandOption {
 export const command = new Command('tail-logs')
   .alias('logs')
   .description('Print the most recent log entries')
-  .option('--json', 'Show logs in JSON form')
   .option('--watch', 'Watch and print new logs')
   .option('--simplified', 'Hide timestamps with logs')
   .action(async function (this: Command, options: CommandOption): Promise<void> {
     const clasp: Clasp = this.opts().clasp;
 
-    const {json, simplified, watch} = options;
+    const {simplified, watch} = options;
+    const json = this.optsWithGlobals().json;
     const seenEntries = new Set<string>();
 
     let since: Date | undefined;
@@ -115,9 +115,11 @@ function formatEntry(entry: loggingV2.Schema$LogEntry, options: FormatOptions): 
   let payloadData = '';
 
   if (options.json) {
-    payloadData = JSON.stringify(entry, null, 2);
-  } else {
-    const {jsonPayload, textPayload} = entry;
+    return JSON.stringify(entry, null, 2);
+  }
+
+  // Non-JSON output formatting
+  const {jsonPayload, textPayload} = entry;
 
     if (textPayload) {
       payloadData = textPayload;

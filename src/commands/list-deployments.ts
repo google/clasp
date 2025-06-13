@@ -40,20 +40,35 @@ export const command = new Command('list-deployments')
       console.log(msg);
       return;
     }
-    const successMessage = intl.formatMessage(
-      {
-        defaultMessage: 'Found {count, plural, one {# deployment} other {# deployments}}.',
-      },
-      {
-        count: deployments.results.length,
-      },
-    );
-    console.log(successMessage);
-    deployments.results
-      .filter(d => d.deploymentConfig && d.deploymentId)
-      .forEach(d => {
-        const versionString = d.deploymentConfig?.versionNumber ? `@${d.deploymentConfig.versionNumber}` : '@HEAD';
-        const description = d.deploymentConfig?.description ? `- ${d.deploymentConfig.description}` : '';
-        console.log(`- ${d.deploymentId} ${versionString} ${description}`);
-      });
+
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      const jsonData = {
+        deployments: deployments.results
+          .filter(d => d.deploymentConfig && d.deploymentId)
+          .map(d => ({
+            deploymentId: d.deploymentId,
+            version: d.deploymentConfig?.versionNumber,
+            description: d.deploymentConfig?.description,
+          })),
+      };
+      console.log(JSON.stringify(jsonData, null, 2));
+    } else {
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: 'Found {count, plural, one {# deployment} other {# deployments}}.',
+        },
+        {
+          count: deployments.results.length,
+        },
+      );
+      console.log(successMessage);
+      deployments.results
+        .filter(d => d.deploymentConfig && d.deploymentId)
+        .forEach(d => {
+          const versionString = d.deploymentConfig?.versionNumber ? `@${d.deploymentConfig.versionNumber}` : '@HEAD';
+          const description = d.deploymentConfig?.description ? `- ${d.deploymentConfig.description}` : '';
+          console.log(`- ${d.deploymentId} ${versionString} ${description}`);
+        });
+    }
   });

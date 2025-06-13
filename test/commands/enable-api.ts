@@ -76,5 +76,31 @@ describe('Enable API command', function () {
       const out = await runCommand(['enable-api', 'xyz']);
       expect(out.stderr).to.contain('not a valid');
     });
+
+    it('should enable a service in manifest and output JSON', async function () {
+      const serviceToEnable = 'docs';
+      const fullServiceName = `${serviceToEnable}.googleapis.com`;
+      mockEnableService({
+        projectId: 'mock-gcp-project',
+        serviceName: fullServiceName,
+      });
+
+      const out = await runCommand(['enable-api', serviceToEnable, '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({enabledApi: serviceToEnable});
+
+      expect(out.stdout).to.not.contain(`Enabled ${serviceToEnable} API`);
+
+      const manifest = JSON.parse(fs.readFileSync('appsscript.json', 'utf8'));
+      // This check assumes 'docs' was not already in the fixture's enabledAdvancedServices.
+      // If the fixture already contains it, this check needs adjustment or a different service.
+      // The fixture appsscript-services.json has "gmail" and "drive". So "docs" is new.
+      expect(manifest.dependencies.enabledAdvancedServices).to.deep.include({
+        userSymbol: 'Docs', // The command adds userSymbol based on serviceId
+        serviceId: serviceToEnable,
+        version: 'v1', // The command adds a default version, typically v1
+      });
+    });
   });
 });

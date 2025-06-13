@@ -34,5 +34,11 @@ export const command = new Command('open-logs')
       const userHint = await clasp.authorizedUser();
       url.searchParams.set('authUser', userHint ?? '');
     }
-    await openUrl(url.toString());
+    const finalUrl = url.toString();
+    await openUrl(finalUrl);
+
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      console.log(JSON.stringify({url: finalUrl}, null, 2));
+    }
   });

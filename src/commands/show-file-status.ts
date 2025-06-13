@@ -28,11 +28,10 @@ interface CommandOption {
 export const command = new Command('show-file-status')
   .alias('status')
   .description('Lists files that will be pushed by clasp')
-  .option('--json', 'Show status in JSON form')
   .action(async function (this: Command, options?: CommandOption): Promise<void> {
     const clasp: Clasp = this.opts().clasp;
 
-    const outputAsJson = options?.json ?? false;
+    const outputAsJson = this.optsWithGlobals().json ?? false;
 
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Analyzing project files...',

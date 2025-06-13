@@ -34,6 +34,8 @@ export const command = new Command('delete-deployment')
     const clasp: Clasp = this.opts().clasp;
 
     const removeAll = options.all;
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    const deletedDeployments: string[] = [];
 
     const deleteDeployment = async (id: string) => {
       const spinnerMsg = intl.formatMessage({
@@ -42,13 +44,16 @@ export const command = new Command('delete-deployment')
       await withSpinner(spinnerMsg, async () => {
         return await clasp.project.undeploy(id);
       });
-      const successMessage = intl.formatMessage(
-        {
-          defaultMessage: 'Deleted deployment {id}',
-        },
-        {id},
-      );
-      console.log(successMessage);
+      deletedDeployments.push(id);
+      if (!outputAsJson) {
+        const successMessage = intl.formatMessage(
+          {
+            defaultMessage: 'Deleted deployment {id}',
+          },
+          {id},
+        );
+        console.log(successMessage);
+      }
     };
 
     if (removeAll) {
@@ -69,10 +74,14 @@ export const command = new Command('delete-deployment')
         }
         await deleteDeployment(id);
       }
-      const successMessage = intl.formatMessage({
-        defaultMessage: `Deleted all deployments.`,
-      });
-      console.log(successMessage);
+      if (outputAsJson) {
+        console.log(JSON.stringify({deletedDeployments}, null, 2));
+      } else {
+        const successMessage = intl.formatMessage({
+          defaultMessage: `Deleted all deployments.`,
+        });
+        console.log(successMessage);
+      }
       return;
     }
 
@@ -113,4 +122,8 @@ export const command = new Command('delete-deployment')
     }
 
     await deleteDeployment(deploymentId);
+
+    if (outputAsJson) {
+      console.log(JSON.stringify({deletedDeployments}, null, 2));
+    }
   });
