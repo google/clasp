@@ -51,13 +51,18 @@ export const command = new Command('create-version')
       return clasp.project.version(description);
     });
 
-    const successMessage = intl.formatMessage(
-      {
-        defaultMessage: `Created version {version, number}`,
-      },
-      {
-        version: versionNumber,
-      },
-    );
-    console.log(successMessage);
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      console.log(JSON.stringify({version: versionNumber}, null, 2));
+    } else {
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: `Created version {version, number}`,
+        },
+        {
+          version: versionNumber,
+        },
+      );
+      console.log(successMessage);
+    }
   });

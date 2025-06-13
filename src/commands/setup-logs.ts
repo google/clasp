@@ -30,8 +30,13 @@ export const command = new Command('setup-logs').description('Setup Cloud Loggin
 
   assertGcpProjectConfigured(clasp);
 
-  const successMessage = intl.formatMessage({
-    defaultMessage: 'Script logs are now available in Cloud Logging.',
-  });
-  console.log(successMessage);
+  const outputAsJson = this.optsWithGlobals().json ?? false;
+  if (outputAsJson) {
+    console.log(JSON.stringify({status: 'success'}, null, 2));
+  } else {
+    const successMessage = intl.formatMessage({
+      defaultMessage: 'Script logs are now available in Cloud Logging.',
+    });
+    console.log(successMessage);
+  }
 });

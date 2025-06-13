@@ -103,5 +103,68 @@ describe('Create deployment command', function () {
       const out = await runCommand(['deploy', '-i', 'mock-deployment-id', '-V', '2']);
       return expect(out.stdout).to.contain('Deployed mock-deployment-id @2');
     });
+
+    it('should create version, deploy, and output JSON', async function () {
+      mockCreateVersion({
+        scriptId: 'mock-script-id',
+        version: 1,
+      });
+      mockCreateDeployment({
+        scriptId: 'mock-script-id',
+        version: 1, // Ensure this matches the created version
+        description: '', // Default description
+      });
+      const out = await runCommand(['deploy', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({deploymentId: 'mock-deployment-id', version: 1});
+      expect(out.stdout).to.not.contain('Deployed');
+    });
+
+    it('should use provided version, deploy, and output JSON', async function () {
+      mockCreateDeployment({
+        scriptId: 'mock-script-id',
+        version: 2,
+        description: '', // Default description
+      });
+      const out = await runCommand(['deploy', '-V', '2', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({deploymentId: 'mock-deployment-id', version: 2});
+      expect(out.stdout).to.not.contain('Deployed');
+    });
+
+    it('should update existing deployment and output JSON', async function () {
+      mockUpdateDeployment({
+        scriptId: 'mock-script-id',
+        deploymentId: 'existing-dep-id',
+        version: 3,
+        description: '', // Default description
+      });
+      const out = await runCommand(['deploy', '-i', 'existing-dep-id', '-V', '3', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({deploymentId: 'existing-dep-id', version: 3});
+      expect(out.stdout).to.not.contain('Deployed');
+    });
+
+    it('should deploy with description and output JSON', async function () {
+      mockCreateVersion({
+        scriptId: 'mock-script-id',
+        description: 'JSON test description',
+        version: 1,
+      });
+      mockCreateDeployment({
+        scriptId: 'mock-script-id',
+        description: 'JSON test description',
+        version: 1,
+      });
+      const out = await runCommand(['deploy', '-d', 'JSON test description', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      // The description itself is not part of this command's JSON output format
+      expect(jsonResponse).to.deep.equal({deploymentId: 'mock-deployment-id', version: 1});
+      expect(out.stdout).to.not.contain('Deployed');
+    });
   });
 });

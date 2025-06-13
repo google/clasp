@@ -45,19 +45,34 @@ export const command = new Command('create-deployment')
       const deployment = await withSpinner(spinnerMsg, async () => {
         return await clasp.project.deploy(description, deploymentId, versionNumber);
       });
-      const successMessage = intl.formatMessage(
-        {
-          defaultMessage: `Deployed {deploymentId} {version, select, 
-          undefined {@HEAD}
-          other {@{version}}
-        }`,
-        },
-        {
-          deploymentId: deployment.deploymentId,
-          version: deployment.deploymentConfig?.versionNumber,
-        },
-      );
-      console.log(successMessage);
+
+      const outputAsJson = this.optsWithGlobals().json ?? false;
+      if (outputAsJson) {
+        console.log(
+          JSON.stringify(
+            {
+              deploymentId: deployment.deploymentId,
+              version: deployment.deploymentConfig?.versionNumber,
+            },
+            null,
+            2,
+          ),
+        );
+      } else {
+        const successMessage = intl.formatMessage(
+          {
+            defaultMessage: `Deployed {deploymentId} {version, select,
+            undefined {@HEAD}
+            other {@{version}}
+          }`,
+          },
+          {
+            deploymentId: deployment.deploymentId,
+            version: deployment.deploymentConfig?.versionNumber,
+          },
+        );
+        console.log(successMessage);
+      }
     } catch (error) {
       if (error.cause?.code === 'INVALID_ARGUMENT') {
         this.error(error.cause.message);

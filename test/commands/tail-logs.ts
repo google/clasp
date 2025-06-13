@@ -62,14 +62,44 @@ describe('Tail logs command', function () {
       expect(out.stdout).to.contain('test log');
     });
 
-    it('should print logs in json', async function () {
+    it('should print logs in json, with each entry as a separate JSON string', async function () {
+      const mockedEntries = [
+        {
+          timestamp: '2023-01-01T00:00:00Z',
+          logName: `projects/mock-gcp-project/logs/stdout`,
+          severity: 'INFO',
+          insertId: 'id1',
+          resource: {
+            type: 'app_script_function',
+            labels: {project_id: 'mock-gcp-project', function_name: 'func1'},
+          },
+          textPayload: 'Log entry 1',
+        },
+        {
+          timestamp: '2023-01-01T00:00:01Z',
+          logName: `projects/mock-gcp-project/logs/stderr`,
+          severity: 'ERROR',
+          insertId: 'id2',
+          resource: {
+            type: 'app_script_function',
+            labels: {project_id: 'mock-gcp-project', function_name: 'func2'},
+          },
+          jsonPayload: {message: 'Log entry 2', customKey: 'customValue'},
+        },
+      ];
       mockListLogEntries({
         projectId: 'mock-gcp-project',
+        entries: mockedEntries,
       });
       const out = await runCommand(['tail-logs', '--json']);
-      expect(out.stdout).to.contain('"severity": "INFO"');
-      expect(out.stdout).to.contain('"function_name": "myFunction"');
-      expect(out.stdout).to.contain('"textPayload": "test log"');
+      const logLines = out.stdout.trim().split('\n');
+      expect(logLines.length).to.equal(mockedEntries.length);
+
+      for (let i = 0; i < logLines.length; i++) {
+        const parsedLog = JSON.parse(logLines[i]);
+        // The command reverses the order of entries before printing
+        expect(parsedLog).to.deep.equal(mockedEntries[mockedEntries.length - 1 - i]);
+      }
     });
 
     it('should print logs without timestamps', async function () {

@@ -35,13 +35,18 @@ export const command = new Command('disable-api')
       await clasp.services.disableService(serviceName);
     });
 
-    const successMessage = intl.formatMessage(
-      {
-        defaultMessage: 'Disabled {name} API.',
-      },
-      {
-        name: serviceName,
-      },
-    );
-    console.log(successMessage);
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      console.log(JSON.stringify({disabledApi: serviceName}, null, 2));
+    } else {
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: 'Disabled {name} API.',
+        },
+        {
+          name: serviceName,
+        },
+      );
+      console.log(successMessage);
+    }
   });

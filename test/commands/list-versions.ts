@@ -54,5 +54,58 @@ describe('List versions command', function () {
       const out = await runCommand(['list-versions']);
       return expect(out.stdout).to.contain('Test version 1');
     });
+
+    it('should list versions in JSON format (chronological order)', async function () {
+      mockListVersions({scriptId: 'mock-script-id'}); // Returns v1 then v2
+      const out = await runCommand(['list-versions', '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      // The command implementation for JSON output reverses the API's order (which is newest first)
+      // to output chronological order (oldest first).
+      const expectedVersions = [
+        {version: 1, description: 'Test version 1'},
+        {version: 2, description: 'Test version 2'},
+      ];
+
+      expect(jsonResponse.versions).to.be.an('array');
+      expect(jsonResponse.versions).to.deep.equal(expectedVersions); // Order matters here
+
+      expect(out.stdout).to.not.contain('Found'); // Text from normal output
+    });
+
+    it('should list versions using alias "versions" in JSON format', async function () {
+      mockListVersions({scriptId: 'mock-script-id'});
+      const out = await runCommand(['versions', '--json']); // Using alias
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      const expectedVersions = [
+        {version: 1, description: 'Test version 1'},
+        {version: 2, description: 'Test version 2'},
+      ];
+
+      expect(jsonResponse.versions).to.deep.equal(expectedVersions);
+      expect(out.stdout).to.not.contain('Found');
+    });
+
+    it('should output empty array for no versions in JSON format', async function () {
+      nock('https://script.googleapis.com')
+        .get(`/v1/projects/mock-script-id/versions`)
+        .query(true)
+        .reply(200, {versions: []}); // Mock empty list
+
+      const out = await runCommand(['list-versions', '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      expect(jsonResponse).to.deep.equal({versions: []});
+      // The command would call this.error() for no versions in non-JSON mode.
+      // For JSON mode, it should still output the empty array.
+      expect(out.stderr).to.equal(''); // No error output expected
+    });
   });
 });

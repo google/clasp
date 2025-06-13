@@ -35,19 +35,28 @@ export const command = new Command('list-apis')
       Promise.all([clasp.services.getEnabledServices(), clasp.services.getAvailableServices()]),
     );
 
-    const enabledApisLabel = intl.formatMessage({
-      defaultMessage: '# Currently enabled APIs:',
-    });
-    console.log(`\n${enabledApisLabel}`);
-    for (const service of enabledApis) {
-      console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`);
-    }
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      const jsonData = {
+        enabledApis: enabledApis.map(api => ({name: api.name, description: api.description})),
+        availableApis: availableApis.map(api => ({name: api.name, description: api.description})),
+      };
+      console.log(JSON.stringify(jsonData, null, 2));
+    } else {
+      const enabledApisLabel = intl.formatMessage({
+        defaultMessage: '# Currently enabled APIs:',
+      });
+      console.log(`\n${enabledApisLabel}`);
+      for (const service of enabledApis) {
+        console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`);
+      }
 
-    const availableApisLabel = intl.formatMessage({
-      defaultMessage: '# List of available APIs:',
-    });
-    console.log(`\n${availableApisLabel}`);
-    for (const service of availableApis) {
-      console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`);
+      const availableApisLabel = intl.formatMessage({
+        defaultMessage: '# List of available APIs:',
+      });
+      console.log(`\n${availableApisLabel}`);
+      for (const service of availableApis) {
+        console.log(`${service.name.padEnd(25)} - ${service.description.padEnd(60)}`);
+      }
     }
   });

@@ -138,20 +138,47 @@ export const command = new Command('create-script')
       return files;
     });
 
-    // Log the paths of the pulled files.
-    files.forEach(f => console.log(`└─ ${f.localPath}`));
-    const successMessage = intl.formatMessage(
-      {
-        defaultMessage: `Cloned {count, plural, 
-        =0 {no files.}
-        one {one file.}
-        other {# files}}.`,
-      },
-      {
-        count: files.length,
-      },
-    );
-    console.log(successMessage);
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      const clonedFiles = files.map(f => f.localPath);
+      // clasp.project.scriptId should be populated correctly by the create/pull operations
+      const scriptId = clasp.project.scriptId;
+      // options.parentId is the parent folder for standalone,
+      // for container bound, the script's parentId is the container itself,
+      // which is returned by createWithContainer and should be stored or passed.
+      // However, the current structure doesn't retain the container's parentId in a straightforward way
+      // to be available here for JSON output. We'll use options.parentId for now,
+      // acknowledging it might be undefined for container-bound if not explicitly passed.
+      // A more robust solution might involve returning parentId from the create logic.
+      const finalParentId = clasp.project.parentId || options.parentId;
+
+      console.log(
+        JSON.stringify(
+          {
+            scriptId,
+            parentId: finalParentId,
+            clonedFiles,
+          },
+          null,
+          2,
+        ),
+      );
+    } else {
+      // Log the paths of the pulled files.
+      files.forEach(f => console.log(`└─ ${f.localPath}`));
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: `Cloned {count, plural,
+          =0 {no files.}
+          one {one file.}
+          other {# files}}.`,
+        },
+        {
+          count: files.length,
+        },
+      );
+      console.log(successMessage);
+    }
   });
 
 /**

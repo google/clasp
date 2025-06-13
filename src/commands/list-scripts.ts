@@ -45,18 +45,30 @@ export const command = new Command('list-scripts')
       console.log(msg);
       return;
     }
-    const successMessage = intl.formatMessage(
-      {
-        defaultMessage: 'Found {count, plural, one {# script} other {# scripts}}.',
-      },
-      {
-        count: files.results.length,
-      },
-    );
-    console.log(successMessage);
-    files.results.forEach(file => {
-      const name = options.noShorten ? file.name! : ellipsize(file.name!, 20);
-      const url = `https://script.google.com/d/${file.id}/edit`;
-      console.log(`${name} - ${url}`);
-    });
+
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      const jsonData = {
+        scripts: files.results.map(file => ({
+          name: file.name,
+          url: `https://script.google.com/d/${file.id}/edit`,
+        })),
+      };
+      console.log(JSON.stringify(jsonData, null, 2));
+    } else {
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: 'Found {count, plural, one {# script} other {# scripts}}.',
+        },
+        {
+          count: files.results.length,
+        },
+      );
+      console.log(successMessage);
+      files.results.forEach(file => {
+        const name = options.noShorten ? file.name! : ellipsize(file.name!, 20);
+        const url = `https://script.google.com/d/${file.id}/edit`;
+        console.log(`${name} - ${url}`);
+      });
+    }
   });

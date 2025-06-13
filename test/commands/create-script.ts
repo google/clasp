@@ -120,6 +120,98 @@ describe('Create script command', function () {
       expect('dist/Code.js').to.be.a.realFile;
       expect(out.stdout).to.contain('Cloned');
     });
+
+    it('should create standalone script, clone, and output JSON', async function () {
+      const scriptTitle = 'json-standalone-test';
+      const mockScriptId = 'mock-script-id-json-standalone';
+      const expectedClonedFiles = ['appsscript.json', 'Code.js'];
+      mockCreateScript({
+        scriptId: mockScriptId,
+        title: scriptTitle,
+      });
+      mockScriptDownload({ // Mock download for the newly created scriptId
+        scriptId: mockScriptId,
+        files: [{name: 'appsscript', type: 'JSON', source: '{}'}, {name: 'Code', type: 'SERVER_JS', source: '// Code'}]
+      });
+
+      const out = await runCommand(['create', '--title', scriptTitle, '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      expect(jsonResponse.scriptId).to.equal(mockScriptId);
+      expect(jsonResponse.parentId).to.be.undefined; // Standalone by default doesn't have a container parentId unless specified
+      expect(jsonResponse.clonedFiles).to.deep.equal(expectedClonedFiles);
+      expect(out.stdout).to.not.contain('Created new script');
+      expect(out.stdout).to.not.contain('Cloned');
+      for (const file of expectedClonedFiles) {
+        expect(file).to.be.a.realFile();
+      }
+    });
+
+    it('should create bound script (sheets), clone, and output JSON', async function () {
+      const scriptTitle = 'test sheet'; // Title must match mockCreateBoundScript's expectation
+      const mockScriptId = 'mock-script-id-json-bound-sheet';
+      const mockParentId = 'mock-parent-id-sheet-json';
+      const expectedClonedFiles = ['appsscript.json', 'Code.js'];
+
+      mockCreateBoundScript({
+        scriptId: mockScriptId,
+        title: scriptTitle,
+        mimeType: 'application/vnd.google-apps.spreadsheet',
+        parentId: mockParentId,
+      });
+      mockScriptDownload({ // Mock download for the newly created scriptId
+        scriptId: mockScriptId,
+         files: [{name: 'appsscript', type: 'JSON', source: '{}'}, {name: 'Code', type: 'SERVER_JS', source: '// Code'}]
+      });
+
+      // Note: The title passed to `create --type sheets` is for the Google Sheet,
+      // the Apps Script project might get a default or same title.
+      // The `mockCreateBoundScript` in mocks.ts has specific expectations for titles.
+      // The command actually uses the title for the container, and the script project gets the same title.
+      const out = await runCommand(['create', '--type', 'sheets', '--title', scriptTitle, '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      expect(jsonResponse.scriptId).to.equal(mockScriptId);
+      expect(jsonResponse.parentId).to.equal(mockParentId);
+      expect(jsonResponse.clonedFiles).to.deep.equal(expectedClonedFiles);
+      expect(out.stdout).to.not.contain('Created new document');
+      expect(out.stdout).to.not.contain('Created new script');
+      expect(out.stdout).to.not.contain('Cloned');
+      for (const file of expectedClonedFiles) {
+        expect(file).to.be.a.realFile();
+      }
+    });
+     it('should create standalone in rootDir, clone, and output JSON', async function () {
+      const scriptTitle = 'json-standalone-rootdir';
+      const mockScriptId = 'mock-script-id-json-rootdir';
+      const rootDir = 'distTest';
+      const expectedClonedFiles = [path.join(rootDir, 'appsscript.json'), path.join(rootDir, 'Code.js')];
+
+      mockCreateScript({
+        scriptId: mockScriptId,
+        title: scriptTitle,
+      });
+      mockScriptDownload({
+        scriptId: mockScriptId,
+        files: [{name: 'appsscript', type: 'JSON', source: '{}'}, {name: 'Code', type: 'SERVER_JS', source: '// Code'}]
+      });
+
+      const out = await runCommand(['create', '--title', scriptTitle, '--rootDir', rootDir, '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      expect(jsonResponse.scriptId).to.equal(mockScriptId);
+      expect(jsonResponse.clonedFiles).to.deep.equal(expectedClonedFiles);
+
+      for (const file of expectedClonedFiles) {
+        expect(file).to.be.a.realFile();
+      }
+      // Check .clasp.json in rootDir
+      expect(path.join(rootDir, '.clasp.json')).to.be.a.realFile();
+    });
   });
   describe('With existing project, authenticated', function () {
     beforeEach(function () {

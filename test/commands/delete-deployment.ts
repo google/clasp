@@ -92,5 +92,54 @@ describe('Delete deployment command', function () {
       const out = await runCommand(['delete-deployment', '--all']);
       return expect(out.stdout).to.contain('Deleted all');
     });
+
+    it('should delete a deployment and output JSON', async function () {
+      const deploymentIdToDelete = 'mock-deployment-id-json';
+      mockDeleteDeployment({
+        scriptId: 'mock-script-id',
+        deploymentId: deploymentIdToDelete,
+      });
+      const out = await runCommand(['delete-deployment', deploymentIdToDelete, '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({deletedDeployments: [deploymentIdToDelete]});
+      expect(out.stdout).to.not.contain('Deleted deployment');
+    });
+
+    it('should delete all if specified and output JSON', async function () {
+      // mockListDeployments returns head, mock-deployment-id, mock-deployment-id-2
+      // The command filters for versioned deployments, so head is excluded.
+      const expectedDeletedIds = ['mock-deployment-id', 'mock-deployment-id-2'];
+      mockListDeployments({scriptId: 'mock-script-id'});
+      mockDeleteDeployment({ scriptId: 'mock-script-id', deploymentId: 'mock-deployment-id'});
+      mockDeleteDeployment({ scriptId: 'mock-script-id', deploymentId: 'mock-deployment-id-2'});
+
+      const out = await runCommand(['delete-deployment', '--all', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      // Order depends on processing order in the command
+      expect(jsonResponse.deletedDeployments).to.have.members(expectedDeletedIds);
+      expect(jsonResponse.deletedDeployments.length).to.equal(expectedDeletedIds.length);
+      expect(out.stdout).to.not.contain('Deleted all');
+      expect(out.stdout).to.not.contain('Deleted deployment');
+    });
+
+    it('should prompt for deployment, delete, and output JSON (interactive)', async function () {
+      const selectedDeploymentId = 'mock-deployment-id';
+      mockListDeployments({scriptId: 'mock-script-id'}); // Provides choices
+      mockDeleteDeployment({
+        scriptId: 'mock-script-id',
+        deploymentId: selectedDeploymentId,
+      });
+      forceInteractiveMode(true);
+      sinon.stub(inquirer, 'prompt').resolves({deploymentId: selectedDeploymentId});
+
+      const out = await runCommand(['delete-deployment', '--json']); // No ID, should prompt
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({deletedDeployments: [selectedDeploymentId]});
+      expect(out.stdout).to.not.contain('Deleted deployment');
+    });
   });
 });

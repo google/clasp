@@ -49,13 +49,18 @@ export const command = new Command('enable-api')
       throw error;
     }
 
-    const successMessage = intl.formatMessage(
-      {
-        defaultMessage: 'Enabled {name} API.',
-      },
-      {
-        name: serviceName,
-      },
-    );
-    console.log(successMessage);
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      console.log(JSON.stringify({enabledApi: serviceName}, null, 2));
+    } else {
+      const successMessage = intl.formatMessage(
+        {
+          defaultMessage: 'Enabled {name} API.',
+        },
+        {
+          name: serviceName,
+        },
+      );
+      console.log(successMessage);
+    }
   });

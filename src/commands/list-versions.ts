@@ -51,17 +51,30 @@ export const command = new Command('list-versions')
     );
     console.log(successMessage);
 
-    versions.results.reverse();
-    versions.results.forEach(version => {
-      const msg = intl.formatMessage(
-        {
-          defaultMessage: '{version, number} - {description, select, undefined {No description} other {{description}}}',
-        },
-        {
-          version: version.versionNumber,
-          description: version.description,
-        },
-      );
-      console.log(msg);
-    });
+    const outputAsJson = this.optsWithGlobals().json ?? false;
+    if (outputAsJson) {
+      const jsonData = {
+        versions: versions.results.map(v => ({
+          version: v.versionNumber,
+          description: v.description,
+        })),
+      };
+      // The list is reversed for display, so reverse it back for JSON to be chronological.
+      jsonData.versions.reverse();
+      console.log(JSON.stringify(jsonData, null, 2));
+    } else {
+      versions.results.reverse();
+      versions.results.forEach(version => {
+        const msg = intl.formatMessage(
+          {
+            defaultMessage: '{version, number} - {description, select, undefined {No description} other {{description}}}',
+          },
+          {
+            version: version.versionNumber,
+            description: version.description,
+          },
+        );
+        console.log(msg);
+      });
+    }
   });

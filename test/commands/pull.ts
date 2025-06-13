@@ -173,6 +173,80 @@ describe('Pull command', function () {
       expect('local-only.js').to.not.be.a.realFile;
       expect('ignored.txt').to.be.a.realFile;
     });
+
+    it('should pull files and output JSON (no deletions)', async function () {
+      mockScriptDownload({ scriptId: 'mock-script-id' }); // Returns appsscript.json, Code.js
+      const out = await runCommand(['pull', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({ pulledFiles: ['appsscript.json', 'Code.js'], deletedFiles: [] });
+      expect(out.stdout).to.not.contain('Pulled');
+      expect('appsscript.json').to.be.a.realFile();
+    });
+
+    it('should pull files, delete unused, and output JSON', async function () {
+      mockfs({
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+        'local-only.js': 'console.log("delete me");',
+        'appsscript.json': '{}', // Will be overwritten by pull
+      });
+      mockScriptDownload({ scriptId: 'mock-script-id' }); // Returns appsscript.json, Code.js
+
+      const out = await runCommand(['pull', '--deleteUnusedFiles', '--force', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      // local-only.js is deleted because it's not in the mockScriptDownload
+      expect(jsonResponse.pulledFiles).to.have.deep.members(['appsscript.json', 'Code.js']);
+      expect(jsonResponse.deletedFiles).to.deep.equal(['local-only.js']);
+      expect(out.stdout).to.not.contain('Pulled');
+      expect(out.stdout).to.not.contain('Deleted');
+      expect('local-only.js').to.not.be.a.realFile();
+    });
+
+    it('should output empty arrays in JSON when no files pulled or deleted', async function () {
+       mockfs({ // Ensure local files match remote mock
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+      });
+      // mockScriptDownload by default returns appsscript.json and Code.js with specific content.
+      // To ensure "no changes", the content on mockfs must match this.
+      // The default mockScriptDownload has fixed content.
+      // For this test, it's easier to mock that the downloaded files are exactly what we have.
+      const existingFiles = [
+        { name: 'appsscript', type: 'JSON', source: fs.readFileSync(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json'), 'utf8') },
+        { name: 'Code', type: 'SERVER_JS', source: fs.readFileSync(path.resolve(__dirname, '../../test/fixtures/Code.js'), 'utf8') },
+      ];
+      mockScriptDownload({ scriptId: 'mock-script-id', files: existingFiles });
+
+      const out = await runCommand(['pull', '--deleteUnusedFiles', '--force', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      // The command still reports all files from remote as "pulled" even if no change.
+      expect(jsonResponse).to.deep.equal({ pulledFiles: ['appsscript.json', 'Code.js'], deletedFiles: [] });
+    });
+
+    it('should pull files into rootDir and output JSON', async function () {
+      mockfs({
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-dist.json')), // rootDir is "dist"
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      mockScriptDownload({ scriptId: 'mock-script-id' }); // Returns appsscript.json, Code.js
+      const out = await runCommand(['pull', '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({ pulledFiles: ['dist/appsscript.json', 'dist/Code.js'], deletedFiles: [] });
+      expect('dist/appsscript.json').to.be.a.realFile();
+    });
+
   });
   describe('Without project, authenticated', function () {
     beforeEach(function () {

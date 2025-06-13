@@ -54,5 +54,58 @@ describe('List scripts command', function () {
       const out = await runCommand(['list-scripts']);
       return expect(out.stdout).to.contain('script 1');
     });
+
+    it('should list scripts in JSON format', async function () {
+      mockListScripts(); // Mocks 3 scripts by default
+      const out = await runCommand(['list-scripts', '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      const expectedScripts = [
+        {name: 'script 1', url: 'https://script.google.com/d/id1/edit'},
+        {name: 'script 2', url: 'https://script.google.com/d/id2/edit'},
+        {name: 'script 3', url: 'https://script.google.com/d/id3/edit'},
+      ];
+
+      expect(jsonResponse.scripts).to.be.an('array');
+      expect(jsonResponse.scripts).to.deep.members(expectedScripts);
+      expect(jsonResponse.scripts.length).to.equal(expectedScripts.length);
+
+      expect(out.stdout).to.not.contain('Found'); // Text from normal output
+    });
+
+    it('should list scripts using alias "list" in JSON format', async function () {
+      mockListScripts();
+      const out = await runCommand(['list', '--json']); // Using alias
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      const expectedScripts = [
+        {name: 'script 1', url: 'https://script.google.com/d/id1/edit'},
+        {name: 'script 2', url: 'https://script.google.com/d/id2/edit'},
+        {name: 'script 3', url: 'https://script.google.com/d/id3/edit'},
+      ];
+
+      expect(jsonResponse.scripts).to.deep.members(expectedScripts);
+      expect(jsonResponse.scripts.length).to.equal(expectedScripts.length);
+      expect(out.stdout).to.not.contain('Found');
+    });
+
+    it('should output empty array for no scripts in JSON format', async function () {
+      nock('https://www.googleapis.com')
+        .get('/drive/v3/files')
+        .query(true)
+        .reply(200, {files: []}); // Mock empty list
+
+      const out = await runCommand(['list-scripts', '--json']);
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+
+      expect(jsonResponse).to.deep.equal({scripts: []});
+      expect(out.stdout).to.not.contain('No script files found.');
+    });
   });
 });

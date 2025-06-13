@@ -72,5 +72,54 @@ describe('Create version command', function () {
       const out = await runCommand(['create-version', 'test']);
       return expect(out.stdout).to.contain('Created version');
     });
+
+    it('should create version with description and output JSON', async function () {
+      const description = 'json output test version';
+      const versionNumber = 5;
+      mockCreateVersion({
+        scriptId: 'mock-script-id',
+        description,
+        version: versionNumber,
+      });
+      const out = await runCommand(['create-version', description, '--json']);
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({version: versionNumber});
+      expect(out.stdout).to.not.contain('Created version');
+    });
+
+    it('should create version, prompt for description (interactive), and output JSON', async function () {
+      const descriptionFromPrompt = 'interactive json test';
+      const versionNumber = 6;
+      mockCreateVersion({
+        scriptId: 'mock-script-id',
+        description: descriptionFromPrompt,
+        version: versionNumber,
+      });
+      forceInteractiveMode(true);
+      sinon.stub(inquirer, 'prompt').resolves({description: descriptionFromPrompt});
+
+      const out = await runCommand(['create-version', '--json']); // No description provided, should prompt
+
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({version: versionNumber});
+      expect(out.stdout).to.not.contain('Created version');
+    });
+
+    it('should use alias "version" and output JSON', async function () {
+      const description = 'alias json test';
+      const versionNumber = 7;
+      mockCreateVersion({
+        scriptId: 'mock-script-id',
+        description,
+        version: versionNumber,
+      });
+      const out = await runCommand(['version', description, '--json']); // Using alias
+      expect(() => JSON.parse(out.stdout)).to.not.throw();
+      const jsonResponse = JSON.parse(out.stdout);
+      expect(jsonResponse).to.deep.equal({version: versionNumber});
+      expect(out.stdout).to.not.contain('Created version');
+    });
   });
 });
