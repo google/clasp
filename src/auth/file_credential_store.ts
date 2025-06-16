@@ -80,7 +80,7 @@ export class FileCredentialStore implements CredentialStore {
    * @returns {Promise<void>}
    */
   async save(user: string, credentials?: StoredCredential) {
-    const store: FileContents = this.readFile();
+    const store: FileContents = await this.readFile();
     if (!store.tokens) {
       store.tokens = {};
     }
@@ -95,7 +95,7 @@ export class FileCredentialStore implements CredentialStore {
    * @returns {Promise<void>}
    */
   async delete(user: string) {
-    let store: FileContents = this.readFile();
+    let store: FileContents = await this.readFile();
     if (!store.tokens) {
       store.tokens = {};
     }
@@ -131,7 +131,7 @@ export class FileCredentialStore implements CredentialStore {
    * @returns {Promise<StoredCredential | null>} The stored credentials if found, otherwise null.
    */
   async load(user: string): Promise<StoredCredential | null> {
-    const store: FileContents = this.readFile();
+    const store: FileContents = await this.readFile();
     const credentials = store.tokens?.[user] as StoredCredential;
     if (credentials) {
       return credentials; // Modern V3 token found for the user.
@@ -170,13 +170,19 @@ export class FileCredentialStore implements CredentialStore {
     return null;
   }
 
-  private readFile(): FileContents {
-    if (fs.existsSync(this.filePath)) {
-      // TODO - use promises
-      const content = fs.readFileSync(this.filePath, {encoding: 'utf8'});
+  private async readFile(): Promise<FileContents> {
+    try {
+      const content = await fs.promises.readFile(this.filePath, {encoding: 'utf8'});
       return JSON.parse(content);
+    } catch (error) {
+      // If the file doesn't exist, return an empty object, preserving original behavior.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((error as any).code === 'ENOENT') {
+        return {};
+      }
+      // For other errors, re-throw.
+      throw error;
     }
-    return {};
   }
 
   private writeFile(store: FileContents) {
