@@ -1,5 +1,46 @@
 # Changelog
 
+## [3.0.6-alpha](https://github.com/google/clasp/compare/v3.0.5-alpha...v3.0.6-alpha) (2025-05-30)
+
+
+### Bug Fixes
+
+* Add missing commands ([#1063](https://github.com/google/clasp/issues/1063)) ([ec9184f](https://github.com/google/clasp/commit/ec9184f6535a4c042d27f7fccb6e453683aad7f1))
+* check if local path's dirname is not root ([#1061](https://github.com/google/clasp/issues/1061)) ([c4f02dd](https://github.com/google/clasp/commit/c4f02dd70c3a5ddb7e7dcf6d278fb0431c8b717f))
+* lint ([a289881](https://github.com/google/clasp/commit/a2898814b47a6392111bdb3daa774cf3fdae71b2))
+
+## [3.0.5-alpha](https://github.com/google/clasp/compare/v3.0.4-alpha...v3.0.5-alpha) (2025-05-30)
+
+
+### Features
+
+* Add -d option to delete files removed in the server script ([#291](https://github.com/google/clasp/issues/291)). ([bf03b1d](https://github.com/google/clasp/commit/bf03b1d77e841b837b30e043e98883902f227739))
+* Experimental mcp command to run clasp as an MCP server for use with coding agents ([ed90dbc](https://github.com/google/clasp/commit/ed90dbcf45d03985c381dfa945f5142178822c54))
+
+## [3.0.4-alpha](https://github.com/google/clasp/compare/v3.0.3-alpha...v3.0.4-alpha) (2025-05-09)
+
+
+### Bug Fixes
+
+* Normalize file paths in file operations for Windows compatibility ([#1044](https://github.com/google/clasp/issues/1044)) ([edd619f](https://github.com/google/clasp/commit/edd619fb92da07a960beadd14b7de5a0f96f0e25))
+
+## [3.0.3-alpha](https://github.com/google/clasp/compare/v3.0.2-alpha...v3.0.3-alpha) (2025-03-25)
+
+
+### Bug Fixes
+
+* Add breaking change not to readme about --rootDir option behavior ([#1046](https://github.com/google/clasp/issues/1046)) ([23c0e88](https://github.com/google/clasp/commit/23c0e885cbbf7d13fa59387136a9cec29301b12b))
+* Correctly ignore errors fetching userinfo when logging in with custom creds. ([#1040](https://github.com/google/clasp/issues/1040)) ([6c894f2](https://github.com/google/clasp/commit/6c894f210f96d07a6992a997ddc21e93b0e3b387))
+* Correctly output container URL ([#1046](https://github.com/google/clasp/issues/1046)) ([e9be2c0](https://github.com/google/clasp/commit/e9be2c0c70ee18b7274afe8e8fe9910d70d6c25c))
+* Ensure parent ID is saved in .clasp.json ([e2e902c](https://github.com/google/clasp/commit/e2e902c9335cc13859bda81ab7248b9331df4a81))
+* Fix duplicate output of some error messages ([82e921f](https://github.com/google/clasp/commit/82e921fb4f28d71002a77cd617a5a1e72eadb69b))
+* Fix issue with push --watch terminating early ([#1045](https://github.com/google/clasp/issues/1045)) ([0e114f2](https://github.com/google/clasp/commit/0e114f2fc53d1c30d0fcf191b76ea007a29ff7ff))
+* Output parent URL when creating scripts if available ([#1046](https://github.com/google/clasp/issues/1046)) ([64d8c33](https://github.com/google/clasp/commit/64d8c33b35f01250902bcfe574f2aa53e0dd65df))
+* Remove other instance of .claspignore file warning as now obsolete ([0b29163](https://github.com/google/clasp/commit/0b291637b2bb26ddf00094d6773bd100c4a59ae8))
+* Skip micromatch when ignore file is empty ([#1043](https://github.com/google/clasp/issues/1043)) ([121dd26](https://github.com/google/clasp/commit/121dd260a7539cf3d51a406b6752dec9e5ff0beb))
+* Update documentation on how to accomodate policy restrictions on 3P apps ([#940](https://github.com/google/clasp/issues/940)) ([e35cb84](https://github.com/google/clasp/commit/e35cb84098da4658b91ad934bca5810a3f4a242e))
+* Update run instructions for 3.x ([f75059e](https://github.com/google/clasp/commit/f75059e83df85ba043a299393a4d5611e0c77eb5))
+
 ## [3.0.2-alpha](https://github.com/google/clasp/compare/v3.0.1-alpha1...v3.0.2-alpha) (2025-03-14)
 
 
@@ -43,6 +84,7 @@
 
 * CLI syntax changed for some commands. Flattens the command structure so it is consistent.
 * Typescript is no longer transpiled by clasp. Use Typescript + Rollup or another bundler to transpile code before pushing.
+* When using the --rootDir option to create or clone a script, the `.clasp.json` file is always created in the current working directory and the relative path to the specified directory is saved in the .clasp.json file.
 
 ### Features
 

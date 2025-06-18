@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// This file is the main entry point for the clasp CLI. It sets up the command
+// parsing, executes the appropriate command, and handles top-level errors.
 
 /**
  * @license
@@ -23,6 +25,7 @@
 import Debug from 'debug';
 import loudRejection from 'loud-rejection';
 
+import {CommanderError} from 'commander';
 import {makeProgram} from './commands/program.js';
 
 const debug = Debug('clasp:cli');
@@ -41,7 +44,9 @@ try {
   await program.parseAsync(process.argv);
 } catch (error) {
   debug('Error: %O', error);
-  if (error instanceof Error) {
+  if (error instanceof CommanderError) {
+    debug('Ignoring commander error, output already logged');
+  } else if (error instanceof Error) {
     process.exitCode = 1;
     console.error(error.message);
   } else {

@@ -1,3 +1,20 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// This file contains functions for initializing and managing authentication,
+// including OAuth2 client creation, authorization flows, and credential storage.
+
 import {readFileSync} from 'fs';
 import os from 'os';
 import path from 'path';
@@ -18,12 +35,26 @@ type InitOptions = {
   useApplicationDefaultCredentials?: boolean;
 };
 
+/**
+ * Holds authentication information for the current session.
+ * @property {OAuth2Client} [credentials] - The authorized OAuth2 client, if logged in.
+ * @property {CredentialStore} [credentialStore] - The store used for loading/saving credentials.
+ * @property {string} user - The identifier for the current user (e.g., 'default' or a custom key).
+ */
 export type AuthInfo = {
   credentials?: OAuth2Client;
   credentialStore?: CredentialStore;
   user: string;
 };
 
+/**
+ * Initializes authentication, loading credentials if available or preparing for a new auth flow.
+ * @param {InitOptions} options - Options for initializing authentication.
+ * @param {string} [options.authFilePath] - Path to the credentials file. Defaults to ~/.clasprc.json.
+ * @param {string} [options.userKey] - Identifier for the user credentials to load. Defaults to 'default'.
+ * @param {boolean} [options.useApplicationDefaultCredentials] - Whether to use Application Default Credentials.
+ * @returns {Promise<AuthInfo>} An AuthInfo object with the credential store and potentially loaded credentials.
+ */
 export async function initAuth(options: InitOptions): Promise<AuthInfo> {
   const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
   const credentialStore = new FileCredentialStore(authFilePath);
@@ -46,6 +77,12 @@ export async function initAuth(options: InitOptions): Promise<AuthInfo> {
   };
 }
 
+/**
+ * Fetches user information (email, ID) using the provided OAuth2 client.
+ * @param {OAuth2Client} credentials - An authorized OAuth2 client.
+ * @returns {Promise<{email?: string | null; id?: string | null} | undefined>}
+ * User's email and ID, or undefined if an error occurs or no data is returned.
+ */
 export async function getUserInfo(credentials: OAuth2Client) {
   debug('Fetching user info');
   const api = google.oauth2('v2');
@@ -68,8 +105,9 @@ export async function getUserInfo(credentials: OAuth2Client) {
 /**
  * Creates an an unauthorized oauth2 client given the client secret file. If no path is provided,
  * teh default client is returned.
- * @param clientSecretPath
- * @returns
+ * @param {string} [clientSecretPath] - Optional path to a client secrets JSON file.
+ * If not provided, the default clasp OAuth client is used.
+ * @returns {OAuth2Client} An unauthorized OAuth2 client instance.
  */
 export function getUnauthorizedOuth2Client(clientSecretPath?: string): OAuth2Client {
   if (clientSecretPath) {
@@ -80,8 +118,11 @@ export function getUnauthorizedOuth2Client(clientSecretPath?: string): OAuth2Cli
 
 /**
  * Create an authorized oauth2 client from saved credentials.
- * @param userKey
- * @returns
+ * @param {CredentialStore} store - The credential store to load from.
+ * @param {string} [userKey='default'] - The user key for the credentials.
+ * @returns {Promise<OAuth2Client | undefined>} An authorized OAuth2 client if credentials
+ * are found and valid, otherwise undefined. The client is configured to auto-refresh
+ * tokens and save them back to the store.
  */
 export async function getAuthorizedOAuth2Client(
   store: CredentialStore,
@@ -114,6 +155,16 @@ export async function getAuthorizedOAuth2Client(
   return client;
 }
 
+/**
+ * Options for the authorization process.
+ * @property {boolean} [noLocalServer] - If true, uses a serverless flow (manual code copy-paste).
+ * Otherwise, attempts to start a local server for the redirect.
+ * @property {number} [redirectPort] - Specific port to use for the local redirect server.
+ * @property {string[] | string} scopes - The OAuth scope(s) to request authorization for.
+ * @property {OAuth2Client} oauth2Client - The OAuth2 client to be authorized.
+ * @property {CredentialStore} store - The credential store for saving the obtained credentials.
+ * @property {string} userKey - The user key under which to save the credentials.
+ */
 export type AuthorizationOptions = {
   noLocalServer?: boolean;
   redirectPort?: number;
@@ -124,12 +175,10 @@ export type AuthorizationOptions = {
 };
 
 /**
- * Requests authorization to manage Apps Script projects.
- * @param {boolean} useLocalhost Uses a local HTTP server if true. Manual entry o.w.
- * @param {ClaspCredentials?} creds An optional credentials object.
- * @param {string[]} [scopes=[]] List of OAuth scopes to authorize.
- * @param {number?} redirectPort Optional custom port for the local HTTP server during the authorization process.
- *                               If not specified, a random available port will be used.
+ * Initiates an OAuth 2.0 authorization flow to obtain user consent and credentials.
+ * It selects between a local server flow or a serverless (manual) flow based on options.
+ * @param {AuthorizationOptions} options - Configuration for the authorization flow.
+ * @returns {Promise<OAuth2Client>} The authorized OAuth2 client.
  */
 export async function authorize(options: AuthorizationOptions) {
   let flow: AuthorizationCodeFlow;
@@ -147,6 +196,13 @@ export async function authorize(options: AuthorizationOptions) {
   return client;
 }
 
+/**
+ * Saves the obtained OAuth2 client credentials to the provided credential store.
+ * It also sets up an event listener on the client to save refreshed tokens.
+ * @param {CredentialStore} store - The credential store.
+ * @param {string} userKey - The user key for saving credentials.
+ * @param {OAuth2Client} oauth2Client - The OAuth2 client whose credentials are to be saved.
+ */
 async function saveOauthClientCredentials(store: CredentialStore, userKey: string, oauth2Client: OAuth2Client) {
   const savedCredentials = {
     client_id: oauth2Client._clientId,
@@ -215,6 +271,12 @@ function createDefaultOAuthClient() {
   return client;
 }
 
+/**
+ * Attempts to create an OAuth2Client using Google Application Default Credentials (ADC).
+ * This is typically used in server environments where credentials can be automatically discovered.
+ * @returns {Promise<OAuth2Client | undefined>} An OAuth2Client if ADC are available and valid,
+ * otherwise undefined.
+ */
 export async function createApplicationDefaultCredentials() {
   const defaultCreds = await new GoogleAuth({
     scopes: [
