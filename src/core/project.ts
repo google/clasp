@@ -109,6 +109,11 @@ export class Project {
     }
   }
 
+  /**
+   * Moves the specified Google Drive file to the trash.
+   * @param {string} fileId - The Google Drive file ID to move to trash.
+   * @returns {Promise<void>} A promise that resolves when the file is successfully trashed.
+   */
   async trashScript(fileId: string): Promise<void> {
     debug('Deleting script %s', fileId);
     assertAuthenticated(this.options);
