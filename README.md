@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/google-clasp-badge.png)](https://mseep.ai/app/google-clasp)
+
 # Clasp
 
 ![build status](https://github.com/google/clasp/actions/workflows/ci.yaml/badge.svg)
