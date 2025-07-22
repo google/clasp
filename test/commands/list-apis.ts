@@ -75,5 +75,21 @@ describe('List APIs command', function () {
       const out = await runCommand(['list-apis']);
       return expect(out.stdout).to.not.contain('ignored');
     });
+
+    it('should list apis as json', async function () {
+      mockListApis();
+      mockListEnabledServices({
+        projectId: 'mock-gcp-project',
+      });
+      const out = await runCommand(['list-apis', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json.enabledApis).to.be.an('array');
+      expect(json.enabledApis.length).to.equal(1);
+      expect(json.enabledApis[0].name).to.equal('docs');
+      expect(json.availableApis).to.be.an('array');
+      expect(json.availableApis.length).to.equal(2);
+      expect(json.availableApis[0].name).to.equal('docs');
+      expect(json.availableApis[1].name).to.equal('gmail');
+    });
   });
 });

@@ -20,9 +20,9 @@ import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
 import {ProjectFile} from '../core/files.js';
 import {intl} from '../intl.js';
-import {isInteractive, withSpinner} from './utils.js';
+import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly versionNumber?: number;
   readonly deleteUnusedFiles?: boolean;
   readonly force?: boolean;
@@ -33,8 +33,9 @@ export const command = new Command('pull')
   .option('--versionNumber <version>', 'The version number of the project to retrieve.')
   .option('-d, --deleteUnusedFiles ', 'Delete local files that are not in the remote project. Use with caution.')
   .option('-f, --force', 'Forcibly delete local files that are not in the remote project without prompting.')
-  .action(async function (this: Command, options: CommandOption): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command): Promise<void> {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     const versionNumber = options.versionNumber;
     const forceDelete = options.force;
@@ -52,8 +53,11 @@ export const command = new Command('pull')
       defaultMessage: 'Pulling files...',
     });
     const files = await withSpinner(spinnerMsg, async () => {
-      return await clasp.files.pull(versionNumber); // `clasp.files.pull` handles fetching and writing.
+      return clasp.files.pull(versionNumber); // `clasp.files.pull` handles fetching and writing.
     });
+
+    const pulledFiles = files.map(f => f.localPath);
+    let deletedFiles: string[] = [];
 
     // If the --deleteUnusedFiles option is used, identify and delete local files
     // that are no longer present in the remote project.
@@ -61,7 +65,12 @@ export const command = new Command('pull')
       // Compare the initial list of local files with the files just pulled.
       // Any file in `localFiles` that is not in `files` (the pulled files) is considered unused.
       const filesToDelete = localFiles.filter(f => !files.find(p => p.localPath === f.localPath));
-      await deleteLocalFiles(filesToDelete, forceDelete);
+      deletedFiles = await deleteLocalFiles(filesToDelete, forceDelete, options.json);
+    }
+
+    if (options.json) {
+      console.log(JSON.stringify({pulledFiles, deletedFiles}, null, 2));
+      return;
     }
 
     // Log the paths of the pulled files.
@@ -80,22 +89,26 @@ export const command = new Command('pull')
     console.log(successMessage);
   });
 
-async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = false) {
+async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = false, json = false) {
   if (!filesToDelete || filesToDelete.length === 0) {
-    return; // No files to delete.
+    return []; // No files to delete.
   }
   const skipConfirmation = forceDelete;
 
   // If not in an interactive terminal and --force is not used, skip deletion with a warning.
   // This prevents accidental deletion in non-interactive environments like CI scripts.
   if (!isInteractive() && !forceDelete) {
-    const msg = intl.formatMessage({
-      defaultMessage: 'You are not in an interactive terminal and --force not used. Skipping file deletion.',
-    });
-    console.warn(msg);
-    return;
+    if (!json) {
+      const msg = intl.formatMessage({
+        defaultMessage: 'You are not in an interactive terminal and --force not used. Skipping file deletion.',
+      });
+      console.warn(msg);
+    }
+
+    return [];
   }
 
+  const deletedFiles: string[] = [];
   for (const file of filesToDelete) {
     let doDelete = true; // Assume deletion unless confirmation is required and denied.
     if (!skipConfirmation) {
@@ -115,7 +128,12 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
 
     if (doDelete) {
       await fs.unlink(file.localPath); // Delete the file from the local system.
-      console.log(intl.formatMessage({defaultMessage: 'Deleted {file}'}, {file: file.localPath}));
+      deletedFiles.push(file.localPath);
+      if (!json) {
+        console.log(intl.formatMessage({defaultMessage: 'Deleted {file}'}, {file: file.localPath}));
+      }
     }
   }
+
+  return deletedFiles;
 }

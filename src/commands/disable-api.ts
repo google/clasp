@@ -17,13 +17,17 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {assertGcpProjectConfigured, maybePromptForProjectId, withSpinner} from './utils.js';
+import {GlobalOptions, assertGcpProjectConfigured, maybePromptForProjectId, withSpinner} from './utils.js';
+
+interface CommandOptions extends GlobalOptions {}
 
 export const command = new Command('disable-api')
   .description('Disable a service for the current project.')
   .argument('<api>', 'Service to disable')
   .action(async function (this: Command, serviceName: string) {
-    const clasp: Clasp = this.opts().clasp;
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
+
     await maybePromptForProjectId(clasp);
 
     assertGcpProjectConfigured(clasp);
@@ -34,6 +38,11 @@ export const command = new Command('disable-api')
     await withSpinner(spinnerMsg, async () => {
       await clasp.services.disableService(serviceName);
     });
+
+    if (options.json) {
+      console.log(JSON.stringify({success: true, disabledService: serviceName}, null, 2));
+      return;
+    }
 
     const successMessage = intl.formatMessage(
       {

@@ -103,5 +103,18 @@ describe('Create deployment command', function () {
       const out = await runCommand(['deploy', '-i', 'mock-deployment-id', '-V', '2']);
       return expect(out.stdout).to.contain('Deployed mock-deployment-id @2');
     });
+
+    it('should create deployment as json', async function () {
+      mockCreateVersion({
+        scriptId: 'mock-script-id',
+        version: 1,
+      });
+      mockCreateDeployment({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['deploy', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json.deploymentId).to.equal('mock-deployment-id');
+    });
   });
 });

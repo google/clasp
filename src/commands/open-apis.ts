@@ -17,12 +17,14 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {INCLUDE_USER_HINT_IN_URL} from '../experiments.js';
-import {assertGcpProjectConfigured, maybePromptForProjectId, openUrl} from './utils.js';
+import {GlobalOptions, assertGcpProjectConfigured, maybePromptForProjectId, openUrl} from './utils.js';
 
 export const command = new Command('open-api-console')
   .description('Open the API console for the current project.')
   .action(async function (this: Command) {
-    const clasp: Clasp = this.opts().clasp;
+    const options: GlobalOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
+    const json = options.json;
 
     const projectId = await maybePromptForProjectId(clasp);
     assertGcpProjectConfigured(clasp);
@@ -32,6 +34,9 @@ export const command = new Command('open-api-console')
     if (INCLUDE_USER_HINT_IN_URL) {
       const userHint = await clasp.authorizedUser();
       url.searchParams.set('authUser', userHint ?? '');
+    }
+    if (json) {
+      console.log(JSON.stringify({url: url.toString()}, null, 2));
     }
     await openUrl(url.toString());
   });

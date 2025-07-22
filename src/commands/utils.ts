@@ -20,8 +20,20 @@ import inquirer from 'inquirer';
 
 import open from 'open';
 import ora from 'ora';
+import {AuthInfo} from '../auth/auth.js';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
+
+export interface GlobalOptions {
+  readonly auth?: string;
+  readonly adc?: boolean;
+  readonly ignore?: string;
+  readonly json?: boolean;
+  readonly project?: string;
+  readonly user?: string;
+  readonly clasp: Clasp;
+  readonly authInfo: AuthInfo;
+}
 
 /**
  * Asserts that a script project is configured by checking for a script ID.

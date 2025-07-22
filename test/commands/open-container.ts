@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This file contains tests for the 'list-versions' command.
+// This file contains tests for the 'open-container' command.
 
 import os from 'os';
 import path from 'path';
@@ -21,7 +21,7 @@ import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import {useChaiExtensions} from '../helpers.js';
-import {mockListVersions, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
+import {mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 useChaiExtensions();
@@ -29,7 +29,7 @@ useChaiExtensions();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-describe('List versions command', function () {
+describe('Open container command', function () {
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -42,27 +42,16 @@ describe('List versions command', function () {
   describe('With project, authenticated', function () {
     beforeEach(function () {
       mockfs({
-        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-with-parent-id.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
         ),
       });
-    });
+    });;
 
-    it('should list scripts', async function () {
-      mockListVersions({scriptId: 'mock-script-id'});
-      const out = await runCommand(['list-versions']);
-      return expect(out.stdout).to.contain('Test version 1');
-    });
-
-    it('should list versions as json', async function () {
-      mockListVersions({scriptId: 'mock-script-id'});
-      const out = await runCommand(['list-versions', '--json']);
-      const json = JSON.parse(out.stdout);
-      expect(json).to.be.an('array');
-      expect(json.length).to.equal(2);
-      expect(json[0].versionNumber).to.equal(1);
-      expect(json[1].versionNumber).to.equal(2);
+    it('should open the container as json', async function () {
+      const out = await runCommand(['open-container', '--json']);
+      expect(out.stdout).to.contain('https://drive.google.com/open');
     });
   });
 });

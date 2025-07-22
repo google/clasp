@@ -20,14 +20,17 @@ import {Command} from 'commander';
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {isInteractive, withSpinner} from './utils.js';
+import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
+
+interface CommandOptions extends GlobalOptions {}
 
 export const command = new Command('create-version')
   .alias('version')
   .arguments('[description]')
   .description('Creates an immutable version of the script')
   .action(async function (this: Command, description?: string): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     if (!description && isInteractive()) {
       const prompt = intl.formatMessage({
@@ -50,6 +53,11 @@ export const command = new Command('create-version')
     const versionNumber = await withSpinner(spinnerMsg, async () => {
       return clasp.project.version(description);
     });
+
+    if (options.json) {
+      console.log(JSON.stringify({versionNumber}, null, 2));
+      return;
+    }
 
     const successMessage = intl.formatMessage(
       {

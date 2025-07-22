@@ -19,20 +19,32 @@ import {Command} from 'commander';
 
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {withSpinner} from './utils.js';
+import {GlobalOptions, withSpinner} from './utils.js';
+
+interface CommandOptions extends GlobalOptions {}
 
 export const command = new Command('list-versions')
   .alias('versions')
   .description('List versions of a script')
   .action(async function (this: Command): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching versions...',
     });
     const versions = await withSpinner(spinnerMsg, async () => {
-      return await clasp.project.listVersions();
+      return clasp.project.listVersions();
     });
+
+    if (options.json) {
+      const versionOutput = versions.results.map(version => ({
+        versionNumber: version.versionNumber,
+        description: version.description,
+      }));
+      console.log(JSON.stringify(versionOutput, null, 2));
+      return;
+    }
 
     if (versions.results.length === 0) {
       const msg = intl.formatMessage({

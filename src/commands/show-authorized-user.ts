@@ -17,11 +17,30 @@
 import {Command} from 'commander';
 import {AuthInfo, getUserInfo} from '../auth/auth.js';
 import {intl} from '../intl.js';
+import {GlobalOptions} from './utils.js';
+
+interface CommandOptions extends GlobalOptions {}
 
 export const command = new Command('show-authorized-user')
   .description('Show information about the current authorizations state.')
   .action(async function (this: Command): Promise<void> {
-    const auth: AuthInfo = this.opts().auth;
+    const options: CommandOptions = this.optsWithGlobals();
+    const auth: AuthInfo = options.authInfo;
+
+    let user: Awaited<ReturnType<typeof getUserInfo>> = undefined;
+
+    if (auth.credentials) {
+      user = await getUserInfo(auth.credentials);
+    }
+
+    if (options.json) {
+      const output = {
+        loggedIn: auth.credentials ? true : false,
+        email: user?.email ?? undefined,
+      };
+      console.log(JSON.stringify(output, null, 2));
+      return;
+    }
 
     if (!auth.credentials) {
       const msg = intl.formatMessage({
@@ -31,7 +50,6 @@ export const command = new Command('show-authorized-user')
       return;
     }
 
-    const user = await getUserInfo(auth.credentials);
     const msg = intl.formatMessage(
       {
         defaultMessage: `{email, select,

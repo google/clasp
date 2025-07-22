@@ -18,9 +18,9 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {withSpinner} from './utils.js';
+import {GlobalOptions, withSpinner} from './utils.js';
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly versionNumber?: number;
   readonly description?: string;
   readonly deploymentId?: string;
@@ -32,8 +32,9 @@ export const command = new Command('create-deployment')
   .option('-V, --versionNumber <version>', 'The project version')
   .option('-d, --description <description>', 'The deployment description')
   .option('-i, --deploymentId <id>', 'The deployment ID to redeploy')
-  .action(async function (this: Command, options: CommandOption): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command): Promise<void> {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
     const deploymentId = options.deploymentId;
     const description = options.description ?? '';
     const versionNumber = options.versionNumber ? Number(options.versionNumber) : undefined;
@@ -43,8 +44,19 @@ export const command = new Command('create-deployment')
         defaultMessage: 'Deploying project...',
       });
       const deployment = await withSpinner(spinnerMsg, async () => {
-        return await clasp.project.deploy(description, deploymentId, versionNumber);
+        return clasp.project.deploy(description, deploymentId, versionNumber);
       });
+
+      if (options.json) {
+        const output = {
+          deploymentId: deployment.deploymentId,
+          versionNumber: deployment.deploymentConfig?.versionNumber,
+          description: deployment.deploymentConfig?.description,
+        };
+        console.log(JSON.stringify(output, null, 2));
+        return;
+      }
+
       const successMessage = intl.formatMessage(
         {
           defaultMessage: `Deployed {deploymentId} {version, select, 

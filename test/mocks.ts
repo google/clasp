@@ -586,3 +586,57 @@ export function mockListLogEntries({
 export function mockScriptPush({scriptId = 'mock-script-id'}: {scriptId?: string}) {
   nock('https://script.googleapis.com').put(`/v1/projects/${scriptId}/content`).reply(200, {});
 }
+
+/**
+ * Mocks a successful function run call to the Google Apps Script API.
+ * @param {object} options - Options for the mock.
+ * @param {string} [options.scriptId='mock-script-id'] - The script ID to which content is pushed.
+ * @param {string} [options.functionName='myFunction'] - The name of the function to run.
+ */
+export function mockRunFunction({
+  scriptId = 'mock-script-id',
+  functionName = 'myFunction',
+}: {
+  scriptId?: string;
+  functionName?: string;
+}) {
+  nock('https://script.googleapis.com')
+    .post(`/v1/scripts/${scriptId}:run`, body => {
+      expect(body.function).to.equal(functionName);
+      return true;
+    })
+    .reply(200, {
+      done: true,
+      response: {
+        '@type': 'type.googleapis.com/google.apps.script.v1.ExecutionResponse',
+        result: 'mock result',
+      },
+    });
+}
+
+/**
+ * Mocks a successful entry points call to the Google Apps Script API.
+ * @param {object} options - Options for the mock.
+ * @param {string} [options.scriptId='mock-script-id'] - The script ID to which content is pushed.
+ * @param {string} [options.deploymentId='mock-deployment-id'] - The deployment ID for the entry points.
+ */
+export function mockEntryPoints({
+  scriptId = 'mock-script-id',
+  deploymentId = 'mock-deployment-id',
+}: {
+  scriptId?: string;
+  deploymentId?: string;
+}) {
+  nock('https://script.googleapis.com')
+    .get(`/v1/projects/${scriptId}/deployments/${deploymentId}`)
+    .reply(200, {
+      entryPoints: [
+        {
+          entryPointType: 'WEB_APP',
+          webApp: {
+            url: `https://script.google.com/macros/s/${deploymentId}/exec`,
+          },
+        },
+      ],
+    });
+}

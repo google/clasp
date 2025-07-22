@@ -120,6 +120,19 @@ describe('Create script command', function () {
       expect('dist/Code.js').to.be.a.realFile;
       expect(out.stdout).to.contain('Cloned');
     });
+
+    it('should create a script as json', async function () {
+      mockCreateScript({
+        scriptId: 'mock-script-id',
+        title: 'test',
+      });
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['create', '--title', 'test', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json.scriptId).to.equal('mock-script-id');
+    });
   });
   describe('With existing project, authenticated', function () {
     beforeEach(function () {

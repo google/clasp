@@ -54,5 +54,16 @@ describe('List scripts command', function () {
       const out = await runCommand(['list-scripts']);
       return expect(out.stdout).to.contain('script 1');
     });
+
+    it('should list scripts as json', async function () {
+      mockListScripts();
+      const out = await runCommand(['list-scripts', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json).to.be.an('array');
+      expect(json.length).to.equal(3);
+      expect(json[0].name).to.equal('script 1');
+      expect(json[1].name).to.equal('script 2');
+      expect(json[2].name).to.equal('script 3');
+    });
   });
 });

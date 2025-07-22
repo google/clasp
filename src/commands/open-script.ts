@@ -18,13 +18,15 @@ import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {INCLUDE_USER_HINT_IN_URL} from '../experiments.js';
 import {intl} from '../intl.js';
-import {openUrl} from './utils.js';
+import {GlobalOptions, openUrl} from './utils.js';
 
 export const command = new Command('open-script')
   .arguments('[scriptId]')
   .description('Open the Apps Script IDE for the current project.')
   .action(async function (this: Command, scriptId: string | undefined): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+    const options: GlobalOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
+    const json = options.json;
 
     if (!scriptId) {
       scriptId = clasp.project.scriptId;
@@ -41,5 +43,9 @@ export const command = new Command('open-script')
       const userHint = await clasp.authorizedUser();
       url.searchParams.set('authUser', userHint ?? '');
     }
+    if (json) {
+      console.log(JSON.stringify({url: url.toString()}, null, 2));
+    }
+
     await openUrl(url.toString());
   });

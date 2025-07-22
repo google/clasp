@@ -17,11 +17,15 @@
 import {Command} from 'commander';
 import {AuthInfo} from '../auth/auth.js';
 import {intl} from '../intl.js';
+import {GlobalOptions} from './utils.js';
+
+interface CommandOptions extends GlobalOptions {}
 
 export const command = new Command('logout').description('Logout of clasp').action(async function (
   this: Command,
 ): Promise<void> {
-  const auth: AuthInfo = this.opts().auth;
+  const options: CommandOptions = this.optsWithGlobals();
+  const auth: AuthInfo = options.authInfo;
 
   if (!auth.credentialStore) {
     const msg = intl.formatMessage({
@@ -31,10 +35,19 @@ export const command = new Command('logout').description('Logout of clasp').acti
   }
 
   if (!auth.credentials) {
+    if (options.json) {
+      console.log(JSON.stringify({success: true}, null, 2));
+    }
     return;
   }
 
   auth.credentialStore?.delete(auth.user);
+
+  if (options.json) {
+    console.log(JSON.stringify({success: true}, null, 2));
+    return;
+  }
+
   const successMessage = intl.formatMessage({
     defaultMessage: 'Deleted credentials.',
   });

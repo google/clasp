@@ -173,6 +173,16 @@ describe('Pull command', function () {
       expect('local-only.js').to.not.be.a.realFile;
       expect('ignored.txt').to.be.a.realFile;
     });
+
+    it('should pull files as json', async function () {
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['pull', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json.pulledFiles).to.be.an('array');
+      expect(json.pulledFiles.length).to.equal(2);
+    });
   });
   describe('Without project, authenticated', function () {
     beforeEach(function () {

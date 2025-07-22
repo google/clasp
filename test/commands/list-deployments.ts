@@ -54,5 +54,16 @@ describe('List deployments command', function () {
       const out = await runCommand(['list-deployments']);
       return expect(out.stdout).to.contain('mock-deployment-id');
     });
+
+    it('should list deployments as json', async function () {
+      mockListDeployments({scriptId: 'mock-script-id'});
+      const out = await runCommand(['list-deployments', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json).to.be.an('array');
+      expect(json.length).to.equal(3);
+      expect(json[0].deploymentId).to.equal('head-deployment-id');
+      expect(json[1].deploymentId).to.equal('mock-deployment-id');
+      expect(json[2].deploymentId).to.equal('mock-deployment-id-2');
+    });
   });
 });

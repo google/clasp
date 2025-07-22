@@ -18,9 +18,9 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {ellipsize, withSpinner} from './utils.js';
+import {GlobalOptions, ellipsize, withSpinner} from './utils.js';
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly noShorten: boolean;
 }
 
@@ -28,8 +28,9 @@ export const command = new Command('list-scripts')
   .alias('list')
   .description('List App Scripts projects')
   .option('--noShorten', 'Do not shorten long names', false)
-  .action(async function (this: Command, options: CommandOption): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command): Promise<void> {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Finding your scripts...',
@@ -38,6 +39,15 @@ export const command = new Command('list-scripts')
       return clasp.project.listScripts();
     });
 
+    if (options.json) {
+      const scripts = files.results.map(file => ({
+        id: file.id,
+        name: file.name,
+      }));
+      console.log(JSON.stringify(scripts, null, 2));
+      return;
+    }
+
     if (!files.results.length) {
       const msg = intl.formatMessage({
         defaultMessage: 'No script files found.',
@@ -45,6 +55,7 @@ export const command = new Command('list-scripts')
       console.log(msg);
       return;
     }
+
     const successMessage = intl.formatMessage(
       {
         defaultMessage: 'Found {count, plural, one {# script} other {# scripts}}.',

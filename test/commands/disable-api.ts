@@ -76,5 +76,17 @@ describe('Disable API command', function () {
       const out = await runCommand(['disable-api', 'xyz']);
       expect(out.stderr).to.contain('not a valid');
     });
+
+    it('should disable a service as json', async function () {
+      mockDisableService({
+        projectId: 'mock-gcp-project',
+        serviceName: 'gmail.googleapis.com',
+      });
+
+      const out = await runCommand(['disable-api', 'gmail', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json.success).to.be.true;
+      expect(json.disabledService).to.equal('gmail');
+    });
   });
 });
