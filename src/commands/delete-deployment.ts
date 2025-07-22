@@ -19,9 +19,9 @@ import {Command} from 'commander';
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {isInteractive, withSpinner} from './utils.js';
+import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly all?: boolean;
 }
 
@@ -30,25 +30,30 @@ export const command = new Command('delete-deployment')
   .description('Delete a deployment of a project')
   .arguments('[deploymentId]')
   .option('-a, --all', 'Undeploy all deployments')
-  .action(async function (this: Command, deploymentId: string | undefined, options: CommandOption) {
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command, deploymentId: string | undefined) {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     const removeAll = options.all;
+    const deletedDeploymentIds: string[] = [];
 
     const deleteDeployment = async (id: string) => {
       const spinnerMsg = intl.formatMessage({
         defaultMessage: 'Deleting deployment...',
       });
       await withSpinner(spinnerMsg, async () => {
-        return await clasp.project.undeploy(id);
+        return clasp.project.undeploy(id);
       });
-      const successMessage = intl.formatMessage(
-        {
-          defaultMessage: 'Deleted deployment {id}',
-        },
-        {id},
-      );
-      console.log(successMessage);
+      deletedDeploymentIds.push(id);
+      if (!options.json) {
+        const successMessage = intl.formatMessage(
+          {
+            defaultMessage: 'Deleted deployment {id}',
+          },
+          {id},
+        );
+        console.log(successMessage);
+      }
     };
 
     if (removeAll) {
@@ -69,6 +74,12 @@ export const command = new Command('delete-deployment')
         }
         await deleteDeployment(id);
       }
+
+      if (options.json) {
+        console.log(JSON.stringify({deletedDeploymentIds}, null, 2));
+        return;
+      }
+
       const successMessage = intl.formatMessage({
         defaultMessage: `Deleted all deployments.`,
       });
@@ -106,6 +117,11 @@ export const command = new Command('delete-deployment')
     }
 
     if (!deploymentId) {
+      if (options.json) {
+        console.log(JSON.stringify({deletedDeploymentIds: []}, null, 2));
+        return;
+      }
+
       const msg = intl.formatMessage({
         defaultMessage: `No deployments found.`,
       });
@@ -113,4 +129,7 @@ export const command = new Command('delete-deployment')
     }
 
     await deleteDeployment(deploymentId);
+    if (options.json) {
+      console.log(JSON.stringify({deletedDeploymentIds}, null, 2));
+    }
   });

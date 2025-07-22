@@ -18,20 +18,33 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {withSpinner} from './utils.js';
+import {GlobalOptions, withSpinner} from './utils.js';
+
+interface CommandOptions extends GlobalOptions {}
 
 export const command = new Command('list-deployments')
   .alias('deployments')
   .description('List deployment ids of a script')
   .action(async function (this: Command): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching deployments...',
     });
     const deployments = await withSpinner(spinnerMsg, async () => {
-      return await clasp.project.listDeployments();
+      return clasp.project.listDeployments();
     });
+
+    if (options.json) {
+      const deploymentOutput = deployments.results.map(deployment => ({
+        deploymentId: deployment.deploymentId,
+        versionNumber: deployment.deploymentConfig?.versionNumber,
+        description: deployment.deploymentConfig?.description,
+      }));
+      console.log(JSON.stringify(deploymentOutput, null, 2));
+      return;
+    }
 
     if (!deployments.results.length) {
       const msg = intl.formatMessage({

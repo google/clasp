@@ -20,9 +20,9 @@ import fuzzy from 'fuzzy';
 import autocomplete from 'inquirer-autocomplete-standalone';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {isInteractive, withSpinner} from './utils.js';
+import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly nondev: boolean;
   readonly params: string;
 }
@@ -33,8 +33,10 @@ export const command = new Command('run-function')
   .argument('[functionName]', 'The name of the function to run')
   .option('--nondev', 'Run script function in non-devMode')
   .option('-p, --params <value>', 'Parameters to pass to the function, as a JSON-encoded array')
-  .action(async function (this: Command, functionName: string, options: CommandOption): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command, functionName: string): Promise<void> {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
+
     const devMode = !options.nondev; // Defaults to true
     let params: unknown[] = [];
 
@@ -64,14 +66,29 @@ export const command = new Command('run-function')
     // Attempt to run the function.
     try {
       // `clasp.functions.runFunction` calls the Apps Script API.
-      const {error, response} = await withSpinner(`Running function: ${functionName}`, async () => {
-        return await clasp.functions.runFunction(functionName, params, devMode);
+      const result = await withSpinner(`Running function: ${functionName}`, async () => {
+        return clasp.functions.runFunction(functionName, params, devMode);
       });
 
+      if (options.json) {
+        const output = {
+          response: result.response?.result,
+          error: result.error
+            ? {
+                code: result.error.code,
+                message: result.error.message,
+                details: result.error.details,
+              }
+            : undefined,
+        };
+        console.log(JSON.stringify(output, null, 2));
+        return;
+      }
+
       // Handle the API response.
-      if (error && error.details) {
+      if (result.error && result.error.details) {
         // If the API returned an error in the `error.details` field (common for script execution errors).
-        const {errorMessage, scriptStackTraceElements} = error.details[0];
+        const {errorMessage, scriptStackTraceElements} = result.error.details[0];
         const msg = intl.formatMessage({
           defaultMessage: 'Exception:',
         });
@@ -79,9 +96,9 @@ export const command = new Command('run-function')
         return;
       }
 
-      if (response && response.result !== undefined) {
+      if (result.response && result.response.result !== undefined) {
         // If the function executed successfully and returned a result.
-        console.log(response.result);
+        console.log(result.response.result);
       } else {
         // If the function execution didn't produce a result or an error in the expected format.
         const msg = intl.formatMessage({

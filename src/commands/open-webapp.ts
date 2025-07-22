@@ -19,13 +19,15 @@ import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
 import {INCLUDE_USER_HINT_IN_URL} from '../experiments.js';
 import {intl} from '../intl.js';
-import {ellipsize, isInteractive, openUrl} from './utils.js';
+import {GlobalOptions, ellipsize, isInteractive, openUrl} from './utils.js';
 
 export const command = new Command('open-web-app')
   .arguments('[deploymentId]')
   .description('Open a deployed web app in the browser.')
   .action(async function (this: Command, deploymentId?: string): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+    const options: GlobalOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
+    const json = options.json;
 
     const scriptId = clasp.project.scriptId;
     if (!scriptId) {
@@ -88,6 +90,9 @@ export const command = new Command('open-web-app')
     if (INCLUDE_USER_HINT_IN_URL) {
       const userHint = await clasp.authorizedUser();
       url.searchParams.set('authUser', userHint ?? '');
+    }
+    if (json) {
+      console.log(JSON.stringify({url: url.toString()}, null, 2));
     }
     await openUrl(url.toString());
   });

@@ -22,6 +22,7 @@ import {Command} from 'commander';
 import {AuthInfo, authorize, getUnauthorizedOuth2Client, getUserInfo} from '../auth/auth.js';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
+import {GlobalOptions} from './utils.js';
 
 const DEFAULT_SCOPES = [
   // Default to clasp scopes
@@ -37,7 +38,7 @@ const DEFAULT_SCOPES = [
   'https://www.googleapis.com/auth/cloud-platform',
 ];
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly localhost?: boolean;
   readonly creds?: string;
   readonly status?: boolean;
@@ -54,9 +55,10 @@ export const command = new Command('login')
     'Use the scopes from the current project manifest. Used only when authorizing access for the run command.',
   )
   .option('--redirect-port <port>', 'Specify a custom port for the redirect URL.')
-  .action(async function (this: Command, options: CommandOption): Promise<void> {
-    const auth: AuthInfo = this.opts().auth;
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command): Promise<void> {
+    const options: CommandOptions = this.optsWithGlobals();
+    const auth: AuthInfo = options.authInfo;
+    const clasp: Clasp = options.clasp;
 
     if (!auth.credentialStore) {
       const msg = intl.formatMessage({
@@ -66,10 +68,12 @@ export const command = new Command('login')
     }
 
     if (auth.credentials) {
-      const msg = intl.formatMessage({
-        defaultMessage: 'Warning: You seem to already be logged in.',
-      });
-      console.error(msg);
+      if (!options.json) {
+        const msg = intl.formatMessage({
+          defaultMessage: 'Warning: You seem to already be logged in.',
+        });
+        console.error(msg);
+      }
     }
 
     const useLocalhost = Boolean(options.localhost);
@@ -81,13 +85,15 @@ export const command = new Command('login')
     if (options.useProjectScopes) {
       const manifest = await clasp.project.readManifest();
       scopes = manifest.oauthScopes ?? scopes;
-      const scopesLabel = intl.formatMessage({
-        defaultMessage: 'Authorizing with the following scopes:',
-      });
-      console.log('');
-      console.log(scopesLabel);
-      for (const scope of scopes) {
-        console.log(scope);
+      if (!options.json) {
+        const scopesLabel = intl.formatMessage({
+          defaultMessage: 'Authorizing with the following scopes:',
+        });
+        console.log('');
+        console.log(scopesLabel);
+        for (const scope of scopes) {
+          console.log(scope);
+        }
       }
     }
 
@@ -101,6 +107,15 @@ export const command = new Command('login')
     });
 
     const user = await getUserInfo(credentials);
+
+    if (options.json) {
+      const output = {
+        email: user?.email,
+      };
+      console.log(JSON.stringify(output, null, 2));
+      return;
+    }
+
     const msg = intl.formatMessage(
       {
         defaultMessage: `{email, select,

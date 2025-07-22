@@ -19,17 +19,17 @@ import {Command} from 'commander';
 
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {withSpinner} from './utils.js';
+import {GlobalOptions, withSpinner} from './utils.js';
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly json?: boolean;
 }
 
 export const command = new Command('show-file-status')
   .alias('status')
   .description('Lists files that will be pushed by clasp')
-  .option('--json', 'Show status in JSON form')
-  .action(async function (this: Command, options?: CommandOption): Promise<void> {
+  .action(async function (this: Command): Promise<void> {
+    const options: CommandOptions = this.optsWithGlobals();
     const clasp: Clasp = this.opts().clasp;
 
     const outputAsJson = options?.json ?? false;

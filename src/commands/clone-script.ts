@@ -19,7 +19,11 @@ import inquirer from 'inquirer';
 
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {isInteractive, withSpinner} from './utils.js';
+import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
+
+interface CommandOptions extends GlobalOptions {
+  readonly rootDir?: string;
+}
 
 export const command = new Command('clone-script')
   .alias('clone')
@@ -27,7 +31,8 @@ export const command = new Command('clone-script')
   .arguments('[scriptId] [versionNumber]')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
   .action(async function (this: Command, scriptId: string, versionNumber: number | undefined) {
-    let clasp: Clasp = this.opts().clasp;
+    const options: CommandOptions = this.optsWithGlobals();
+    let clasp: Clasp = options.clasp;
 
     if (clasp.project.exists()) {
       const msg = intl.formatMessage({
@@ -36,7 +41,7 @@ export const command = new Command('clone-script')
       this.error(msg);
     }
 
-    const rootDir: string = this.opts().rootDir;
+    const rootDir = options.rootDir;
 
     clasp.withContentDir(rootDir ?? '.');
 
@@ -93,6 +98,12 @@ export const command = new Command('clone-script')
         clasp.project.updateSettings();
         return files;
       });
+
+      if (options.json) {
+        console.log(JSON.stringify({scriptId, files: files.map(f => f.localPath)}, null, 2));
+        return;
+      }
+
       // Log the paths of the cloned files.
       files.forEach(f => console.log(`└─ ${f.localPath}`));
       const successMessage = intl.formatMessage(

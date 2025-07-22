@@ -17,13 +17,16 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {assertGcpProjectConfigured, maybePromptForProjectId, withSpinner} from './utils.js';
+import {GlobalOptions, assertGcpProjectConfigured, maybePromptForProjectId, withSpinner} from './utils.js';
+
+interface CommandOptions extends GlobalOptions {}
 
 export const command = new Command('list-apis')
   .alias('apis')
   .description('List enabled APIs for the current project')
   .action(async function (this: Command) {
-    const clasp: Clasp = this.opts().clasp;
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     await maybePromptForProjectId(clasp);
     assertGcpProjectConfigured(clasp);
@@ -34,6 +37,15 @@ export const command = new Command('list-apis')
     const [enabledApis, availableApis] = await withSpinner(spinnerMsg, () =>
       Promise.all([clasp.services.getEnabledServices(), clasp.services.getAvailableServices()]),
     );
+
+    if (options.json) {
+      const output = {
+        enabledApis: enabledApis.map(api => ({name: api.name, description: api.description})),
+        availableApis: availableApis.map(api => ({name: api.name, description: api.description})),
+      };
+      console.log(JSON.stringify(output, null, 2));
+      return;
+    }
 
     const enabledApisLabel = intl.formatMessage({
       defaultMessage: '# Currently enabled APIs:',

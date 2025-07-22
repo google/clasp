@@ -115,7 +115,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     // Make the initialized `clasp` and `auth` objects available to the
     // actual command's action function via its options.
     cmd.setOptionValue('clasp', clasp);
-    cmd.setOptionValue('auth', auth);
+    cmd.setOptionValue('authInfo', auth);
   });
 
   /**
@@ -129,6 +129,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
 
   program.option('-u,--user <name>', 'Store named credentials. If unspecified, the "default" user is used.', 'default');
   program.option('--adc', 'Use the application default credentials from the environemnt.');
+  program.option('--json', 'Show output in JSON format');
   program.addOption(
     new Option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.").env(
       'clasp_config_ignore',

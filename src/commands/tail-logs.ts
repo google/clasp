@@ -19,10 +19,15 @@ import {Command} from 'commander';
 import {logging_v2 as loggingV2} from 'googleapis';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {assertGcpProjectConfigured, isInteractive, maybePromptForProjectId, withSpinner} from './utils.js';
+import {
+  GlobalOptions,
+  assertGcpProjectConfigured,
+  isInteractive,
+  maybePromptForProjectId,
+  withSpinner,
+} from './utils.js';
 
-interface CommandOption {
-  readonly json?: boolean;
+interface CommandOptions extends GlobalOptions {
   readonly watch?: boolean;
   readonly simplified?: boolean;
 }
@@ -30,11 +35,11 @@ interface CommandOption {
 export const command = new Command('tail-logs')
   .alias('logs')
   .description('Print the most recent log entries')
-  .option('--json', 'Show logs in JSON form')
   .option('--watch', 'Watch and print new logs')
   .option('--simplified', 'Hide timestamps with logs')
-  .action(async function (this: Command, options: CommandOption): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command): Promise<void> {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     const {json, simplified, watch} = options;
     const seenEntries = new Set<string>();

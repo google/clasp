@@ -17,12 +17,14 @@
 import {Command} from 'commander';
 import {Clasp} from '../core/clasp.js';
 import {INCLUDE_USER_HINT_IN_URL} from '../experiments.js';
-import {assertGcpProjectConfigured, maybePromptForProjectId, openUrl} from './utils.js';
+import {GlobalOptions, assertGcpProjectConfigured, maybePromptForProjectId, openUrl} from './utils.js';
 
 export const command = new Command('open-credentials-setup')
   .description("Open credentials page for the script's GCP project")
   .action(async function (this: Command): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+    const options: GlobalOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
+    const json = options.json;
 
     const projectId = await maybePromptForProjectId(clasp);
     assertGcpProjectConfigured(clasp);
@@ -32,6 +34,9 @@ export const command = new Command('open-credentials-setup')
     if (INCLUDE_USER_HINT_IN_URL) {
       const userHint = await clasp.authorizedUser();
       url.searchParams.set('authUser', userHint ?? '');
+    }
+    if (json) {
+      console.log(JSON.stringify({url: url.toString()}, null, 2));
     }
     await openUrl(url.toString());
   });

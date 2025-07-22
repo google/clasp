@@ -20,7 +20,7 @@ import {Command} from 'commander';
 import inflection from 'inflection';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {withSpinner} from './utils.js';
+import {GlobalOptions, withSpinner} from './utils.js';
 
 // https://developers.google.com/drive/api/v3/mime-types
 const DRIVE_FILE_MIMETYPES: Record<string, string> = {
@@ -30,7 +30,7 @@ const DRIVE_FILE_MIMETYPES: Record<string, string> = {
   slides: 'application/vnd.google-apps.presentation',
 };
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly parentId?: string;
   readonly rootDir?: string;
   readonly title?: string;
@@ -48,8 +48,9 @@ export const command = new Command('create-script')
   .option('--title <title>', 'The project title.')
   .option('--parentId <id>', 'A project parent Id.')
   .option('--rootDir <rootDir>', 'Local root directory in which clasp will store your project files.')
-  .action(async function (this: Command, options: CommandOption): Promise<void> {
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command): Promise<void> {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     if (clasp.project.exists()) {
       const msg = intl.formatMessage({
@@ -65,6 +66,9 @@ export const command = new Command('create-script')
     const rootDir: string = options.rootDir ?? '.';
 
     clasp.withContentDir(rootDir);
+
+    let scriptId: string;
+    let createdParentId: string | undefined;
 
     // Handle container-bound script creation (e.g., for Sheets, Docs, Forms, Slides).
     if (type && type !== 'standalone') {
@@ -82,23 +86,24 @@ export const command = new Command('create-script')
       });
       // This call creates both the Google Drive file (e.g., a new Spreadsheet)
       // and the Apps Script project bound to it.
-      const {parentId, scriptId} = await withSpinner(
-        spinnerMsg,
-        async () => await clasp.project.createWithContainer(name, mimeType),
-      );
-      const parentUrl = `https://drive.google.com/open?id=${parentId}`; // URL to the container file.
-      const scriptUrl = `https://script.google.com/d/${scriptId}/edit`; // URL to the new Apps Script project.
-      const successMessage = intl.formatMessage(
-        {
-          defaultMessage: 'Created new document: {parentUrl}{br}Created new script: {scriptUrl}',
-        },
-        {
-          parentUrl,
-          scriptUrl,
-          br: '\n',
-        },
-      );
-      console.log(successMessage);
+      const result = await withSpinner(spinnerMsg, async () => await clasp.project.createWithContainer(name, mimeType));
+      scriptId = result.scriptId;
+      createdParentId = result.parentId;
+      if (!options.json) {
+        const parentUrl = `https://drive.google.com/open?id=${createdParentId}`; // URL to the container file.
+        const scriptUrl = `https://script.google.com/d/${scriptId}/edit`; // URL to the new Apps Script project.
+        const successMessage = intl.formatMessage(
+          {
+            defaultMessage: 'Created new document: {parentUrl}{br}Created new script: {scriptUrl}',
+          },
+          {
+            parentUrl,
+            scriptUrl,
+            br: '\n',
+          },
+        );
+        console.log(successMessage);
+      }
     } else {
       // Handle standalone script creation.
       const spinnerMsg = intl.formatMessage({
@@ -106,24 +111,26 @@ export const command = new Command('create-script')
       });
       // This call creates a standalone Apps Script project.
       // If `parentId` is provided, it attempts to create it within that Drive folder.
-      const scriptId = await withSpinner(spinnerMsg, async () => await clasp.project.createScript(name, parentId));
-      const parentUrl = `https://drive.google.com/open?id=${parentId}`; // URL to parent folder if specified.
-      const scriptUrl = `https://script.google.com/d/${scriptId}/edit`; // URL to the new Apps Script project.
-      const successMessage = intl.formatMessage(
-        {
-          defaultMessage: `Created new script: {scriptUrl}{parentId, select,
+      scriptId = await withSpinner(spinnerMsg, async () => await clasp.project.createScript(name, parentId));
+      if (!options.json) {
+        const parentUrl = `https://drive.google.com/open?id=${parentId}`; // URL to parent folder if specified.
+        const scriptUrl = `https://script.google.com/d/${scriptId}/edit`; // URL to the new Apps Script project.
+        const successMessage = intl.formatMessage(
+          {
+            defaultMessage: `Created new script: {scriptUrl}{parentId, select,
             undefined {}
             other {{br}Bound to document: {parentUrl}}
           }`,
-        },
-        {
-          parentId,
-          parentUrl,
-          scriptUrl,
-          br: '\n',
-        },
-      );
-      console.log(successMessage);
+          },
+          {
+            parentId,
+            parentUrl,
+            scriptUrl,
+            br: '\n',
+          },
+        );
+        console.log(successMessage);
+      }
     }
 
     const spinnerMsg = intl.formatMessage({
@@ -137,6 +144,11 @@ export const command = new Command('create-script')
       clasp.project.updateSettings();
       return files;
     });
+
+    if (options.json) {
+      console.log(JSON.stringify({scriptId, parentId: createdParentId, files: files.map(f => f.localPath)}, null, 2));
+      return;
+    }
 
     // Log the paths of the pulled files.
     files.forEach(f => console.log(`└─ ${f.localPath}`));

@@ -20,9 +20,9 @@ import inquirer from 'inquirer';
 
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {isInteractive, withSpinner} from './utils.js';
+import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly watch?: boolean;
   readonly force?: boolean;
 }
@@ -31,8 +31,9 @@ export const command = new Command('push')
   .description('Update the remote project')
   .option('-f, --force', 'Forcibly overwrites the remote manifest.')
   .option('-w, --watch', 'Watches for local file changes. Pushes when a non-ignored file changes.')
-  .action(async function (this: Command, options: CommandOption) {
-    const clasp: Clasp = this.opts().clasp;
+  .action(async function (this: Command) {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
 
     const watch = options.watch;
     let force = options.force; // Store the force option, as it can be updated by confirmManifestUpdate
@@ -46,20 +47,36 @@ export const command = new Command('push')
         force = await confirmManifestUpdate(); // Update force based on user's choice.
         if (!force) {
           // If user declines manifest overwrite, skip the push.
-          const msg = intl.formatMessage({
-            defaultMessage: 'Skipping push.',
-          });
-          console.log(msg);
+          if (!options.json) {
+            const msg = intl.formatMessage({
+              defaultMessage: 'Skipping push.',
+            });
+            console.log(msg);
+          }
+
           return; // Exit onChange without pushing.
         }
       }
+
       const spinnerMsg = intl.formatMessage({
         defaultMessage: 'Pushing files...',
       });
       // Perform the push operation using the core `clasp.files.push()` method.
       const files = await withSpinner(spinnerMsg, async () => {
-        return await clasp.files.push();
+        return clasp.files.push();
       });
+
+      if (options.json) {
+        console.log(
+          JSON.stringify(
+            files.map(f => f.localPath),
+            null,
+            2,
+          ),
+        );
+        return;
+      }
+
       // Log the result of the push.
       const successMessage = intl.formatMessage(
         {
@@ -84,6 +101,10 @@ export const command = new Command('push')
       const paths = pendingChanges.map(f => f.localPath);
       await onChange(paths);
     } else {
+      if (options.json) {
+        console.log(JSON.stringify([], null, 2));
+        return;
+      }
       // If no changes, inform the user.
       const msg = intl.formatMessage({
         defaultMessage: 'Script is already up to date.',
