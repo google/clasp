@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This file contains tests for the 'create-version' command.
+// This file contains tests for the 'open-webapp' command.
 
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
-import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
-import sinon from 'sinon';
 import {useChaiExtensions} from '../helpers.js';
-import {forceInteractiveMode, mockCreateVersion, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
+import {mockEntryPoints, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 useChaiExtensions();
@@ -31,7 +29,7 @@ useChaiExtensions();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-describe('Create version command', function () {
+describe('Open webapp command', function () {
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -51,37 +49,17 @@ describe('Create version command', function () {
       });
     });
 
-    it('should create version and prompt for description when not set', async function () {
-      mockCreateVersion({
+    it('should open the webapp as json', async function () {
+      mockEntryPoints({
         scriptId: 'mock-script-id',
-        description: 'test version',
-        version: 1,
+        deploymentId: 'mock-deployment-id',
       });
-      forceInteractiveMode(true);
-      sinon.stub(inquirer, 'prompt').resolves({description: 'test version'});
-      const out = await runCommand(['create-version']);
-      return expect(out.stdout).to.contain('Created version');
-    });
-
-    it('should use provided description', async function () {
-      mockCreateVersion({
+      mockEntryPoints({
         scriptId: 'mock-script-id',
-        description: 'test',
-        version: 1,
+        deploymentId: 'mock-deployment-id',
       });
-      const out = await runCommand(['create-version', 'test']);
-      return expect(out.stdout).to.contain('Created version');
-    });
-
-    it('should create version as json', async function () {
-      mockCreateVersion({
-        scriptId: 'mock-script-id',
-        description: 'test',
-        version: 1,
-      });
-      const out = await runCommand(['create-version', 'test', '--json']);
-      const json = JSON.parse(out.stdout);
-      expect(json.versionNumber).to.equal(1);
+      const out = await runCommand(['open-web-app', 'mock-deployment-id', '--json']);
+      expect(out.stdout).to.contain('https://script.google.com/macros/s/mock-deployment-id/exec');
     });
   });
 });

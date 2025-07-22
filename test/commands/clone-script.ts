@@ -140,6 +140,17 @@ describe('Clone script command', function () {
       await runCommand(['clone', 'mock-script-id']);
       expect('.clasp.json').to.not.be.a.realFile; // Verifies that the config file was not created.
     });
+
+    it('should clone a project as json', async function () {
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['clone', 'mock-script-id', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json.scriptId).to.equal('mock-script-id');
+      expect(json.files).to.be.an('array');
+      expect(json.files.length).to.equal(2);
+    });
   });
 
   // Test suite for scenarios where a .clasp.json file already exists in the directory,

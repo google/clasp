@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This file contains tests for the 'create-version' command.
+// This file contains tests for the 'show-file-status' command.
 
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
-import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
-import sinon from 'sinon';
 import {useChaiExtensions} from '../helpers.js';
-import {forceInteractiveMode, mockCreateVersion, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
+import {mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 useChaiExtensions();
@@ -31,7 +29,7 @@ useChaiExtensions();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-describe('Create version command', function () {
+describe('Show file status command', function () {
   beforeEach(function () {
     setupMocks();
     mockOAuthRefreshRequest();
@@ -44,6 +42,8 @@ describe('Create version command', function () {
   describe('With project, authenticated', function () {
     beforeEach(function () {
       mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
@@ -51,37 +51,14 @@ describe('Create version command', function () {
       });
     });
 
-    it('should create version and prompt for description when not set', async function () {
-      mockCreateVersion({
-        scriptId: 'mock-script-id',
-        description: 'test version',
-        version: 1,
-      });
-      forceInteractiveMode(true);
-      sinon.stub(inquirer, 'prompt').resolves({description: 'test version'});
-      const out = await runCommand(['create-version']);
-      return expect(out.stdout).to.contain('Created version');
-    });
-
-    it('should use provided description', async function () {
-      mockCreateVersion({
-        scriptId: 'mock-script-id',
-        description: 'test',
-        version: 1,
-      });
-      const out = await runCommand(['create-version', 'test']);
-      return expect(out.stdout).to.contain('Created version');
-    });
-
-    it('should create version as json', async function () {
-      mockCreateVersion({
-        scriptId: 'mock-script-id',
-        description: 'test',
-        version: 1,
-      });
-      const out = await runCommand(['create-version', 'test', '--json']);
+    it('should show the file status as json', async function () {
+      const out = await runCommand(['show-file-status', '--json']);
       const json = JSON.parse(out.stdout);
-      expect(json.versionNumber).to.equal(1);
+      expect(json.filesToPush).to.be.an('array');
+      expect(json.filesToPush.length).to.equal(2);
+      expect(json.untrackedFiles).to.be.an('array');
+      expect(json.untrackedFiles.length).to.equal(1);
+      expect(json.untrackedFiles[0]).to.equal('.clasp.json');
     });
   });
 });

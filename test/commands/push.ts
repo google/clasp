@@ -161,6 +161,26 @@ describe('Push command', function () {
       expect(out.stdout).to.contain('Skipping push');
       expect(out.stdout).to.not.contain('Pushed 2 files');
     });
+
+    it('should push files as json', async function () {
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+        files: [
+          {
+            name: 'appsscript',
+            type: 'JSON',
+            source: fs.readFileSync('appsscript.json', 'utf8').toString(),
+          },
+        ],
+      });
+      mockScriptPush({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['push', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json).to.be.an('array');
+      expect(json.length).to.equal(2);
+    });
   });
 
   describe('Without project, authenticated', function () {

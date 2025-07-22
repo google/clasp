@@ -92,5 +92,17 @@ describe('Delete deployment command', function () {
       const out = await runCommand(['delete-deployment', '--all']);
       return expect(out.stdout).to.contain('Deleted all');
     });
+
+    it('should delete a deployment as json', async function () {
+      mockDeleteDeployment({
+        scriptId: 'mock-script-id',
+        deploymentId: 'mock-deployment-id',
+      });
+      const out = await runCommand(['delete-deployment', 'mock-deployment-id', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json.deletedDeploymentIds).to.be.an('array');
+      expect(json.deletedDeploymentIds.length).to.equal(1);
+      expect(json.deletedDeploymentIds[0]).to.equal('mock-deployment-id');
+    });
   });
 });
