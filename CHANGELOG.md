@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0-alpha](https://github.com/google/clasp/compare/v3.0.6-alpha...v3.1.0-alpha) (2025-07-22)
+
+
+### Features
+
+* Add code coverage reporting using c8 ([#1069](https://github.com/google/clasp/issues/1069)) ([d85d61d](https://github.com/google/clasp/commit/d85d61d212d955ab13be321f9cda69cd571ec139))
+
 ## [3.0.6-alpha](https://github.com/google/clasp/compare/v3.0.5-alpha...v3.0.6-alpha) (2025-05-30)
 
 
