@@ -110,6 +110,31 @@ export class Project {
   }
 
   /**
+   * Moves the specified Google Drive file to the trash.
+   * @param {string} fileId - The Google Drive file ID to move to trash.
+   * @returns {Promise<void>} A promise that resolves when the file is successfully trashed.
+   */
+  async trashScript(fileId: string): Promise<void> {
+    debug('Deleting script %s', fileId);
+    assertAuthenticated(this.options);
+
+    const credentials = this.options.credentials;
+    const drive = google.drive({version: 'v3', auth: credentials});
+    try {
+      const requestOptions = {
+        fileId,
+        requestBody: {
+          trashed: true,
+        },
+      };
+      debug('Trashing script with request %O', requestOptions);
+      await drive.files.update(requestOptions);
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
+
+  /**
    * Creates a new Google Drive file (e.g., Sheet, Doc) and a bound Apps Script project for it.
    * @param {string} name - The title for the new Drive file and script project.
    * @param {string} mimeType - The MIME type of the Drive file to create (e.g., 'application/vnd.google-apps.spreadsheet').

@@ -24,6 +24,7 @@ import {command as createDeploymentCommand} from './create-deployment.js';
 import {command as createCommand} from './create-script.js';
 import {command as createVersionCommand} from './create-version.js';
 import {command as deleteDeploymentCOmand} from './delete-deployment.js';
+import {command as deleteCommand} from './delete.js';
 import {command as disableApiCommand} from './disable-api.js';
 import {command as enableApiCommand} from './enable-api.js';
 import {command as listApisCommand} from './list-apis.js';
@@ -150,6 +151,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     pushCommand,
     pullCommand,
     createDeploymentCommand,
+    deleteCommand,
     deleteDeploymentCOmand,
     listDeploymentsCommand,
     updateDeploymentCommand,
