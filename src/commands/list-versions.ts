@@ -27,21 +27,18 @@ export const command = new Command('list-versions')
   .alias('versions')
   .description('List versions of a script')
   .argument('[scriptId]', 'Apps Script ID to list deployments for')
-  .option('--json', 'Show list in JSON form')
-  .action(async function (
-    this: Command,
-    scriptId?: string,
-    opts?: { json: boolean }
-  ): Promise<void> {
+  .action(async function (this: Command, scriptId?: string): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
     const clasp: Clasp = options.clasp;
-    // const clasp: Clasp = this.opts().clasp;
-
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching versions...',
     });
     const versions = await withSpinner(spinnerMsg, () => {
-      return clasp.project.listVersions(scriptId);
+      // If a scriptId is provided, set it on the clasp instance.
+      if (scriptId) {
+        clasp.withScriptId(scriptId);
+      }
+      return clasp.project.listVersions();
     });
 
     if (options.json) {

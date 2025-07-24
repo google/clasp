@@ -26,21 +26,19 @@ export const command = new Command('list-deployments')
   .alias('deployments')
   .description('List deployment ids of a script')
   .argument('[scriptId]', 'Apps Script ID to list deployments for')
-  .option('--json', 'Show list in JSON form')
-  .action(async function (
-    this: Command,
-    scriptId?: string,
-    opts?: { json: boolean }
-  ): Promise<void> {
+  .action(async function (this: Command, scriptId?: string): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
     const clasp: Clasp = options.clasp;
-    // const clasp: Clasp = this.opts().clasp;
 
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching deployments...',
     });
     const deployments = await withSpinner(spinnerMsg, () => {
-      return clasp.project.listDeployments(scriptId);
+      // If a scriptId is provided, set it on the clasp instance.
+      if (scriptId) {
+        clasp.withScriptId(scriptId);
+      }
+      return clasp.project.listDeployments();
     });
 
     if (options.json) {

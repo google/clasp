@@ -313,6 +313,7 @@ a `.claspignore` file, set this option to true.
 - `--project <file>`: Reads project settings from a file other than `.clasp.json`. Intended to support multiple deployment targets.
 - `--auth <file>`: (**DEPRECATED**) Reads credentials from a file other than `.clasprc.json`. Use the `--user` option to maintain multiple authorized accounts.
 - `--ignore <file>`: Reads ignore patterns from a file other than `.claspignore`.
+- `--json`: Show output in JSON format.
 
 ### Login
 
