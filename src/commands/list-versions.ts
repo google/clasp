@@ -26,14 +26,18 @@ interface CommandOptions extends GlobalOptions {}
 export const command = new Command('list-versions')
   .alias('versions')
   .description('List versions of a script')
-  .action(async function (this: Command): Promise<void> {
+  .argument('[scriptId]', 'Apps Script ID to list deployments for')
+  .action(async function (this: Command, scriptId?: string): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
     const clasp: Clasp = options.clasp;
-
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching versions...',
     });
-    const versions = await withSpinner(spinnerMsg, async () => {
+    const versions = await withSpinner(spinnerMsg, () => {
+      // If a scriptId is provided, set it on the clasp instance.
+      if (scriptId) {
+        clasp.withScriptId(scriptId);
+      }
       return clasp.project.listVersions();
     });
 
@@ -64,16 +68,21 @@ export const command = new Command('list-versions')
     console.log(successMessage);
 
     versions.results.reverse();
-    versions.results.forEach(version => {
-      const msg = intl.formatMessage(
-        {
-          defaultMessage: '{version, number} - {description, select, undefined {No description} other {{description}}}',
-        },
-        {
-          version: version.versionNumber,
-          description: version.description,
-        },
-      );
-      console.log(msg);
-    });
+    if (options?.json) {
+      console.log(JSON.stringify(versions, null, 2));
+    } else {
+      versions.results.forEach(version => {
+        const msg = intl.formatMessage(
+          {
+            defaultMessage:
+              '{version, number} - {description, select, undefined {No description} other {{description}}}',
+          },
+          {
+            version: version.versionNumber,
+            description: version.description,
+          },
+        );
+        console.log(msg);
+      });
+    }
   });
