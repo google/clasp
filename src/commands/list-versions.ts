@@ -30,16 +30,13 @@ export const command = new Command('list-versions')
   .action(async function (this: Command, scriptId?: string): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
     const clasp: Clasp = options.clasp;
+    if (scriptId) {
+      clasp.withScriptId(scriptId);
+    }
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching versions...',
     });
-    const versions = await withSpinner(spinnerMsg, () => {
-      // If a scriptId is provided, set it on the clasp instance.
-      if (scriptId) {
-        clasp.withScriptId(scriptId);
-      }
-      return clasp.project.listVersions();
-    });
+    const versions = await withSpinner(spinnerMsg, () => clasp.project.listVersions());
 
     if (options.json) {
       const versionOutput = versions.results.map(version => ({
@@ -50,11 +47,12 @@ export const command = new Command('list-versions')
       return;
     }
 
-    if (versions.results.length === 0) {
+    if (!versions.results?.length) {
       const msg = intl.formatMessage({
         defaultMessage: 'No deployed versions of script.',
       });
-      this.error(msg);
+      console.log(msg);
+      return;
     }
 
     const successMessage = intl.formatMessage(
@@ -68,21 +66,16 @@ export const command = new Command('list-versions')
     console.log(successMessage);
 
     versions.results.reverse();
-    if (options?.json) {
-      console.log(JSON.stringify(versions, null, 2));
-    } else {
-      versions.results.forEach(version => {
-        const msg = intl.formatMessage(
-          {
-            defaultMessage:
-              '{version, number} - {description, select, undefined {No description} other {{description}}}',
-          },
-          {
-            version: version.versionNumber,
-            description: version.description,
-          },
-        );
-        console.log(msg);
-      });
-    }
+    versions.results.forEach(version => {
+      const msg = intl.formatMessage(
+        {
+          defaultMessage: '{version, number} - {description, select, undefined {No description} other {{description}}}',
+        },
+        {
+          version: version.versionNumber,
+          description: version.description,
+        },
+      );
+      console.log(msg);
+    });
   });

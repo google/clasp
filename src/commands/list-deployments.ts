@@ -29,18 +29,13 @@ export const command = new Command('list-deployments')
   .action(async function (this: Command, scriptId?: string): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
     const clasp: Clasp = options.clasp;
-
+    if (scriptId) {
+      clasp.withScriptId(scriptId);
+    }
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching deployments...',
     });
-    const deployments = await withSpinner(spinnerMsg, () => {
-      // If a scriptId is provided, set it on the clasp instance.
-      if (scriptId) {
-        clasp.withScriptId(scriptId);
-      }
-      return clasp.project.listDeployments();
-    });
-
+    const deployments = await withSpinner(spinnerMsg, () => clasp.project.listDeployments());
     if (options.json) {
       const deploymentOutput = deployments.results.map(deployment => ({
         deploymentId: deployment.deploymentId,
@@ -50,7 +45,6 @@ export const command = new Command('list-deployments')
       console.log(JSON.stringify(deploymentOutput, null, 2));
       return;
     }
-
     if (!deployments.results.length) {
       const msg = intl.formatMessage({
         defaultMessage: 'No deployments.',
@@ -67,16 +61,11 @@ export const command = new Command('list-deployments')
       },
     );
     console.log(successMessage);
-    if (options?.json) {
-      console.log(JSON.stringify(deployments, null, 2));
-      return;
-    } else {
-      deployments.results
-        .filter(d => d.deploymentConfig && d.deploymentId)
-        .forEach(d => {
-          const versionString = d.deploymentConfig?.versionNumber ? `@${d.deploymentConfig.versionNumber}` : '@HEAD';
-          const description = d.deploymentConfig?.description ? `- ${d.deploymentConfig.description}` : '';
-          console.log(`- ${d.deploymentId} ${versionString} ${description}`);
-        });
-    }
+    deployments.results
+      .filter(d => d.deploymentConfig && d.deploymentId)
+      .forEach(d => {
+        const versionString = d.deploymentConfig?.versionNumber ? `@${d.deploymentConfig.versionNumber}` : '@HEAD';
+        const description = d.deploymentConfig?.description ? `- ${d.deploymentConfig.description}` : '';
+        console.log(`- ${d.deploymentId} ${versionString} ${description}`);
+      });
   });

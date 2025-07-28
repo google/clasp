@@ -461,16 +461,10 @@ Clasp offers several commands to opens the current directory's `clasp` project a
 
 List deployments of a script.
 
-#### Options
-
-- `--json`: Output list in json format.
-
 #### Examples
 
 - `clasp list-deployments`: List all deployments for the current project
-- `clasp list-deployments --json`: List all deployments for the current project and output in json
 - `clasp list-deployments [scriptId]`: List all deployments for a script ID
-- `clasp list-deployments [scriptId] --json`: List all deployments for a script ID and output in json
 
 ### Deploy
 
@@ -541,14 +535,10 @@ List versions of a script.
 
 #### Options
 
-- `--json`: Output list in json format.
-
 #### Examples
 
 - `clasp list-versions`: List all versions for the current project
-- `clasp list-versions --json`: List all versions for the current project and output in json
 - `clasp list-versions [scriptId]`: List all versions for a script ID
-- `clasp list-versions [scriptId] --json`: List all versions for a script ID and output in json
 
 ### List
 
