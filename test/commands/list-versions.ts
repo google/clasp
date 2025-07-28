@@ -21,7 +21,7 @@ import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import {useChaiExtensions} from '../helpers.js';
-import {mockListVersions, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
+import {mockListVersions, mockListVersionsEmpty, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 useChaiExtensions();
@@ -53,6 +53,19 @@ describe('List versions command', function () {
       mockListVersions({scriptId: 'mock-script-id'});
       const out = await runCommand(['list-versions']);
       return expect(out.stdout).to.contain('Test version 1');
+    });
+
+    it('should list scripts with argument', async function () {
+      mockListVersions({scriptId: 'mock-script-id-arg'});
+      const out = await runCommand(['list-versions', 'mock-script-id-arg']);
+      return expect(out.stdout).to.contain('Test version 1');
+    });
+
+    it('should output a message when versions results are empty', async function () {
+      mockListVersionsEmpty({scriptId: 'mock-script-id'});
+      const out = await runCommand(['list-versions']);
+      console.log(out);
+      return expect(out.stdout).to.contain('No deployed versions of script.');
     });
 
     it('should list versions as json', async function () {

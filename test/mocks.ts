@@ -184,6 +184,18 @@ export function mockListVersions({scriptId = 'mock-script-id'}: {scriptId?: stri
 }
 
 /**
+ * Mocks a successful listing of script versions from the Google Apps Script API.
+ * Returns a predefined list of two versions for the given script ID.
+ * @param {object} options - Options for the mock.
+ * @param {string} [options.scriptId='mock-script-id'] - The script ID for which to mock versions.
+ */
+export function mockListVersionsEmpty({scriptId = 'mock-script-id'}: {scriptId?: string}) {
+  nock('https://script.googleapis.com').get(`/v1/projects/${scriptId}/versions`).query(true).reply(200, {
+    versions: [],
+  });
+}
+
+/**
  * Mocks a successful script creation call to the Google Apps Script API.
  * @param {object} options - Options for the mock.
  * @param {string} [options.scriptId='mock-script-id'] - The script ID to be returned.
@@ -419,6 +431,18 @@ export function mockListDeployments({scriptId = 'mock-script-id'}: {scriptId?: s
         },
       ],
     });
+}
+
+/**
+ * Mocks a successful listing of script deployments from the Google Apps Script API.
+ * Returns a predefined list of deployments for the given script ID.
+ * @param {object} options - Options for the mock.
+ * @param {string} [options.scriptId='mock-script-id'] - The script ID for which to list deployments.
+ */
+export function mockListDeploymentsEmpty({scriptId = 'mock-script-id'}: {scriptId?: string}) {
+  nock('https://script.googleapis.com').get(`/v1/projects/${scriptId}/deployments`).query(true).reply(200, {
+    deployments: [],
+  });
 }
 
 /**

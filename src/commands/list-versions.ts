@@ -26,16 +26,17 @@ interface CommandOptions extends GlobalOptions {}
 export const command = new Command('list-versions')
   .alias('versions')
   .description('List versions of a script')
-  .action(async function (this: Command): Promise<void> {
+  .argument('[scriptId]', 'Apps Script ID to list deployments for')
+  .action(async function (this: Command, scriptId?: string): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
     const clasp: Clasp = options.clasp;
-
+    if (scriptId) {
+      clasp.withScriptId(scriptId);
+    }
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Fetching versions...',
     });
-    const versions = await withSpinner(spinnerMsg, async () => {
-      return clasp.project.listVersions();
-    });
+    const versions = await withSpinner(spinnerMsg, () => clasp.project.listVersions());
 
     if (options.json) {
       const versionOutput = versions.results.map(version => ({
@@ -46,11 +47,12 @@ export const command = new Command('list-versions')
       return;
     }
 
-    if (versions.results.length === 0) {
+    if (!versions.results?.length) {
       const msg = intl.formatMessage({
         defaultMessage: 'No deployed versions of script.',
       });
-      this.error(msg);
+      console.log(msg);
+      return;
     }
 
     const successMessage = intl.formatMessage(
