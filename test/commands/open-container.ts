@@ -47,7 +47,7 @@ describe('Open container command', function () {
           path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
         ),
       });
-    });;
+    });
 
     it('should open the container as json', async function () {
       const out = await runCommand(['open-container', '--json']);

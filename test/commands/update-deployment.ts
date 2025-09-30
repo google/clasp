@@ -21,12 +21,7 @@ import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import {useChaiExtensions} from '../helpers.js';
-import {
-  mockOAuthRefreshRequest,
-  mockUpdateDeployment,
-  resetMocks,
-  setupMocks,
-} from '../mocks.js';
+import {mockOAuthRefreshRequest, mockUpdateDeployment, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 useChaiExtensions();
