@@ -34,7 +34,7 @@ To use `clasp run`, you need to complete 5 steps:
 1. Set the `projectId` to your Apps Script project
     - Open `https://console.developers.google.com/apis/credentials/consent?project=[PROJECT_ID]`
     - Set `Application name` to `clasp project` and click `save`.
-    - Run `clasp open`
+    - Run `clasp open-script`
     - In the menu, click `⚙️ Project Settings > Google Cloud Platform (GCP) Project`
     - If the `Project Number` is missing,
       - Click `Change Project`, paste the PROJECT_NUMBER, and click `Set project`
