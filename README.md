@@ -313,6 +313,7 @@ a `.claspignore` file, set this option to true.
 - `--project <file>`: Reads project settings from a file other than `.clasp.json`. Intended to support multiple deployment targets.
 - `--auth <file>`: (**DEPRECATED**) Reads credentials from a file other than `.clasprc.json`. Use the `--user` option to maintain multiple authorized accounts.
 - `--ignore <file>`: Reads ignore patterns from a file other than `.claspignore`.
+- `--json`: Show output in JSON format.
 
 ### Login
 
@@ -462,7 +463,8 @@ List deployments of a script.
 
 #### Examples
 
-- `clasp list-deployments`
+- `clasp list-deployments`: List all deployments for the current project
+- `clasp list-deployments [scriptId]`: List all deployments for a script ID
 
 ### Deploy
 
@@ -531,9 +533,12 @@ Creates an immutable version of the script.
 
 List versions of a script.
 
+#### Options
+
 #### Examples
 
-- `clasp list-versions`
+- `clasp list-versions`: List all versions for the current project
+- `clasp list-versions [scriptId]`: List all versions for a script ID
 
 ### List
 

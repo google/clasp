@@ -21,7 +21,13 @@ import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import {useChaiExtensions} from '../helpers.js';
-import {mockListDeployments, mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
+import {
+  mockListDeployments,
+  mockListDeploymentsEmpty,
+  mockOAuthRefreshRequest,
+  resetMocks,
+  setupMocks,
+} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 useChaiExtensions();
@@ -53,6 +59,18 @@ describe('List deployments command', function () {
       mockListDeployments({scriptId: 'mock-script-id'});
       const out = await runCommand(['list-deployments']);
       return expect(out.stdout).to.contain('mock-deployment-id');
+    });
+
+    it('should list deployments with a scriptId argument', async function () {
+      mockListDeployments({scriptId: 'mock-script-id-arg'});
+      const out = await runCommand(['list-deployments', 'mock-script-id-arg']);
+      return expect(out.stdout).to.contain('mock-deployment-id');
+    });
+
+    it('should output a message when deployments results are empty', async function () {
+      mockListDeploymentsEmpty({scriptId: 'mock-script-id'});
+      const out = await runCommand(['list-deployments']);
+      return expect(out.stdout).to.contain('No deployments');
     });
 
     it('should list deployments as json', async function () {

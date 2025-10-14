@@ -221,7 +221,6 @@ export class Project {
       handleApiError(error);
     }
   }
-
   /**
    * Lists all immutable versions of the Apps Script project.
    * @returns {Promise<{results: script_v1.Schema$Version[], partialResults: boolean} | undefined>}

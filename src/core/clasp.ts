@@ -107,7 +107,7 @@ export class Clasp {
    */
   withScriptId(scriptId: string) {
     if (this.options.project) {
-      throw new Error('Science project already set, create new instance instead');
+      debug('Project is already configured, overriding scriptId with %s', scriptId);
     }
 
     this.options.project = {
