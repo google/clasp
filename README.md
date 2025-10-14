@@ -78,6 +78,7 @@ clasp
 - [`clasp logout`](#logout)
 - [`clasp create-script [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
 - [`clasp clone-script <scriptId | scriptURL> [versionNumber] [--rootDir <dir>]`](#clone)
+- [`clasp delete [--force]`](#delete)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch] [--force]`](#push)
 - [`clasp show-file-status [--json]`](#status)
@@ -386,6 +387,19 @@ Clones the script project from script.google.com.
 - `clasp clone-script "15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC"`
 - `clasp clone-script "https://script.google.com/d/15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC/edit"`
 - `clasp clone-script "15ImUCpyi1Jsd8yF8Z6wey_7cw793CymWTLxOqwMka3P1CzE5hQun6qiC" --rootDir ./src`
+
+### Delete
+
+Interactively deletes a script or a project and the `.clasp.json` file. Prompt the user for confirmation if the --force option is not specified.
+
+#### Options
+
+- `-f` `--force`: Bypass any confirmation messages. It’s not a good idea to do this unless you want to run clasp from a script.
+
+#### Examples
+
+- `clasp delete`
+- `clasp delete -f`
 
 ### Pull
 

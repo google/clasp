@@ -392,6 +392,23 @@ export function mockDeleteDeployment({
 }
 
 /**
+ * Mocks the Google Drive API call to trash a script file.
+ * @param {object} options - Options for the mock.
+ * @param {string} [options.scriptId='mock-script-id'] - The script file ID to trash.
+ */
+export function mockTrashScript({scriptId = 'mock-script-id'}: {scriptId?: string} = {}) {
+  nock('https://www.googleapis.com')
+    .patch(`/drive/v3/files/${scriptId}`, body => {
+      expect(body).to.deep.equal({trashed: true});
+      return true;
+    })
+    .reply(200, {
+      id: scriptId,
+      trashed: true,
+    });
+}
+
+/**
  * Mocks a successful listing of script deployments from the Google Apps Script API.
  * Returns a predefined list of deployments for the given script ID.
  * @param {object} options - Options for the mock.
