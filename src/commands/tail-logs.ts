@@ -135,7 +135,8 @@ function formatEntry(entry: loggingV2.Schema$LogEntry, options: FormatOptions): 
     }
   }
 
-  const coloredSeverity = `${severityColor[severity!](severity) || severity!}`.padEnd(20);
+  const colorizer = severityColor[severity!];
+  const coloredSeverity = `${colorizer ? colorizer(severity!) : severity!}`.padEnd(20);
 
   functionName = functionName.padEnd(15);
   payloadData = payloadData.padEnd(20);
