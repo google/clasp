@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.1.0-alpha](https://github.com/google/clasp/compare/v3.0.6-alpha...v3.1.0-alpha) (2025-10-14)
+
+
+### Features
+
+* Add code coverage reporting using c8 ([#1069](https://github.com/google/clasp/issues/1069)) ([d85d61d](https://github.com/google/clasp/commit/d85d61d212d955ab13be321f9cda69cd571ec139))
+
+
+### Bug Fixes
+
+* handle unknown severity levels in logs ([#1081](https://github.com/google/clasp/issues/1081)) ([79fb283](https://github.com/google/clasp/commit/79fb28365c11810e9e4bf5d56d12f2ffee2335b8))
+
 ## [3.0.6-alpha](https://github.com/google/clasp/compare/v3.0.5-alpha...v3.0.6-alpha) (2025-05-30)
 
 
