@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.1.0](https://github.com/google/clasp/compare/v3.0.6-alpha...v3.1.0-alpha) (2025-10-15)
+## [3.1.0](https://github.com/google/clasp/compare/v3.0.6-alpha...v3.1.0) (2025-10-15)
 
 
 ### Features
