@@ -1,16 +1,18 @@
 # Changelog
 
-## [3.1.0-alpha](https://github.com/google/clasp/compare/v3.0.6-alpha...v3.1.0-alpha) (2025-10-15)
+## [3.1.0](https://github.com/google/clasp/compare/v3.0.6-alpha...v3.1.0-alpha) (2025-10-15)
 
 
 ### Features
 
-* Add code coverage reporting using c8 ([#1069](https://github.com/google/clasp/issues/1069)) ([d85d61d](https://github.com/google/clasp/commit/d85d61d212d955ab13be321f9cda69cd571ec139))
-
+* Add `delete` command ([#1050](https://github.com/google/clasp/pull/1059) ([3173db0](https://github.com/google/clasp/commit/3173db037fc0bc4c381a36b914ad7c2ae4877fee))
+* Add script id option to list commands ([#1060)(https://github.com/google/clasp/pull/1066) ([4579421](https://github.com/google/clasp/commit/45794213d5bc735571cb89141b481d0ec4262838))
+* Make --json flag global ([#1074](https://github.com/google/clasp/pull/1074) ([a415260](https://github.com/google/clasp/commit/a41526095234a91a8ded7f4095882afca02ae4b3))
 
 ### Bug Fixes
 
 * handle unknown severity levels in logs ([#1081](https://github.com/google/clasp/issues/1081)) ([79fb283](https://github.com/google/clasp/commit/79fb28365c11810e9e4bf5d56d12f2ffee2335b8))
+* Assorted documentation fixes
 
 ## [3.0.6-alpha](https://github.com/google/clasp/compare/v3.0.5-alpha...v3.0.6-alpha) (2025-05-30)
 
