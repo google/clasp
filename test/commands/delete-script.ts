@@ -39,7 +39,7 @@ describe('Delete script command', function () {
       mockTrashScript({
         scriptId: 'mock-script-id',
       });
-      const out = await runCommand(['delete', '-f']);
+      const out = await runCommand(['delete-script', '-f']);
       expect(out.stdout).to.contain('Deleted script mock-script-id');
     });
 
@@ -48,14 +48,14 @@ describe('Delete script command', function () {
         scriptId: 'mock-script-id',
       });
       sinon.stub(inquirer, 'prompt').resolves({answer: false});
-      const out = await runCommand(['delete']);
+      const out = await runCommand(['delete-script']);
       expect(out.stdout).to.not.contain('Deleted script');
     });
 
     it('should delete the script if user confirms', async function () {
       mockTrashScript({scriptId: 'mock-script-id'});
       sinon.stub(inquirer, 'prompt').resolves({answer: true});
-      const out = await runCommand(['delete']);
+      const out = await runCommand(['delete-script']);
       expect(out.stdout).to.contain('Deleted script mock-script-id');
     });
   });

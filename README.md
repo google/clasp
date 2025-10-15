@@ -78,7 +78,7 @@ clasp
 - [`clasp logout`](#logout)
 - [`clasp create-script [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
 - [`clasp clone-script <scriptId | scriptURL> [versionNumber] [--rootDir <dir>]`](#clone)
-- [`clasp delete [--force]`](#delete)
+- [`clasp delete-script [--force]`](#delete)
 - [`clasp pull [--versionNumber]`](#pull)
 - [`clasp push [--watch] [--force]`](#push)
 - [`clasp show-file-status [--json]`](#status)
@@ -398,8 +398,8 @@ Interactively deletes a script or a project and the `.clasp.json` file. Prompt t
 
 #### Examples
 
-- `clasp delete`
-- `clasp delete -f`
+- `clasp delete-script`
+- `clasp delete-script -f`
 
 ### Pull
 

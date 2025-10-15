@@ -26,6 +26,7 @@ describe('Consistency between imported and registered commands', () => {
     'create-deployment',
     'create-script',
     'create-version',
+    'delete-script',
     'delete-deployment',
     'disable-api',
     'enable-api',
