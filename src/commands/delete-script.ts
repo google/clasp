@@ -31,7 +31,8 @@ export const command = new Command('delete-script')
     }
 
     //ask confirmation
-    if (!options.force && isInteractive()) {
+    let confirmed = options.force || false;
+    if (!confirmed && isInteractive()) {
       const promptDeleteDriveFiles = intl.formatMessage({
         defaultMessage: 'Are you sure you want to delete the script?',
       });
@@ -43,9 +44,11 @@ export const command = new Command('delete-script')
           type: 'confirm',
         },
       ]);
-      if (!answerDeleteDriveFiles.answer) {
-        return;
-      }
+      confirmed = answerDeleteDriveFiles.answer;
+    }
+
+    if (!confirmed) {
+      return;
     }
 
     const spinnerMsg = intl.formatMessage({
