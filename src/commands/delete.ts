@@ -2,25 +2,28 @@ import {Command} from 'commander';
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
-import {isInteractive, withSpinner} from './utils.js';
+import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
 
-interface CommandOption {
+interface CommandOptions extends GlobalOptions {
   readonly force?: boolean;
 }
 
-export const command = new Command('delete')
+export const command = new Command('delete-script')
+  .alias('delete')
   .description('Delete a project')
+  .argument('[scriptId]', 'Apps Script ID to list deployments for')
   .option(
     '-f, --force',
-    'Bypass any confirmation messages. It’s not a good idea to do this unless you want to run clasp from a script.',
+    'Bypass any confirmation messages. It\'s not a good idea to do this unless you want to run clasp from a script.',
   )
-  .action(async function (this: Command, options: CommandOption) {
-    const {force} = options;
+  .action(async function (this: Command, scriptId?: string) {
+    const options: CommandOptions = this.optsWithGlobals();
+    const clasp: Clasp = options.clasp;
+    if (scriptId) {
+      clasp.withScriptId(scriptId);
+    }
 
-    const clasp: Clasp = this.opts().clasp;
-
-    const scriptId = clasp.project.scriptId;
-    if (!scriptId) {
+    if (!clasp.project.scriptId) {
       const msg = intl.formatMessage({
         defaultMessage: 'Script ID not set, unable to delete the script.',
       });
@@ -28,7 +31,7 @@ export const command = new Command('delete')
     }
 
     //ask confirmation
-    if (!force && isInteractive()) {
+    if (!options.force && isInteractive()) {
       const promptDeleteDriveFiles = intl.formatMessage({
         defaultMessage: 'Are you sure you want to delete the script?',
       });
@@ -48,13 +51,13 @@ export const command = new Command('delete')
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Deleting your scripts...',
     });
-    await withSpinner(spinnerMsg, async () => await clasp.project.trashScript(scriptId));
+    await withSpinner(spinnerMsg, async () => await clasp.project.trashScript());
 
     const successMessage = intl.formatMessage(
       {
         defaultMessage: 'Deleted script {scriptId}',
       },
-      {scriptId},
+      {scriptId: clasp.project.scriptId},
     );
     console.log(successMessage);
   });
