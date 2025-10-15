@@ -14,7 +14,7 @@ export const command = new Command('delete-script')
   .argument('[scriptId]', 'Apps Script ID to list deployments for')
   .option(
     '-f, --force',
-    'Bypass any confirmation messages. It\'s not a good idea to do this unless you want to run clasp from a script.',
+    "Bypass any confirmation messages. It's not a good idea to do this unless you want to run clasp from a script.",
   )
   .action(async function (this: Command, scriptId?: string) {
     const options: CommandOptions = this.optsWithGlobals();

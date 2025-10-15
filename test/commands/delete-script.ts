@@ -7,7 +7,7 @@ import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
 import {useChaiExtensions} from '../helpers.js';
-import {mockOAuthRefreshRequest, mockTrashScript, resetMocks, setupMocks} from '../mocks.js';
+import {forceInteractiveMode, mockOAuthRefreshRequest, mockTrashScript, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
 
 useChaiExtensions();
@@ -39,6 +39,7 @@ describe('Delete script command', function () {
       mockTrashScript({
         scriptId: 'mock-script-id',
       });
+      forceInteractiveMode(true);
       const out = await runCommand(['delete-script', '-f']);
       expect(out.stdout).to.contain('Deleted script mock-script-id');
     });
@@ -47,6 +48,7 @@ describe('Delete script command', function () {
       mockTrashScript({
         scriptId: 'mock-script-id',
       });
+      forceInteractiveMode(true);
       sinon.stub(inquirer, 'prompt').resolves({answer: false});
       const out = await runCommand(['delete-script']);
       expect(out.stdout).to.not.contain('Deleted script');
@@ -54,6 +56,7 @@ describe('Delete script command', function () {
 
     it('should delete the script if user confirms', async function () {
       mockTrashScript({scriptId: 'mock-script-id'});
+      forceInteractiveMode(true);
       sinon.stub(inquirer, 'prompt').resolves({answer: true});
       const out = await runCommand(['delete-script']);
       expect(out.stdout).to.contain('Deleted script mock-script-id');
