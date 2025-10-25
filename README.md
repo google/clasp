@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/google-clasp-badge.png)](https://mseep.ai/app/google-clasp)
+
 # Clasp
 
 Note: This is not an officially support Google product.
