@@ -67,7 +67,7 @@ After setup, you can remotely execute Apps Script functions from `clasp`:
 
 If you get an "Script API executable not published/deployed." error, deploy your script as an API Executable:
 
-- Run `clasp open`
+- Run `clasp open-script`
 - Click `Deploy > New deployment`
 - Select type ⚙ > API Executable
 - Type a `Description`
@@ -79,7 +79,7 @@ Many Apps Script functions require special OAuth Scopes (Gmail, Drive, etc.).
 
 To run functions that use these scopes, you must add the scopes to your Apps Script manifest and `clasp login` again.
 
-- `clasp open`
+- `clasp open-script`
 - `File > Project Properties > Scopes`
 - Add these [scopes to your `appsscript.json`](https://developers.google.com/apps-script/concepts/scopes#set-explicit).
 - Log in again: `clasp login --user <name> --use-project-scopes --creds creds.json`. This will add these scopes to your credentials.
