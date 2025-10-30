@@ -1,0 +1,14 @@
+{
+	"name": "clasp",
+	"version": "latest",
+	"mcpServers": {
+        "clasp": {
+        "command": "clasp",
+        "args": ["mcp"],
+        "env": {},
+        "cwd": "./",
+        "timeout": 30000,
+        "trust": true
+        }
+  }
+}
