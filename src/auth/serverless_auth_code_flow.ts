@@ -53,19 +53,24 @@ export class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
    * @throws {Error} If the pasted URL contains an error or no code.
    */
   async promptAndReturnCode(authorizationUrl: string) {
-    const prompt = intl.formatMessage(
+    const urlMessage = intl.formatMessage(
       {
-        defaultMessage: `Authorize clasp by visiting the following URL on another device:\n
-     \t{url}\n\nAfter authorization, copy the URL in the browser.\n
-     Enter the URL from your browser after completing authorization`,
+        defaultMessage: '🔑 Authorize clasp by visiting this url:\n{url}\n',
       },
       {
         url: authorizationUrl,
       },
     );
+    console.log(urlMessage);
+
+    const promptMessage = intl.formatMessage({
+      defaultMessage:
+        'After authorizing, copy the URL from your browser and paste it here:',
+    });
+
     const answer = await inquirer.prompt([
       {
-        message: prompt,
+        message: promptMessage,
         name: 'url',
         type: 'input',
       },
