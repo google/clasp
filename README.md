@@ -66,6 +66,16 @@ Then enable the Google Apps Script API: https://script.google.com/home/usersetti
 
 ![Enable Apps Script API](https://user-images.githubusercontent.com/744973/54870967-a9135780-4d6a-11e9-991c-9f57a508bdf0.gif)
 
+### Installing as a Gemini CLI Extension
+
+You can install clasp as an Gemini CLI extensions using the following command:
+
+`gemini extensions install https://github.com/google/clasp`
+
+This makes clasp available as an MCP server in Gemini CLI. 
+
+Make sure to enable the Google Apps Script API (as explained above) and perform a `clasp login` (with your specific login parameters) before you use the extension.
+
 ## Commands
 
 The following command provide basic Apps Script project management.
