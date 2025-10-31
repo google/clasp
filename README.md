@@ -70,7 +70,9 @@ Then enable the Google Apps Script API: https://script.google.com/home/usersetti
 
 You can install clasp as an Gemini CLI extensions using the following command:
 
-`gemini extensions install https://github.com/google/clasp`
+```sh
+gemini extensions install https://github.com/google/clasp
+```
 
 This makes clasp available as an MCP server in Gemini CLI. 
 
