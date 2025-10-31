@@ -1,7 +1,8 @@
 {
-	"name": "clasp",
-	"version": "latest",
-	"mcpServers": {
+  "name": "clasp",
+  "description": "Manage Google Apps Script projects with command-line tools.",
+  "version": "latest",
+  "mcpServers": {
         "clasp": {
         "command": "clasp",
         "args": ["mcp"],
