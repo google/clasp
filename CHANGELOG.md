@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.1.1](https://github.com/google/clasp/compare/v3.1.0...v3.1.1) (2025-10-31)
+
+
+### Features
+
+* Add config file to make repo a Gemini CLI extension ([#1090](https://github.com/google/clasp/issues/1090)) ([3b4bb8a](https://github.com/google/clasp/commit/3b4bb8a0c861c514560ddc95c74e8b90b3a95435))
+
+
+### Bug Fixes
+
+* Separated URL from prompt message to help terminals better detect URL to make it clickable ([#1089](https://github.com/google/clasp/issues/1089)) ([9d59aa1](https://github.com/google/clasp/commit/9d59aa13eb9d143cac6d13de8e7f8c864f8a5c7e))
+* update Gemini CLI extension config file ([#1092](https://github.com/google/clasp/issues/1092)) ([62e0dac](https://github.com/google/clasp/commit/62e0dace07756c5154f88979797a00e9d84ae403))
+
 ## [3.1.0](https://github.com/google/clasp/compare/v3.0.6-alpha...v3.1.0) (2025-10-15)
 
 
