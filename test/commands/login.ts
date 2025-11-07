@@ -73,6 +73,22 @@ describe('Login command', function () {
       expect(result.exitCode).to.equal(0);
     });
 
+    it('Test validation of invalid lower bound', async function () {
+      const port = '-1';
+      const result: CommandResult = await runCommand(['login', '--redirect-port', port]);
+      expect(result.exitCode).to.equal(1);
+      expect(result.stdout).to.match(/code:.*commander.invalidArgument/);
+      expect(result.message).to.have.string(`'${port}' should be >= 0 and <= 65535`);
+    });
+
+    it('Test validation of invalid upper bound', async function () {
+      const port = '65536';
+      const result: CommandResult = await runCommand(['login', '--redirect-port', port]);
+      expect(result.exitCode).to.equal(1);
+      expect(result.stdout).to.match(/code:.*commander.invalidArgument/);
+      expect(result.message).to.have.string(`'${port}' should be >= 0 and <= 65535`);
+    });
+
     it('Test validation of missing parameter', async function () {
       const result: CommandResult = await runCommand(['login', '--redirect-port']);
       expect(result.exitCode).to.equal(1);
@@ -84,16 +100,16 @@ describe('Login command', function () {
       const port = '8080.5';
       const result: CommandResult = await runCommand(['login', '--redirect-port', port]);
       expect(result.exitCode).to.equal(1);
-      expect(result.stdout).to.match(/code:.*commander\.error/);
-      expect(result.message).to.have.string(`Port ${port} is not a valid integer`);
+      expect(result.stdout).to.match(/code:.*commander.invalidArgument/);
+      expect(result.message).to.have.string(`'${port}' is not a valid integer`);
     });
 
     it('Test validation of invalid string', async function () {
       const port = 'eight-thousand-eighty';
       const result: CommandResult = await runCommand(['login', '--redirect-port', port]);
       expect(result.exitCode).to.equal(1);
-      expect(result.stdout).to.match(/code:.*commander\.error/);
-      expect(result.message).to.have.string(`Port ${port} is not a valid integer`);
+      expect(result.stdout).to.match(/code:.*commander.invalidArgument/);
+      expect(result.message).to.have.string(`'${port}' is not a valid integer`);
     });
   });
 });

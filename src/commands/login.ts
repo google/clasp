@@ -23,6 +23,7 @@ import {AuthInfo, authorize, getUnauthorizedOuth2Client, getUserInfo} from '../a
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
 import {GlobalOptions} from './utils.js';
+import {validateOptionInt} from './validate.js';
 
 const DEFAULT_SCOPES = [
   // Default to clasp scopes
@@ -54,7 +55,9 @@ export const command = new Command('login')
     '--use-project-scopes',
     'Use the scopes from the current project manifest. Used only when authorizing access for the run command.',
   )
-  .option('--redirect-port <port>', 'Specify a custom port for the redirect URL.')
+  .option('--redirect-port <port>', 'Specify a custom port for the redirect URL.', val =>
+    validateOptionInt(val, 0, 65535),
+  )
   .action(async function (this: Command): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
     const auth: AuthInfo = options.authInfo;
@@ -78,20 +81,6 @@ export const command = new Command('login')
 
     const useLocalhost = Boolean(options.localhost);
 
-    // Validate the type to ensure an integer has been provided
-    // Missing arguments are handled internally by commanderjs
-    if (options.redirectPort && !Number.isInteger(Number(options.redirectPort))) {
-      const msg = intl.formatMessage(
-        {
-          defaultMessage:
-            'Error: Port {port} is not a valid integer. Please specify a different port with --redirect-port',
-        },
-        {
-          port: options.redirectPort,
-        },
-      );
-      this.error(msg);
-    }
     const redirectPort = options.redirectPort;
 
     const oauth2Client = getUnauthorizedOuth2Client(options.creds);
