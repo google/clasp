@@ -87,7 +87,7 @@ export const command = new Command('login')
             'Error: Port {port} is not a valid integer. Please specify a different port with --redirect-port',
         },
         {
-          port: options.redirectPort
+          port: options.redirectPort,
         },
       );
       this.error(msg);

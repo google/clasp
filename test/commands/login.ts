@@ -15,13 +15,13 @@
 // This file contains tests for the 'logout' command.
 import path from 'path';
 import {fileURLToPath} from 'url';
-import {describe, it} from 'mocha';
+import {expect} from 'chai';
+import esmock from 'esmock';
+import {after, before, describe, it} from 'mocha';
+import mockfs from 'mock-fs';
 import {useChaiExtensions} from '../helpers.js';
 import {resetMocks, setupMocks} from '../mocks.js';
-import mockfs from 'mock-fs';
-import esmock from 'esmock';
-import { expect } from 'chai';
-import type { CommandResult } from './utils.js';
+import type {CommandResult} from './utils.js';
 
 useChaiExtensions();
 
@@ -29,19 +29,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const genMockRunCommand = async (): Promise<(args: String[]) => Promise<CommandResult>> => {
-
   const mockedLoginModule = await esmock('../../src/commands/login.js', {
-      '../../src/auth/auth.js': { authorize: () => {} }
-    });
-  const mockedProgramModule = await esmock('../../src/commands/program.js', {
-    '../../src/commands/login.js': mockedLoginModule
-
+    '../../src/auth/auth.js': {authorize: () => {}},
   });
-  const { runCommand: mockedRunCommand } = await esmock('./utils.js', {
-    '../../src/commands/program.js': mockedProgramModule
+  const mockedProgramModule = await esmock('../../src/commands/program.js', {
+    '../../src/commands/login.js': mockedLoginModule,
+  });
+  const {runCommand: mockedRunCommand} = await esmock('./utils.js', {
+    '../../src/commands/program.js': mockedProgramModule,
   });
   return mockedRunCommand;
-}
+};
 
 let runCommand: (args: String[]) => Promise<CommandResult>;
 
@@ -50,9 +48,9 @@ describe('Login command', function () {
     setupMocks();
     // Load filesystem to enable esmock to resolve imports
     mockfs({
-      'src': mockfs.load(path.resolve(__dirname, '../../src')),
-      'test': mockfs.load(path.resolve(__dirname, '../')),
-      'node_modules': mockfs.load(path.resolve(__dirname, '../../node_modules'))
+      src: mockfs.load(path.resolve(__dirname, '../../src')),
+      test: mockfs.load(path.resolve(__dirname, '../')),
+      node_modules: mockfs.load(path.resolve(__dirname, '../../node_modules')),
     });
     runCommand = await genMockRunCommand();
   });
@@ -83,7 +81,7 @@ describe('Login command', function () {
     });
 
     it('Test validation of invalid float', async function () {
-      const port = '8080.5'
+      const port = '8080.5';
       const result: CommandResult = await runCommand(['login', '--redirect-port', port]);
       expect(result.exitCode).to.equal(1);
       expect(result.stdout).to.match(/code:.*commander\.error/);
