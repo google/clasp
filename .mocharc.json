@@ -5,7 +5,7 @@
   "require": [
     "source-map-support/register.js"
   ],
-  "import": "./ts-node.register.ts",
+  "import": "./ts-node.register.js",
   "watch-files": [
     "src",
     "test"
