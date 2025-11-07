@@ -5,7 +5,7 @@
   "require": [
     "source-map-support/register.js"
   ],
-  "loader": "ts-node/esm",
+  "import": "./ts-node.register.ts",
   "watch-files": [
     "src",
     "test"
