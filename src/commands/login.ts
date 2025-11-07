@@ -77,6 +77,21 @@ export const command = new Command('login')
     }
 
     const useLocalhost = Boolean(options.localhost);
+
+    // Validate the type to ensure an integer has been provided
+    // Missing arguments are handled internally by commanderjs
+    if (options.redirectPort && !Number.isInteger(Number(options.redirectPort))) {
+      const msg = intl.formatMessage(
+        {
+          defaultMessage:
+            'Error: Port {port} is not a valid integer. Please specify a different port with --redirect-port',
+        },
+        {
+          port: options.redirectPort
+        },
+      );
+      this.error(msg);
+    }
     const redirectPort = options.redirectPort;
 
     const oauth2Client = getUnauthorizedOuth2Client(options.creds);
