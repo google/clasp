@@ -187,7 +187,7 @@ export async function authorize(options: AuthorizationOptions) {
     flow = new ServerlessAuthorizationCodeFlow(options.oauth2Client);
   } else {
     debug('Starting auth with local server flow');
-    flow = new LocalServerAuthorizationCodeFlow(options.oauth2Client);
+    flow = new LocalServerAuthorizationCodeFlow(options.oauth2Client, options.redirectPort);
   }
 
   const client = await flow.authorize(options.scopes);
