@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0](https://github.com/google/clasp/compare/v3.1.1...v3.2.0) (2025-11-10)
+
+
+### Features
+
+* Update gemini-extension.json ([#1095](https://github.com/google/clasp/issues/1095)) ([142f14f](https://github.com/google/clasp/commit/142f14f52c7edc91bc8785cff23b00df81586aed))
+
 ## [3.1.1](https://github.com/google/clasp/compare/v3.1.0...v3.1.1) (2025-10-31)
 
 
