@@ -1,5 +1,5 @@
 {
-  "name": "clasp",
+  "name": "@google/clasp",
   "description": "Manage Google Apps Script projects with command-line tools.",
   "version": "1.0.0",
   "contextFileName": "gemini.md",
