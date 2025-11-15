@@ -35,8 +35,9 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
   protected server: Server | undefined;
   protected port = 0;
 
-  constructor(oauth2client: OAuth2Client) {
+  constructor(oauth2client: OAuth2Client, port?: number) {
     super(oauth2client);
+    this.port = port as number;
   }
 
   /**
