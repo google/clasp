@@ -1,15 +1,15 @@
 {
   "name": "clasp",
   "description": "Manage Google Apps Script projects with command-line tools.",
-  "version": "latest",
+  "version": "1.0.0",
+  "contextFileName": "gemini.md",
   "mcpServers": {
-        "clasp": {
-        "command": "clasp",
-        "args": ["mcp"],
-        "env": {},
-        "cwd": "./",
-        "timeout": 30000,
-        "trust": true
-        }
+    "clasp": {
+      "command": "npx",
+      "args": ["-y", "@google/clasp@latest", "mcp"],
+      "env": {
+        "IS_GEMINI_CLI_EXTENSION": "true"
+      }
+    }
   }
 }
