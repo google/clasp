@@ -20,6 +20,7 @@
     "strictPropertyInitialization": true,
     "stripInternal": true,
     "target": "es2019",
+    "typeRoots": ["./node_modules/@types"],
     "importHelpers": true,
     "plugins": [
       {
@@ -29,7 +30,7 @@
         "overrideIdFn": "[sha512:contenthash:base64:6]",
         "ast": true
       }
-    ] 
+    ]
   },
   "include": [
     "src/**/*.ts",
