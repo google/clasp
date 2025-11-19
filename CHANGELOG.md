@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.3](https://github.com/google/clasp/compare/v3.1.2...v3.1.3) (2025-11-19)
+
+
+### Bug Fixes
+
+* Add back redirect port to login cmd to be consistent with current documentation ([#1094](https://github.com/google/clasp/issues/1094)) ([9e8f717](https://github.com/google/clasp/commit/9e8f717f0c6be4684157000a2315b4ff104b9a07))
+* Gemini CLI Extension Path Issue ([#1097](https://github.com/google/clasp/issues/1097)) ([b466c57](https://github.com/google/clasp/commit/b466c57c08fe5c4e4526b99ccd6c0db4a989d447))
+
 ## [3.1.1](https://github.com/google/clasp/compare/v3.1.0...v3.1.1) (2025-10-31)
 
 
