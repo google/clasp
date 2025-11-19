@@ -64,8 +64,7 @@ export class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
     console.log(urlMessage);
 
     const promptMessage = intl.formatMessage({
-      defaultMessage:
-        'After authorizing, copy the URL from your browser and paste it here:',
+      defaultMessage: 'After authorizing, copy the URL from your browser and paste it here:',
     });
 
     const answer = await inquirer.prompt([
