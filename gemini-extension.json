@@ -5,11 +5,13 @@
   "contextFileName": "gemini.md",
   "mcpServers": {
     "clasp": {
-      "command": "npx",
-      "args": ["-y", "@google/clasp@latest", "mcp"],
+      "command": "clasp",
+      "args": ["mcp"],
+      "trust": true,
       "env": {
         "IS_GEMINI_CLI_EXTENSION": "true"
-      }
+      },
+      "timeout": 60000
     }
   }
 }
