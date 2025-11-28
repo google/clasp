@@ -238,6 +238,9 @@ function createOauthClient(clientSecretPath: string) {
   const contents = readFileSync(clientSecretPath);
   const keyFile = JSON.parse(contents.toString());
   const keys = keyFile.installed || keyFile.web;
+  if (!keys) {
+    throw new Error('Invalid credentials');
+  }
   if (!keys.redirect_uris || keys.redirect_uris.length === 0) {
     throw new Error('Invalid redirect URL');
   }
