@@ -20,6 +20,7 @@ import path from 'path';
 import Debug from 'debug';
 import {findUpSync} from 'find-up';
 import fs from 'fs/promises';
+import JSON5 from 'json5';
 import {OAuth2Client} from 'google-auth-library';
 import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
@@ -179,7 +180,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   const ignoreRules = await loadIgnoreFileOrDefaults(ignoreFile);
 
   const content = await fs.readFile(projectRoot.configPath, {encoding: 'utf8'});
-  const config = JSON.parse(content); // Parse the JSON content of .clasp.json.
+  const config = JSON5.parse(content); // Parse the JSON content of .clasp.json.
 
   // Determine file extensions, push order, and content directory from the loaded config.
   const fileExtensions = readFileExtensions(config);
