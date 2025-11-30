@@ -226,7 +226,7 @@ async function saveOauthClientCredentials(store: CredentialStore, userKey: strin
 }
 
 /**
- * Creates an aunthorized oauth2 client with the given credentials
+ * Creates an authorized OAuth2 client with the given credentials
  * @param clientSecretPath
  * @returns
  */
