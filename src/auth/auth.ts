@@ -184,7 +184,7 @@ export async function authorize(options: AuthorizationOptions) {
   let flow: AuthorizationCodeFlow;
   if (options.noLocalServer) {
     debug('Starting auth with serverless flow');
-    flow = new ServerlessAuthorizationCodeFlow(options.oauth2Client);
+    flow = new ServerlessAuthorizationCodeFlow(options.oauth2Client, options.redirectPort);
   } else {
     debug('Starting auth with local server flow');
     flow = new LocalServerAuthorizationCodeFlow(options.oauth2Client, options.redirectPort);

@@ -29,8 +29,11 @@ import {AuthorizationCodeFlow, parseAuthResponseUrl} from './auth_code_flow.js';
  * the authorization code) back into the CLI.
  */
 export class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
-  constructor(oauth2client: OAuth2Client) {
+  protected readonly port: number;
+
+  constructor(oauth2client: OAuth2Client, port?: number) {
     super(oauth2client);
+    this.port = port ?? 8888;
   }
 
   /**
@@ -41,7 +44,7 @@ export class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
    * @returns {Promise<string>} The redirect URI.
    */
   async getRedirectUri(): Promise<string> {
-    return 'http://localhost:8888';
+    return `http://localhost:${this.port}`;
   }
 
   /**
