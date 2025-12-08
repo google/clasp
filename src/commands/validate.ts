@@ -38,5 +38,5 @@ export const validateOptionInt = (val: any, startInclusive?: number, endInclusiv
 
     if (errorMsg) throw new InvalidOptionArgumentError(errorMsg);
   }
-  return val;
+  return parseInt(val, 10);
 };
