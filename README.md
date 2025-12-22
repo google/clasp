@@ -1,6 +1,6 @@
 # Clasp
 
-Note: This is not an officially support Google product.
+Note: This is not an officially supported Google product.
 
 ![build status](https://github.com/google/clasp/actions/workflows/ci.yaml/badge.svg)
 <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a>
