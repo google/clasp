@@ -212,9 +212,19 @@ export class Files {
       debug('Fetching script content, request %o', requestOptions);
       const response = await script.projects.getContent(requestOptions);
       const files = response.data.files ?? [];
+      
+      const absoluteContentDir = path.resolve(contentDir);
+
       return files.map(f => {
         const ext = getFileExtension(f.type, fileExtensionMap);
-        const localPath = path.relative(process.cwd(), path.resolve(contentDir, `${f.name}${ext}`));
+        const resolvedPath = path.resolve(contentDir, `${f.name}${ext}`);
+
+        // SECURITY CHECK: Ensure the resolved path remains inside the absoluteContentDir
+        if (!resolvedPath.startsWith(absoluteContentDir + path.sep) && resolvedPath !== absoluteContentDir) {
+          throw new Error(`Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`);
+        }
+
+        const localPath = path.relative(process.cwd(), resolvedPath);
 
         const file = {
           localPath: localPath,
@@ -570,3 +580,4 @@ function extractSyntaxError(error: GaxiosError, files: ProjectFile[]) {
   snippet = preLines + '\n' + errLine + '\n' + postLines;
   return {message, snippet}; // Return the formatted message and snippet.
 }
+
