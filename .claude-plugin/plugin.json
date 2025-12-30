@@ -1,0 +1,11 @@
+{
+  "name": "clasp",
+  "version": "1.0.0",
+  "description": "Develop Apps Script projects locally using clasp",
+  "mcpServers": {
+    "clasp": {
+      "command": "npx",
+      "args": ["-y", "@google/clasp", "mcp"]
+    }
+  }
+}
