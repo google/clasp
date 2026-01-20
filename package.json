@@ -71,6 +71,7 @@
     "inflection": "^3.0.2",
     "inquirer": "^12.6.0",
     "inquirer-autocomplete-standalone": "^0.8.1",
+    "json5": "^2.2.3",
     "loud-rejection": "^2.2.0",
     "micromatch": "^4.0.8",
     "normalize-path": "^3.0.0",
