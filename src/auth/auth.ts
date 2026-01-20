@@ -226,7 +226,7 @@ async function saveOauthClientCredentials(store: CredentialStore, userKey: strin
 }
 
 /**
- * Creates an aunthorized oauth2 client with the given credentials
+ * Creates an authorized OAuth2 client with the given credentials
  * @param clientSecretPath
  * @returns
  */
@@ -238,6 +238,9 @@ function createOauthClient(clientSecretPath: string) {
   const contents = readFileSync(clientSecretPath);
   const keyFile = JSON.parse(contents.toString());
   const keys = keyFile.installed || keyFile.web;
+  if (!keys) {
+    throw new Error('Invalid credentials');
+  }
   if (!keys.redirect_uris || keys.redirect_uris.length === 0) {
     throw new Error('Invalid redirect URL');
   }
