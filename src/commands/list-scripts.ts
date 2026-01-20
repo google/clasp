@@ -26,7 +26,7 @@ interface CommandOptions extends GlobalOptions {
 
 export const command = new Command('list-scripts')
   .alias('list')
-  .description('List App Scripts projects')
+  .description('List Apps Script projects')
   .option('--noShorten', 'Do not shorten long names', false)
   .action(async function (this: Command): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
