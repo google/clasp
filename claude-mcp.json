@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "clasp": {
+      "command": "npx",
+      "args": ["-y", "@google/clasp", "mcp"]
+    }
+  }
+}

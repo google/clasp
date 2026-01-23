@@ -78,6 +78,32 @@ This makes clasp available as an MCP server in Gemini CLI.
 
 Make sure to enable the Google Apps Script API (as explained above) and perform a `clasp login` (with your specific login parameters) before you use the extension.
 
+### Installing as a Claude Code CLI Extension
+
+You can use clasp with Claude Code CLI in one of two ways:
+
+#### 1. Install as a Plugin (Recommended)
+
+Run the following command in Claude Code to install clasp as a plugin directly from the repository:
+
+```sh
+/plugin install @google/clasp
+```
+
+#### 2. Manual Installation
+
+You can manually add clasp as an MCP server using the provided configuration file or by running:
+
+```sh
+claude mcp add clasp -- npx -y @google/clasp mcp
+```
+
+Or by referencing the configuration file included in the repository:
+
+```sh
+claude mcp add-json clasp "$(cat claude-mcp.json)"
+```
+
 ## Commands
 
 The following command provide basic Apps Script project management.
