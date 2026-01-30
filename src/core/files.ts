@@ -55,6 +55,23 @@ function parentDirs(file: string) {
   }
   return parentDirs;
 }
+function isInside(parentPath: string, childPath: string): boolean {
+
+  const relative = path.relative(parentPath, childPath);
+
+  return (
+
+    relative !== '' &&
+
+    !relative.startsWith('..') &&
+
+    !path.isAbsolute(relative)
+
+  );
+
+}
+
+
 
 async function getLocalFiles(rootDir: string, ignorePatterns: string[], recursive: boolean) {
   debug('Collecting files in %s', rootDir);
@@ -190,64 +207,60 @@ export class Files {
     this.options = options;
   }
 
-  /**
-* Fetches the content of a script project from Google Drive.
-* @param {number} [versionNumber] - Optional version number to fetch.
-* If not specified, the latest version (HEAD) is fetched.
-* @returns {Promise<ProjectFile[]>} A promise that resolves to an array of project files.
-* @throws {Error} If there's an API error or authentication/configuration issues.
-*/
-async fetchRemote(versionNumber?: number): Promise<ProjectFile[]> {
-debug('Fetching remote files, version %s', versionNumber ?? 'HEAD');
-assertAuthenticated(this.options);
-assertScriptConfigured(this.options);
+/**
+   * Fetches the content of a script project from Google Drive.
+   */
+  async fetchRemote(versionNumber?: number): Promise<ProjectFile[]> {
+    debug('Fetching remote files, version %s', versionNumber ?? 'HEAD');
+    assertAuthenticated(this.options);
+    assertScriptConfigured(this.options);
 
-const credentials = this.options.credentials;
-const contentDir = this.options.files.contentDir;
-const scriptId = this.options.project.scriptId;
-const script = google.script({version: 'v1', auth: credentials});
-const fileExtensionMap = this.options.files.fileExtensions;
+    const credentials = this.options.credentials;
+    const contentDir = this.options.files.contentDir;
+    const scriptId = this.options.project.scriptId;
+    const script = google.script({version: 'v1', auth: credentials});
+    const fileExtensionMap = this.options.files.fileExtensions;
 
-try {
-const requestOptions = {scriptId, versionNumber};
-debug('Fetching script content, request %o', requestOptions);
+    try {
+      const requestOptions = {scriptId, versionNumber};
+      debug('Fetching script content, request %o', requestOptions);
 
-const response = await script.projects.getContent(requestOptions);
-const files = response.data.files ?? [];
+      const response = await script.projects.getContent(requestOptions);
+      const files = response.data.files ?? [];
 
-//  Establish security boundary
-const absoluteContentDir = path.resolve(contentDir);
+      // 1. Establish the security boundary (the "jail")
+      const absoluteContentDir = path.resolve(contentDir);
 
-return files.map(f => {
-const ext = getFileExtension(f.type, fileExtensionMap);
+      return files.map(f => {
+        const ext = getFileExtension(f.type, fileExtensionMap);
 
-// Resolve absolute path for remote file
-const resolvedPath = path.resolve(contentDir, `${f.name}${ext}`);
+        // 2. Resolve the absolute path for the remote file
+        const resolvedPath = path.resolve(contentDir, `${f.name}${ext}`);
 
-//  Path traversal protection
-if (!isInside(absoluteContentDir, resolvedPath)) {
-throw new Error(
-`Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`
-);
-}
+        // 3. SECURITY CHECK: Ensure path is strictly inside contentDir
+        // This prevents traversal (../../) and prefix attacks (/foo/bar vs /foo/bar1)
+        if (!isInside(absoluteContentDir, resolvedPath)) {
+          throw new Error(
+            `Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`
+          );
+        }
 
-const localPath = path.relative(process.cwd(), resolvedPath);
+        const localPath = path.relative(process.cwd(), resolvedPath);
 
-const file: ProjectFile = {
-localPath,
-remotePath: f.name,
-source: f.source,
-type: f.type,
-};
+        const file: ProjectFile = {
+          localPath,
+          remotePath: f.name,
+          source: f.source,
+          type: f.type,
+        };
 
-debug('Fetched file %O', file);
-return file;
-});
-} catch (err) {
-throw handleApiError(err as GaxiosError);
-}
-}
-
+        debug('Fetched file %O', file);
+        return file;
+      });
+    } catch (err) {
+      throw handleApiError(err as GaxiosError);
+    }
+  }
   /**
    * Collects all local files in the project's content directory, respecting ignore patterns.
    * It reads the content of each file and determines its type.
