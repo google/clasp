@@ -197,48 +197,50 @@ export class Files {
    * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of project files.
    * @throws {Error} If there's an API error or authentication/configuration issues.
    */
-  async fetchRemote(versionNumber?: number): Promise<ProjectFile[]> {
-    debug('Fetching remote files, version %s', versionNumber ?? 'HEAD');
-    assertAuthenticated(this.options);
-    assertScriptConfigured(this.options);
+async fetchRemote(versionNumber?: number): Promise<ProjectFile[]> {
+debug('Fetching remote files, version %s', versionNumber ?? 'HEAD');
+assertAuthenticated(this.options);
+assertScriptConfigured(this.options);
 
-    const credentials = this.options.credentials;
-    const contentDir = this.options.files.contentDir;
-    const scriptId = this.options.project.scriptId;
-    const script = google.script({version: 'v1', auth: credentials});
-    const fileExtensionMap = this.options.files.fileExtensions;
-    try {
-      const requestOptions = {scriptId, versionNumber};
-      debug('Fetching script content, request %o', requestOptions);
-      const response = await script.projects.getContent(requestOptions);
-      const files = response.data.files ?? [];
-      
-      const absoluteContentDir = path.resolve(contentDir);
+const credentials = this.options.credentials;
+const contentDir = this.options.files.contentDir;
+const scriptId = this.options.project.scriptId;
+const script = google.script({version: 'v1', auth: credentials});
+const fileExtensionMap = this.options.files.fileExtensions;
 
-      return files.map(f => {
-        const ext = getFileExtension(f.type, fileExtensionMap);
-        const resolvedPath = path.resolve(contentDir, `${f.name}${ext}`);
+try {
+const requestOptions = {scriptId, versionNumber};
+debug('Fetching script content, request %o', requestOptions);
 
-        // SECURITY CHECK: Ensure the resolved path remains inside the absoluteContentDir
-        if (!resolvedPath.startsWith(absoluteContentDir + path.sep) && resolvedPath !== absoluteContentDir) {
-          throw new Error(`Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`);
-        }
+const response = await script.projects.getContent(requestOptions);
+const files = response.data.files ?? [];
 
-        const localPath = path.relative(process.cwd(), resolvedPath);
+const absoluteContentDir = path.resolve(contentDir);
 
-        const file = {
-          localPath: localPath,
-          remotePath: f.name ?? undefined,
-          source: f.source ?? undefined,
-          type: f.type ?? undefined,
-        };
-        debug('Fetched file %O', file);
-        return file;
-      });
-    } catch (error) {
-      handleApiError(error);
-    }
-  }
+return files.map(f => {
+const ext = getFileExtension(f.type, fileExtensionMap);
+
+const resolvedPath = path.resolve(contentDir, `${f.name}${ext}`);
+
+if (!isInside(absoluteContentDir, resolvedPath)) {
+throw new Error(
+`Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`
+);
+}
+
+const localPath = path.relative(process.cwd(), resolvedPath);
+
+return {
+localPath,
+remotePath: f.name,
+source: f.source,
+type: f.type,
+};
+});
+} catch (err) {
+throw handleApiError(err as GaxiosError);
+}
+}
 
   /**
    * Collects all local files in the project's content directory, respecting ignore patterns.
