@@ -1,6 +1,6 @@
 # Clasp
 
-Note: This is not an officially support Google product.
+Note: This is not an officially supported Google product.
 
 ![build status](https://github.com/google/clasp/actions/workflows/ci.yaml/badge.svg)
 <a href="https://coveralls.io/github/google/clasp?branch=master"><img src="https://coveralls.io/repos/github/google/clasp/badge.svg?branch=master" alt="Coverage Status"></a>
@@ -77,6 +77,32 @@ gemini extensions install https://github.com/google/clasp
 This makes clasp available as an MCP server in Gemini CLI. 
 
 Make sure to enable the Google Apps Script API (as explained above) and perform a `clasp login` (with your specific login parameters) before you use the extension.
+
+### Installing as a Claude Code CLI Extension
+
+You can use clasp with Claude Code CLI in one of two ways:
+
+#### 1. Install as a Plugin (Recommended)
+
+Run the following command in Claude Code to install clasp as a plugin directly from the repository:
+
+```sh
+/plugin install @google/clasp
+```
+
+#### 2. Manual Installation
+
+You can manually add clasp as an MCP server using the provided configuration file or by running:
+
+```sh
+claude mcp add clasp -- npx -y @google/clasp mcp
+```
+
+Or by referencing the configuration file included in the repository:
+
+```sh
+claude mcp add-json clasp "$(cat claude-mcp.json)"
+```
 
 ## Commands
 
