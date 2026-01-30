@@ -191,12 +191,12 @@ export class Files {
   }
 
   /**
-   * Fetches the content of a script project from Google Drive.
-   * @param {number} [versionNumber] - Optional version number to fetch.
-   * If not specified, the latest version (HEAD) is fetched.
-   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of project files.
-   * @throws {Error} If there's an API error or authentication/configuration issues.
-   */
+* Fetches the content of a script project from Google Drive.
+* @param {number} [versionNumber] - Optional version number to fetch.
+* If not specified, the latest version (HEAD) is fetched.
+* @returns {Promise<ProjectFile[]>} A promise that resolves to an array of project files.
+* @throws {Error} If there's an API error or authentication/configuration issues.
+*/
 async fetchRemote(versionNumber?: number): Promise<ProjectFile[]> {
 debug('Fetching remote files, version %s', versionNumber ?? 'HEAD');
 assertAuthenticated(this.options);
@@ -215,13 +215,16 @@ debug('Fetching script content, request %o', requestOptions);
 const response = await script.projects.getContent(requestOptions);
 const files = response.data.files ?? [];
 
+//  Establish security boundary
 const absoluteContentDir = path.resolve(contentDir);
 
 return files.map(f => {
 const ext = getFileExtension(f.type, fileExtensionMap);
 
+// Resolve absolute path for remote file
 const resolvedPath = path.resolve(contentDir, `${f.name}${ext}`);
 
+//  Path traversal protection
 if (!isInside(absoluteContentDir, resolvedPath)) {
 throw new Error(
 `Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`
@@ -230,12 +233,15 @@ throw new Error(
 
 const localPath = path.relative(process.cwd(), resolvedPath);
 
-return {
+const file: ProjectFile = {
 localPath,
 remotePath: f.name,
 source: f.source,
 type: f.type,
 };
+
+debug('Fetched file %O', file);
+return file;
 });
 } catch (err) {
 throw handleApiError(err as GaxiosError);
