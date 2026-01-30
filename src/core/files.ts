@@ -249,9 +249,9 @@ export class Files {
 
         const file: ProjectFile = {
           localPath,
-          remotePath: f.name,
-          source: f.source,
-          type: f.type,
+          remotePath: f.name ?? undefined,
+          source: f.source ?? undefined,
+          type: f.type ?? undefined,
         };
 
         debug('Fetched file %O', file);
