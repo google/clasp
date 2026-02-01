@@ -13,7 +13,7 @@
 ### Bug Fixes
 
 * Improve validation of credential files ([511a060](https://github.com/google/clasp/commit/511a0604bdd922795c6d2ee6ecc32b2b74d1d0d3))
-* prevent path traversal in remote file synchronization ([#1109](https://github.com/google/clasp/issues/1109)) ([ba6bd66](https://github.com/google/clasp/commit/ba6bd666fe74de54950122b5d92ecf1dcc02a9d3))
+* (SECURITY) prevent path traversal in remote file synchronization ([#1109](https://github.com/google/clasp/issues/1109)) ([ba6bd66](https://github.com/google/clasp/commit/ba6bd666fe74de54950122b5d92ecf1dcc02a9d3))
 
 ## [3.1.3](https://github.com/google/clasp/compare/v3.1.2...v3.1.3) (2025-11-19)
 
