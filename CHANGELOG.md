@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.2.0](https://github.com/google/clasp/compare/v3.1.3...v3.2.0) (2026-02-01)
+
+
+### Features
+
+* add Claude Code CLI support ([#1111](https://github.com/google/clasp/issues/1111)) ([56f0e62](https://github.com/google/clasp/commit/56f0e6274c2daa2c0928d44fe50c517b188c11f5))
+* Add support for comments in project settings file ([#1102](https://github.com/google/clasp/issues/1102)) ([64acdc2](https://github.com/google/clasp/commit/64acdc20e8e40f736d56a3c2c2eaaff4727fb25a))
+* Support custom port for no-localhost login ([#1104](https://github.com/google/clasp/issues/1104)) ([833eb7c](https://github.com/google/clasp/commit/833eb7cc5d7fecfca5fc8e2a7c9cdb837f56d38f))
+
+
+### Bug Fixes
+
+* Improve validation of credential files ([511a060](https://github.com/google/clasp/commit/511a0604bdd922795c6d2ee6ecc32b2b74d1d0d3))
+* (SECURITY) prevent path traversal in remote file synchronization ([#1109](https://github.com/google/clasp/issues/1109)) ([ba6bd66](https://github.com/google/clasp/commit/ba6bd666fe74de54950122b5d92ecf1dcc02a9d3))
+
 ## [3.1.3](https://github.com/google/clasp/compare/v3.1.2...v3.1.3) (2025-11-19)
 
 
