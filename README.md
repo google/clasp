@@ -116,6 +116,7 @@ clasp
 
 - [`clasp login [--no-localhost] [--creds <file>] [--redirect-port]`](#login)
 - [`clasp logout`](#logout)
+- [`clasp show-authorized-user [--json]`](#show-authorized-user)
 - [`clasp create-script [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
 - [`clasp clone-script <scriptId | scriptURL> [versionNumber] [--rootDir <dir>]`](#clone)
 - [`clasp delete-script [--force]`](#delete)
@@ -380,6 +381,21 @@ Logs out the user by deleting client credentials.
 #### Examples
 
 - `clasp logout`
+
+### Show Authorized User
+
+Shows the current authorization status. When logged in, the output includes
+the OAuth client ID and whether the client is `google-provided` (clasp default)
+or `user-provided` (custom credentials).
+
+#### Options
+
+- `--json`: Output authorization details as JSON, including `clientId` and `clientType`.
+
+#### Examples
+
+- `clasp show-authorized-user`
+- `clasp show-authorized-user --json`
 
 ### Create
 

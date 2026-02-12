@@ -1,0 +1,14 @@
+{
+  "tokens": {
+    "default": {
+      "client_id": "123456789000-custom.apps.googleusercontent.com",
+      "client_secret": "mock-secret",
+      "type": "authorized_user",
+      "refresh_token": "mock-refresh-token",
+      "access_token": "mock-access-token",
+      "token_type": "Bearer",
+      "expiry_date": 1737951765115,
+      "id_token": "mock-id-token"
+    }
+  }
+}
