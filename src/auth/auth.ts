@@ -25,6 +25,7 @@ import {AuthorizationCodeFlow} from './auth_code_flow.js';
 import {CredentialStore} from './credential_store.js';
 import {FileCredentialStore} from './file_credential_store.js';
 import {LocalServerAuthorizationCodeFlow} from './localhost_auth_code_flow.js';
+import {DEFAULT_CLASP_OAUTH_CLIENT_ID, DEFAULT_CLASP_OAUTH_CLIENT_SECRET} from './oauth_client.js';
 import {ServerlessAuthorizationCodeFlow} from './serverless_auth_code_flow.js';
 
 const debug = Debug('clasp:auth');
@@ -266,8 +267,8 @@ function createOauthClient(clientSecretPath: string) {
 function createDefaultOAuthClient() {
   // Default client
   const client = new OAuth2Client({
-    clientId: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
-    clientSecret: 'v6V3fKV_zWU7iw1DrpO1rknX',
+    clientId: DEFAULT_CLASP_OAUTH_CLIENT_ID,
+    clientSecret: DEFAULT_CLASP_OAUTH_CLIENT_SECRET,
     redirectUri: 'http://localhost',
   });
   debug('Created built-in oauth client, id: %s', client._clientId);

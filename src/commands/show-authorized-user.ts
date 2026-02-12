@@ -16,6 +16,7 @@
 
 import {Command} from 'commander';
 import {AuthInfo, getUserInfo} from '../auth/auth.js';
+import {getOAuthClientType} from '../auth/oauth_client.js';
 import {intl} from '../intl.js';
 import {GlobalOptions} from './utils.js';
 
@@ -33,10 +34,15 @@ export const command = new Command('show-authorized-user')
       user = await getUserInfo(auth.credentials);
     }
 
+    const clientId = auth.credentials?._clientId;
+    const clientType = getOAuthClientType(clientId);
+
     if (options.json) {
       const output = {
         loggedIn: auth.credentials ? true : false,
         email: user?.email ?? undefined,
+        clientId: clientId ?? undefined,
+        clientType: clientType ?? undefined,
       };
       console.log(JSON.stringify(output, null, 2));
       return;
@@ -61,4 +67,14 @@ export const command = new Command('show-authorized-user')
       },
     );
     console.log(msg);
+    const clientMsg = intl.formatMessage(
+      {
+        defaultMessage: 'OAuth client ID: {clientId} ({clientType}).',
+      },
+      {
+        clientId: clientId ?? 'unknown',
+        clientType: clientType ?? 'unknown',
+      },
+    );
+    console.log(clientMsg);
   });

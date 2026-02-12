@@ -18,6 +18,7 @@
 
 import fs from 'fs';
 import {CredentialStore, StoredCredential} from './credential_store.js';
+import {DEFAULT_CLASP_OAUTH_CLIENT_ID, DEFAULT_CLASP_OAUTH_CLIENT_SECRET} from './oauth_client.js';
 
 // Initial .clasprc.json format, single credential per file
 type V1LocalFileFormat = {
@@ -163,8 +164,8 @@ export class FileCredentialStore implements CredentialStore {
         refresh_token: store.refresh_token,
         expiry_date: store.exprity_date,
         token_type: store.token_type,
-        client_id: '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com',
-        client_secret: 'v6V3fKV_zWU7iw1DrpO1rknX',
+        client_id: DEFAULT_CLASP_OAUTH_CLIENT_ID,
+        client_secret: DEFAULT_CLASP_OAUTH_CLIENT_SECRET,
       };
     }
     return null;

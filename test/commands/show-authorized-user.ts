@@ -20,6 +20,7 @@ import {fileURLToPath} from 'url';
 import {expect} from 'chai';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
+import {DEFAULT_CLASP_OAUTH_CLIENT_ID} from '../../src/auth/oauth_client.js';
 import {useChaiExtensions} from '../helpers.js';
 import {mockOAuthRefreshRequest, resetMocks, setupMocks} from '../mocks.js';
 import {runCommand} from './utils.js';
@@ -53,6 +54,31 @@ describe('Show authorized user command', function () {
       const out = await runCommand(['show-authorized-user', '--json']);
       const json = JSON.parse(out.stdout);
       expect(json.loggedIn).to.be.true;
+      expect(json.clientId).to.equal(DEFAULT_CLASP_OAUTH_CLIENT_ID);
+      expect(json.clientType).to.equal('google-provided');
+    });
+
+    it('should show the oauth client id in text output', async function () {
+      const out = await runCommand(['show-authorized-user']);
+      expect(out.stdout).to.contain(`OAuth client ID: ${DEFAULT_CLASP_OAUTH_CLIENT_ID} (google-provided).`);
+    });
+  });
+
+  describe('With project, authenticated with user-provided client', function () {
+    beforeEach(function () {
+      mockfs({
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated-custom-client.json'),
+        ),
+      });
+    });
+
+    it('should classify the oauth client as user-provided', async function () {
+      const out = await runCommand(['show-authorized-user', '--json']);
+      const json = JSON.parse(out.stdout);
+      expect(json.loggedIn).to.be.true;
+      expect(json.clientType).to.equal('user-provided');
     });
   });
 });
