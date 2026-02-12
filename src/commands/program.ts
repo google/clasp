@@ -44,6 +44,7 @@ import {command as pushCommand} from './push.js';
 import {command as runCommand} from './run-function.js';
 import {command as setupLogsCommand} from './setup-logs.js';
 import {command as authStatusCommand} from './show-authorized-user.js';
+import {command as metricsCommand} from './show-metrics.js';
 import {command as filesStatusCommand} from './show-file-status.js';
 import {command as mcpCommand} from './start-mcp.js';
 import {command as tailLogsCommand} from './tail-logs.js';
@@ -169,6 +170,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     openWebappCommand,
     runCommand,
     listCommand,
+    metricsCommand,
     createVersionCommand,
     listVersionsCommand,
     mcpCommand,
