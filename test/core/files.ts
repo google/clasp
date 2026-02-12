@@ -225,6 +225,46 @@ describe('File operations', function () {
     });
   });
 
+  // Test suite for projects where `skipSubdirectories` is enabled in .clasp.json.
+  describe('with valid project, skipSubdirectories enabled', function () {
+    beforeEach(function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'subdir/Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'page.html': mockfs.load(path.resolve(__dirname, '../fixtures/page.html')),
+        '.clasp.json': JSON.stringify(
+          {
+            scriptId: 'mock-script-id',
+            skipSubdirectories: true,
+          },
+          null,
+          2,
+        ),
+        'package.json': '{}',
+        'node_modules/test/index.js': '',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+
+    it('should not collect files from subdirectories', async function () {
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      const foundFiles = await clasp.files.collectLocalFiles();
+      const foundFilePaths = foundFiles.map(file => file.localPath);
+
+      expect(foundFilePaths).to.not.include(path.normalize('subdir/Code.js'));
+      expect(foundFiles).to.have.length(3);
+    });
+
+    afterEach(function () {
+      mockfs.restore();
+    });
+  });
+
   // Test suite for scenarios where the local project setup is invalid (e.g., missing .clasp.json),
   // even if the user is authenticated. Most operations should fail.
   describe('with invalid project, authenticated', function () {
