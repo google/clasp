@@ -32,6 +32,24 @@ async function withTempDir<T>(prefix: string, fn: (tempDir: string) => Promise<T
 }
 
 describe('Clasp core real filesystem behavior', function () {
+  it('should fail with a controlled error when --project path does not exist', async function () {
+    await withTempDir('clasp-project-path-', async tempDir => {
+      const invalidProjectPath = path.join(tempDir, 'missing', '.clasp.json');
+      await expect(initClaspInstance({configFile: invalidProjectPath})).to.eventually.be.rejectedWith(
+        `Invalid --project path: ${invalidProjectPath}. File or directory does not exist.`,
+      );
+    });
+  });
+
+  it('should fail with a controlled error when --ignore path does not exist', async function () {
+    await withTempDir('clasp-ignore-path-', async tempDir => {
+      const invalidIgnorePath = path.join(tempDir, 'missing', '.claspignore');
+      await expect(initClaspInstance({rootDir: tempDir, ignoreFile: invalidIgnorePath})).to.eventually.be.rejectedWith(
+        `Invalid --ignore path: ${invalidIgnorePath}. File or directory does not exist.`,
+      );
+    });
+  });
+
   it('should surface settings write failures from setProjectId', async function () {
     await withTempDir('clasp-set-project-id-', async tempDir => {
       const missingRootDir = path.join(tempDir, 'missing-root');
