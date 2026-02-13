@@ -19,6 +19,7 @@ import {expect} from 'chai';
 import esmock from 'esmock';
 import {after, before, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
+import {mergeScopes, parseExtraScopes} from '../../src/commands/login.js';
 import {useChaiExtensions} from '../helpers.js';
 import {resetMocks, setupMocks} from '../mocks.js';
 import type {CommandResult} from './utils.js';
@@ -66,6 +67,29 @@ describe('Login command', function () {
     });
   });
 
+  describe('mergeScopes', function () {
+    it('returns default scopes when project scopes are undefined', function () {
+      const defaultScopes = ['scopeA', 'scopeB'];
+      expect(mergeScopes(defaultScopes)).to.deep.equal(defaultScopes);
+    });
+
+    it('merges and deduplicates scopes preserving order', function () {
+      const defaultScopes = ['scopeA', 'scopeB'];
+      const projectScopes = ['scopeB', 'scopeC', 'scopeA', 'scopeD'];
+      expect(mergeScopes(defaultScopes, projectScopes)).to.deep.equal(['scopeA', 'scopeB', 'scopeC', 'scopeD']);
+    });
+  });
+
+  describe('parseExtraScopes', function () {
+    it('parses and trims a comma-separated scope list', function () {
+      expect(parseExtraScopes('scopeA, scopeB ,scopeC')).to.deep.equal(['scopeA', 'scopeB', 'scopeC']);
+    });
+
+    it('rejects empty scopes in the list', function () {
+      expect(() => parseExtraScopes('scopeA,,scopeB')).to.throw('comma-separated list of non-empty scopes');
+    });
+  });
+
   describe('Test option redirectPort', function () {
     it('Test setting a valid integer', async function () {
       const port = '8080';
@@ -110,6 +134,22 @@ describe('Login command', function () {
       expect(result.exitCode).to.equal(1);
       expect(result.stdout).to.match(/code:.*commander.invalidArgument/);
       expect(result.message).to.have.string(`'${port}' is not a valid integer`);
+    });
+  });
+
+  describe('Test option extraScopes', function () {
+    it('Test valid comma-separated scopes', async function () {
+      const scopes = 'scopeA,scopeB';
+      const result: CommandResult = await runCommand(['login', '--extra-scopes', scopes]);
+      expect(result.exitCode).to.equal(0);
+    });
+
+    it('Test validation of empty scope in list', async function () {
+      const scopes = 'scopeA,,scopeB';
+      const result: CommandResult = await runCommand(['login', '--extra-scopes', scopes]);
+      expect(result.exitCode).to.equal(1);
+      expect(result.stdout).to.match(/code:.*commander.invalidArgument/);
+      expect(result.message).to.have.string('comma-separated list of non-empty scopes');
     });
   });
 });

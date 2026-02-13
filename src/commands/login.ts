@@ -18,7 +18,7 @@
  * Clasp command method bodies.
  */
 
-import {Command} from 'commander';
+import {Command, InvalidOptionArgumentError} from 'commander';
 import {AuthInfo, authorize, getUnauthorizedOuth2Client, getUserInfo} from '../auth/auth.js';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
@@ -39,12 +39,29 @@ const DEFAULT_SCOPES = [
   'https://www.googleapis.com/auth/cloud-platform',
 ];
 
+export const mergeScopes = (defaultScopes: readonly string[], projectScopes?: readonly string[]) => {
+  const scopes = [...defaultScopes];
+  if (projectScopes) {
+    scopes.push(...projectScopes);
+  }
+  return [...new Set(scopes)];
+};
+
+export const parseExtraScopes = (value: string) => {
+  const scopes = value.split(',').map(scope => scope.trim());
+  if (scopes.length === 0 || scopes.some(scope => !scope)) {
+    throw new InvalidOptionArgumentError('must be a comma-separated list of non-empty scopes.');
+  }
+  return scopes;
+};
+
 interface CommandOptions extends GlobalOptions {
   readonly localhost?: boolean;
   readonly creds?: string;
   readonly status?: boolean;
   readonly redirectPort?: number;
   readonly useProjectScopes?: boolean;
+  readonly extraScopes?: string[];
 }
 
 export const command = new Command('login')
@@ -53,8 +70,9 @@ export const command = new Command('login')
   .option('--creds <file>', 'Relative path to OAuth client secret file (from GCP).')
   .option(
     '--use-project-scopes',
-    'Use the scopes from the current project manifest. Used only when authorizing access for the run command.',
+    'Include scopes from the current project manifest in addition to the default clasp scopes. Used when authorizing access for the run command.',
   )
+  .option('--extra-scopes <scopes>', 'Include additional OAuth scopes as a comma-separated list.', parseExtraScopes)
   .option('--redirect-port <port>', 'Specify a custom port for the redirect URL.', val =>
     validateOptionInt(val, 0, 65535),
   )
@@ -88,16 +106,19 @@ export const command = new Command('login')
     let scopes = [...DEFAULT_SCOPES];
     if (options.useProjectScopes) {
       const manifest = await clasp.project.readManifest();
-      scopes = manifest.oauthScopes ?? scopes;
-      if (!options.json) {
-        const scopesLabel = intl.formatMessage({
-          defaultMessage: 'Authorizing with the following scopes:',
-        });
-        console.log('');
-        console.log(scopesLabel);
-        for (const scope of scopes) {
-          console.log(scope);
-        }
+      scopes = mergeScopes(DEFAULT_SCOPES, manifest.oauthScopes);
+    }
+    if (options.extraScopes) {
+      scopes = mergeScopes(scopes, options.extraScopes);
+    }
+    if ((options.useProjectScopes || options.extraScopes) && !options.json) {
+      const scopesLabel = intl.formatMessage({
+        defaultMessage: 'Authorizing with the following scopes:',
+      });
+      console.log('');
+      console.log(scopesLabel);
+      for (const scope of scopes) {
+        console.log(scope);
       }
     }
 
