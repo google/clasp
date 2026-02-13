@@ -470,7 +470,7 @@ export class Project {
     debug('Setting project ID %s in file %s', projectId, this.options.configFilePath);
     assertScriptConfigured(this.options);
     this.options.project.projectId = projectId;
-    this.updateSettings();
+    await this.updateSettings();
   }
 
   /**

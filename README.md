@@ -135,7 +135,7 @@ clasp
 
 > **NOTE**: These commands require you to add your [Project ID](#projectid-optional).
 
-- [`clasp tail-logs [--json] [--open] [--setup] [--watch] [--simplified]`](#logs)
+- [`clasp tail-logs [--json] [--watch] [--simplified]`](#logs)
 - [`clasp list-apis`](#apis)
 - [`clasp enable-api<api>`](#apis)
 - [`clasp disable-api <api>`](#apis)
