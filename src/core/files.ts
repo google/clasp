@@ -121,6 +121,7 @@ function createFilenameConflictChecker() {
         },
       });
     }
+    files.add(key);
     return file;
   };
 }
@@ -601,4 +602,3 @@ function extractSyntaxError(error: GaxiosError, files: ProjectFile[]) {
   snippet = preLines + '\n' + errLine + '\n' + postLines;
   return {message, snippet}; // Return the formatted message and snippet.
 }
-
