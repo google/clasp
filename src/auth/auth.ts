@@ -60,7 +60,7 @@ export async function initAuth(options: InitOptions): Promise<AuthInfo> {
   const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
   const credentialStore = new FileCredentialStore(authFilePath);
 
-  debug('Initializng auth from %s', options.authFilePath);
+  debug('Initializing auth from %s', options.authFilePath);
   if (options.useApplicationDefaultCredentials) {
     const credentials = await createApplicationDefaultCredentials();
     return {
@@ -105,7 +105,7 @@ export async function getUserInfo(credentials: OAuth2Client) {
 
 /**
  * Creates an an unauthorized oauth2 client given the client secret file. If no path is provided,
- * teh default client is returned.
+ * the default client is returned.
  * @param {string} [clientSecretPath] - Optional path to a client secrets JSON file.
  * If not provided, the default clasp OAuth client is used.
  * @returns {OAuth2Client} An unauthorized OAuth2 client instance.
@@ -260,7 +260,7 @@ function createOauthClient(clientSecretPath: string) {
 }
 
 /**
- * Creates an aunthorized oauth2 client using the default id & secret.
+ * Creates an authorized oauth2 client using the default id & secret.
  * @param clientSecretPath
  * @returns
  */
