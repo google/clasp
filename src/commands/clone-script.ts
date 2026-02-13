@@ -95,7 +95,7 @@ export const command = new Command('clone-script')
         const files = await clasp.files.pull(versionNumber);
         // After successfully pulling files, update the local project settings (e.g., .clasp.json)
         // to reflect the cloned scriptId and other relevant configurations.
-        clasp.project.updateSettings();
+        await clasp.project.updateSettings();
         return files;
       });
 

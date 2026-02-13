@@ -18,6 +18,7 @@ import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
+import fs from 'fs/promises';
 import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
@@ -68,6 +69,9 @@ describe('Clone script command', function () {
       const out = await runCommand(['clone', 'mock-script-id']);
       expect('appsscript.json').to.be.a.realFile;
       expect('Code.js').to.be.a.realFile;
+      expect('.clasp.json').to.be.a.realFile;
+      const projectConfig = JSON.parse(await fs.readFile('.clasp.json', {encoding: 'utf8'}));
+      expect(projectConfig.scriptId).to.equal('mock-script-id');
       expect(out.stdout).to.contain('Cloned');
     });
 
