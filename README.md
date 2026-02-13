@@ -114,7 +114,7 @@ The following command provide basic Apps Script project management.
 clasp
 ```
 
-- [`clasp login [--no-localhost] [--creds <file>] [--redirect-port]`](#login)
+- [`clasp login [--no-localhost] [--creds <file>] [--use-project-scopes] [--redirect-port]`](#login)
 - [`clasp logout`](#logout)
 - [`clasp show-authorized-user [--json]`](#show-authorized-user)
 - [`clasp create-script [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
@@ -365,6 +365,7 @@ Logs the user in. Saves the client credentials to a `.clasprc.json` file in the 
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
 - `--creds <file>`: Use custom credentials used for `clasp run`. Saves a `.clasprc.json` file to current working directory. This file should be private!
+- `--use-project-scopes`: Include scopes from `appsscript.json` in addition to the default clasp scopes. Useful for `clasp run` when your script requires runtime scopes.
 - `--redirect-port <port>`: Specify a custom port for the local redirect server during the login process. Useful for environments where a specific port is required.
 
 #### Examples
@@ -372,6 +373,7 @@ Logs the user in. Saves the client credentials to a `.clasprc.json` file in the 
 - `clasp login`
 - `clasp login --no-localhost`
 - `clasp login --user test-user --creds client_secret.json`
+- `clasp login --user test-user --use-project-scopes --creds client_secret.json`
 - `clasp login --redirect-port 37473`
 
 ### Logout

@@ -39,6 +39,14 @@ const DEFAULT_SCOPES = [
   'https://www.googleapis.com/auth/cloud-platform',
 ];
 
+export const mergeScopes = (defaultScopes: readonly string[], projectScopes?: readonly string[]) => {
+  const scopes = [...defaultScopes];
+  if (projectScopes) {
+    scopes.push(...projectScopes);
+  }
+  return [...new Set(scopes)];
+};
+
 interface CommandOptions extends GlobalOptions {
   readonly localhost?: boolean;
   readonly creds?: string;
@@ -53,7 +61,7 @@ export const command = new Command('login')
   .option('--creds <file>', 'Relative path to OAuth client secret file (from GCP).')
   .option(
     '--use-project-scopes',
-    'Use the scopes from the current project manifest. Used only when authorizing access for the run command.',
+    'Include scopes from the current project manifest in addition to the default clasp scopes. Used when authorizing access for the run command.',
   )
   .option('--redirect-port <port>', 'Specify a custom port for the redirect URL.', val =>
     validateOptionInt(val, 0, 65535),
@@ -88,7 +96,7 @@ export const command = new Command('login')
     let scopes = [...DEFAULT_SCOPES];
     if (options.useProjectScopes) {
       const manifest = await clasp.project.readManifest();
-      scopes = manifest.oauthScopes ?? scopes;
+      scopes = mergeScopes(DEFAULT_SCOPES, manifest.oauthScopes);
       if (!options.json) {
         const scopesLabel = intl.formatMessage({
           defaultMessage: 'Authorizing with the following scopes:',

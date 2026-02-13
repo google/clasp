@@ -19,6 +19,7 @@ import {expect} from 'chai';
 import esmock from 'esmock';
 import {after, before, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
+import {mergeScopes} from '../../src/commands/login.js';
 import {useChaiExtensions} from '../helpers.js';
 import {resetMocks, setupMocks} from '../mocks.js';
 import type {CommandResult} from './utils.js';
@@ -63,6 +64,19 @@ describe('Login command', function () {
     it('no args', async function () {
       const result: CommandResult = await runCommand(['login']);
       expect(result.exitCode).to.equal(0);
+    });
+  });
+
+  describe('mergeScopes', function () {
+    it('returns default scopes when project scopes are undefined', function () {
+      const defaultScopes = ['scopeA', 'scopeB'];
+      expect(mergeScopes(defaultScopes)).to.deep.equal(defaultScopes);
+    });
+
+    it('merges and deduplicates scopes preserving order', function () {
+      const defaultScopes = ['scopeA', 'scopeB'];
+      const projectScopes = ['scopeB', 'scopeC', 'scopeA', 'scopeD'];
+      expect(mergeScopes(defaultScopes, projectScopes)).to.deep.equal(['scopeA', 'scopeB', 'scopeC', 'scopeD']);
     });
   });
 
