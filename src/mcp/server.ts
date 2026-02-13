@@ -197,7 +197,7 @@ export function buildMcpServer(auth: AuthInfo) {
           content: [
             {
               type: 'text',
-              text: `Error pushing project: ${err.message}`,
+              text: `Error cloning project: ${err.message}`,
             },
           ],
         };
@@ -294,7 +294,7 @@ export function buildMcpServer(auth: AuthInfo) {
           content: [
             {
               type: 'text',
-              text: `Error pushing project: ${err.message}`,
+              text: `Error creating project: ${err.message}`,
             },
           ],
         };
@@ -394,7 +394,7 @@ export function buildMcpServer(auth: AuthInfo) {
           content: [
             {
               type: 'text',
-              text: `Error pushing project: ${err.message}`,
+              text: `Error cloning project: ${err.message}`,
             },
           ],
         };
