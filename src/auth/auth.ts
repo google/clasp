@@ -149,7 +149,7 @@ export async function getAuthorizedOAuth2Client(
       ...savedCredentials,
       expiry_date: tokens.expiry_date,
       access_token: tokens.access_token,
-      id_token: tokens.access_token,
+      id_token: tokens.id_token,
     };
     await store.save(userKey!, refreshedCredentials);
   });
@@ -217,7 +217,7 @@ async function saveOauthClientCredentials(store: CredentialStore, userKey: strin
       ...savedCredentials,
       expiry_date: tokens.expiry_date,
       access_token: tokens.access_token,
-      id_token: tokens.access_token,
+      id_token: tokens.id_token,
     };
     debug('Saving refreshed credentials for user %s', userKey);
     await store.save(userKey, refreshedCredentials);

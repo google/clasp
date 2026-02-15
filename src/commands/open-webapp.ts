@@ -44,7 +44,7 @@ export const command = new Command('open-web-app')
       const choices = deployments.results.map(deployment => {
         const description = ellipsize(deployment.deploymentConfig?.description ?? '', 30);
         const versionNumber = (deployment.deploymentConfig?.versionNumber?.toString() ?? 'HEAD').padEnd(4);
-        const name = `${description}@${versionNumber}} - ${deployment.deploymentId}`;
+        const name = `${description}@${versionNumber} - ${deployment.deploymentId}`;
         return {
           name: name,
           value: deployment.deploymentId,

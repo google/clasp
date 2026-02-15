@@ -246,7 +246,15 @@ async function findProjectRootdDir(configFilePath?: string) {
   debug('Searching for project root');
   if (configFilePath) {
     debug('Checking for config file at %s', configFilePath);
-    const info = await fs.stat(configFilePath);
+    let info: Awaited<ReturnType<typeof fs.stat>>;
+    try {
+      info = await fs.stat(configFilePath);
+    } catch (error) {
+      if (isPathNotFoundError(error)) {
+        throw new Error(`Invalid --project path: ${configFilePath}. File or directory does not exist.`);
+      }
+      throw error;
+    }
     if (info.isDirectory()) {
       debug('Is directory, trying file');
       configFilePath = path.join(configFilePath, '.clasp.json');
@@ -279,7 +287,15 @@ async function findIgnoreFile(projectDir: string, configFilePath?: string) {
   debug('Searching for ignore file');
   if (configFilePath) {
     debug('Checking for ignore file at %s', configFilePath);
-    const info = await fs.stat(configFilePath);
+    let info: Awaited<ReturnType<typeof fs.stat>>;
+    try {
+      info = await fs.stat(configFilePath);
+    } catch (error) {
+      if (isPathNotFoundError(error)) {
+        throw new Error(`Invalid --ignore path: ${configFilePath}. File or directory does not exist.`);
+      }
+      throw error;
+    }
     if (info.isDirectory()) {
       debug('Is directory, trying file');
       configFilePath = path.join(configFilePath, '.claspignore');
@@ -327,4 +343,11 @@ function firstValue<T>(values: T | T[] | undefined): T | undefined {
     return values[0];
   }
   return values as T | undefined;
+}
+
+function isPathNotFoundError(error: unknown): error is NodeJS.ErrnoException {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  return (error as NodeJS.ErrnoException).code === 'ENOENT' || (error as NodeJS.ErrnoException).code === 'ENOTDIR';
 }

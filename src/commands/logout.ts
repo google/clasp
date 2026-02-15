@@ -41,7 +41,7 @@ export const command = new Command('logout').description('Logout of clasp').acti
     return;
   }
 
-  auth.credentialStore?.delete(auth.user);
+  await auth.credentialStore?.delete(auth.user);
 
   if (options.json) {
     console.log(JSON.stringify({success: true}, null, 2));

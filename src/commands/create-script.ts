@@ -141,7 +141,7 @@ export const command = new Command('create-script')
     const files = await withSpinner(spinnerMsg, async () => {
       const files = await clasp.files.pull();
       // Update the local .clasp.json with the new scriptId and other settings.
-      clasp.project.updateSettings();
+      await clasp.project.updateSettings();
       return files;
     });
 

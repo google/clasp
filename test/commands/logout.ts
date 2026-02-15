@@ -55,4 +55,34 @@ describe('Logout command', function () {
       expect(json.success).to.be.true;
     });
   });
+
+  describe('With project, authenticated, and unwritable auth file', function () {
+    beforeEach(function () {
+      const authPayload = JSON.stringify({
+        tokens: {
+          default: {
+            type: 'authorized_user',
+            client_id: '123456789000-custom.apps.googleusercontent.com',
+            client_secret: 'mock-client-secret',
+            refresh_token: 'mock-refresh-token',
+            access_token: 'mock-access-token',
+          },
+        },
+      });
+      mockfs({
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.file({
+          content: authPayload,
+          mode: 0o400,
+        }),
+      });
+    });
+
+    it('should fail and not report success if credential deletion fails', async function () {
+      const out = await runCommand(['logout', '--json']);
+      expect(out.exitCode).to.equal(1);
+      expect(out.stdout).to.not.contain('"success": true');
+      expect(out.stderr).to.contain('EACCES');
+    });
+  });
 });

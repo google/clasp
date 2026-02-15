@@ -56,22 +56,10 @@ function parentDirs(file: string) {
   return parentDirs;
 }
 function isInside(parentPath: string, childPath: string): boolean {
-
   const relative = path.relative(parentPath, childPath);
 
-  return (
-
-    relative !== '' &&
-
-    !relative.startsWith('..') &&
-
-    !path.isAbsolute(relative)
-
-  );
-
+  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
 }
-
-
 
 async function getLocalFiles(rootDir: string, ignorePatterns: string[], recursive: boolean) {
   debug('Collecting files in %s', rootDir);
@@ -207,7 +195,7 @@ export class Files {
     this.options = options;
   }
 
-/**
+  /**
    * Fetches the content of a script project from Google Drive.
    */
   async fetchRemote(versionNumber?: number): Promise<ProjectFile[]> {
@@ -241,7 +229,7 @@ export class Files {
         // This prevents traversal (../../) and prefix attacks (/foo/bar vs /foo/bar1)
         if (!isInside(absoluteContentDir, resolvedPath)) {
           throw new Error(
-            `Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`
+            `Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`,
           );
         }
 
@@ -601,4 +589,3 @@ function extractSyntaxError(error: GaxiosError, files: ProjectFile[]) {
   snippet = preLines + '\n' + errLine + '\n' + postLines;
   return {message, snippet}; // Return the formatted message and snippet.
 }
-

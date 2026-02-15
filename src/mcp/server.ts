@@ -197,7 +197,7 @@ export function buildMcpServer(auth: AuthInfo) {
           content: [
             {
               type: 'text',
-              text: `Error pushing project: ${err.message}`,
+              text: `Error cloning project: ${err.message}`,
             },
           ],
         };
@@ -294,7 +294,7 @@ export function buildMcpServer(auth: AuthInfo) {
           content: [
             {
               type: 'text',
-              text: `Error pushing project: ${err.message}`,
+              text: `Error creating project: ${err.message}`,
             },
           ],
         };
@@ -365,7 +365,7 @@ export function buildMcpServer(auth: AuthInfo) {
         // Pull files from the specified remote script ID.
         const files = await clasp.files.pull();
         // Create/update the .clasp.json file with the cloned script's ID and settings.
-        clasp.project.updateSettings();
+        await clasp.project.updateSettings();
 
         const fileList: Array<TextContent> = files.map(file => ({
           type: 'text',
@@ -394,7 +394,7 @@ export function buildMcpServer(auth: AuthInfo) {
           content: [
             {
               type: 'text',
-              text: `Error pushing project: ${err.message}`,
+              text: `Error cloning project: ${err.message}`,
             },
           ],
         };
