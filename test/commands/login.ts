@@ -19,6 +19,7 @@ import {expect} from 'chai';
 import esmock from 'esmock';
 import {after, before, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
+import {buildScopes, mergeScopes, parseExtraScopes} from '../../src/commands/login.js';
 import {useChaiExtensions} from '../helpers.js';
 import {resetMocks, setupMocks} from '../mocks.js';
 import type {CommandResult} from './utils.js';
@@ -66,6 +67,74 @@ describe('Login command', function () {
     });
   });
 
+  describe('mergeScopes', function () {
+    it('returns default scopes when project scopes are undefined', function () {
+      const defaultScopes = ['scopeA', 'scopeB'];
+      expect(mergeScopes(defaultScopes)).to.deep.equal(defaultScopes);
+    });
+
+    it('merges and deduplicates scopes preserving order', function () {
+      const defaultScopes = ['scopeA', 'scopeB'];
+      const projectScopes = ['scopeB', 'scopeC', 'scopeA', 'scopeD'];
+      expect(mergeScopes(defaultScopes, projectScopes)).to.deep.equal(['scopeA', 'scopeB', 'scopeC', 'scopeD']);
+    });
+  });
+
+  describe('parseExtraScopes', function () {
+    it('parses and trims a comma-separated scope list', function () {
+      expect(parseExtraScopes('scopeA, scopeB ,scopeC')).to.deep.equal(['scopeA', 'scopeB', 'scopeC']);
+    });
+
+    it('rejects empty scopes in the list', function () {
+      expect(() => parseExtraScopes('scopeA,,scopeB')).to.throw('comma-separated list of non-empty scopes');
+    });
+  });
+
+  describe('buildScopes', function () {
+    const defaultScopes = ['claspA', 'claspB'];
+    const manifestScopes = ['manifestA', 'manifestB'];
+
+    it('uses default scopes by default', function () {
+      expect(
+        buildScopes({
+          defaultScopes,
+        }),
+      ).to.deep.equal(defaultScopes);
+    });
+
+    it('uses only project scopes when --use-project-scopes is set', function () {
+      expect(
+        buildScopes({
+          defaultScopes,
+          manifestScopes,
+          useProjectScopes: true,
+        }),
+      ).to.deep.equal(manifestScopes);
+    });
+
+    it('combines project and clasp scopes when --include-clasp-scopes is set', function () {
+      expect(
+        buildScopes({
+          defaultScopes,
+          manifestScopes,
+          useProjectScopes: true,
+          includeClaspScopes: true,
+        }),
+      ).to.deep.equal(['claspA', 'claspB', 'manifestA', 'manifestB']);
+    });
+
+    it('adds extra scopes on top of selected base scopes', function () {
+      expect(
+        buildScopes({
+          defaultScopes,
+          manifestScopes,
+          useProjectScopes: true,
+          extraScopes: ['extraA', 'manifestA'],
+        }),
+      ).to.deep.equal(['manifestA', 'manifestB', 'extraA']);
+    });
+  });
+
   describe('Test option redirectPort', function () {
     it('Test setting a valid integer', async function () {
       const port = '8080';
@@ -110,6 +179,31 @@ describe('Login command', function () {
       expect(result.exitCode).to.equal(1);
       expect(result.stdout).to.match(/code:.*commander.invalidArgument/);
       expect(result.message).to.have.string(`'${port}' is not a valid integer`);
+    });
+  });
+
+  describe('Test option extraScopes', function () {
+    it('Test valid comma-separated scopes', async function () {
+      const scopes = 'scopeA,scopeB';
+      const result: CommandResult = await runCommand(['login', '--extra-scopes', scopes]);
+      expect(result.exitCode).to.equal(0);
+    });
+
+    it('Test validation of empty scope in list', async function () {
+      const scopes = 'scopeA,,scopeB';
+      const result: CommandResult = await runCommand(['login', '--extra-scopes', scopes]);
+      expect(result.exitCode).to.equal(1);
+      expect(result.stdout).to.match(/code:.*commander.invalidArgument/);
+      expect(result.message).to.have.string('comma-separated list of non-empty scopes');
+    });
+  });
+
+  describe('Test option includeClaspScopes', function () {
+    it('requires --use-project-scopes', async function () {
+      const result: CommandResult = await runCommand(['login', '--include-clasp-scopes']);
+      expect(result.exitCode).to.equal(1);
+      expect(result.stdout).to.match(/code:.*commander.error/);
+      expect(result.message).to.have.string('--include-clasp-scopes can only be used with --use-project-scopes');
     });
   });
 });
