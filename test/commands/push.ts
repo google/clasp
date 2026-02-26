@@ -76,7 +76,7 @@ describe('Push command', function () {
         scriptId: 'mock-script-id',
       });
       const out = await runCommand(['push']);
-      expect(out.stdout).to.contain('Pushed 2 files');
+      expect(out.stdout).to.match(/Pushed 2 files at .+/);
     });
 
     it('should push files from the rootDir if changed', async function () {
@@ -102,7 +102,7 @@ describe('Push command', function () {
         scriptId: 'mock-script-id',
       });
       const out = await runCommand(['push']);
-      expect(out.stdout).to.contain('Pushed 2 files');
+      expect(out.stdout).to.match(/Pushed 2 files at .+/);
     });
 
     it('should handle manifest update prompt', async function () {
@@ -130,7 +130,7 @@ describe('Push command', function () {
       });
       sinon.stub(inquirer, 'prompt').resolves({overwrite: true});
       const out = await runCommand(['push']);
-      expect(out.stdout).to.contain('Pushed 2 files');
+      expect(out.stdout).to.match(/Pushed 2 files at .+/);
     });
 
     it('should skip push on manifest update reject', async function () {
@@ -159,7 +159,7 @@ describe('Push command', function () {
       sinon.stub(inquirer, 'prompt').resolves({overwrite: false});
       const out = await runCommand(['push']);
       expect(out.stdout).to.contain('Skipping push');
-      expect(out.stdout).to.not.contain('Pushed 2 files');
+      expect(out.stdout).to.not.match(/Pushed 2 files at .+/);
     });
 
     it('should push files as json', async function () {
