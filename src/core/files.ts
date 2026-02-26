@@ -109,6 +109,7 @@ function createFilenameConflictChecker() {
         },
       });
     }
+    files.add(key);
     return file;
   };
 }
