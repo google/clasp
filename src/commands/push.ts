@@ -65,7 +65,8 @@ export const command = new Command('push')
       const files = await withSpinner(spinnerMsg, async () => {
         return clasp.files.push();
       });
-
+      //Generate localised timestamp for the output
+      const timestamp = new Date().toLocaleTimeString();
       if (options.json) {
         console.log(
           JSON.stringify(
@@ -81,12 +82,13 @@ export const command = new Command('push')
       const successMessage = intl.formatMessage(
         {
           defaultMessage: `Pushed {count, plural, 
-        =0 {no files.}
-        one {one file.}
-        other {# files}}.`,
+        =0 {no files}
+        one {one file}
+        other {# files}} at {time}.`,
         },
         {
           count: files.length,
+          time: timestamp,
         },
       );
       console.log(successMessage);
