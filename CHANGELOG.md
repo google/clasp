@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.3.0](https://github.com/google/clasp/compare/v3.2.0...v3.3.0) (2026-02-26)
+
+
+### Features
+
+* support explicit project, clasp, and extra login scopes ([#1122](https://github.com/google/clasp/issues/1122)) ([811ed60](https://github.com/google/clasp/commit/811ed607ad62f29ea98f40d4537a7fb18467e5ed))
+
+
+### Bug Fixes
+
+* detect SERVER_JS basename conflicts ([#1120](https://github.com/google/clasp/issues/1120)) ([f3d9e99](https://github.com/google/clasp/commit/f3d9e99e5934dd346672b97a5c769caccecb4500))
+* Fix incorrect storage of id_token, add missing awaits for some async operations( [#1121](https://github.com/google/clasp/issues/1121)) ([b0fa745](https://github.com/google/clasp/commit/b0fa7453c81fe88e58e10e7fa80ba3fd63746d01))
+* honor skipSubdirectories in project config ([#1117](https://github.com/google/clasp/issues/1117)) ([732db4c](https://github.com/google/clasp/commit/732db4c268210f954fcc61754e74980aa209650c))
+
 ## [3.2.0](https://github.com/google/clasp/compare/v3.1.3...v3.2.0) (2026-02-01)
 
 
