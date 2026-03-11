@@ -114,7 +114,7 @@ The following command provide basic Apps Script project management.
 clasp
 ```
 
-- [`clasp login [--no-localhost] [--creds <file>] [--redirect-port]`](#login)
+- [`clasp login [--no-localhost] [--creds <file>] [--use-project-scopes] [--include-clasp-scopes] [--extra-scopes <scopes>] [--redirect-port]`](#login)
 - [`clasp logout`](#logout)
 - [`clasp show-authorized-user [--json]`](#show-authorized-user)
 - [`clasp create-script [--title <title>] [--type <type>] [--rootDir <dir>] [--parentId <id>]`](#create)
@@ -136,6 +136,7 @@ clasp
 > **NOTE**: These commands require you to add your [Project ID](#projectid-optional).
 
 - [`clasp tail-logs [--json] [--watch] [--simplified]`](#logs)
+- [`clasp setup-logs [--json]`](#setup-logs)
 - [`clasp list-apis`](#apis)
 - [`clasp enable-api<api>`](#apis)
 - [`clasp disable-api <api>`](#apis)
@@ -365,6 +366,9 @@ Logs the user in. Saves the client credentials to a `.clasprc.json` file in the 
 
 - `--no-localhost`: Do not run a local server, manually enter code instead.
 - `--creds <file>`: Use custom credentials used for `clasp run`. Saves a `.clasprc.json` file to current working directory. This file should be private!
+- `--use-project-scopes`: Use scopes from `appsscript.json` instead of default clasp scopes. Useful for `clasp run` when your script requires runtime scopes.
+- `--include-clasp-scopes`: Include default clasp scopes in addition to project scopes from `appsscript.json`. Can only be used with `--use-project-scopes`.
+- `--extra-scopes <scopes>`: Include additional OAuth scopes as a comma-separated list (for example, `scopeA,scopeB`). Empty entries are rejected.
 - `--redirect-port <port>`: Specify a custom port for the local redirect server during the login process. Useful for environments where a specific port is required.
 
 #### Examples
@@ -372,6 +376,9 @@ Logs the user in. Saves the client credentials to a `.clasprc.json` file in the 
 - `clasp login`
 - `clasp login --no-localhost`
 - `clasp login --user test-user --creds client_secret.json`
+- `clasp login --user test-user --use-project-scopes --creds client_secret.json`
+- `clasp login --user test-user --use-project-scopes --include-clasp-scopes --creds client_secret.json`
+- `clasp login --user test-user --extra-scopes https://www.googleapis.com/auth/spreadsheets.readonly,https://www.googleapis.com/auth/drive.readonly --creds client_secret.json`
 - `clasp login --redirect-port 37473`
 
 ### Logout
@@ -638,6 +645,19 @@ N/A
 ## Advanced Commands
 
 > **NOTE**: These commands require Project ID/credentials setup ([see below](#projectid-optional)).
+
+### Setup Logs
+
+Ensures your script is configured with a GCP project ID, which is required to view logs in Cloud Logging with `clasp logs`.
+
+#### Options
+
+- `--json`: Output result in json format.
+
+#### Examples
+
+- `clasp setup-logs`
+- `clasp setup-logs --json`
 
 ### Logs
 

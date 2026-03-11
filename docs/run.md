@@ -46,6 +46,9 @@ To use `clasp run`, you need to complete 5 steps:
     - Download the file (⬇), move it to your directory, and name it `client_secret.json`. Please keep this file secret!
 1. Ensure that the [scopes required to run the script are listed in `appsscript.json`](https://developers.google.com/apps-script/concepts/scopes#set-explicit).
 1. Call `clasp login --user <name> --use-project-scopes --creds client_secret.json`
+    - This authorizes the scopes declared in `appsscript.json`.
+    - If needed, include default clasp scopes with `--include-clasp-scopes`.
+    - If needed, add custom scopes with `--extra-scopes <scopeA,scopeB>`.
 1. Add the following to `appsscript.json`:
       ```json
       "executionApi": {
@@ -82,5 +85,6 @@ To run functions that use these scopes, you must add the scopes to your Apps Scr
 - `clasp open-script`
 - `File > Project Properties > Scopes`
 - Add these [scopes to your `appsscript.json`](https://developers.google.com/apps-script/concepts/scopes#set-explicit).
-- Log in again: `clasp login --user <name> --use-project-scopes --creds creds.json`. This will add these scopes to your credentials.
+- Log in again: `clasp login --user <name> --use-project-scopes --include-clasp-scopes --creds creds.json`. This combines your manifest scopes with default clasp scopes in one credential profile.
+- For additional one-off OAuth scopes, include `--extra-scopes` as a comma-separated list with no empty values.
 - `clasp run --user <name> sendMail`

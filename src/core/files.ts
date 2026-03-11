@@ -109,6 +109,7 @@ function createFilenameConflictChecker() {
         },
       });
     }
+    files.add(key);
     return file;
   };
 }
@@ -444,9 +445,10 @@ export class Files {
     }
 
     const filePushOrder = this.options.files.filePushOrder ?? [];
+    const normalizedFilePushOrder = filePushOrder.map(p => path.normalize(p));
     files.sort((a, b) => {
-      const indexA = filePushOrder.indexOf(a.localPath);
-      const indexB = filePushOrder.indexOf(b.localPath);
+      const indexA = normalizedFilePushOrder.indexOf(path.normalize(a.localPath));
+      const indexB = normalizedFilePushOrder.indexOf(path.normalize(b.localPath));
 
       // If neither file is in the push order, sort them alphabetically.
       if (indexA === -1 && indexB === -1) {
@@ -509,10 +511,10 @@ export class Files {
    */
   checkMissingFilesFromPushOrder(pushedFiles: ProjectFile[]) {
     const missingFiles = [];
-    for (const path of this.options.files.filePushOrder ?? []) {
-      const wasPushed = pushedFiles.find(f => f.localPath === path);
+    for (const p of this.options.files.filePushOrder ?? []) {
+      const wasPushed = pushedFiles.find(f => path.normalize(f.localPath) === path.normalize(p));
       if (!wasPushed) {
-        missingFiles.push(path);
+        missingFiles.push(p);
       }
     }
   }

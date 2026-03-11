@@ -265,6 +265,58 @@ describe('File operations', function () {
     });
   });
 
+  describe('with conflicting local server file names', function () {
+    afterEach(function () {
+      mockfs.restore();
+    });
+
+    it('should reject files with same basename in same directory', async function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'Code.gs': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+
+      try {
+        await clasp.files.collectLocalFiles();
+        expect.fail('Expected collectLocalFiles to fail for conflicting filenames');
+      } catch (error) {
+        const err = error as Error & {cause?: {code?: string; value?: string}};
+        expect(err.cause?.code).to.equal('FILE_CONFLICT');
+        expect(err.cause?.value).to.equal('Code');
+      }
+    });
+
+    it('should allow same basename in different directories', async function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        'subdir/Code.gs': mockfs.load(path.resolve(__dirname, '../fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      const foundFiles = await clasp.files.collectLocalFiles();
+
+      expect(foundFiles).to.have.length(3);
+      expect(foundFiles.map(file => file.remotePath)).to.contain('Code');
+      expect(foundFiles.map(file => file.remotePath)).to.contain('subdir/Code');
+    });
+  });
+
   // Test suite for scenarios where the local project setup is invalid (e.g., missing .clasp.json),
   // even if the user is authenticated. Most operations should fail.
   describe('with invalid project, authenticated', function () {
@@ -351,6 +403,49 @@ describe('File operations', function () {
     it('should not pull files', async function () {
       const clasp = await initClaspInstance({});
       expect(clasp.files.pull()).to.eventually.be.rejectedWith(Error);
+    });
+
+    afterEach(function () {
+      mockfs.restore();
+    });
+  });
+
+  describe('with valid project, filePushOrder set', function () {
+    beforeEach(function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'config.js': 'function config() {}',
+        'utils.js': 'function utils() {}',
+        'triggers.js': 'function triggers() {}',
+        'other.js': 'function other() {}',
+        '.clasp.json': JSON.stringify({
+          scriptId: 'mock-script-id',
+          filePushOrder: ['config.js', 'utils.js', 'triggers.js']
+        }),
+        'package.json': '{}',
+        'node_modules/test/index.js': '',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+
+    it('should push files in specified order', async function () {
+      nock('https://script.googleapis.com')
+        .put(/\/v1\/projects\/.*\/content/, body => {
+          expect(body.files[0].name).to.equal('config');
+          expect(body.files[1].name).to.equal('utils');
+          expect(body.files[2].name).to.equal('triggers');
+          expect(body.files[3].name).to.equal('appsscript');
+          expect(body.files[4].name).to.equal('other');
+          return true;
+        })
+        .reply(200, {});
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      const pushedFiles = await clasp.files.push();
+      expect(pushedFiles).to.have.length(5);
     });
 
     afterEach(function () {
