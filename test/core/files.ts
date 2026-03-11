@@ -265,6 +265,49 @@ describe('File operations', function () {
     });
   });
 
+  describe('with valid project, filePushOrder set using backslashes', function () {
+    beforeEach(function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'src/config.js': 'function config() {}',
+        'src/utils.js': 'function utils() {}',
+        'src/triggers.js': 'function triggers() {}',
+        'src/other.js': 'function other() {}',
+        '.clasp.json': JSON.stringify({
+          scriptId: 'mock-script-id',
+          filePushOrder: ['src\\config.js', 'src\\utils.js', 'src\\triggers.js']
+        }),
+        'package.json': '{}',
+        'node_modules/test/index.js': '',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+
+    it('should push files in specified order', async function () {
+      nock('https://script.googleapis.com')
+        .put(/\/v1\/projects\/.*\/content/, body => {
+          expect(body.files[0].name).to.equal('src/config');
+          expect(body.files[1].name).to.equal('src/utils');
+          expect(body.files[2].name).to.equal('src/triggers');
+          expect(body.files[3].name).to.equal('appsscript');
+          expect(body.files[4].name).to.equal('src/other');
+          return true;
+        })
+        .reply(200, {});
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      const pushedFiles = await clasp.files.push();
+      expect(pushedFiles).to.have.length(5);
+    });
+
+    afterEach(function () {
+      mockfs.restore();
+    });
+  });
+
   describe('with conflicting local server file names', function () {
     afterEach(function () {
       mockfs.restore();
@@ -414,13 +457,13 @@ describe('File operations', function () {
     beforeEach(function () {
       mockfs({
         'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
-        'config.js': 'function config() {}',
-        'utils.js': 'function utils() {}',
-        'triggers.js': 'function triggers() {}',
-        'other.js': 'function other() {}',
+        'src/config.js': 'function config() {}',
+        'src/utils.js': 'function utils() {}',
+        'src/triggers.js': 'function triggers() {}',
+        'src/other.js': 'function other() {}',
         '.clasp.json': JSON.stringify({
           scriptId: 'mock-script-id',
-          filePushOrder: ['config.js', 'utils.js', 'triggers.js']
+          filePushOrder: ['src/config.js', 'src/utils.js', 'src/triggers.js']
         }),
         'package.json': '{}',
         'node_modules/test/index.js': '',
@@ -433,11 +476,11 @@ describe('File operations', function () {
     it('should push files in specified order', async function () {
       nock('https://script.googleapis.com')
         .put(/\/v1\/projects\/.*\/content/, body => {
-          expect(body.files[0].name).to.equal('config');
-          expect(body.files[1].name).to.equal('utils');
-          expect(body.files[2].name).to.equal('triggers');
+          expect(body.files[0].name).to.equal('src/config');
+          expect(body.files[1].name).to.equal('src/utils');
+          expect(body.files[2].name).to.equal('src/triggers');
           expect(body.files[3].name).to.equal('appsscript');
-          expect(body.files[4].name).to.equal('other');
+          expect(body.files[4].name).to.equal('src/other');
           return true;
         })
         .reply(200, {});

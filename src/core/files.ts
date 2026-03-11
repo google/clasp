@@ -445,10 +445,10 @@ export class Files {
     }
 
     const filePushOrder = this.options.files.filePushOrder ?? [];
-    const normalizedFilePushOrder = filePushOrder.map(p => path.normalize(p));
+    const normalizedFilePushOrder = filePushOrder.map(p => normalizePath(p));
     files.sort((a, b) => {
-      const indexA = normalizedFilePushOrder.indexOf(path.normalize(a.localPath));
-      const indexB = normalizedFilePushOrder.indexOf(path.normalize(b.localPath));
+      const indexA = normalizedFilePushOrder.indexOf(normalizePath(a.localPath));
+      const indexB = normalizedFilePushOrder.indexOf(normalizePath(b.localPath));
 
       // If neither file is in the push order, sort them alphabetically.
       if (indexA === -1 && indexB === -1) {
@@ -512,7 +512,7 @@ export class Files {
   checkMissingFilesFromPushOrder(pushedFiles: ProjectFile[]) {
     const missingFiles = [];
     for (const p of this.options.files.filePushOrder ?? []) {
-      const wasPushed = pushedFiles.find(f => path.normalize(f.localPath) === path.normalize(p));
+      const wasPushed = pushedFiles.find(f => normalizePath(f.localPath) === normalizePath(p));
       if (!wasPushed) {
         missingFiles.push(p);
       }
