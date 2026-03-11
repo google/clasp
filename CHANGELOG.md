@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.3.0](https://github.com/google/clasp/compare/v3.2.0...v3.3.0) (2026-03-11)
+
+
+### Features
+
+* **push:** add timestamp to push success message ([#896](https://github.com/google/clasp/issues/896)) ([#1127](https://github.com/google/clasp/issues/1127)) ([8bccc4e](https://github.com/google/clasp/commit/8bccc4e1501e8cc99e9188d515f40e56cf923c67))
+* support explicit project, clasp, and extra login scopes ([#1122](https://github.com/google/clasp/issues/1122)) ([811ed60](https://github.com/google/clasp/commit/811ed607ad62f29ea98f40d4537a7fb18467e5ed))
+
+
+### Bug Fixes
+
+* correct typos in src/auth/auth.ts ([#1132](https://github.com/google/clasp/issues/1132)) ([af09d60](https://github.com/google/clasp/commit/af09d60641a18c5c36cba63f13f926d81adc2b70))
+* detect SERVER_JS basename conflicts ([#1120](https://github.com/google/clasp/issues/1120)) ([f3d9e99](https://github.com/google/clasp/commit/f3d9e99e5934dd346672b97a5c769caccecb4500))
+* Fix incorrect storage of id_token, add missing awaits for some async operations( [#1121](https://github.com/google/clasp/issues/1121)) ([b0fa745](https://github.com/google/clasp/commit/b0fa7453c81fe88e58e10e7fa80ba3fd63746d01))
+* honor skipSubdirectories in project config ([#1117](https://github.com/google/clasp/issues/1117)) ([732db4c](https://github.com/google/clasp/commit/732db4c268210f954fcc61754e74980aa209650c))
+* normalize paths for filePushOrder matching ([#1131](https://github.com/google/clasp/issues/1131)) ([8c7dc52](https://github.com/google/clasp/commit/8c7dc52e1b1a437d4906aeb7972474e77b00b5e4))
+
 ## [3.2.0](https://github.com/google/clasp/compare/v3.1.3...v3.2.0) (2026-02-01)
 
 
