@@ -50,12 +50,16 @@ export class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
   /**
    * Prompts the user to manually open the authorization URL in a browser
    * on another device and then paste the resulting redirect URL (which contains
-   * the authorization code) back into the CLI.
+   * the authorization code) back into the CLI. The returned state parameter
+   * is validated against the expected value to prevent CSRF attacks per
+   * RFC 6749 Section 10.12.
    * @param {string} authorizationUrl - The URL to display to the user for authorization.
+   * @param {string} expectedState - The state value that must match the pasted URL.
    * @returns {Promise<string>} The authorization code extracted from the URL pasted by the user.
-   * @throws {Error} If the pasted URL contains an error or no code.
+   * @throws {Error} If the pasted URL contains an error, the state is missing or
+   * does not match, or no code is present.
    */
-  async promptAndReturnCode(authorizationUrl: string) {
+  async promptAndReturnCode(authorizationUrl: string, expectedState: string) {
     const urlMessage = intl.formatMessage(
       {
         defaultMessage: '🔑 Authorize clasp by visiting this url:\n{url}\n',
@@ -77,13 +81,19 @@ export class ServerlessAuthorizationCodeFlow extends AuthorizationCodeFlow {
         type: 'input',
       },
     ]);
-    const {code, error} = parseAuthResponseUrl(answer.url);
+    const {code, state, error} = parseAuthResponseUrl(answer.url);
     if (error) {
       throw new Error(error);
     }
+    if (!state || state !== expectedState) {
+      const msg = intl.formatMessage({
+        defaultMessage: 'Authorization rejected: state parameter mismatch. This may indicate a CSRF attack.',
+      });
+      throw new Error(msg);
+    }
     if (!code) {
       const msg = intl.formatMessage({
-        defaultMessage: 'Missing code in responde URL',
+        defaultMessage: 'Missing code in response URL',
       });
       throw new Error(msg);
     }
