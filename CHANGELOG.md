@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1](https://github.com/google/clasp/compare/v3.3.0...v3.3.1) (2026-03-25)
+
+
+### Bug Fixes
+
+* prevent OAuth CSRF via missing state parameter in authorization flow ([#1135](https://github.com/google/clasp/issues/1135)) ([8dac6c2](https://github.com/google/clasp/commit/8dac6c23c4b37d8274fabbb9c12fbc8f662c8843))
+
 ## [3.3.0](https://github.com/google/clasp/compare/v3.2.0...v3.3.0) (2026-03-11)
 
 
