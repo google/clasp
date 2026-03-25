@@ -420,7 +420,7 @@ describe('File operations', function () {
         'other.js': 'function other() {}',
         '.clasp.json': JSON.stringify({
           scriptId: 'mock-script-id',
-          filePushOrder: ['config.js', 'utils.js', 'triggers.js']
+          filePushOrder: ['config.js', 'utils.js', 'triggers.js'],
         }),
         'package.json': '{}',
         'node_modules/test/index.js': '',

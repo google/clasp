@@ -23,7 +23,7 @@ import {command as cloneCommand} from './clone-script.js';
 import {command as createDeploymentCommand} from './create-deployment.js';
 import {command as createCommand} from './create-script.js';
 import {command as createVersionCommand} from './create-version.js';
-import {command as deleteDeploymentCOmand} from './delete-deployment.js';
+import {command as deleteDeploymentCommand} from './delete-deployment.js';
 import {command as deleteCommand} from './delete-script.js';
 import {command as disableApiCommand} from './disable-api.js';
 import {command as enableApiCommand} from './enable-api.js';
@@ -71,16 +71,16 @@ export function getVersion() {
  * Creates and configures the main Commander program for the clasp CLI.
  * This includes setting the version, defining global options, registering all commands,
  * and setting up pre-action hooks for auth and Clasp instance initialization.
- * @param { (err: CommanderError) => void } [exitOveride] - Optional function to override
+ * @param { (err: CommanderError) => void } [exitOverride] - Optional function to override
  * the default exit behavior of Commander, primarily for testing.
  * @returns {Command} The configured Commander program instance.
  */
-export function makeProgram(exitOveride?: (err: CommanderError) => void) {
+export function makeProgram(exitOverride?: (err: CommanderError) => void) {
   const version = getVersion();
 
   const program = new Command();
 
-  program.exitOverride(exitOveride);
+  program.exitOverride(exitOverride);
 
   program.storeOptionsAsProperties(false);
 
@@ -129,7 +129,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
   );
 
   program.option('-u,--user <name>', 'Store named credentials. If unspecified, the "default" user is used.', 'default');
-  program.option('--adc', 'Use the application default credentials from the environemnt.');
+  program.option('--adc', 'Use the application default credentials from the environment.');
   program.option('--json', 'Show output in JSON format');
   program.addOption(
     new Option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.").env(
@@ -152,7 +152,7 @@ export function makeProgram(exitOveride?: (err: CommanderError) => void) {
     pullCommand,
     createDeploymentCommand,
     deleteCommand,
-    deleteDeploymentCOmand,
+    deleteDeploymentCommand,
     listDeploymentsCommand,
     updateDeploymentCommand,
     disableApiCommand,

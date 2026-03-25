@@ -145,7 +145,7 @@ export class Clasp {
 export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   debug('Initializing clasp instance');
   // Attempt to find the project root directory and .clasp.json config file.
-  const projectRoot = await findProjectRootdDir(options.configFile);
+  const projectRoot = await findProjectRootDir(options.configFile);
 
   // If no .clasp.json is found, set up a default Clasp instance.
   if (!projectRoot) {
@@ -242,7 +242,7 @@ function readFileExtensions(config: any | undefined) {
     JSON: jsonExtensions.map(fixupExtension),
   };
 }
-async function findProjectRootdDir(configFilePath?: string) {
+async function findProjectRootDir(configFilePath?: string) {
   debug('Searching for project root');
   if (configFilePath) {
     debug('Checking for config file at %s', configFilePath);

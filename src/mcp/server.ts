@@ -219,7 +219,7 @@ export function buildMcpServer(auth: AuthInfo) {
       projectName: z
         .string()
         .optional()
-        .describe('Name of the project. If not provided, the project name will be infered from the directory.'),
+        .describe('Name of the project. If not provided, the project name will be inferred from the directory.'),
     },
     {
       title: 'Create Apps Script project',
