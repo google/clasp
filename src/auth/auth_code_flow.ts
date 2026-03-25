@@ -17,7 +17,17 @@
 // authorization URLs, prompting users for authorization, and exchanging
 // authorization codes for tokens.
 
+import {randomBytes} from 'node:crypto';
 import {OAuth2Client} from 'google-auth-library';
+
+/**
+ * Generates a cryptographically random string suitable for use as an
+ * OAuth 2.0 state parameter. The value is 32 random bytes encoded as
+ * URL-safe base64, giving 256 bits of entropy.
+ */
+export function generateState(): string {
+  return randomBytes(32).toString('base64url');
+}
 
 /**
  * Base class for managing the OAuth 2.0 Authorization Code Flow.
@@ -35,21 +45,24 @@ export class AuthorizationCodeFlow {
 
   /**
    * Initiates the authorization process.
-   * This method generates an authorization URL, prompts the user for authorization,
-   * exchanges the authorization code for tokens, and sets the credentials
-   * on the OAuth2 client.
+   * This method generates an authorization URL with a random state
+   * parameter, prompts the user for authorization, validates the
+   * returned state to prevent CSRF, exchanges the authorization code
+   * for tokens, and sets the credentials on the OAuth2 client.
    * @param {string | string[]} scopes - The scope(s) for which authorization is requested.
    * @returns {Promise<OAuth2Client>} The authorized OAuth2 client.
    */
   async authorize(scopes: string | string[]) {
     const scope = Array.isArray(scopes) ? scopes.join(' ') : scopes;
     const redirectUri = await this.getRedirectUri();
+    const expectedState = generateState();
     const authUrl = this.oauth2Client.generateAuthUrl({
       redirect_uri: redirectUri,
       access_type: 'offline',
       scope: scope,
+      state: expectedState,
     });
-    const code = await this.promptAndReturnCode(authUrl);
+    const code = await this.promptAndReturnCode(authUrl, expectedState);
     const tokens = await this.oauth2Client.getToken({
       code,
       redirect_uri: redirectUri,
@@ -75,27 +88,31 @@ export class AuthorizationCodeFlow {
    * (e.g., via a local server, manual input).
    * @param {string} _authorizationUrl - The URL to which the user should be directed
    * for authorization.
+   * @param {string} _expectedState - The state value that must match the callback.
    * @returns {Promise<string>} The authorization code obtained from the user.
    * @throws {Error} If not implemented by the subclass.
    */
-  async promptAndReturnCode(_authorizationUrl: string): Promise<string> {
+  async promptAndReturnCode(_authorizationUrl: string, _expectedState: string): Promise<string> {
     throw new Error('Not implemented');
   }
 }
 
 /**
  * Parses an authorization response URL (typically from a redirect)
- * to extract the authorization code or an error.
+ * to extract the authorization code, state parameter, or an error.
  * @param {string} url - The full URL from the authorization server's redirect.
- * @returns {{code: string | null; error: string | null}} An object containing
- * the 'code' if successful, or an 'error' if the authorization failed.
+ * @returns {{code: string | null; state: string | null; error: string | null}}
+ * An object containing the 'code' and 'state' if successful, or an 'error'
+ * if the authorization failed.
  */
 export function parseAuthResponseUrl(url: string) {
   const urlParts = new URL(url, 'http://localhost/').searchParams;
   const code = urlParts.get('code');
+  const state = urlParts.get('state');
   const error = urlParts.get('error');
   return {
     code,
+    state,
     error,
   };
 }

@@ -181,6 +181,9 @@ export class FileCredentialStore implements CredentialStore {
   }
 
   private writeFile(store: FileContents) {
-    fs.writeFileSync(this.filePath, JSON.stringify(store, null, 2));
+    fs.writeFileSync(this.filePath, JSON.stringify(store, null, 2), {mode: 0o600});
+    // Ensure restrictive permissions even if the file already existed with
+    // broader permissions. This prevents OAuth tokens from being world-readable.
+    fs.chmodSync(this.filePath, 0o600);
   }
 }

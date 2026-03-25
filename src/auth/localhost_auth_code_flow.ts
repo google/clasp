@@ -87,12 +87,16 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
    * Prompts the user to authorize by opening the provided authorization URL
    * in their default web browser. It then waits for the local server (started by
    * `getRedirectUri`) to receive the callback containing the authorization code.
+   * The returned state parameter is validated against the expected value to
+   * prevent CSRF attacks per RFC 6749 Section 10.12.
    * @param {string} authorizationUrl - The URL to open for user authorization.
+   * @param {string} expectedState - The state value that must match the callback.
    * @returns {Promise<string>} The authorization code extracted from the redirect.
-   * @throws {Error} If the server is not started, the request URL is missing, or an error
-   * parameter is present in the redirect URL.
+   * @throws {Error} If the server is not started, the request URL is missing, the
+   * state parameter is missing or does not match, or an error parameter is present
+   * in the redirect URL.
    */
-  async promptAndReturnCode(authorizationUrl: string) {
+  async promptAndReturnCode(authorizationUrl: string, expectedState: string) {
     return await new Promise<string>((resolve, reject) => {
       if (!this.server) {
         reject(new Error('Server not started'));
@@ -103,11 +107,34 @@ export class LocalServerAuthorizationCodeFlow extends AuthorizationCodeFlow {
           reject(new Error('Missing URL in request'));
           return;
         }
-        const {code, error} = parseAuthResponseUrl(request.url); // Extract code or error from the redirect URL.
+        const {code, state, error} = parseAuthResponseUrl(request.url);
+
+        // Reject requests with an OAuth error from the authorization server.
+        if (error) {
+          const failMsg = intl.formatMessage({
+            defaultMessage: 'Authorization failed. Please try again.',
+          });
+          response.writeHead(400, {'Content-Type': 'text/plain'});
+          response.end(failMsg);
+          reject(new Error(error));
+          return;
+        }
+
+        // Validate the state parameter to prevent CSRF.
+        if (!state || state !== expectedState) {
+          const csrfMsg = intl.formatMessage({
+            defaultMessage: 'Authorization rejected: state parameter mismatch. This may indicate a CSRF attack.',
+          });
+          response.writeHead(400, {'Content-Type': 'text/plain'});
+          response.end(csrfMsg);
+          reject(new Error(csrfMsg));
+          return;
+        }
+
         if (code) {
           resolve(code); // Successfully obtained the authorization code.
         } else {
-          reject(error); // An error occurred during authorization.
+          reject(new Error('Missing authorization code'));
         }
         // Send a simple response to the browser.
         const msg = intl.formatMessage({
