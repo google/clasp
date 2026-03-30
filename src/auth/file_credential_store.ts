@@ -18,7 +18,7 @@
 
 import fs from 'fs';
 import {CredentialStore, StoredCredential} from './credential_store.js';
-import {DEFAULT_CLASP_OAUTH_CLIENT_ID, DEFAULT_CLASP_OAUTH_CLIENT_SECRET} from './oauth_client.js';
+import {DEFAULT_CLASP_OAUTH_CLIENT_ID} from './oauth_client.js';
 
 // Initial .clasprc.json format, single credential per file
 type V1LocalFileFormat = {
@@ -165,7 +165,6 @@ export class FileCredentialStore implements CredentialStore {
         expiry_date: store.exprity_date,
         token_type: store.token_type,
         client_id: DEFAULT_CLASP_OAUTH_CLIENT_ID,
-        client_secret: DEFAULT_CLASP_OAUTH_CLIENT_SECRET,
       };
     }
     return null;
