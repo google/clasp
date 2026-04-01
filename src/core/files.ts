@@ -55,7 +55,7 @@ function parentDirs(file: string) {
   }
   return parentDirs;
 }
-function isInside(parentPath: string, childPath: string): boolean {
+export function isInside(parentPath: string, childPath: string): boolean {
   const relative = path.relative(parentPath, childPath);
 
   return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
