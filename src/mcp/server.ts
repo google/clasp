@@ -16,6 +16,7 @@
 // that exposes clasp functionalities (like push, pull, create, clone, list)
 // as remotely callable tools for programmatic interaction.
 
+import os from 'os';
 import path from 'path';
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {TextContent} from '@modelcontextprotocol/sdk/types.js';
@@ -25,6 +26,30 @@ import {AuthInfo} from '../auth/auth.js';
 import {getDefaultProjectName} from '../commands/create-script.js';
 import {getVersion} from '../commands/program.js';
 import {initClaspInstance} from '../core/clasp.js';
+
+/**
+ * Validates that a projectDir path is confined to a permitted base directory
+ * (the user's home directory or the current working directory).  This prevents
+ * path-traversal attacks where an attacker-controlled MCP tool call supplies an
+ * arbitrary path such as "/etc/" or "/var/www/html/" as projectDir.
+ *
+ * @param projectDir - The raw projectDir value received from the MCP tool call.
+ * @returns An error message string if the path is not permitted, or null if it is safe.
+ */
+function validateProjectDir(projectDir: string): string | null {
+  const resolved = path.resolve(projectDir);
+  const allowedBases = [os.homedir(), process.cwd()];
+  const isAllowed = allowedBases.some(
+    base => resolved === base || resolved.startsWith(base + path.sep),
+  );
+  if (!isAllowed) {
+    return (
+      `Security Error: projectDir must be within the user home directory or ` +
+      `current working directory. Resolved path "${resolved}" is not permitted.`
+    );
+  }
+  return null;
+}
 
 /**
  * Builds and configures an MCP (Model Context Protocol) server with tools
@@ -78,6 +103,16 @@ export function buildMcpServer(auth: AuthInfo) {
               text: 'Project directory is required.',
             },
           ],
+        };
+      }
+
+      // Reject paths outside permitted base directories to prevent path-traversal
+      // attacks where an attacker-controlled MCP call writes/reads arbitrary files.
+      const dirError = validateProjectDir(projectDir);
+      if (dirError) {
+        return {
+          isError: true,
+          content: [{type: 'text', text: dirError}],
         };
       }
 
@@ -156,6 +191,16 @@ export function buildMcpServer(auth: AuthInfo) {
               text: 'Project directory is required.',
             },
           ],
+        };
+      }
+
+      // Reject paths outside permitted base directories to prevent path-traversal
+      // attacks where an attacker-controlled MCP call writes/reads arbitrary files.
+      const dirError = validateProjectDir(projectDir);
+      if (dirError) {
+        return {
+          isError: true,
+          content: [{type: 'text', text: dirError}],
         };
       }
 
@@ -239,6 +284,16 @@ export function buildMcpServer(auth: AuthInfo) {
               text: 'Project directory is required.',
             },
           ],
+        };
+      }
+
+      // Reject paths outside permitted base directories to prevent path-traversal
+      // attacks where an attacker-controlled MCP call writes/reads arbitrary files.
+      const dirError = validateProjectDir(projectDir);
+      if (dirError) {
+        return {
+          isError: true,
+          content: [{type: 'text', text: dirError}],
         };
       }
 
@@ -333,6 +388,16 @@ export function buildMcpServer(auth: AuthInfo) {
               text: 'Project directory is required.',
             },
           ],
+        };
+      }
+
+      // Reject paths outside permitted base directories to prevent path-traversal
+      // attacks where an attacker-controlled MCP call writes/reads arbitrary files.
+      const dirError = validateProjectDir(projectDir);
+      if (dirError) {
+        return {
+          isError: true,
+          content: [{type: 'text', text: dirError}],
         };
       }
 
