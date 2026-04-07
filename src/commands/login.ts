@@ -20,6 +20,7 @@
 
 import {Command, InvalidOptionArgumentError} from 'commander';
 import {AuthInfo, authorize, getUnauthorizedOuth2Client, getUserInfo} from '../auth/auth.js';
+import {KeyringCredentialStore} from '../auth/keyring_credential_store.js';
 import {Clasp} from '../core/clasp.js';
 import {intl} from '../intl.js';
 import {GlobalOptions} from './utils.js';
@@ -89,12 +90,14 @@ interface CommandOptions extends GlobalOptions {
   readonly useProjectScopes?: boolean;
   readonly includeClaspScopes?: boolean;
   readonly extraScopes?: string[];
+  readonly useKeyring?: boolean;
 }
 
 export const command = new Command('login')
   .description('Log in to script.google.com')
   .option('--no-localhost', 'Do not run a local server, manually enter code instead')
   .option('--creds <file>', 'Relative path to OAuth client secret file (from GCP).')
+  .option('--use-keyring', 'Store credentials in the system keyring instead of a file.')
   .option(
     '--use-project-scopes',
     'Use the scopes from the current project manifest. Used only when authorizing access for the run command.',
@@ -111,6 +114,10 @@ export const command = new Command('login')
     const options: CommandOptions = this.optsWithGlobals();
     const auth: AuthInfo = options.authInfo;
     const clasp: Clasp = options.clasp;
+
+    if (options.useKeyring) {
+      auth.credentialStore = new KeyringCredentialStore();
+    }
 
     if (!auth.credentialStore) {
       const msg = intl.formatMessage({

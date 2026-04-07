@@ -24,6 +24,7 @@ import {google} from 'googleapis';
 import {AuthorizationCodeFlow} from './auth_code_flow.js';
 import {CredentialStore} from './credential_store.js';
 import {FileCredentialStore} from './file_credential_store.js';
+import {KeyringCredentialStore} from './keyring_credential_store.js';
 import {LocalServerAuthorizationCodeFlow} from './localhost_auth_code_flow.js';
 import {DEFAULT_CLASP_OAUTH_CLIENT_ID} from './oauth_client.js';
 import {ServerlessAuthorizationCodeFlow} from './serverless_auth_code_flow.js';
@@ -58,7 +59,16 @@ export type AuthInfo = {
  */
 export async function initAuth(options: InitOptions): Promise<AuthInfo> {
   const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
-  const credentialStore = new FileCredentialStore(authFilePath);
+  let credentialStore: CredentialStore = new FileCredentialStore(authFilePath);
+
+  const userKey = options.userKey ?? 'default';
+
+  const keyringStore = new KeyringCredentialStore();
+  const keyringCreds = await keyringStore.load(userKey);
+  if (keyringCreds) {
+    debug('Found credentials in keyring for user %s', userKey);
+    credentialStore = keyringStore;
+  }
 
   debug('Initializing auth from %s', options.authFilePath);
   if (options.useApplicationDefaultCredentials) {
@@ -66,15 +76,15 @@ export async function initAuth(options: InitOptions): Promise<AuthInfo> {
     return {
       credentials,
       credentialStore,
-      user: options.userKey ?? 'default',
+      user: userKey,
     };
   }
 
-  const credentials = await getAuthorizedOAuth2Client(credentialStore, options.userKey);
+  const credentials = await getAuthorizedOAuth2Client(credentialStore, userKey);
   return {
     credentials,
     credentialStore,
-    user: options.userKey ?? 'default',
+    user: userKey,
   };
 }
 

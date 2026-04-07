@@ -48,6 +48,8 @@ import {command as filesStatusCommand} from './show-file-status.js';
 import {command as mcpCommand} from './start-mcp.js';
 import {command as tailLogsCommand} from './tail-logs.js';
 import {command as updateDeploymentCommand} from './update-deployment.js';
+import {command as importCredentialsCommand} from './import-credentials.js';
+import {command as exportCredentialsCommand} from './export-credentials.js';
 
 import {dirname} from 'path';
 import {fileURLToPath} from 'url';
@@ -172,6 +174,8 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
     createVersionCommand,
     listVersionsCommand,
     mcpCommand,
+    importCredentialsCommand,
+    exportCredentialsCommand,
   ];
 
   for (const cmd of commandsToAdd) {
