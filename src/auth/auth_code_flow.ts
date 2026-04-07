@@ -56,16 +56,24 @@ export class AuthorizationCodeFlow {
     const scope = Array.isArray(scopes) ? scopes.join(' ') : scopes;
     const redirectUri = await this.getRedirectUri();
     const expectedState = generateState();
+
+    // Generate PKCE code verifier and challenge
+    const {codeVerifier, codeChallenge} = await this.oauth2Client.generateCodeVerifierAsync();
+
     const authUrl = this.oauth2Client.generateAuthUrl({
       redirect_uri: redirectUri,
       access_type: 'offline',
       scope: scope,
       state: expectedState,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256' as any, // Temporary workaround since @types/google-auth-library isn't fully synced or the type restricts literal strings, but type checking fails without deep import or `any` here.
     });
+
     const code = await this.promptAndReturnCode(authUrl, expectedState);
     const tokens = await this.oauth2Client.getToken({
       code,
       redirect_uri: redirectUri,
+      codeVerifier,
     });
     this.oauth2Client.setCredentials(tokens.tokens);
     return this.oauth2Client;

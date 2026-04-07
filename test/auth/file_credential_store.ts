@@ -14,10 +14,10 @@
 
 // Tests for credential file permission hardening.
 
-import {expect} from 'chai';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import {expect} from 'chai';
 import {afterEach, describe, it} from 'mocha';
 
 import {FileCredentialStore} from '../../src/auth/file_credential_store.js';
