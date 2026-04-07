@@ -25,7 +25,7 @@ import JSON5 from 'json5';
 import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
 import {getUserInfo} from '../auth/auth.js';
-import {Files} from './files.js';
+import {Files, isInside} from './files.js';
 import {Functions} from './functions.js';
 import {Logs} from './logs.js';
 import {Project} from './project.js';
@@ -129,6 +129,13 @@ export class Clasp {
     if (!path.isAbsolute(contentDir)) {
       contentDir = path.resolve(this.options.files.projectRootDir, contentDir);
     }
+    const projectRootDir = this.options.files.projectRootDir;
+    if (contentDir !== projectRootDir && !isInside(projectRootDir, contentDir)) {
+      throw new Error(
+        `Security Error: Content directory "${contentDir}" resolves outside the project root "${projectRootDir}". ` +
+          `This may indicate a path traversal attempt.`,
+      );
+    }
     this.options.files.contentDir = contentDir;
     return this;
   }
@@ -187,6 +194,18 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   const filePushOrder = config.filePushOrder || []; // Default to empty array if not specified.
   // Content directory can be specified by `srcDir` or `rootDir` in .clasp.json, defaulting to project root.
   const contentDir = path.resolve(projectRoot.rootDir, config.srcDir || config.rootDir || '.');
+
+  // SECURITY: Validate that the resolved contentDir does not escape the project root.
+  // An attacker-controlled .clasp.json could set srcDir to a path like "../../.." which
+  // would resolve contentDir to "/" and bypass the isInside() jail check in fetchRemote().
+  if (contentDir !== projectRoot.rootDir && !isInside(projectRoot.rootDir, contentDir)) {
+    throw new Error(
+      `Security Error: srcDir "${config.srcDir ?? config.rootDir}" resolves outside the project root.\n` +
+        `  Resolved path: ${contentDir}\n` +
+        `  Project root:  ${projectRoot.rootDir}\n` +
+        `This may indicate a malicious .clasp.json file attempting path traversal.`,
+    );
+  }
 
   return new Clasp({
     credentials: options.credentials,
