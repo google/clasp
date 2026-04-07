@@ -39,9 +39,7 @@ import {initClaspInstance} from '../core/clasp.js';
 function validateProjectDir(projectDir: string): string | null {
   const resolved = path.resolve(projectDir);
   const allowedBases = [os.homedir(), process.cwd()];
-  const isAllowed = allowedBases.some(
-    base => resolved === base || resolved.startsWith(base + path.sep),
-  );
+  const isAllowed = allowedBases.some(base => resolved === base || resolved.startsWith(base + path.sep));
   if (!isAllowed) {
     return (
       `Security Error: projectDir must be within the user home directory or ` +

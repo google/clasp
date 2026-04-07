@@ -17,7 +17,9 @@
 import {expect} from 'chai';
 import {describe, it} from 'mocha';
 
-import {generateState, parseAuthResponseUrl} from '../../src/auth/auth_code_flow.js';
+import {OAuth2Client} from 'google-auth-library';
+import sinon from 'sinon';
+import {AuthorizationCodeFlow, generateState, parseAuthResponseUrl} from '../../src/auth/auth_code_flow.js';
 
 describe('OAuth state parameter (CSRF protection)', function () {
   describe('generateState', function () {
@@ -42,9 +44,7 @@ describe('OAuth state parameter (CSRF protection)', function () {
 
   describe('parseAuthResponseUrl', function () {
     it('extracts code, state, and error from a URL', function () {
-      const result = parseAuthResponseUrl(
-        'http://localhost:12345?code=test_code&state=test_state',
-      );
+      const result = parseAuthResponseUrl('http://localhost:12345?code=test_code&state=test_state');
       expect(result.code).to.equal('test_code');
       expect(result.state).to.equal('test_state');
       expect(result.error).to.be.null;
@@ -57,11 +57,56 @@ describe('OAuth state parameter (CSRF protection)', function () {
     });
 
     it('extracts error when present', function () {
-      const result = parseAuthResponseUrl(
-        'http://localhost:12345?error=access_denied',
-      );
+      const result = parseAuthResponseUrl('http://localhost:12345?error=access_denied');
       expect(result.error).to.equal('access_denied');
       expect(result.code).to.be.null;
     });
+  });
+});
+
+describe('AuthorizationCodeFlow (PKCE implementation)', function () {
+  it('should pass code challenge and verifier to OAuth2Client', async function () {
+    const oauth2Client = new OAuth2Client();
+
+    const generateCodeVerifierAsyncStub = sinon.stub(oauth2Client, 'generateCodeVerifierAsync').resolves({
+      codeVerifier: 'test_verifier',
+      codeChallenge: 'test_challenge',
+    });
+    const generateAuthUrlStub = sinon.stub(oauth2Client, 'generateAuthUrl').returns('http://auth.url');
+    const getTokenStub = sinon.stub(oauth2Client, 'getToken').resolves({
+      tokens: {access_token: 'test_access_token'},
+      res: null,
+    });
+    const setCredentialsStub = sinon.stub(oauth2Client, 'setCredentials');
+
+    class TestFlow extends AuthorizationCodeFlow {
+      async getRedirectUri() {
+        return 'http://localhost';
+      }
+      async promptAndReturnCode(_url: string, _state: string) {
+        return 'test_auth_code';
+      }
+    }
+
+    const flow = new TestFlow(oauth2Client);
+    await flow.authorize(['scope1', 'scope2']);
+
+    expect(generateCodeVerifierAsyncStub.calledOnce).to.be.true;
+
+    // Verify generateAuthUrl was called with PKCE params
+    const authUrlArgs = generateAuthUrlStub.firstCall.args[0];
+    expect(authUrlArgs).to.include({
+      code_challenge: 'test_challenge',
+      code_challenge_method: 'S256',
+    });
+
+    // Verify getToken was called with PKCE verifier
+    const getTokenArgs = getTokenStub.firstCall.args[0] as any;
+    expect(getTokenArgs).to.include({
+      code: 'test_auth_code',
+      codeVerifier: 'test_verifier',
+    });
+
+    expect(setCredentialsStub.calledOnce).to.be.true;
   });
 });
