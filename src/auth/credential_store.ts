@@ -28,8 +28,9 @@ import {Credentials, JWTInput} from 'google-auth-library';
  * @property {number} [expiry_date] - The expiry date of the access token in milliseconds.
  * @property {string} [type] - The type of credential, e.g., 'authorized_user'.
  * @property {string} [id_token] - The ID token (often same as access_token for clasp's use).
+ * @property {boolean} [is_keyring] - Flag indicating whether the credentials are in the keyring.
  */
-export type StoredCredential = JWTInput & Credentials;
+export type StoredCredential = JWTInput & Credentials & {is_keyring?: boolean};
 
 /**
  * Defines the contract for a credential storage mechanism.
@@ -63,4 +64,10 @@ export interface CredentialStore {
    * @returns {Promise<StoredCredential | null>} The stored credentials, or null if not found.
    */
   load(user: string): Promise<StoredCredential | null>;
+
+  /**
+   * Lists all users that have credentials in the store.
+   * @returns {Promise<string[]>} A list of user identifiers.
+   */
+  listUsers(): Promise<string[]>;
 }

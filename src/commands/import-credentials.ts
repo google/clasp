@@ -15,7 +15,6 @@
 import {Command} from 'commander';
 import {FileCredentialStore} from '../auth/file_credential_store.js';
 import {KeyringCredentialStore} from '../auth/keyring_credential_store.js';
-import {AuthInfo} from '../auth/auth.js';
 import {GlobalOptions} from './utils.js';
 import {intl} from '../intl.js';
 
@@ -25,27 +24,32 @@ export const command = new Command('import-credentials')
   .description('Import credentials from a file into the system keyring')
   .action(async function (this: Command): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
-    const auth: AuthInfo = options.authInfo;
 
     const os = await import('os');
     const path = await import('path');
     const authFilePath = options.auth ?? path.join(os.homedir(), '.clasprc.json');
     const fileStore = new FileCredentialStore(authFilePath);
+    const keyringStore = new KeyringCredentialStore();
 
-    // Check if the user credential exists in the file store
-    const credentials = await fileStore.load(auth.user);
-    if (!credentials) {
+    const users = await fileStore.listUsers();
+
+    if (users.length === 0) {
       const msg = intl.formatMessage({
-        defaultMessage: 'No credentials found to import for user "{user}".',
-      }, {user: auth.user});
+        defaultMessage: 'No credentials found to import.',
+      });
       this.error(msg);
     }
 
-    const keyringStore = new KeyringCredentialStore();
-    await keyringStore.save(auth.user, credentials);
+    for (const user of users) {
+      const credentials = await fileStore.load(user);
+      if (credentials && !credentials.is_keyring) {
+        await keyringStore.save(user, credentials);
+        await fileStore.save(user, {is_keyring: true} as any);
 
-    const msg = intl.formatMessage({
-      defaultMessage: 'Successfully imported credentials for user "{user}" into the system keyring.',
-    }, {user: auth.user});
-    console.log(msg);
+        const msg = intl.formatMessage({
+          defaultMessage: 'Successfully imported credentials for user "{user}" into the system keyring.',
+        }, {user});
+        console.log(msg);
+      }
+    }
   });

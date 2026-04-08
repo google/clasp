@@ -105,6 +105,7 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
       authFilePath: opts.auth, // Path to .clasprc.json
       userKey: opts.user, // User key for multi-user support
       useApplicationDefaultCredentials: opts.adc, // Flag for using ADC
+      useKeyring: opts.useKeyring,
     });
 
     // Initialize the main Clasp instance with the (potentially) authenticated client
@@ -133,6 +134,7 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
   program.option('-u,--user <name>', 'Store named credentials. If unspecified, the "default" user is used.', 'default');
   program.option('--adc', 'Use the application default credentials from the environment.');
   program.option('--json', 'Show output in JSON format');
+  program.option('--use-keyring', 'Use the system keyring for storing and retrieving credentials.');
   program.addOption(
     new Option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.").env(
       'clasp_config_ignore',

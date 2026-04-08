@@ -35,6 +35,7 @@ type InitOptions = {
   authFilePath?: string;
   userKey?: string;
   useApplicationDefaultCredentials?: boolean;
+  useKeyring?: boolean;
 };
 
 /**
@@ -42,11 +43,13 @@ type InitOptions = {
  * @property {OAuth2Client} [credentials] - The authorized OAuth2 client, if logged in.
  * @property {CredentialStore} [credentialStore] - The store used for loading/saving credentials.
  * @property {string} user - The identifier for the current user (e.g., 'default' or a custom key).
+ * @property {string} [authFilePath] - The path to the file store.
  */
 export type AuthInfo = {
   credentials?: OAuth2Client;
   credentialStore?: CredentialStore;
   user: string;
+  authFilePath?: string;
 };
 
 /**
@@ -59,15 +62,18 @@ export type AuthInfo = {
  */
 export async function initAuth(options: InitOptions): Promise<AuthInfo> {
   const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
-  let credentialStore: CredentialStore = new FileCredentialStore(authFilePath);
+  const fileStore = new FileCredentialStore(authFilePath);
+  let credentialStore: CredentialStore = fileStore;
 
   const userKey = options.userKey ?? 'default';
 
-  const keyringStore = new KeyringCredentialStore();
-  const keyringCreds = await keyringStore.load(userKey);
-  if (keyringCreds) {
-    debug('Found credentials in keyring for user %s', userKey);
-    credentialStore = keyringStore;
+  const fileCreds = await fileStore.load(userKey);
+
+  if (options.useKeyring || fileCreds?.is_keyring) {
+    debug('Using keyring store for user %s', userKey);
+    credentialStore = new KeyringCredentialStore();
+    // If they specified --use-keyring but the stub doesn't exist yet, we don't write it here.
+    // It will be written in the login/import process.
   }
 
   debug('Initializing auth from %s', options.authFilePath);
@@ -77,6 +83,7 @@ export async function initAuth(options: InitOptions): Promise<AuthInfo> {
       credentials,
       credentialStore,
       user: userKey,
+      authFilePath,
     };
   }
 
@@ -85,6 +92,7 @@ export async function initAuth(options: InitOptions): Promise<AuthInfo> {
     credentials,
     credentialStore,
     user: userKey,
+    authFilePath,
   };
 }
 

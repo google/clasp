@@ -74,6 +74,15 @@ export class KeyringCredentialStore implements CredentialStore {
   }
 
   /**
+   * Lists all users that have credentials stored in the system keyring for clasp.
+   * @returns {Promise<string[]>} A list of user identifiers.
+   */
+  async listUsers(): Promise<string[]> {
+    const credentials = await findCredentialsAsync(SERVICE_NAME);
+    return credentials.map((cred: any) => cred.account);
+  }
+
+  /**
    * Loads credentials for a given user from the system keyring.
    * @param {string} user - The identifier for the user.
    * @returns {Promise<StoredCredential | null>} The stored credentials if found, otherwise null.

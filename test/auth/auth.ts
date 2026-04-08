@@ -28,6 +28,7 @@ type StoreStub = {
   save: sinon.SinonStub;
   delete: sinon.SinonStub;
   deleteAll: sinon.SinonStub;
+  listUsers: sinon.SinonStub;
 };
 
 function createStoreStub(credentials?: StoredCredential): StoreStub {
@@ -36,6 +37,7 @@ function createStoreStub(credentials?: StoredCredential): StoreStub {
     save: sinon.stub().resolves(),
     delete: sinon.stub().resolves(),
     deleteAll: sinon.stub().resolves(),
+    listUsers: sinon.stub().resolves([]),
   };
 }
 

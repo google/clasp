@@ -15,7 +15,6 @@
 import {Command} from 'commander';
 import {FileCredentialStore} from '../auth/file_credential_store.js';
 import {KeyringCredentialStore} from '../auth/keyring_credential_store.js';
-import {AuthInfo} from '../auth/auth.js';
 import {GlobalOptions} from './utils.js';
 import {intl} from '../intl.js';
 
@@ -25,27 +24,32 @@ export const command = new Command('export-credentials')
   .description('Export credentials from the system keyring into a file')
   .action(async function (this: Command): Promise<void> {
     const options: CommandOptions = this.optsWithGlobals();
-    const auth: AuthInfo = options.authInfo;
 
     const keyringStore = new KeyringCredentialStore();
-    const credentials = await keyringStore.load(auth.user);
-
-    if (!credentials) {
-      const msg = intl.formatMessage({
-        defaultMessage: 'No credentials found in the system keyring for user "{user}".',
-      }, {user: auth.user});
-      this.error(msg);
-    }
-
     const os = await import('os');
     const path = await import('path');
     const authFilePath = options.auth ?? path.join(os.homedir(), '.clasprc.json');
     const fileStore = new FileCredentialStore(authFilePath);
 
-    await fileStore.save(auth.user, credentials);
+    const users = await keyringStore.listUsers();
 
-    const msg = intl.formatMessage({
-      defaultMessage: 'Successfully exported credentials for user "{user}" from the system keyring to a file.',
-    }, {user: auth.user});
-    console.log(msg);
+    if (users.length === 0) {
+      const msg = intl.formatMessage({
+        defaultMessage: 'No credentials found in the system keyring to export.',
+      });
+      this.error(msg);
+    }
+
+    for (const user of users) {
+      const credentials = await keyringStore.load(user);
+      if (credentials) {
+        await fileStore.save(user, credentials);
+        await keyringStore.delete(user);
+
+        const msg = intl.formatMessage({
+          defaultMessage: 'Successfully exported credentials for user "{user}" from the system keyring to a file.',
+        }, {user});
+        console.log(msg);
+      }
+    }
   });

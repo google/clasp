@@ -99,6 +99,15 @@ describe('KeyringCredentialStore', () => {
     expect(creds).to.be.null;
   });
 
+  it('should list all users', async () => {
+    const store = new KeyringCredentialStore();
+    const users = await store.listUsers();
+
+    expect(findCredentialsAsyncStub.calledOnce).to.be.true;
+    expect(findCredentialsAsyncStub.firstCall.args[0]).to.equal('clasp');
+    expect(users).to.deep.equal(['user1', 'user2']);
+  });
+
   it('should return null if getting password throws an error', async () => {
     getPasswordStub.rejects(new Error('Some DBus Error'));
     const store = new KeyringCredentialStore();
