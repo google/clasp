@@ -550,16 +550,43 @@ export class Files {
         debug('Skipping file with undefined localPath.');
         return;
       }
-      const resolvedWritePath = await fs.realpath(path.resolve(file.localPath)).catch(() => path.resolve(file.localPath));
-      if (!isInside(absoluteContentDir, resolvedWritePath)) {
-        debug('Skipping file outside content dir: %s', resolvedWritePath);
+
+      const targetPath = path.resolve(absoluteContentDir, file.localPath);
+
+      if (!isInside(absoluteContentDir, targetPath)) {
+        debug('Skipping file outside content dir: %s', targetPath);
         return;
       }
-      const localDirname = path.dirname(resolvedWritePath);
-      if (localDirname !== '.') {
+
+      try {
+        const realPath = await fs.realpath(targetPath);
+        if (realPath !== targetPath) {
+          debug('Skipping symlink target: %s -> %s', targetPath, realPath);
+          return;
+        }
+      } catch {
+        // File doesn't exist yet, proceed
+      }
+
+      const localDirname = path.dirname(targetPath);
+      if (localDirname !== absoluteContentDir) {
         await fs.mkdir(localDirname, {recursive: true});
       }
-      await fs.writeFile(resolvedWritePath, file.source);
+
+      try {
+        const fd = await fs.open(targetPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC | fs.constants.O_NOFOLLOW, 0o644);
+        try {
+          await fs.writeFile(fd, file.source);
+        } finally {
+          await fd.close();
+        }
+      } catch (err: any) {
+        if (err.code === 'ELOOP' || err.code === 'EUNKNOWN') {
+          debug('Skipping symlink: %s', targetPath);
+          return;
+        }
+        throw err;
+      }
     };
     return await pMap(files, mapper);
   }
