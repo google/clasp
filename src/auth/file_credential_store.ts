@@ -180,9 +180,53 @@ export class FileCredentialStore implements CredentialStore {
   }
 
   private writeFile(store: FileContents) {
-    fs.writeFileSync(this.filePath, JSON.stringify(store, null, 2), {mode: 0o600});
-    // Ensure restrictive permissions even if the file already existed with
-    // broader permissions. This prevents OAuth tokens from being world-readable.
+    // SECURITY: Check for symlink attack before writing
+    // An attacker could replace the cred file with a symlink to exfiltrate tokens
+    if (fs.existsSync(this.filePath)) {
+      const lstat = fs.lstatSync(this.filePath);
+      if (lstat.isSymbolicLink()) {
+        throw new Error(
+          `Security Error: Credential file is a symlink.\n` +
+            `  Path: "${this.filePath}"\n` +
+            `Remove the symlink and run login again.`,
+        );
+      }
+    }
+
+    const content = JSON.stringify(store, null, 2);
+
+    // SECURITY: Write with O_NOFOLLOW to prevent symlink following race
+    // O_EXCL prevents race where attacker creates symlink between check and write
+    try {
+      const fd = fs.openSync(
+        this.filePath,
+        fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC |
+        fs.constants.O_NOFOLLOW | fs.constants.O_EXCL,
+        0o600
+      );
+      try {
+        fs.writeSync(fd, content);
+      } finally {
+        fs.closeSync(fd);
+      }
+    } catch (err: any) {
+      // EEXIST means file was created during race (symlink attack likely)
+      if (err.code === 'EEXIST') {
+        throw new Error(
+          `Security Error: Credential file created during write - possible race attack.\n` +
+            `  Path: "${this.filePath}"`,
+        );
+      }
+      if (err.code === 'ELOOP') {
+        throw new Error(
+          `Security Error: Symlink loop detected in credential path.\n` +
+            `  Path: "${this.filePath}"`,
+        );
+      }
+      throw err;
+    }
+
+    // Ensure restrictive permissions even if the file already existed
     fs.chmodSync(this.filePath, 0o600);
   }
 }

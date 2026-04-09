@@ -15,7 +15,7 @@
 // This file contains functions for initializing and managing authentication,
 // including OAuth2 client creation, authorization flows, and credential storage.
 
-import {readFileSync} from 'fs';
+import fs, {readFileSync} from 'fs';
 import os from 'os';
 import path from 'path';
 import Debug from 'debug';
@@ -63,13 +63,31 @@ export async function initAuth(options: InitOptions): Promise<AuthInfo> {
   // SECURITY: Validate credential file path stays within home directory
   // Prevents attacks where --auth is set to world-readable locations like /tmp
   const homedir = os.homedir();
-  const isInHome = authFilePath === homedir || authFilePath.startsWith(homedir + path.sep);
+  const homedirReal = fs.realpathSync(homedir);
+  const isInHome = authFilePath === homedir ||
+    authFilePath === homedirReal ||
+    authFilePath.startsWith(homedir + path.sep) ||
+    authFilePath.startsWith(homedirReal + path.sep);
+
   if (!isInHome) {
     throw new Error(
       `Security Error: Credential file must be within home directory (${homedir}).\n` +
         `  Received: "${rawPath}"\n` +
         `  Resolved: "${authFilePath}"`,
     );
+  }
+
+  // SECURITY: Check if credential file is a symlink (possible attack)
+  // An attacker could create ~/safe.json -> /tmp/evil.json to bypass home check
+  if (fs.existsSync(authFilePath)) {
+    const lstat = fs.lstatSync(authFilePath);
+    if (lstat.isSymbolicLink()) {
+      throw new Error(
+        `Security Error: Credential file is a symlink.\n` +
+          `  Path: "${authFilePath}"\n` +
+          `Remove the symlink and run login again.`,
+      );
+    }
   }
 
   const credentialStore = new FileCredentialStore(authFilePath);
