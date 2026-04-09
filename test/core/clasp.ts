@@ -58,4 +58,38 @@ describe('Clasp core real filesystem behavior', function () {
       await expect(clasp.project.setProjectId('mock-project-id')).to.eventually.be.rejectedWith('ENOENT');
     });
   });
+
+  it('should reject absolute srcDir paths', async function () {
+    await withTempDir('clasp-absolute-srcdir-', async tempDir => {
+      await fs.mkdir(path.join(tempDir, 'src'), {recursive: true});
+      await fs.writeFile(
+        path.join(tempDir, '.clasp.json'),
+        JSON.stringify({scriptId: 'test-id', srcDir: '/etc'}),
+      );
+      await fs.writeFile(
+        path.join(tempDir, 'src', 'appsscript.json'),
+        '{"timeZone":"America/New_York"}',
+      );
+      await expect(initClaspInstance({rootDir: tempDir})).to.eventually.be.rejectedWith(
+        /Security Error: srcDir must be a relative path/,
+      );
+    });
+  });
+
+  it('should reject srcDir with traversal sequences', async function () {
+    await withTempDir('clasp-traversal-srcdir-', async tempDir => {
+      await fs.mkdir(path.join(tempDir, 'src'), {recursive: true});
+      await fs.writeFile(
+        path.join(tempDir, '.clasp.json'),
+        JSON.stringify({scriptId: 'test-id', srcDir: '../etc'}),
+      );
+      await fs.writeFile(
+        path.join(tempDir, 'src', 'appsscript.json'),
+        '{"timeZone":"America/New_York"}',
+      );
+      await expect(initClaspInstance({rootDir: tempDir})).to.eventually.be.rejectedWith(
+        /Security Error: srcDir contains path traversal sequences/,
+      );
+    });
+  });
 });

@@ -192,12 +192,32 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   // Determine file extensions, push order, and content directory from the loaded config.
   const fileExtensions = readFileExtensions(config);
   const filePushOrder = config.filePushOrder || []; // Default to empty array if not specified.
-  // Content directory can be specified by `srcDir` or `rootDir` in .clasp.json, defaulting to project root.
-  const contentDir = path.resolve(projectRoot.rootDir, config.srcDir || config.rootDir || '.');
 
-  // SECURITY: Validate that the resolved contentDir does not escape the project root.
-  // An attacker-controlled .clasp.json could set srcDir to a path like "../../.." which
-  // would resolve contentDir to "/" and bypass the isInside() jail check in fetchRemote().
+  // Content directory can be specified by `srcDir` or `rootDir` in .clasp.json, defaulting to project root.
+  const rawSrcDir = config.srcDir || config.rootDir || '.';
+
+  // SECURITY: Reject absolute paths - srcDir must be relative to project root
+  if (path.isAbsolute(rawSrcDir)) {
+    throw new Error(
+      `Security Error: srcDir must be a relative path, not absolute.\n` +
+        `  Received: "${rawSrcDir}"\n` +
+        `This may indicate a malicious .clasp.json file attempting path traversal.`,
+    );
+  }
+
+  // SECURITY: Check for traversal sequences before path resolution
+  const normalizedRaw = path.normalize(rawSrcDir);
+  if (normalizedRaw.startsWith('..') || normalizedRaw.includes('../')) {
+    throw new Error(
+      `Security Error: srcDir contains path traversal sequences.\n` +
+        `  Received: "${rawSrcDir}"\n` +
+        `This may indicate a malicious .clasp.json file attempting path traversal.`,
+    );
+  }
+
+  const contentDir = path.resolve(projectRoot.rootDir, rawSrcDir);
+
+  // Final validation: ensure resolved path is strictly within project root
   if (contentDir !== projectRoot.rootDir && !isInside(projectRoot.rootDir, contentDir)) {
     throw new Error(
       `Security Error: srcDir "${config.srcDir ?? config.rootDir}" resolves outside the project root.\n` +
