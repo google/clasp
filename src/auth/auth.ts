@@ -77,19 +77,6 @@ export async function initAuth(options: InitOptions): Promise<AuthInfo> {
     );
   }
 
-  // SECURITY: Check if credential file is a symlink (possible attack)
-  // An attacker could create ~/safe.json -> /tmp/evil.json to bypass home check
-  if (fs.existsSync(authFilePath)) {
-    const lstat = fs.lstatSync(authFilePath);
-    if (lstat.isSymbolicLink()) {
-      throw new Error(
-        `Security Error: Credential file is a symlink.\n` +
-          `  Path: "${authFilePath}"\n` +
-          `Remove the symlink and run login again.`,
-      );
-    }
-  }
-
   const credentialStore = new FileCredentialStore(authFilePath);
 
   debug('Initializing auth from %s', options.authFilePath);

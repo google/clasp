@@ -180,9 +180,11 @@ export class FileCredentialStore implements CredentialStore {
   }
 
   private writeFile(store: FileContents) {
+    const content = JSON.stringify(store, null, 2);
+    const fileExists = fs.existsSync(this.filePath);
+
     // SECURITY: Check for symlink attack before writing
-    // An attacker could replace the cred file with a symlink to exfiltrate tokens
-    if (fs.existsSync(this.filePath)) {
+    if (fileExists) {
       const lstat = fs.lstatSync(this.filePath);
       if (lstat.isSymbolicLink()) {
         throw new Error(
@@ -193,25 +195,24 @@ export class FileCredentialStore implements CredentialStore {
       }
     }
 
-    const content = JSON.stringify(store, null, 2);
-
     // SECURITY: Write with O_NOFOLLOW to prevent symlink following race
-    // O_EXCL prevents race where attacker creates symlink between check and write
+    // For new files: use O_EXCL to prevent race with symlink creation
+    // For existing files: use O_NOFOLLOW only (O_EXCL would fail on existing files)
+    const flags = fileExists
+      ? fs.constants.O_WRONLY | fs.constants.O_TRUNC | fs.constants.O_NOFOLLOW
+      : fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC |
+        fs.constants.O_NOFOLLOW | fs.constants.O_EXCL;
+
     try {
-      const fd = fs.openSync(
-        this.filePath,
-        fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC |
-        fs.constants.O_NOFOLLOW | fs.constants.O_EXCL,
-        0o600
-      );
+      const fd = fs.openSync(this.filePath, flags, 0o600);
       try {
         fs.writeSync(fd, content);
       } finally {
         fs.closeSync(fd);
       }
     } catch (err: any) {
-      // EEXIST means file was created during race (symlink attack likely)
-      if (err.code === 'EEXIST') {
+      // EEXIST with O_EXCL means file was created during race (symlink attack likely)
+      if (err.code === 'EEXIST' && !fileExists) {
         throw new Error(
           `Security Error: Credential file created during write - possible race attack.\n` +
             `  Path: "${this.filePath}"`,
