@@ -533,23 +533,33 @@ export class Files {
     assertScriptConfigured(this.options);
 
     const files = await this.fetchRemote(version);
-    await this.WriteFiles(files);
+    await this.WriteFiles(files, this.options.files.contentDir);
     return files;
   }
 
-  private async WriteFiles(files: ProjectFile[]) {
+  private async WriteFiles(files: ProjectFile[], contentDir: string) {
     debug('Writing files');
+    const absoluteContentDir = path.resolve(contentDir);
     const mapper = async (file: ProjectFile) => {
       debug('Write file %s', path.resolve(file.localPath));
       if (!file.source) {
         debug('Skipping empty file.');
         return;
       }
-      const localDirname = path.dirname(file.localPath);
+      if (!file.localPath) {
+        debug('Skipping file with undefined localPath.');
+        return;
+      }
+      const resolvedWritePath = await fs.realpath(path.resolve(file.localPath)).catch(() => path.resolve(file.localPath));
+      if (!isInside(absoluteContentDir, resolvedWritePath)) {
+        debug('Skipping file outside content dir: %s', resolvedWritePath);
+        return;
+      }
+      const localDirname = path.dirname(resolvedWritePath);
       if (localDirname !== '.') {
         await fs.mkdir(localDirname, {recursive: true});
       }
-      await fs.writeFile(file.localPath, file.source);
+      await fs.writeFile(resolvedWritePath, file.source);
     };
     return await pMap(files, mapper);
   }
