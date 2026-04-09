@@ -540,6 +540,13 @@ export class Files {
   private async WriteFiles(files: ProjectFile[], contentDir: string) {
     debug('Writing files');
     const absoluteContentDir = path.resolve(contentDir);
+
+    // SECURITY: Validate contentDir hasn't been swapped with symlink
+    const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
+    if (realContentDir !== absoluteContentDir) {
+      throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
+    }
+
     const mapper = async (file: ProjectFile) => {
       debug('Write file %s', path.resolve(file.localPath));
       if (!file.source) {
@@ -550,6 +557,7 @@ export class Files {
         debug('Skipping file with undefined localPath.');
         return;
       }
+<<<<<<< Updated upstream
       const resolvedWritePath = await fs.realpath(path.resolve(file.localPath)).catch(() => path.resolve(file.localPath));
       if (!isInside(absoluteContentDir, resolvedWritePath)) {
         debug('Skipping file outside content dir: %s', resolvedWritePath);
@@ -560,6 +568,87 @@ export class Files {
         await fs.mkdir(localDirname, {recursive: true});
       }
       await fs.writeFile(resolvedWritePath, file.source);
+=======
+
+      const targetPath = path.resolve(absoluteContentDir, file.localPath);
+
+      // Validate target is strictly inside content directory
+      if (!isInside(absoluteContentDir, targetPath)) {
+        debug('Skipping file outside content dir: %s', targetPath);
+        return;
+      }
+
+      // SECURITY: Validate parent directory chain to prevent dir-level races
+      const parentDir = path.dirname(targetPath);
+      if (parentDir !== absoluteContentDir) {
+        // Check each parent directory component for symlink attacks
+        let current = parentDir;
+        while (current !== absoluteContentDir && current.length > absoluteContentDir.length) {
+          try {
+            const realCurrent = await fs.realpath(current);
+            if (realCurrent !== current) {
+              debug('Security: Parent dir is symlink: %s -> %s', current, realCurrent);
+              return;
+            }
+          } catch {
+            // Dir doesn't exist yet, will create
+          }
+          current = path.dirname(current);
+        }
+
+        // Create directories atomically
+        await fs.mkdir(parentDir, {recursive: true});
+
+        // Re-validate after creation - dir could have been swapped
+        try {
+          const realParent = await fs.realpath(parentDir);
+          if (!isInside(realContentDir, realParent)) {
+            debug('Security: Parent dir escaped after creation: %s', realParent);
+            return;
+          }
+        } catch {
+          return;
+        }
+      }
+
+      // SECURITY: Check if target is already a symlink
+      try {
+        const lstat = await fs.lstat(targetPath);
+        if (lstat.isSymbolicLink()) {
+          debug('Security: Target is existing symlink: %s', targetPath);
+          return;
+        }
+      } catch {
+        // File doesn't exist, safe to proceed
+      }
+
+      // SECURITY: Atomic write with O_NOFOLLOW | O_EXCL
+      // O_EXCL prevents race where attacker creates symlink between check and open
+      try {
+        const fd = await fs.open(
+          targetPath,
+          fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC |
+          fs.constants.O_NOFOLLOW | fs.constants.O_EXCL,
+          0o644
+        );
+        try {
+          await fs.writeFile(fd, file.source);
+        } finally {
+          await fd.close();
+        }
+      } catch (err: any) {
+        // EEXIST means file was created during race (symlink attack likely)
+        if (err.code === 'EEXIST') {
+          debug('Security: File created during race, possible symlink attack: %s', targetPath);
+          return;
+        }
+        if (err.code === 'ELOOP') {
+          debug('Security: Symlink loop detected: %s', targetPath);
+          return;
+        }
+        throw err;
+      }
+>>>>>>> Stashed changes
     };
     return await pMap(files, mapper);
   }
