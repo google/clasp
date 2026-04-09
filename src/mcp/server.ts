@@ -311,7 +311,13 @@ export function buildMcpServer(auth: AuthInfo) {
         rootDir: projectDir,
       });
       // Set the content directory (where .js, .html files will go) if specified.
-      clasp.withContentDir(sourceDir ?? '.'); // Defaults to projectDir if sourceDir is not given.
+      if (sourceDir) {
+        const sourceDirError = validateProjectDir(sourceDir);
+        if (sourceDirError) {
+          return {isError: true, content: [{type: 'text', text: sourceDirError}]};
+        }
+      }
+      clasp.withContentDir(sourceDir ?? '.');
       try {
         // Create the new Apps Script project remotely.
         const id = await clasp.project.createScript(projectName);
@@ -422,6 +428,12 @@ export function buildMcpServer(auth: AuthInfo) {
         rootDir: projectDir,
       });
       // Configure the Clasp instance with the target script ID and content directory.
+      if (sourceDir) {
+        const sourceDirError = validateProjectDir(sourceDir);
+        if (sourceDirError) {
+          return {isError: true, content: [{type: 'text', text: sourceDirError}]};
+        }
+      }
       clasp.withContentDir(sourceDir ?? '.').withScriptId(scriptId);
 
       try {
