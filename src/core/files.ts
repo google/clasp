@@ -538,120 +538,107 @@ export class Files {
   }
 
   private async WriteFiles(files: ProjectFile[], contentDir: string) {
-    debug('Writing files');
-    const absoluteContentDir = path.resolve(contentDir);
+  debug('Writing files');
 
-    // SECURITY: Validate contentDir hasn't been swapped with symlink
-    const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
-    if (realContentDir !== absoluteContentDir) {
-      throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
+  const absoluteContentDir = path.resolve(contentDir);
+
+  // SECURITY: Validate contentDir isn't a symlink
+  const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
+  if (realContentDir !== absoluteContentDir) {
+    throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
+  }
+
+  const mapper = async (file: ProjectFile) => {
+    if (!file.source || !file.localPath) {
+      debug('Skipping invalid file');
+      return;
     }
 
-    const mapper = async (file: ProjectFile) => {
-      debug('Write file %s', path.resolve(file.localPath));
-      if (!file.source) {
-        debug('Skipping empty file.');
-        return;
-      }
-      if (!file.localPath) {
-        debug('Skipping file with undefined localPath.');
-        return;
-      }
-<<<<<<< Updated upstream
-      const resolvedWritePath = await fs.realpath(path.resolve(file.localPath)).catch(() => path.resolve(file.localPath));
-      if (!isInside(absoluteContentDir, resolvedWritePath)) {
-        debug('Skipping file outside content dir: %s', resolvedWritePath);
-        return;
-      }
-      const localDirname = path.dirname(resolvedWritePath);
-      if (localDirname !== '.') {
-        await fs.mkdir(localDirname, {recursive: true});
-      }
-      await fs.writeFile(resolvedWritePath, file.source);
-=======
+    const targetPath = path.resolve(absoluteContentDir, file.localPath);
 
-      const targetPath = path.resolve(absoluteContentDir, file.localPath);
+    // Ensure file stays inside project dir
+    if (!isInside(realContentDir, targetPath)) {
+      debug('Skipping file outside content dir: %s', targetPath);
+      return;
+    }
 
-      // Validate target is strictly inside content directory
-      if (!isInside(absoluteContentDir, targetPath)) {
-        debug('Skipping file outside content dir: %s', targetPath);
-        return;
-      }
+    const parentDir = path.dirname(targetPath);
 
-      // SECURITY: Validate parent directory chain to prevent dir-level races
-      const parentDir = path.dirname(targetPath);
-      if (parentDir !== absoluteContentDir) {
-        // Check each parent directory component for symlink attacks
-        let current = parentDir;
-        while (current !== absoluteContentDir && current.length > absoluteContentDir.length) {
-          try {
-            const realCurrent = await fs.realpath(current);
-            if (realCurrent !== current) {
-              debug('Security: Parent dir is symlink: %s -> %s', current, realCurrent);
-              return;
-            }
-          } catch {
-            // Dir doesn't exist yet, will create
-          }
-          current = path.dirname(current);
-        }
+    //  Prevent symlink attacks in parent dirs
+    if (parentDir !== realContentDir) {
+      let current = parentDir;
 
-        // Create directories atomically
-        await fs.mkdir(parentDir, {recursive: true});
-
-        // Re-validate after creation - dir could have been swapped
+      while (current !== realContentDir && current.length > realContentDir.length) {
         try {
-          const realParent = await fs.realpath(parentDir);
-          if (!isInside(realContentDir, realParent)) {
-            debug('Security: Parent dir escaped after creation: %s', realParent);
+          const realCurrent = await fs.realpath(current);
+          if (realCurrent !== current) {
+            debug('Security: Parent dir is symlink: %s -> %s', current, realCurrent);
             return;
           }
         } catch {
-          return;
+          // Directory doesn't exist yet
         }
+        current = path.dirname(current);
       }
 
-      // SECURITY: Check if target is already a symlink
+      // Create directory
+      await fs.mkdir(parentDir, { recursive: true });
+
+      // Re-check after creation (race condition protection)
       try {
-        const lstat = await fs.lstat(targetPath);
-        if (lstat.isSymbolicLink()) {
-          debug('Security: Target is existing symlink: %s', targetPath);
+        const realParent = await fs.realpath(parentDir);
+        if (!isInside(realContentDir, realParent)) {
+          debug('Security: Parent dir escaped after creation: %s', realParent);
           return;
         }
       } catch {
-        // File doesn't exist, safe to proceed
+        return;
+      }
+    }
+
+    //  Check if file is symlink
+    try {
+      const stat = await fs.lstat(targetPath);
+      if (stat.isSymbolicLink()) {
+        debug('Security: Target is symlink: %s', targetPath);
+        return;
+      }
+    } catch {
+      // File doesn't exist → safe
+    }
+
+    //  Atomic safe write
+    try {
+      const fd = await fs.open(
+        targetPath,
+        fs.constants.O_WRONLY |
+        fs.constants.O_CREAT |
+        fs.constants.O_TRUNC |
+        fs.constants.O_NOFOLLOW |
+        fs.constants.O_EXCL,
+        0o644
+      );
+
+      try {
+        await fd.writeFile(file.source);
+      } finally {
+        await fd.close();
       }
 
-      // SECURITY: Atomic write with O_NOFOLLOW | O_EXCL
-      // O_EXCL prevents race where attacker creates symlink between check and open
-      try {
-        const fd = await fs.open(
-          targetPath,
-          fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC |
-          fs.constants.O_NOFOLLOW | fs.constants.O_EXCL,
-          0o644
-        );
-        try {
-          await fs.writeFile(fd, file.source);
-        } finally {
-          await fd.close();
-        }
-      } catch (err: any) {
-        // EEXIST means file was created during race (symlink attack likely)
-        if (err.code === 'EEXIST') {
-          debug('Security: File created during race, possible symlink attack: %s', targetPath);
-          return;
-        }
-        if (err.code === 'ELOOP') {
-          debug('Security: Symlink loop detected: %s', targetPath);
-          return;
-        }
-        throw err;
+    } catch (err: any) {
+      if (err.code === 'EEXIST') {
+        debug('Security: File created during race: %s', targetPath);
+        return;
       }
->>>>>>> Stashed changes
-    };
-    return await pMap(files, mapper);
-  }
+      if (err.code === 'ELOOP') {
+        debug('Security: Symlink loop: %s', targetPath);
+        return;
+      }
+      throw err;
+    }
+  };
+
+  return await pMap(files, mapper);
 }
 
 function extractSyntaxError(error: GaxiosError, files: ProjectFile[]) {
