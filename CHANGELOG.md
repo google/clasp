@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.4.0](https://github.com/google/clasp/compare/v3.3.0...v3.4.0) (2026-04-27)
+
+
+### Features
+
+* implement PKCE support in OAuth flows ([#1142](https://github.com/google/clasp/issues/1142)) ([1a1665e](https://github.com/google/clasp/commit/1a1665e30cb557b4cd99769b82de7900599c79b9))
+
+
+### Bug Fixes
+
+* **auth:** remove hardcoded OAuth client secret from published npm package (CWE-798) ([#1139](https://github.com/google/clasp/issues/1139)) ([a678e92](https://github.com/google/clasp/commit/a678e926168b6bb4cbd8eb5a5854eb9c6efd8aa5))
+* **mcp:** validate projectDir against permitted base paths (CWE-22 path traversal) ([#1141](https://github.com/google/clasp/issues/1141)) ([1e8132c](https://github.com/google/clasp/commit/1e8132ceb22c9a3d434ed0f9cc6488b20f38fedf))
+* prevent OAuth CSRF via missing state parameter in authorization flow ([#1135](https://github.com/google/clasp/issues/1135)) ([8dac6c2](https://github.com/google/clasp/commit/8dac6c23c4b37d8274fabbb9c12fbc8f662c8843))
+* **security:** prevent path traversal via srcDir in .clasp.json ([#1140](https://github.com/google/clasp/issues/1140)) ([408448e](https://github.com/google/clasp/commit/408448e72726a33b81256cea871c36beba6e4445))
+* **security:** validate sourceDir MCP parameter and use realpath in WriteFiles ([#1144](https://github.com/google/clasp/issues/1144)) ([4eb9dca](https://github.com/google/clasp/commit/4eb9dcab24a7f89fdfdb5720023908700ea38155))
+
 ## [3.3.0](https://github.com/google/clasp/compare/v3.2.0...v3.3.0) (2026-03-11)
 
 
