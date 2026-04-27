@@ -51,6 +51,8 @@ describe('Consistency between imported and registered commands', () => {
     'start-mcp-server',
     'tail-logs',
     'update-deployment',
+    'import-credentials',
+    'export-credentials',
   ];
 
   it('should register all imported commands', () => {
