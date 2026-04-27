@@ -574,7 +574,11 @@ export class Files {
       }
 
       try {
-        const fd = await fs.open(targetPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC | fs.constants.O_NOFOLLOW, 0o644);
+        const fd = await fs.open(
+          targetPath,
+          fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC | fs.constants.O_NOFOLLOW,
+          0o644,
+        );
         try {
           await fs.writeFile(fd, file.source);
         } finally {
