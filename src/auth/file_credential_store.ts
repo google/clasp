@@ -180,9 +180,54 @@ export class FileCredentialStore implements CredentialStore {
   }
 
   private writeFile(store: FileContents) {
-    fs.writeFileSync(this.filePath, JSON.stringify(store, null, 2), {mode: 0o600});
-    // Ensure restrictive permissions even if the file already existed with
-    // broader permissions. This prevents OAuth tokens from being world-readable.
+    const content = JSON.stringify(store, null, 2);
+    const fileExists = fs.existsSync(this.filePath);
+
+    // SECURITY: Check for symlink attack before writing
+    if (fileExists) {
+      const lstat = fs.lstatSync(this.filePath);
+      if (lstat.isSymbolicLink()) {
+        throw new Error(
+          `Security Error: Credential file is a symlink.\n` +
+            `  Path: "${this.filePath}"\n` +
+            `Remove the symlink and run login again.`,
+        );
+      }
+    }
+
+    // SECURITY: Write with O_NOFOLLOW to prevent symlink following race
+    // For new files: use O_EXCL to prevent race with symlink creation
+    // For existing files: use O_NOFOLLOW only (O_EXCL would fail on existing files)
+    const flags = fileExists
+      ? fs.constants.O_WRONLY | fs.constants.O_TRUNC | fs.constants.O_NOFOLLOW
+      : fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC |
+        fs.constants.O_NOFOLLOW | fs.constants.O_EXCL;
+
+    try {
+      const fd = fs.openSync(this.filePath, flags, 0o600);
+      try {
+        fs.writeSync(fd, content);
+      } finally {
+        fs.closeSync(fd);
+      }
+    } catch (err: any) {
+      // EEXIST with O_EXCL means file was created during race (symlink attack likely)
+      if (err.code === 'EEXIST' && !fileExists) {
+        throw new Error(
+          `Security Error: Credential file created during write - possible race attack.\n` +
+            `  Path: "${this.filePath}"`,
+        );
+      }
+      if (err.code === 'ELOOP') {
+        throw new Error(
+          `Security Error: Symlink loop detected in credential path.\n` +
+            `  Path: "${this.filePath}"`,
+        );
+      }
+      throw err;
+    }
+
+    // Ensure restrictive permissions even if the file already existed
     fs.chmodSync(this.filePath, 0o600);
   }
 }

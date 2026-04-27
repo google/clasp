@@ -15,7 +15,7 @@
 // This file contains functions for initializing and managing authentication,
 // including OAuth2 client creation, authorization flows, and credential storage.
 
-import {readFileSync} from 'fs';
+import fs, {readFileSync} from 'fs';
 import os from 'os';
 import path from 'path';
 import Debug from 'debug';
@@ -57,7 +57,26 @@ export type AuthInfo = {
  * @returns {Promise<AuthInfo>} An AuthInfo object with the credential store and potentially loaded credentials.
  */
 export async function initAuth(options: InitOptions): Promise<AuthInfo> {
-  const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
+  const rawPath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
+  const authFilePath = path.resolve(rawPath);
+
+  // SECURITY: Validate credential file path stays within home directory
+  // Prevents attacks where --auth is set to world-readable locations like /tmp
+  const homedir = os.homedir();
+  const homedirReal = fs.realpathSync(homedir);
+  const isInHome = authFilePath === homedir ||
+    authFilePath === homedirReal ||
+    authFilePath.startsWith(homedir + path.sep) ||
+    authFilePath.startsWith(homedirReal + path.sep);
+
+  if (!isInHome) {
+    throw new Error(
+      `Security Error: Credential file must be within home directory (${homedir}).\n` +
+        `  Received: "${rawPath}"\n` +
+        `  Resolved: "${authFilePath}"`,
+    );
+  }
+
   const credentialStore = new FileCredentialStore(authFilePath);
 
   debug('Initializing auth from %s', options.authFilePath);
