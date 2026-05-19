@@ -137,6 +137,46 @@ describe('Create script command', function () {
       const json = JSON.parse(out.stdout);
       expect(json.scriptId).to.equal('mock-script-id');
     });
+
+    it('should treat --type webapp as a standalone script and print a deployment tip', async function () {
+      mockCreateScript({
+        scriptId: 'mock-script-id',
+        title: getDefaultProjectName(process.cwd()),
+      });
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['create', '--type', 'webapp']);
+      expect('appsscript.json').to.be.a.realFile;
+      expect('Code.js').to.be.a.realFile;
+      expect(out.stdout).to.contain('Cloned');
+      expect(out.stdout).to.contain('web app');
+      expect(out.stdout).to.contain('webApp');
+    });
+
+    it('should treat --type api as a standalone script and print a deployment tip', async function () {
+      mockCreateScript({
+        scriptId: 'mock-script-id',
+        title: getDefaultProjectName(process.cwd()),
+      });
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['create', '--type', 'api']);
+      expect('appsscript.json').to.be.a.realFile;
+      expect('Code.js').to.be.a.realFile;
+      expect(out.stdout).to.contain('Cloned');
+      expect(out.stdout).to.contain('API executable');
+      expect(out.stdout).to.contain('executionApi');
+    });
+
+    it('should reject an unknown --type with a helpful message listing valid types', async function () {
+      const out = await runCommand(['create', '--type', 'spreadsheet']);
+      expect(out.stderr).to.contain('spreadsheet');
+      expect(out.stderr).to.contain('standalone');
+      expect(out.stderr).to.contain('webapp');
+      expect(out.stderr).to.contain('sheets');
+    });
   });
   describe('With existing project, authenticated', function () {
     beforeEach(function () {
