@@ -30,6 +30,12 @@ const DRIVE_FILE_MIMETYPES: Record<string, string> = {
   slides: 'application/vnd.google-apps.presentation',
 };
 
+// Types that produce a standalone script. `webapp` and `api` are accepted as
+// aliases of `standalone` because clasp's `--type` only controls how the
+// script is *created*; deploying it as a web app or API executable happens
+// separately via `clasp create-deployment`.
+const STANDALONE_SCRIPT_TYPES: ReadonlySet<string> = new Set(['standalone', 'webapp', 'api']);
+
 interface CommandOptions extends GlobalOptions {
   readonly parentId?: string;
   readonly rootDir?: string;
@@ -71,13 +77,17 @@ export const command = new Command('create-script')
     let createdParentId: string | undefined;
 
     // Handle container-bound script creation (e.g., for Sheets, Docs, Forms, Slides).
-    if (type && type !== 'standalone') {
+    if (!STANDALONE_SCRIPT_TYPES.has(type)) {
       const mimeType = DRIVE_FILE_MIMETYPES[type]; // Look up MIME type for the specified container type.
       if (!mimeType) {
-        // If the type is invalid or not supported for container-bound scripts.
-        const msg = intl.formatMessage({
-          defaultMessage: 'Invalid container file type',
-        });
+        // If the type is not one of the known standalone or container-bound types.
+        const validTypes = [...STANDALONE_SCRIPT_TYPES, ...Object.keys(DRIVE_FILE_MIMETYPES)].join(', ');
+        const msg = intl.formatMessage(
+          {
+            defaultMessage: 'Invalid script type "{type}". Valid types are: {validTypes}.',
+          },
+          {type, validTypes},
+        );
         this.error(msg);
       }
 
@@ -130,6 +140,22 @@ export const command = new Command('create-script')
           },
         );
         console.log(successMessage);
+
+        // Surface the next step for users who asked for a web app or API
+        // executable. The script itself is always created as standalone;
+        // exposing it as a web app or API happens at deployment time.
+        if (type === 'webapp' || type === 'api') {
+          const deploymentKind = type === 'webapp' ? 'web app' : 'API executable';
+          const manifestField = type === 'webapp' ? 'webApp' : 'executionApi';
+          const deploymentTip = intl.formatMessage(
+            {
+              defaultMessage:
+                'Tip: to deploy this script as a {deploymentKind}, configure "{manifestField}" in appsscript.json and run `clasp create-deployment`.',
+            },
+            {deploymentKind, manifestField},
+          );
+          console.log(deploymentTip);
+        }
       }
     }
 
