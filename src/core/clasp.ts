@@ -192,17 +192,25 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   // Determine file extensions, push order, and content directory from the loaded config.
   const fileExtensions = readFileExtensions(config);
   const filePushOrder = config.filePushOrder || []; // Default to empty array if not specified.
-  // Content directory can be specified by `srcDir` or `rootDir` in .clasp.json, defaulting to project root.
-  const contentDir = path.resolve(projectRoot.rootDir, config.srcDir || config.rootDir || '.');
 
-  // SECURITY: Validate that the resolved contentDir does not escape the project root.
-  // An attacker-controlled .clasp.json could set srcDir to a path like "../../.." which
-  // would resolve contentDir to "/" and bypass the isInside() jail check in fetchRemote().
-  if (contentDir !== projectRoot.rootDir && !isInside(projectRoot.rootDir, contentDir)) {
+  // Content directory can be specified by `srcDir` or `rootDir` in .clasp.json, defaulting to project root.
+  const rawSrcDir = config.srcDir || config.rootDir || '.';
+
+  // SECURITY: Resolve and validate contentDir is strictly within project root.
+  // String-based filtering is bypassable (..\\, %2e%2e/, Unicode, etc).
+  // Rely solely on resolved path validation for security.
+  const contentDir = path.resolve(projectRoot.rootDir, rawSrcDir);
+  const rootDirReal = await fs.realpath(projectRoot.rootDir).catch(() => projectRoot.rootDir);
+
+  // Strict validation: resolved path must be rootDir or properly inside it
+  const isValid = contentDir === projectRoot.rootDir ||
+    (contentDir.startsWith(rootDirReal + path.sep) && isInside(projectRoot.rootDir, contentDir));
+
+  if (!isValid) {
     throw new Error(
-      `Security Error: srcDir "${config.srcDir ?? config.rootDir}" resolves outside the project root.\n` +
-        `  Resolved path: ${contentDir}\n` +
-        `  Project root:  ${projectRoot.rootDir}\n` +
+      `Security Error: srcDir "${config.srcDir ?? config.rootDir}" escapes project root.\n` +
+        `  Resolved: ${contentDir}\n` +
+        `  Project root: ${projectRoot.rootDir}\n` +
         `This may indicate a malicious .clasp.json file attempting path traversal.`,
     );
   }
