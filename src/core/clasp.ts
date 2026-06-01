@@ -203,7 +203,8 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   const rootDirReal = await fs.realpath(projectRoot.rootDir).catch(() => projectRoot.rootDir);
 
   // Strict validation: resolved path must be rootDir or properly inside it
-  const isValid = contentDir === projectRoot.rootDir ||
+  const isValid =
+    contentDir === projectRoot.rootDir ||
     (contentDir.startsWith(rootDirReal + path.sep) && isInside(projectRoot.rootDir, contentDir));
 
   if (!isValid) {
