@@ -603,42 +603,50 @@ export class Files {
         debug('Security: Target is symlink: %s', targetPath);
         return;
       }
-    } catch {
-      // File doesn't exist → safe
-    }
 
-    //  Atomic safe write
-    try {
-      const fd = await fs.open(
-        targetPath,
-        fs.constants.O_WRONLY |
-        fs.constants.O_CREAT |
-        fs.constants.O_TRUNC |
-        fs.constants.O_NOFOLLOW |
-        fs.constants.O_EXCL,
-        0o644
-      );
+      const targetPath = path.resolve(absoluteContentDir, file.localPath);
+
+      if (!isInside(absoluteContentDir, targetPath)) {
+        debug('Skipping file outside content dir: %s', targetPath);
+        return;
+      }
 
       try {
-        await fd.writeFile(file.source);
-      } finally {
-        await fd.close();
+        const realPath = await fs.realpath(targetPath);
+        if (realPath !== targetPath) {
+          debug('Skipping symlink target: %s -> %s', targetPath, realPath);
+          return;
+        }
+      } catch {
+        // File doesn't exist yet, proceed
       }
 
-    } catch (err: any) {
-      if (err.code === 'EEXIST') {
-        debug('Security: File created during race: %s', targetPath);
-        return;
+      const localDirname = path.dirname(targetPath);
+      if (localDirname !== absoluteContentDir) {
+        await fs.mkdir(localDirname, {recursive: true});
       }
-      if (err.code === 'ELOOP') {
-        debug('Security: Symlink loop: %s', targetPath);
-        return;
-      }
-      throw err;
-    }
-  };
 
-  return await pMap(files, mapper);
+      try {
+        const fd = await fs.open(
+          targetPath,
+          fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC | fs.constants.O_NOFOLLOW,
+          0o644,
+        );
+        try {
+          await fs.writeFile(fd, file.source);
+        } finally {
+          await fd.close();
+        }
+      } catch (err: any) {
+        if (err.code === 'ELOOP' || err.code === 'EUNKNOWN') {
+          debug('Skipping symlink: %s', targetPath);
+          return;
+        }
+        throw err;
+      }
+    };
+    return await pMap(files, mapper);
+  }
 }
 
 function extractSyntaxError(error: GaxiosError, files: ProjectFile[]) {
