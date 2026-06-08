@@ -74,9 +74,7 @@ describe('Unknown commands', () => {
     const result = await runCommand(['nonexistentcommand'], false);
 
     expect(result.stderr).to.contain('Unknown command "clasp nonexistentcommand"');
-    // `commander.help` throws when exitOverride is enabled (as runCommand does),
-    // and outputs the help to stdout usually, but let's just check the message and exit code.
-    expect(result.message).to.contain('(outputHelp)');
+    expect(result.stdout).to.contain('Usage: clasp <command> [options]');
 
     // Also the global process.exitCode should be set to 1 by our patch
     expect(process.exitCode).to.equal(1);
