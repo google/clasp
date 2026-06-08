@@ -193,7 +193,5 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
     program.help();
   });
 
-  program.showHelpAfterError();
-
   return program;
 }
