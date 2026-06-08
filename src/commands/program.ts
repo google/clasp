@@ -179,7 +179,7 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
     cmd.copyInheritedSettings(program);
   }
 
-  program.on('command:*', async function (this: Command, op) {
+  program.on('command:*', function (this: Command, op) {
     const msg = intl.formatMessage(
       {
         defaultMessage: 'Unknown command "clasp {command}"',
@@ -188,10 +188,12 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
         command: op[0],
       },
     );
-    this.error(msg as string);
+    console.error(msg as string);
+    process.exitCode = 1;
+    program.help();
   });
 
-  program.error;
+  program.showHelpAfterError();
 
   return program;
 }

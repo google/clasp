@@ -19,6 +19,7 @@ import {expect} from 'chai';
 import {describe, it} from 'mocha';
 
 import {makeProgram} from '../../src/commands/program.js';
+import {runCommand} from './utils.js';
 
 describe('Consistency between imported and registered commands', () => {
   const expectedCommands = [
@@ -65,5 +66,20 @@ describe('Consistency between imported and registered commands', () => {
   it('should have the same number of registered commands as imports', () => {
     const program = makeProgram();
     expect(program.commands).to.length(expectedCommands.length);
+  });
+});
+
+describe('Unknown commands', () => {
+  it('should print help when an unknown command is provided', async () => {
+    const result = await runCommand(['nonexistentcommand'], false);
+
+    expect(result.stderr).to.contain('Unknown command "clasp nonexistentcommand"');
+    // `commander.help` throws when exitOverride is enabled (as runCommand does),
+    // and outputs the help to stdout usually, but let's just check the message and exit code.
+    expect(result.message).to.contain('(outputHelp)');
+
+    // Also the global process.exitCode should be set to 1 by our patch
+    expect(process.exitCode).to.equal(1);
+    process.exitCode = 0; // reset for subsequent tests
   });
 });
