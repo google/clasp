@@ -131,6 +131,18 @@ export class FileCredentialStore implements CredentialStore {
    * @param {string} user - The identifier for the user.
    * @returns {Promise<StoredCredential | null>} The stored credentials if found, otherwise null.
    */
+  async listUsers(): Promise<string[]> {
+    const store: FileContents = this.readFile();
+    const users = new Set(Object.keys(store.tokens || {}));
+
+    // Check for V1 legacy credentials under the default user
+    if (!users.has('default') && (hasLegacyLocalCredentials(store) || hasLegacyGlobalCredentials(store))) {
+      users.add('default');
+    }
+
+    return Array.from(users);
+  }
+
   async load(user: string): Promise<StoredCredential | null> {
     const store: FileContents = this.readFile();
     const credentials = store.tokens?.[user] as StoredCredential;
