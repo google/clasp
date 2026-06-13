@@ -495,4 +495,25 @@ export class Project {
     const manifest: Manifest = JSON.parse(content.toString());
     return manifest;
   }
+
+  /**
+   * Fetch metrics for the Apps Script project.
+   * @returns {Promise<script_v1.Schema$Metrics | undefined>} A promise that resolves to the metrics object.
+   */
+  async getMetrics(): Promise<script_v1.Schema$Metrics | undefined> {
+    debug('Fetching metrics');
+    assertAuthenticated(this.options);
+    assertScriptConfigured(this.options);
+
+    const scriptId = this.options.project.scriptId;
+    const credentials = this.options.credentials;
+
+    const script = google.script({version: 'v1', auth: credentials});
+    try {
+      const res = await script.projects.getMetrics({scriptId});
+      return res.data;
+    } catch (error) {
+      handleApiError(error);
+    }
+  }
 }
