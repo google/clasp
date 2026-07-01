@@ -410,6 +410,34 @@ describe('File operations', function () {
     });
   });
 
+  describe('with valid project, filePushOrder referencing a missing file', function () {
+    beforeEach(function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'config.js': 'function config() {}',
+        '.clasp.json': JSON.stringify({
+          scriptId: 'mock-script-id',
+          filePushOrder: ['config.js', 'missing.js'],
+        }),
+        'package.json': '{}',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+
+    it('rejects when a filePushOrder entry does not exist locally', async function () {
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+      });
+      await expect(clasp.files.push()).to.eventually.be.rejectedWith(/missing\.js/);
+    });
+
+    afterEach(function () {
+      mockfs.restore();
+    });
+  });
+
   describe('with valid project, filePushOrder set', function () {
     beforeEach(function () {
       mockfs({
