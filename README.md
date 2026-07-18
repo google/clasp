@@ -661,7 +661,7 @@ Ensures your script is configured with a GCP project ID, which is required to vi
 
 ### Logs
 
-Prints out most recent the _StackDriver logs_. These are logs from `console.log`, not `Logger.log`.
+Prints out most recent the _Cloud Logging logs_. These are logs from `console.log`, not `Logger.log`.
 
 #### Options
 

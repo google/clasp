@@ -289,7 +289,7 @@ export async function createApplicationDefaultCredentials() {
       'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
       'https://www.googleapis.com/auth/drive.file', // Create Drive files
       'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
-      'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+      'https://www.googleapis.com/auth/logging.read', // Cloud Logging logs
       'https://www.googleapis.com/auth/userinfo.email', // User email address
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/cloud-platform',
