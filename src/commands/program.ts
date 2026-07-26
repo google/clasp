@@ -19,6 +19,7 @@
 import {Command, CommanderError, Option} from 'commander';
 import {PROJECT_NAME} from '../constants.js';
 
+import {command as addLibraryCommand} from './add-library.js';
 import {command as cloneCommand} from './clone-script.js';
 import {command as createDeploymentCommand} from './create-deployment.js';
 import {command as createCommand} from './create-script.js';
@@ -148,6 +149,7 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
     openAuthCommand,
     cloneCommand,
     createCommand,
+    addLibraryCommand,
     pushCommand,
     pullCommand,
     createDeploymentCommand,
