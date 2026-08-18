@@ -15,13 +15,13 @@
  */
 
 // Shared constants and helpers for identifying clasp OAuth clients.
-//
-// NOTE: The hardcoded client secret has been removed for security reasons.
-// Default login now runs as a public client (client ID only, no secret).
-// This eliminates the sensitive data exposure in the published npm tarball.
 
 export const DEFAULT_CLASP_OAUTH_CLIENT_ID =
   '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com';
+// NOTE: The client secret is hardcoded and known to be publicly accessible.
+// This is a requirement/constraint because Google Identity OAuth 2.0 does not
+// yet support secretless public clients for desktop applications.
+export const DEFAULT_CLASP_OAUTH_CLIENT_SECRET = 'v6V3fKV_zWU7iw1DrpO1rknX';
 
 export type OAuthClientType = 'google-provided' | 'user-provided';
 
