@@ -201,11 +201,12 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   // Rely solely on resolved path validation for security.
   const contentDir = path.resolve(projectRoot.rootDir, rawSrcDir);
   const rootDirReal = await fs.realpath(projectRoot.rootDir).catch(() => projectRoot.rootDir);
+  const contentDirReal = await fs.realpath(contentDir).catch(() => contentDir);
 
-  // Strict validation: resolved path must be rootDir or properly inside it
+  // Strict validation: resolved path must be rootDir or properly inside it, both lexically and physically (realpath)
   const isValid =
-    contentDir === projectRoot.rootDir ||
-    (contentDir.startsWith(rootDirReal + path.sep) && isInside(projectRoot.rootDir, contentDir));
+    (contentDir === projectRoot.rootDir || isInside(projectRoot.rootDir, contentDir)) &&
+    (contentDirReal === rootDirReal || isInside(rootDirReal, contentDirReal));
 
   if (!isValid) {
     throw new Error(

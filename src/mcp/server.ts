@@ -26,6 +26,7 @@ import {AuthInfo} from '../auth/auth.js';
 import {getDefaultProjectName} from '../commands/create-script.js';
 import {getVersion} from '../commands/program.js';
 import {initClaspInstance} from '../core/clasp.js';
+import {isInside} from '../core/files.js';
 
 /**
  * Validates that a projectDir path is confined to a permitted base directory
@@ -39,7 +40,7 @@ import {initClaspInstance} from '../core/clasp.js';
 function validateProjectDir(projectDir: string): string | null {
   const resolved = path.resolve(projectDir);
   const allowedBases = [os.homedir(), process.cwd()];
-  const isAllowed = allowedBases.some(base => resolved === base || resolved.startsWith(base + path.sep));
+  const isAllowed = allowedBases.some(base => resolved === base || isInside(base, resolved));
   if (!isAllowed) {
     return (
       `Security Error: projectDir must be within the user home directory or ` +
