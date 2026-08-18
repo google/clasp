@@ -57,6 +57,7 @@ export type InitOptions = {
   configFile?: string;
   ignoreFile?: string;
   rootDir?: string;
+  allowSymlinks?: boolean;
 };
 
 /**
@@ -176,6 +177,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
         filePushOrder: [], // No specific push order.
         skipSubdirectories: false, // Process subdirectories by default.
         fileExtensions: readFileExtensions({}), // Default file extensions.
+        allowSymlinks: options.allowSymlinks ?? false,
       },
       // No project options (scriptId, projectId, parentId) as .clasp.json was not found.
     });
@@ -192,6 +194,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   // Determine file extensions, push order, and content directory from the loaded config.
   const fileExtensions = readFileExtensions(config);
   const filePushOrder = config.filePushOrder || []; // Default to empty array if not specified.
+  const allowSymlinks = options.allowSymlinks ?? Boolean(config.allowSymlinks) ?? false;
 
   // Content directory can be specified by `srcDir` or `rootDir` in .clasp.json, defaulting to project root.
   const rawSrcDir = config.srcDir || config.rootDir || '.';
@@ -206,7 +209,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
   // Strict validation: resolved path must be rootDir or properly inside it, both lexically and physically (realpath)
   const isValid =
     (contentDir === projectRoot.rootDir || isInside(projectRoot.rootDir, contentDir)) &&
-    (contentDirReal === rootDirReal || isInside(rootDirReal, contentDirReal));
+    (allowSymlinks || contentDirReal === rootDirReal || isInside(rootDirReal, contentDirReal));
 
   if (!isValid) {
     throw new Error(
@@ -228,6 +231,7 @@ export async function initClaspInstance(options: InitOptions): Promise<Clasp> {
       filePushOrder: filePushOrder,
       fileExtensions: fileExtensions,
       skipSubdirectories: config.skipSubdirectories ?? false,
+      allowSymlinks,
     },
     project: {
       scriptId: config.scriptId,

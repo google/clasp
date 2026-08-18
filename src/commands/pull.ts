@@ -151,14 +151,15 @@ async function deleteLocalFiles(
 
   const absoluteContentDir = path.resolve(clasp.files.contentDir);
   const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
-  if (realContentDir !== absoluteContentDir) {
+  const allowSymlinks = clasp.files.allowSymlinks;
+  if (!allowSymlinks && realContentDir !== absoluteContentDir) {
     throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
   }
 
   const deletedFiles: string[] = [];
   for (const file of filesToDelete) {
     const targetPath = path.resolve(absoluteContentDir, file.localPath);
-    if (!(await isSafeToDelete(targetPath, realContentDir))) {
+    if (!(await isSafeToDelete(targetPath, realContentDir, allowSymlinks))) {
       throw new Error(`Security Error: Attempted to delete unsafe file: ${file.localPath}`);
     }
 
@@ -190,30 +191,32 @@ async function deleteLocalFiles(
   return deletedFiles;
 }
 
-async function isSafeToDelete(targetPath: string, realContentDir: string): Promise<boolean> {
+async function isSafeToDelete(targetPath: string, realContentDir: string, allowSymlinks = false): Promise<boolean> {
   if (!isInside(realContentDir, targetPath)) {
     return false;
   }
 
-  const parentDir = path.dirname(targetPath);
-  if (parentDir !== realContentDir) {
-    let current = parentDir;
-    while (current !== realContentDir && current.length > realContentDir.length) {
-      try {
-        const realCurrent = await fs.realpath(current);
-        if (realCurrent !== current) {
-          return false;
+  if (!allowSymlinks) {
+    const parentDir = path.dirname(targetPath);
+    if (parentDir !== realContentDir) {
+      let current = parentDir;
+      while (current !== realContentDir && current.length > realContentDir.length) {
+        try {
+          const realCurrent = await fs.realpath(current);
+          if (realCurrent !== current) {
+            return false;
+          }
+        } catch {
+          // Directory doesn't exist
         }
-      } catch {
-        // Directory doesn't exist
+        current = path.dirname(current);
       }
-      current = path.dirname(current);
     }
   }
 
   try {
     const stat = await fs.lstat(targetPath);
-    if (stat.isSymbolicLink()) {
+    if (!allowSymlinks && stat.isSymbolicLink()) {
       return false;
     }
   } catch {

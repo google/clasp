@@ -79,14 +79,52 @@ export function isInside(parentPath: string, childPath: string): boolean {
   return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
-async function getLocalFiles(rootDir: string, ignorePatterns: string[], recursive: boolean) {
-  debug('Collecting files in %s', rootDir);
-  let fdirBuilder = new fdir().withBasePath().withRelativePaths();
-  if (!recursive) {
-    debug('Not recursive, limiting depth to current directory');
-    fdirBuilder = fdirBuilder.withMaxDepth(0); // Limit crawling to the current directory if not recursive
+async function crawlLogicalSymlinks(
+  base: string,
+  current = base,
+  recursive = true,
+  visited = new Set<bigint | number>(),
+): Promise<string[]> {
+  const results: string[] = [];
+  try {
+    const st = await fs.stat(current);
+    if (visited.has(st.ino)) {
+      return results;
+    }
+    visited.add(st.ino);
+    const entries = await fs.readdir(current, {withFileTypes: true});
+    for (const e of entries) {
+      const p = path.join(current, e.name);
+      try {
+        const s = await fs.stat(p);
+        if (s.isDirectory() && recursive) {
+          results.push(...(await crawlLogicalSymlinks(base, p, recursive, visited)));
+        } else if (s.isFile()) {
+          results.push(path.relative(base, p));
+        }
+      } catch {
+        // Broken symlink
+      }
+    }
+  } catch {
+    // Directory does not exist
   }
-  const files = await fdirBuilder.crawl(rootDir).withPromise();
+  return results;
+}
+
+async function getLocalFiles(rootDir: string, ignorePatterns: string[], recursive: boolean, allowSymlinks = false) {
+  debug('Collecting files in %s', rootDir);
+  let files: string[];
+  if (allowSymlinks) {
+    files = await crawlLogicalSymlinks(rootDir, rootDir, recursive);
+  } else {
+    let fdirBuilder = new fdir().withBasePath().withRelativePaths();
+    if (!recursive) {
+      debug('Not recursive, limiting depth to current directory');
+      fdirBuilder = fdirBuilder.withMaxDepth(0); // Limit crawling to the current directory if not recursive
+    }
+    files = await fdirBuilder.crawl(rootDir).withPromise();
+  }
   let filteredFiles: string[];
   if (ignorePatterns && ignorePatterns.length) {
     // Filter out files that are explicitly ignored by the .claspignore file or default ignore patterns.
@@ -218,6 +256,10 @@ export class Files {
     return this.options.files.contentDir;
   }
 
+  get allowSymlinks(): boolean {
+    return Boolean(this.options.files.allowSymlinks);
+  }
+
   /**
    * Fetches the content of a script project from Google Drive.
    */
@@ -289,13 +331,15 @@ export class Files {
 
     const absoluteContentDir = path.resolve(contentDir);
     const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
-    if (realContentDir !== absoluteContentDir) {
+    const allowSymlinks = Boolean(this.options.files.allowSymlinks);
+
+    if (!allowSymlinks && realContentDir !== absoluteContentDir) {
       throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
     }
 
     // Read all filenames as a flattened tree
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
-    const filelist = Array.from(await getLocalFiles(contentDir, ignorePatterns, recursive));
+    const filelist = Array.from(await getLocalFiles(contentDir, ignorePatterns, recursive, allowSymlinks));
     const checkDuplicate = createFilenameConflictChecker();
     const fileExtensionMap = this.options.files.fileExtensions;
 
@@ -314,32 +358,36 @@ export class Files {
         }
 
         // Check if target is a symbolic link
-        try {
-          const stat = await fs.lstat(targetPath);
-          if (stat.isSymbolicLink()) {
-            skipped.push({localPath, reason: 'symlink'});
-            return;
+        if (!allowSymlinks) {
+          try {
+            const stat = await fs.lstat(targetPath);
+            if (stat.isSymbolicLink()) {
+              skipped.push({localPath, reason: 'symlink'});
+              return;
+            }
+          } catch {
+            return; // File doesn't exist
           }
-        } catch {
-          return; // File doesn't exist
         }
 
         // Check if any parent dir is a symbolic link
-        const parentDir = path.dirname(targetPath);
         let hasParentSymlink = false;
-        if (parentDir !== realContentDir) {
-          let current = parentDir;
-          while (current !== realContentDir && current.length > realContentDir.length) {
-            try {
-              const realCurrent = await fs.realpath(current);
-              if (realCurrent !== current) {
-                hasParentSymlink = true;
-                break;
+        if (!allowSymlinks) {
+          const parentDir = path.dirname(targetPath);
+          if (parentDir !== realContentDir) {
+            let current = parentDir;
+            while (current !== realContentDir && current.length > realContentDir.length) {
+              try {
+                const realCurrent = await fs.realpath(current);
+                if (realCurrent !== current) {
+                  hasParentSymlink = true;
+                  break;
+                }
+              } catch {
+                // Directory doesn't exist
               }
-            } catch {
-              // Directory doesn't exist
+              current = path.dirname(current);
             }
-            current = path.dirname(current);
           }
         }
 
@@ -626,10 +674,11 @@ export class Files {
     debug('Writing files');
 
     const absoluteContentDir = path.resolve(contentDir);
+    const allowSymlinks = Boolean(this.options.files.allowSymlinks);
 
-    // SECURITY: Validate contentDir isn't a symlink
+    // SECURITY: Validate contentDir isn't a symlink unless allowSymlinks is enabled
     const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
-    if (realContentDir !== absoluteContentDir) {
+    if (!allowSymlinks && realContentDir !== absoluteContentDir) {
       throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
     }
 
@@ -660,7 +709,7 @@ export class Files {
         while (current !== realContentDir && current.length > realContentDir.length) {
           try {
             const realCurrent = await fs.realpath(current);
-            if (realCurrent !== current) {
+            if (!allowSymlinks && realCurrent !== current) {
               debug('Security: Parent dir is symlink: %s -> %s', current, realCurrent);
               skipped.push({localPath: file.localPath, reason: 'parent_symlink'});
               return;
@@ -691,7 +740,7 @@ export class Files {
       //  Check if file is symlink
       try {
         const stat = await fs.lstat(targetPath);
-        if (stat.isSymbolicLink()) {
+        if (!allowSymlinks && stat.isSymbolicLink()) {
           debug('Security: Target is symlink: %s', targetPath);
           skipped.push({localPath: file.localPath, reason: 'target_symlink'});
           return;
@@ -702,14 +751,12 @@ export class Files {
 
       //  Atomic safe write
       try {
-        const fd = await fs.open(
-          targetPath,
+        const openFlags =
           fs.constants.O_WRONLY |
-            fs.constants.O_CREAT |
-            fs.constants.O_TRUNC |
-            fs.constants.O_NOFOLLOW,
-          0o644,
-        );
+          fs.constants.O_CREAT |
+          fs.constants.O_TRUNC |
+          (allowSymlinks ? 0 : fs.constants.O_NOFOLLOW);
+        const fd = await fs.open(targetPath, openFlags, 0o644);
 
         try {
           await fd.writeFile(file.source);

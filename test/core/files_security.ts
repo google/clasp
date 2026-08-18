@@ -311,5 +311,32 @@ describe('File operations security', function () {
         'Security Error: Content directory is a symlink. Possible race attack.',
       );
     });
+
+    it('should collect symlinked directories when allowSymlinks is true', async function () {
+      mockfs.restore();
+      mockfs({
+        'appsscript.json': '{}',
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
+        'real_lib': {
+          'Code.js': 'function lib() {}',
+        },
+        'lib': mockfs.symlink({
+          path: 'real_lib',
+        }),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+        allowSymlinks: true,
+      });
+
+      const {files, skipped} = await clasp.files.collectLocalFiles();
+      expect(files.map(f => f.localPath)).to.include(path.join('lib', 'Code.js'));
+      expect(skipped).to.be.empty;
+    });
   });
 });
+

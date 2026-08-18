@@ -111,6 +111,7 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
       credentials: auth.credentials, // Pass the OAuth2 client (if authenticated)
       configFile: opts.project, // Path to .clasp.json
       ignoreFile: opts.ignore, // Path to .claspignore
+      allowSymlinks: opts.allowSymlinks, // Flag to allow symlinked files
     });
 
     // Make the initialized `clasp` and `auth` objects available to the
@@ -131,6 +132,7 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
   program.option('-u,--user <name>', 'Store named credentials. If unspecified, the "default" user is used.', 'default');
   program.option('--adc', 'Use the application default credentials from the environment.');
   program.option('--json', 'Show output in JSON format');
+  program.option('--allow-symlinks', 'Allow symlinked local files and directories to be pushed or pulled');
   program.addOption(
     new Option('-I, --ignore <file>', "path to an ignore file or a folder with a '.claspignore' file.").env(
       'clasp_config_ignore',

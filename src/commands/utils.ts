@@ -31,6 +31,7 @@ export interface GlobalOptions {
   readonly json?: boolean;
   readonly project?: string;
   readonly user?: string;
+  readonly allowSymlinks?: boolean;
   readonly clasp: Clasp;
   readonly authInfo: AuthInfo;
 }

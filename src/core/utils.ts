@@ -48,6 +48,7 @@ export type FileOptions = {
   filePushOrder?: string[];
   fileExtensions: Record<string, string[]>;
   skipSubdirectories: boolean;
+  allowSymlinks?: boolean;
 };
 
 /**
