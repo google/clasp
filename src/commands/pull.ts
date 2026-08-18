@@ -16,9 +16,10 @@
 
 import {Command} from 'commander';
 import fs from 'fs/promises';
+import path from 'path';
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
-import {ProjectFile} from '../core/files.js';
+import {isInside, ProjectFile} from '../core/files.js';
 import {intl} from '../intl.js';
 import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
 
@@ -45,16 +46,51 @@ export const command = new Command('pull')
     let spinnerMsg = intl.formatMessage({
       defaultMessage: 'Checking local files...',
     });
-    const localFiles = await clasp.files.collectLocalFiles();
+    const {files: localFiles, skipped: skippedLocal} = await clasp.files.collectLocalFiles();
+
+    if (!options.json && skippedLocal.length > 0) {
+      skippedLocal.forEach(item => {
+        if (item.reason === 'symlink') {
+          console.warn(
+            intl.formatMessage(
+              {
+                defaultMessage: 'Security Warning: Skipping symbolic link {file}. Symbolic links are not supported.',
+              },
+              {file: item.localPath},
+            ),
+          );
+        }
+      });
+    }
 
     // Perform the pull operation from the remote Apps Script project.
     // This fetches the files (optionally a specific version) and writes them to the local filesystem.
     spinnerMsg = intl.formatMessage({
       defaultMessage: 'Pulling files...',
     });
-    const files = await withSpinner(spinnerMsg, async () => {
+    const {files, writeResult} = await withSpinner(spinnerMsg, async () => {
       return clasp.files.pull(versionNumber); // `clasp.files.pull` handles fetching and writing.
     });
+
+    if (!options.json && writeResult.skipped.length > 0) {
+      writeResult.skipped.forEach(item => {
+        console.warn(
+          intl.formatMessage(
+            {
+              defaultMessage: 'Security Warning: Skipping write of {file} ({reason}).',
+            },
+            {
+              file: item.localPath,
+              reason: item.reason === 'parent_symlink'
+                ? 'parent directory contains a symbolic link'
+                : item.reason === 'target_symlink'
+                ? 'target path is a symbolic link'
+                : 'outside project directory or unsafe race condition detected',
+            },
+          ),
+        );
+      });
+    }
 
     const pulledFiles = files.map(f => f.localPath);
     let deletedFiles: string[] = [];
@@ -65,7 +101,7 @@ export const command = new Command('pull')
       // Compare the initial list of local files with the files just pulled.
       // Any file in `localFiles` that is not in `files` (the pulled files) is considered unused.
       const filesToDelete = localFiles.filter(f => !files.find(p => p.localPath === f.localPath));
-      deletedFiles = await deleteLocalFiles(filesToDelete, forceDelete, options.json);
+      deletedFiles = await deleteLocalFiles(clasp, filesToDelete, forceDelete, options.json);
     }
 
     if (options.json) {
@@ -89,7 +125,12 @@ export const command = new Command('pull')
     console.log(successMessage);
   });
 
-async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = false, json = false) {
+async function deleteLocalFiles(
+  clasp: Clasp,
+  filesToDelete: ProjectFile[],
+  forceDelete = false,
+  json = false,
+) {
   if (!filesToDelete || filesToDelete.length === 0) {
     return []; // No files to delete.
   }
@@ -108,8 +149,19 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
     return [];
   }
 
+  const absoluteContentDir = path.resolve(clasp.files.contentDir);
+  const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
+  if (realContentDir !== absoluteContentDir) {
+    throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
+  }
+
   const deletedFiles: string[] = [];
   for (const file of filesToDelete) {
+    const targetPath = path.resolve(absoluteContentDir, file.localPath);
+    if (!(await isSafeToDelete(targetPath, realContentDir))) {
+      throw new Error(`Security Error: Attempted to delete unsafe file: ${file.localPath}`);
+    }
+
     let doDelete = true; // Assume deletion unless confirmation is required and denied.
     if (!skipConfirmation) {
       // If not forcing, prompt the user to confirm deletion for each file.
@@ -127,7 +179,7 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
     }
 
     if (doDelete) {
-      await fs.unlink(file.localPath); // Delete the file from the local system.
+      await fs.unlink(targetPath); // Delete the file from the local system safely using resolved path.
       deletedFiles.push(file.localPath);
       if (!json) {
         console.log(intl.formatMessage({defaultMessage: 'Deleted {file}'}, {file: file.localPath}));
@@ -137,3 +189,37 @@ async function deleteLocalFiles(filesToDelete: ProjectFile[], forceDelete = fals
 
   return deletedFiles;
 }
+
+async function isSafeToDelete(targetPath: string, realContentDir: string): Promise<boolean> {
+  if (!isInside(realContentDir, targetPath)) {
+    return false;
+  }
+
+  const parentDir = path.dirname(targetPath);
+  if (parentDir !== realContentDir) {
+    let current = parentDir;
+    while (current !== realContentDir && current.length > realContentDir.length) {
+      try {
+        const realCurrent = await fs.realpath(current);
+        if (realCurrent !== current) {
+          return false;
+        }
+      } catch {
+        // Directory doesn't exist
+      }
+      current = path.dirname(current);
+    }
+  }
+
+  try {
+    const stat = await fs.lstat(targetPath);
+    if (stat.isSymbolicLink()) {
+      return false;
+    }
+  } catch {
+    return false; // File doesn't exist
+  }
+
+  return true;
+}
+

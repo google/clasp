@@ -123,7 +123,7 @@ export function buildMcpServer(auth: AuthInfo) {
 
       try {
         // Execute the push operation.
-        const files = await clasp.files.push();
+        const {files} = await clasp.files.push();
         // Format the list of pushed files for the MCP response.
         const fileList: Array<TextContent> = files.map(file => ({
           type: 'text',
@@ -211,7 +211,7 @@ export function buildMcpServer(auth: AuthInfo) {
 
       try {
         // Execute the pull operation.
-        const files = await clasp.files.pull();
+        const {files} = await clasp.files.pull();
         // Format the list of pulled files for the MCP response.
         const fileList: Array<TextContent> = files.map(file => ({
           type: 'text',
@@ -322,7 +322,7 @@ export function buildMcpServer(auth: AuthInfo) {
         // Create the new Apps Script project remotely.
         const id = await clasp.project.createScript(projectName);
         // Pull the initial files (e.g., appsscript.json, Code.js) from the new project.
-        const files = await clasp.files.pull();
+        const {files} = await clasp.files.pull();
         // Write the .clasp.json file with the new script ID and other settings.
         await clasp.project.updateSettings();
 
@@ -438,7 +438,7 @@ export function buildMcpServer(auth: AuthInfo) {
 
       try {
         // Pull files from the specified remote script ID.
-        const files = await clasp.files.pull();
+        const {files} = await clasp.files.pull();
         // Create/update the .clasp.json file with the cloned script's ID and settings.
         await clasp.project.updateSettings();
 
