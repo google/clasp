@@ -46,6 +46,24 @@ export interface ProjectFile {
   readonly type?: string;
 }
 
+export interface WriteFilesResult {
+  written: string[];
+  skipped: Array<{
+    localPath: string;
+    reason: 'outside_content_dir' | 'parent_symlink' | 'target_symlink' | 'race_condition' | 'symlink_loop';
+  }>;
+}
+
+export interface CollectLocalFilesResult {
+  files: ProjectFile[];
+  skipped: Array<{
+    localPath: string;
+    reason: 'symlink' | 'unsupported_type';
+  }>;
+}
+
+
+
 function parentDirs(file: string) {
   const parentDirs = [];
   let currentDir = path.dirname(file);
@@ -196,6 +214,10 @@ export class Files {
     this.options = options;
   }
 
+  get contentDir(): string {
+    return this.options.files.contentDir;
+  }
+
   /**
    * Fetches the content of a script project from Google Drive.
    */
@@ -210,53 +232,54 @@ export class Files {
     const script = google.script({version: 'v1', auth: credentials});
     const fileExtensionMap = this.options.files.fileExtensions;
 
+    let files;
     try {
       const requestOptions = {scriptId, versionNumber};
       debug('Fetching script content, request %o', requestOptions);
 
       const response = await script.projects.getContent(requestOptions);
-      const files = response.data.files ?? [];
-
-      // 1. Establish the security boundary (the "jail")
-      const absoluteContentDir = path.resolve(contentDir);
-
-      return files.map(f => {
-        const ext = getFileExtension(f.type, fileExtensionMap);
-
-        // 2. Resolve the absolute path for the remote file
-        const resolvedPath = path.resolve(contentDir, `${f.name}${ext}`);
-
-        // 3. SECURITY CHECK: Ensure path is strictly inside contentDir
-        // This prevents traversal (../../) and prefix attacks (/foo/bar vs /foo/bar1)
-        if (!isInside(absoluteContentDir, resolvedPath)) {
-          throw new Error(
-            `Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`,
-          );
-        }
-
-        const localPath = path.relative(process.cwd(), resolvedPath);
-
-        const file: ProjectFile = {
-          localPath,
-          remotePath: f.name ?? undefined,
-          source: f.source ?? undefined,
-          type: f.type ?? undefined,
-        };
-
-        debug('Fetched file %O', file);
-        return file;
-      });
+      files = response.data.files ?? [];
     } catch (err) {
       throw handleApiError(err as GaxiosError);
     }
+
+    // 1. Establish the security boundary (the "jail")
+    const absoluteContentDir = path.resolve(contentDir);
+
+    return files.map(f => {
+      const ext = getFileExtension(f.type, fileExtensionMap);
+
+      // 2. Resolve the absolute path for the remote file
+      const resolvedPath = path.resolve(contentDir, `${f.name}${ext}`);
+
+      // 3. SECURITY CHECK: Ensure path is strictly inside contentDir
+      // This prevents traversal (../../) and prefix attacks (/foo/bar vs /foo/bar1)
+      if (!isInside(absoluteContentDir, resolvedPath)) {
+        throw new Error(
+          `Security Error: Remote file name "${f.name}" attempts to write outside the project directory.`,
+        );
+      }
+
+      const localPath = path.relative(process.cwd(), resolvedPath);
+
+      const file: ProjectFile = {
+        localPath,
+        remotePath: f.name ?? undefined,
+        source: f.source ?? undefined,
+        type: f.type ?? undefined,
+      };
+
+      debug('Fetched file %O', file);
+      return file;
+    });
   }
   /**
    * Collects all local files in the project's content directory, respecting ignore patterns.
    * It reads the content of each file and determines its type.
-   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of local project files.
+   * @returns {Promise<CollectLocalFilesResult>} A promise that resolves to an object containing local project files and skipped files list.
    * @throws {Error} If the project is not configured or there's a file conflict.
    */
-  async collectLocalFiles(): Promise<ProjectFile[]> {
+  async collectLocalFiles(): Promise<CollectLocalFilesResult> {
     debug('Collecting local files');
     assertScriptConfigured(this.options);
 
@@ -264,35 +287,97 @@ export class Files {
     const ignorePatterns = this.options.files.ignorePatterns ?? [];
     const recursive = !this.options.files.skipSubdirectories;
 
+    const absoluteContentDir = path.resolve(contentDir);
+    const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
+    if (realContentDir !== absoluteContentDir) {
+      throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
+    }
+
     // Read all filenames as a flattened tree
     // Note: filePaths contain relative paths such as "test/bar.ts", "../../src/foo.js"
     const filelist = Array.from(await getLocalFiles(contentDir, ignorePatterns, recursive));
     const checkDuplicate = createFilenameConflictChecker();
     const fileExtensionMap = this.options.files.fileExtensions;
-    const files = await Promise.all(
+
+    const collectedFiles: ProjectFile[] = [];
+    const skipped: CollectLocalFilesResult['skipped'] = [];
+
+    await Promise.all(
       filelist.map(async filename => {
         const localPath = path.relative(process.cwd(), path.join(contentDir, filename));
-        const resolvedPath = path.relative(contentDir, localPath);
-        const parsedPath = path.parse(resolvedPath);
-        let remotePath = normalizePath(path.format({dir: parsedPath.dir, name: parsedPath.name}));
+        const targetPath = path.resolve(localPath);
+
+        // Ensure file stays inside project dir
+        if (!isInside(realContentDir, targetPath)) {
+          skipped.push({localPath, reason: 'unsupported_type'});
+          return;
+        }
+
+        // Check if target is a symbolic link
+        try {
+          const stat = await fs.lstat(targetPath);
+          if (stat.isSymbolicLink()) {
+            skipped.push({localPath, reason: 'symlink'});
+            return;
+          }
+        } catch {
+          return; // File doesn't exist
+        }
+
+        // Check if any parent dir is a symbolic link
+        const parentDir = path.dirname(targetPath);
+        let hasParentSymlink = false;
+        if (parentDir !== realContentDir) {
+          let current = parentDir;
+          while (current !== realContentDir && current.length > realContentDir.length) {
+            try {
+              const realCurrent = await fs.realpath(current);
+              if (realCurrent !== current) {
+                hasParentSymlink = true;
+                break;
+              }
+            } catch {
+              // Directory doesn't exist
+            }
+            current = path.dirname(current);
+          }
+        }
+
+        if (hasParentSymlink) {
+          skipped.push({localPath, reason: 'symlink'});
+          return;
+        }
 
         const type = getFileType(localPath, fileExtensionMap);
         if (!type) {
           debug('Ignoring unsupported file %s', localPath);
-          return undefined;
+          skipped.push({localPath, reason: 'unsupported_type'});
+          return;
         }
+
+        const resolvedPath = path.relative(contentDir, localPath);
+        const parsedPath = path.parse(resolvedPath);
+        let remotePath = normalizePath(path.format({dir: parsedPath.dir, name: parsedPath.name}));
 
         if (type === 'JSON' && path.basename(localPath) === 'appsscript.json') {
           // Manifest has a fixed path in script
           remotePath = 'appsscript';
         }
 
-        const content = await fs.readFile(localPath);
+        let content: Buffer;
+        try {
+          content = await fs.readFile(localPath);
+        } catch {
+          return; // File read error
+        }
         const source = content.toString();
-        return checkDuplicate({localPath, remotePath, source, type});
+        const checked = checkDuplicate({localPath, remotePath, source, type});
+        if (checked) {
+          collectedFiles.push(checked);
+        }
       }),
     );
-    return files.filter((f: ProjectFile | undefined): f is ProjectFile => f !== undefined);
+    return {files: collectedFiles, skipped};
   }
 
   /**
@@ -353,7 +438,7 @@ export class Files {
    * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of project files that have changed.
    */
   async getChangedFiles(): Promise<ProjectFile[]> {
-    const [localFiles, remoteFiles] = await Promise.all([this.collectLocalFiles(), this.fetchRemote()]);
+    const [{files: localFiles}, remoteFiles] = await Promise.all([this.collectLocalFiles(), this.fetchRemote()]);
 
     // Iterate over local files and compare with their remote counterparts.
     return localFiles.reduce((changed: ProjectFile[], localFile: ProjectFile) => {
@@ -382,7 +467,7 @@ export class Files {
     const dirsWithIncludedFiles = new Set();
     const trackedFiles = new Set();
     const untrackedFiles = new Set<string>();
-    const projectFiles = await this.collectLocalFiles();
+    const {files: projectFiles} = await this.collectLocalFiles();
     for (const file of projectFiles) {
       debug('Found tracked file %s', file.localPath);
       trackedFiles.add(file.localPath);
@@ -423,14 +508,14 @@ export class Files {
   }
 
   /**
+  /**
    * Pushes local project files to the Google Apps Script project.
    * Files are sorted according to `filePushOrder` from the manifest if specified.
    * Handles API errors, including syntax errors in pushed files.
-   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of files that were pushed.
-   * Returns an empty array if no files were found to push.
+   * @returns {Promise<{files: ProjectFile[]; skipped: CollectLocalFilesResult['skipped']}>} A promise that resolves to an object containing files that were pushed and the list of skipped files.
    * @throws {Error} If there's an API error, authentication/configuration issues, or a syntax error in the code.
    */
-  async push() {
+  async push(): Promise<{files: ProjectFile[]; skipped: CollectLocalFilesResult['skipped']}> {
     debug('Pushing files');
     assertAuthenticated(this.options);
     assertScriptConfigured(this.options);
@@ -438,10 +523,10 @@ export class Files {
     const credentials = this.options.credentials;
     const scriptId = this.options.project.scriptId;
 
-    const files = await this.collectLocalFiles();
+    const {files, skipped} = await this.collectLocalFiles();
     if (!files || files.length === 0) {
       debug('No files found to push.');
-      return [];
+      return {files: [], skipped};
     }
 
     const filePushOrder = this.options.files.filePushOrder ?? [];
@@ -483,7 +568,7 @@ export class Files {
       };
       debug('Updating content, request %O', requestOptions);
       await script.projects.updateContent(requestOptions);
-      return files;
+      return {files, skipped};
     } catch (error) {
       debug(error);
       if (error instanceof GaxiosError) {
@@ -524,20 +609,20 @@ export class Files {
    * to the local filesystem, overwriting existing files.
    * @param {number} [version] - Optional version number to pull. If not specified,
    * the latest version (HEAD) is pulled.
-   * @returns {Promise<ProjectFile[]>} A promise that resolves to an array of files that were pulled.
+   * @returns {Promise<{files: ProjectFile[]; writeResult: WriteFilesResult}>} A promise that resolves to an object containing the pulled files and write status.
    * @throws {Error} If there's an API error or authentication/configuration issues.
    */
-  async pull(version?: number) {
+  async pull(version?: number): Promise<{files: ProjectFile[]; writeResult: WriteFilesResult}> {
     debug('Pulling files');
     assertAuthenticated(this.options);
     assertScriptConfigured(this.options);
 
     const files = await this.fetchRemote(version);
-    await this.WriteFiles(files, this.options.files.contentDir);
-    return files;
+    const writeResult = await this.WriteFiles(files, this.options.files.contentDir);
+    return {files, writeResult};
   }
 
-  private async WriteFiles(files: ProjectFile[], contentDir: string) {
+  private async WriteFiles(files: ProjectFile[], contentDir: string): Promise<WriteFilesResult> {
     debug('Writing files');
 
     const absoluteContentDir = path.resolve(contentDir);
@@ -547,6 +632,9 @@ export class Files {
     if (realContentDir !== absoluteContentDir) {
       throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
     }
+
+    const written: string[] = [];
+    const skipped: WriteFilesResult['skipped'] = [];
 
     const mapper = async (file: ProjectFile) => {
       if (!file.source || !file.localPath) {
@@ -559,6 +647,7 @@ export class Files {
       // Ensure file stays inside project dir
       if (!isInside(realContentDir, targetPath)) {
         debug('Skipping file outside content dir: %s', targetPath);
+        skipped.push({localPath: file.localPath, reason: 'outside_content_dir'});
         return;
       }
 
@@ -573,6 +662,7 @@ export class Files {
             const realCurrent = await fs.realpath(current);
             if (realCurrent !== current) {
               debug('Security: Parent dir is symlink: %s -> %s', current, realCurrent);
+              skipped.push({localPath: file.localPath, reason: 'parent_symlink'});
               return;
             }
           } catch {
@@ -589,9 +679,11 @@ export class Files {
           const realParent = await fs.realpath(parentDir);
           if (!isInside(realContentDir, realParent)) {
             debug('Security: Parent dir escaped after creation: %s', realParent);
+            skipped.push({localPath: file.localPath, reason: 'outside_content_dir'});
             return;
           }
         } catch {
+          skipped.push({localPath: file.localPath, reason: 'outside_content_dir'});
           return;
         }
       }
@@ -601,6 +693,7 @@ export class Files {
         const stat = await fs.lstat(targetPath);
         if (stat.isSymbolicLink()) {
           debug('Security: Target is symlink: %s', targetPath);
+          skipped.push({localPath: file.localPath, reason: 'target_symlink'});
           return;
         }
       } catch {
@@ -614,29 +707,32 @@ export class Files {
           fs.constants.O_WRONLY |
             fs.constants.O_CREAT |
             fs.constants.O_TRUNC |
-            fs.constants.O_NOFOLLOW |
-            fs.constants.O_EXCL,
+            fs.constants.O_NOFOLLOW,
           0o644,
         );
 
         try {
           await fd.writeFile(file.source);
+          written.push(file.localPath);
         } finally {
           await fd.close();
         }
       } catch (err: any) {
         if (err.code === 'EEXIST') {
           debug('Security: File created during race: %s', targetPath);
+          skipped.push({localPath: file.localPath, reason: 'race_condition'});
           return;
         }
         if (err.code === 'ELOOP') {
           debug('Security: Symlink loop: %s', targetPath);
+          skipped.push({localPath: file.localPath, reason: 'symlink_loop'});
           return;
         }
         throw err;
       }
     };
-    return await pMap(files, mapper);
+    await pMap(files, mapper);
+    return {written, skipped};
   }
 }
 
