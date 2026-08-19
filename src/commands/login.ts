@@ -89,6 +89,7 @@ interface CommandOptions extends GlobalOptions {
   readonly useProjectScopes?: boolean;
   readonly includeClaspScopes?: boolean;
   readonly extraScopes?: string[];
+  readonly useKeyring?: boolean;
 }
 
 export const command = new Command('login')
@@ -176,6 +177,12 @@ export const command = new Command('login')
     });
 
     const user = await getUserInfo(credentials);
+
+    if (options.useKeyring) {
+      const {FileCredentialStore} = await import('../auth/file_credential_store.js');
+      const fileStore = new FileCredentialStore(auth.authFilePath!);
+      await fileStore.save(auth.user, {is_keyring: true} as any);
+    }
 
     if (options.json) {
       const output = {

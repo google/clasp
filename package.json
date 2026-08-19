@@ -57,6 +57,7 @@
   "dependencies": {
     "@formatjs/intl": "^4.1.7",
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "@napi-rs/keyring": "^1.2.0",
     "chalk": "^5.4.1",
     "chokidar": "^4.0.3",
     "cli-truncate": "^4.0.0",

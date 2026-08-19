@@ -24,6 +24,7 @@ import {google} from 'googleapis';
 import {AuthorizationCodeFlow} from './auth_code_flow.js';
 import {CredentialStore} from './credential_store.js';
 import {FileCredentialStore} from './file_credential_store.js';
+import {KeyringCredentialStore} from './keyring_credential_store.js';
 import {LocalServerAuthorizationCodeFlow} from './localhost_auth_code_flow.js';
 import {DEFAULT_CLASP_OAUTH_CLIENT_ID} from './oauth_client.js';
 import {ServerlessAuthorizationCodeFlow} from './serverless_auth_code_flow.js';
@@ -34,6 +35,7 @@ type InitOptions = {
   authFilePath?: string;
   userKey?: string;
   useApplicationDefaultCredentials?: boolean;
+  useKeyring?: boolean;
 };
 
 /**
@@ -41,11 +43,13 @@ type InitOptions = {
  * @property {OAuth2Client} [credentials] - The authorized OAuth2 client, if logged in.
  * @property {CredentialStore} [credentialStore] - The store used for loading/saving credentials.
  * @property {string} user - The identifier for the current user (e.g., 'default' or a custom key).
+ * @property {string} [authFilePath] - The path to the file store.
  */
 export type AuthInfo = {
   credentials?: OAuth2Client;
   credentialStore?: CredentialStore;
   user: string;
+  authFilePath?: string;
 };
 
 /**
@@ -58,7 +62,19 @@ export type AuthInfo = {
  */
 export async function initAuth(options: InitOptions): Promise<AuthInfo> {
   const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
-  const credentialStore = new FileCredentialStore(authFilePath);
+  const fileStore = new FileCredentialStore(authFilePath);
+  let credentialStore: CredentialStore = fileStore;
+
+  const userKey = options.userKey ?? 'default';
+
+  const fileCreds = await fileStore.load(userKey);
+
+  if (options.useKeyring || fileCreds?.is_keyring) {
+    debug('Using keyring store for user %s', userKey);
+    credentialStore = new KeyringCredentialStore();
+    // If they specified --use-keyring but the stub doesn't exist yet, we don't write it here.
+    // It will be written in the login/import process.
+  }
 
   debug('Initializing auth from %s', options.authFilePath);
   if (options.useApplicationDefaultCredentials) {
@@ -66,15 +82,17 @@ export async function initAuth(options: InitOptions): Promise<AuthInfo> {
     return {
       credentials,
       credentialStore,
-      user: options.userKey ?? 'default',
+      user: userKey,
+      authFilePath,
     };
   }
 
-  const credentials = await getAuthorizedOAuth2Client(credentialStore, options.userKey);
+  const credentials = await getAuthorizedOAuth2Client(credentialStore, userKey);
   return {
     credentials,
     credentialStore,
-    user: options.userKey ?? 'default',
+    user: userKey,
+    authFilePath,
   };
 }
 
