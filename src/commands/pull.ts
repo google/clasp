@@ -14,12 +14,12 @@
 
 // This file defines the 'pull' command for the clasp CLI.
 
+import path from 'path';
 import {Command} from 'commander';
 import fs from 'fs/promises';
-import path from 'path';
 import inquirer from 'inquirer';
 import {Clasp} from '../core/clasp.js';
-import {isInside, ProjectFile} from '../core/files.js';
+import {ProjectFile, isInside} from '../core/files.js';
 import {intl} from '../intl.js';
 import {GlobalOptions, isInteractive, withSpinner} from './utils.js';
 
@@ -81,11 +81,12 @@ export const command = new Command('pull')
             },
             {
               file: item.localPath,
-              reason: item.reason === 'parent_symlink'
-                ? 'parent directory contains a symbolic link'
-                : item.reason === 'target_symlink'
-                ? 'target path is a symbolic link'
-                : 'outside project directory or unsafe race condition detected',
+              reason:
+                item.reason === 'parent_symlink'
+                  ? 'parent directory contains a symbolic link'
+                  : item.reason === 'target_symlink'
+                    ? 'target path is a symbolic link'
+                    : 'outside project directory or unsafe race condition detected',
             },
           ),
         );
@@ -125,12 +126,7 @@ export const command = new Command('pull')
     console.log(successMessage);
   });
 
-async function deleteLocalFiles(
-  clasp: Clasp,
-  filesToDelete: ProjectFile[],
-  forceDelete = false,
-  json = false,
-) {
+async function deleteLocalFiles(clasp: Clasp, filesToDelete: ProjectFile[], forceDelete = false, json = false) {
   if (!filesToDelete || filesToDelete.length === 0) {
     return []; // No files to delete.
   }
@@ -225,4 +221,3 @@ async function isSafeToDelete(targetPath: string, realContentDir: string, allowS
 
   return true;
 }
-

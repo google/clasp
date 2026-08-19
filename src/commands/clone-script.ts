@@ -108,11 +108,12 @@ export const command = new Command('clone-script')
               },
               {
                 file: item.localPath,
-                reason: item.reason === 'parent_symlink'
-                  ? 'parent directory contains a symbolic link'
-                  : item.reason === 'target_symlink'
-                  ? 'target path is a symbolic link'
-                  : 'outside project directory or unsafe race condition detected',
+                reason:
+                  item.reason === 'parent_symlink'
+                    ? 'parent directory contains a symbolic link'
+                    : item.reason === 'target_symlink'
+                      ? 'target path is a symbolic link'
+                      : 'outside project directory or unsafe race condition detected',
               },
             ),
           );

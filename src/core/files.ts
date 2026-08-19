@@ -62,8 +62,6 @@ export interface CollectLocalFilesResult {
   }>;
 }
 
-
-
 function parentDirs(file: string) {
   const parentDirs = [];
   let currentDir = path.dirname(file);

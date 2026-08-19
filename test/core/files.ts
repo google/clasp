@@ -14,9 +14,9 @@
 
 // This file contains tests for the core file management functionalities.
 
+import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import fs from 'fs';
 
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import fs from 'fs';
 
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
@@ -91,10 +91,10 @@ describe('File operations security', function () {
           scriptId: 'mock-script-id',
           rootDir: 'dist',
         }),
-        'real_dist': {
+        real_dist: {
           'appsscript.json': '{}',
         },
-        'dist': mockfs.symlink({
+        dist: mockfs.symlink({
           path: 'real_dist',
         }),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -129,8 +129,8 @@ describe('File operations security', function () {
       mockfs({
         'appsscript.json': '{}',
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
-        'outside_dir': {},
-        'subdir': mockfs.symlink({
+        outside_dir: {},
+        subdir: mockfs.symlink({
           path: 'outside_dir',
         }),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -158,9 +158,7 @@ describe('File operations security', function () {
       const {writeResult} = await clasp.files.pull();
       // Verify file wasn't written to the outside directory
       expect(fs.existsSync('outside_dir/exploit.js')).to.be.false;
-      expect(writeResult.skipped).to.have.deep.members([
-        {localPath: 'subdir/exploit.js', reason: 'parent_symlink'},
-      ]);
+      expect(writeResult.skipped).to.have.deep.members([{localPath: 'subdir/exploit.js', reason: 'parent_symlink'}]);
     });
 
     it('should skip writing file if the target path is a symbolic link', async function () {
@@ -197,9 +195,7 @@ describe('File operations security', function () {
       const {writeResult} = await clasp.files.pull();
       // Verify the target of the symlink was not overwritten
       expect(fs.readFileSync('outside_file.js', 'utf8')).to.equal('// original content');
-      expect(writeResult.skipped).to.have.deep.members([
-        {localPath: 'Code.js', reason: 'target_symlink'},
-      ]);
+      expect(writeResult.skipped).to.have.deep.members([{localPath: 'Code.js', reason: 'target_symlink'}]);
     });
 
     it('should successfully overwrite normal, pre-existing local files', async function () {
@@ -256,9 +252,7 @@ describe('File operations security', function () {
 
       const {files, skipped} = await clasp.files.collectLocalFiles();
       expect(files.map(f => f.localPath)).to.not.include('Code.js');
-      expect(skipped).to.have.deep.members([
-        {localPath: 'Code.js', reason: 'symlink'},
-      ]);
+      expect(skipped).to.have.deep.members([{localPath: 'Code.js', reason: 'symlink'}]);
     });
 
     it('should skip collecting files if a parent directory is a symbolic link', async function () {
@@ -266,10 +260,10 @@ describe('File operations security', function () {
       mockfs({
         'appsscript.json': '{}',
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
-        'outside_dir': {
+        outside_dir: {
           'Code.js': 'function exploit() {}',
         },
-        'subdir': mockfs.symlink({
+        subdir: mockfs.symlink({
           path: 'outside_dir',
         }),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -292,10 +286,10 @@ describe('File operations security', function () {
           scriptId: 'mock-script-id',
           rootDir: 'dist',
         }),
-        'real_dist': {
+        real_dist: {
           'appsscript.json': '{}',
         },
-        'dist': mockfs.symlink({
+        dist: mockfs.symlink({
           path: 'real_dist',
         }),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -317,10 +311,10 @@ describe('File operations security', function () {
       mockfs({
         'appsscript.json': '{}',
         '.clasp.json': mockfs.load(path.resolve(__dirname, '../fixtures/dot-clasp-no-settings.json')),
-        'real_lib': {
+        real_lib: {
           'Code.js': 'function lib() {}',
         },
-        'lib': mockfs.symlink({
+        lib: mockfs.symlink({
           path: 'real_lib',
         }),
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -339,4 +333,3 @@ describe('File operations security', function () {
     });
   });
 });
-

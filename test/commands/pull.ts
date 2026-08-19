@@ -14,18 +14,18 @@
 
 // This file contains tests for the 'pull' command.
 
+import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import fs from 'fs';
 import {fileURLToPath} from 'url';
 import {expect} from 'chai';
 import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
+import {Files} from '../../src/core/files.js';
 import {runCommand} from '../../test/commands/utils.js';
 import {useChaiExtensions} from '../../test/helpers.js';
-import {Files} from '../../src/core/files.js';
 import {
   forceInteractiveMode,
   mockOAuthRefreshRequest,
@@ -193,7 +193,7 @@ describe('Pull command', function () {
       });
 
       const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
-      
+
       // The traversal file should not be touched
       expect('../traversal.js').to.be.a.realFile();
       expect(out.stdout).to.not.contain('Deleted ../traversal.js');
@@ -201,10 +201,10 @@ describe('Pull command', function () {
 
     it('should skip deleting unused files that have a symbolic link in their parent path', async function () {
       mockfs({
-        'src': {
+        src: {
           'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
           'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
-          'subdir': mockfs.symlink({
+          subdir: mockfs.symlink({
             path: '../outside_dir',
           }),
         },
@@ -213,7 +213,7 @@ describe('Pull command', function () {
           rootDir: 'src',
         }),
         // outside_dir is outside src
-        'outside_dir': {
+        outside_dir: {
           'exploit.js': 'sensitive content',
         },
         [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
@@ -234,7 +234,7 @@ describe('Pull command', function () {
 
     it('should skip deleting unused files that are symbolic links', async function () {
       mockfs({
-        'src': {
+        src: {
           'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
           'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
           'local-only.js': mockfs.symlink({
@@ -265,7 +265,7 @@ describe('Pull command', function () {
 
     it('should throw Security Error when attempting deletion of unsafe files', async function () {
       mockfs({
-        'src': {
+        src: {
           'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
           'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
         },
