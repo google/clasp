@@ -19,6 +19,9 @@
 
 import {expect} from 'chai';
 import 'https-proxy-agent';
+import 'node-domexception';
+import 'fetch-blob';
+import 'formdata-polyfill';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import sinon from 'sinon';

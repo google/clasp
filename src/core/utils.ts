@@ -230,6 +230,20 @@ type DetailedGaxiosError = {
 };
 
 /**
+ * Checks if an error object is a GaxiosError structurally or by instance.
+ */
+function isGaxiosError(error: unknown): error is GaxiosError {
+  return (
+    error instanceof GaxiosError ||
+    (typeof error === 'object' &&
+      error !== null &&
+      (('name' in error && error.name === 'GaxiosError') ||
+        ('status' in error && 'config' in error) ||
+        ('response' in error && 'config' in error)))
+  );
+}
+
+/**
  * Checks if an error object is a GaxiosError with detailed error information.
  * @param {unknown} error - The error object to check.
  * @returns {boolean} True if the error is a GaxiosError with details, false otherwise.
@@ -264,7 +278,7 @@ const ERROR_CODES: Record<number, string> = {
  */
 export function handleApiError(error: unknown): never {
   debug('Handling API error: %O', error);
-  if (!(error instanceof GaxiosError)) {
+  if (!isGaxiosError(error)) {
     throw new Error('Unexpected error', {
       cause: {
         code: 'UNEXPECTED_ERROR',
