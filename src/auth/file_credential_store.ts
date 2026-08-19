@@ -68,9 +68,11 @@ function hasLegacyGlobalCredentials(store: FileContents) {
  */
 export class FileCredentialStore implements CredentialStore {
   private filePath: string;
+  private allowSymlinks: boolean;
 
-  constructor(filePath: string) {
+  constructor(filePath: string, allowSymlinks = false) {
     this.filePath = filePath;
+    this.allowSymlinks = allowSymlinks;
   }
 
   /**
@@ -181,7 +183,48 @@ export class FileCredentialStore implements CredentialStore {
   }
 
   private writeFile(store: FileContents) {
-    fs.writeFileSync(this.filePath, JSON.stringify(store, null, 2), {mode: 0o600});
+    const content = JSON.stringify(store, null, 2);
+    const fileExists = fs.existsSync(this.filePath);
+
+    // SECURITY: Check for symlink attack before writing
+    if (!this.allowSymlinks && fileExists) {
+      try {
+        const lstat = fs.lstatSync(this.filePath);
+        if (lstat.isSymbolicLink()) {
+          throw new Error(
+            `Security Error: Credential file is a symlink.\n` +
+              `  Path: "${this.filePath}"\n` +
+              `Remove the symlink and run login again.`,
+          );
+        }
+      } catch (err: any) {
+        if (err.message?.startsWith('Security Error')) {
+          throw err;
+        }
+        // File may have been removed
+      }
+    }
+
+    const openFlags =
+      fs.constants.O_WRONLY |
+      fs.constants.O_CREAT |
+      fs.constants.O_TRUNC |
+      (this.allowSymlinks ? 0 : fs.constants.O_NOFOLLOW);
+
+    try {
+      const fd = fs.openSync(this.filePath, openFlags, 0o600);
+      try {
+        fs.writeSync(fd, content);
+      } finally {
+        fs.closeSync(fd);
+      }
+    } catch (err: any) {
+      if (!this.allowSymlinks && err.code === 'ELOOP') {
+        throw new Error(`Security Error: Symlink detected in credential path.\n` + `  Path: "${this.filePath}"`);
+      }
+      throw err;
+    }
+
     // Ensure restrictive permissions even if the file already existed with
     // broader permissions. This prevents OAuth tokens from being world-readable.
     fs.chmodSync(this.filePath, 0o600);

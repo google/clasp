@@ -103,6 +103,7 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
       authFilePath: opts.auth, // Path to .clasprc.json
       userKey: opts.user, // User key for multi-user support
       useApplicationDefaultCredentials: opts.adc, // Flag for using ADC
+      allowSymlinks: opts.allowSymlinks, // Flag to allow symlinks for credentials
     });
 
     // Initialize the main Clasp instance with the (potentially) authenticated client

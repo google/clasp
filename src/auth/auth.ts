@@ -34,6 +34,7 @@ type InitOptions = {
   authFilePath?: string;
   userKey?: string;
   useApplicationDefaultCredentials?: boolean;
+  allowSymlinks?: boolean;
 };
 
 /**
@@ -54,11 +55,13 @@ export type AuthInfo = {
  * @param {string} [options.authFilePath] - Path to the credentials file. Defaults to ~/.clasprc.json.
  * @param {string} [options.userKey] - Identifier for the user credentials to load. Defaults to 'default'.
  * @param {boolean} [options.useApplicationDefaultCredentials] - Whether to use Application Default Credentials.
+ * @param {boolean} [options.allowSymlinks] - Whether to allow symlinks for credential storage.
  * @returns {Promise<AuthInfo>} An AuthInfo object with the credential store and potentially loaded credentials.
  */
 export async function initAuth(options: InitOptions): Promise<AuthInfo> {
-  const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
-  const credentialStore = new FileCredentialStore(authFilePath);
+  const rawPath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
+  const authFilePath = path.resolve(rawPath);
+  const credentialStore = new FileCredentialStore(authFilePath, options.allowSymlinks);
 
   debug('Initializing auth from %s', options.authFilePath);
   if (options.useApplicationDefaultCredentials) {
