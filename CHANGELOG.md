@@ -12,8 +12,6 @@
 
 ### Bug Fixes
 
-* **auth:** remove hardcoded OAuth client secret from published npm package (CWE-798) ([#1139](https://github.com/google/clasp/issues/1139)) ([a678e92](https://github.com/google/clasp/commit/a678e926168b6bb4cbd8eb5a5854eb9c6efd8aa5))
-* **auth:** restore OAuth client secret for desktop public client compatibility ([be27aaf](https://github.com/google/clasp/commit/be27aaf08b121355fa610620c8333b7ed381af3e))
 * **auth:** secure credential file writing with symlink protection and permissions ([378c1a6](https://github.com/google/clasp/commit/378c1a6145193989789fd6643762790915163f72))
 * **core:** secure file system crawling, atomic writes, and structured security reporting ([aa4cfeb](https://github.com/google/clasp/commit/aa4cfebb061b1ccbcce2e4b66b8c255724e1f41a))
 * **create-script:** accept --type webapp and --type api as standalone aliases ([#1155](https://github.com/google/clasp/issues/1155)) ([34a468e](https://github.com/google/clasp/commit/34a468e0d50e4df9e2b66353611ef261c64c4580)), refs [#1154](https://github.com/google/clasp/issues/1154)
