@@ -158,7 +158,9 @@ describe('File operations security', function () {
       const {writeResult} = await clasp.files.pull();
       // Verify file wasn't written to the outside directory
       expect(fs.existsSync('outside_dir/exploit.js')).to.be.false;
-      expect(writeResult.skipped).to.have.deep.members([{localPath: 'subdir/exploit.js', reason: 'parent_symlink'}]);
+      expect(writeResult.skipped).to.have.deep.members([
+        {localPath: path.normalize('subdir/exploit.js'), reason: 'parent_symlink'},
+      ]);
     });
 
     it('should skip writing file if the target path is a symbolic link', async function () {
@@ -276,7 +278,7 @@ describe('File operations security', function () {
       });
 
       const {files} = await clasp.files.collectLocalFiles();
-      expect(files.map(f => f.localPath)).to.not.include('subdir/Code.js');
+      expect(files.map(f => f.localPath)).to.not.include(path.normalize('subdir/Code.js'));
     });
 
     it('should throw Security Error if contentDir is a symlink when collecting files', async function () {
