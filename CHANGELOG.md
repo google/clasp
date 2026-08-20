@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.4.0](https://github.com/google/clasp/compare/v3.3.0...v3.4.0) (2026-08-20)
+
+
+### Features
+
+* **cli:** add global --allow-symlinks option for shared symlinked folders/files ([78d7104](https://github.com/google/clasp/commit/78d71040e3703c0696fc2ad7374fba0a9895da35))
+* **commands:** surface security warnings for skipped files and enforce strict deletion boundaries ([f2d835d](https://github.com/google/clasp/commit/f2d835db48c0181f9fd691f045dccd499057e3ee))
+* implement PKCE support in OAuth flows ([#1142](https://github.com/google/clasp/issues/1142)) ([1a1665e](https://github.com/google/clasp/commit/1a1665e30cb557b4cd99769b82de7900599c79b9))
+
+
+### Bug Fixes
+
+* **auth:** secure credential file writing with symlink protection and permissions ([378c1a6](https://github.com/google/clasp/commit/378c1a6145193989789fd6643762790915163f72))
+* **core:** secure file system crawling, atomic writes, and structured security reporting ([aa4cfeb](https://github.com/google/clasp/commit/aa4cfebb061b1ccbcce2e4b66b8c255724e1f41a))
+* **create-script:** accept --type webapp and --type api as standalone aliases ([#1155](https://github.com/google/clasp/issues/1155)) ([34a468e](https://github.com/google/clasp/commit/34a468e0d50e4df9e2b66353611ef261c64c4580)), refs [#1154](https://github.com/google/clasp/issues/1154)
+* **deps:** update google-auth-library and googleapis to resolve Node 22+/25+ compatibility issues ([87a3759](https://github.com/google/clasp/commit/87a3759c3ee56e746974160f776fb7b056c5414c))
+* **mcp:** validate projectDir against permitted base paths (CWE-22 path traversal) ([#1141](https://github.com/google/clasp/issues/1141)) ([1e8132c](https://github.com/google/clasp/commit/1e8132ceb22c9a3d434ed0f9cc6488b20f38fedf))
+* prevent OAuth CSRF via missing state parameter in authorization flow ([#1135](https://github.com/google/clasp/issues/1135)) ([8dac6c2](https://github.com/google/clasp/commit/8dac6c23c4b37d8274fabbb9c12fbc8f662c8843))
+* Print help instead of throwing error on unknown commands ([#1157](https://github.com/google/clasp/issues/1157)) ([39a9c12](https://github.com/google/clasp/commit/39a9c12428930b60fb55806c367deb0a92c9b7ed))
+* **security:** clean up CSRF demo script and harden path boundary & test mocks ([0a28a48](https://github.com/google/clasp/commit/0a28a482f5a6e6b38a00299139fe7139b0521341))
+* **security:** prevent path traversal via srcDir in .clasp.json ([#1140](https://github.com/google/clasp/issues/1140)) ([408448e](https://github.com/google/clasp/commit/408448e72726a33b81256cea871c36beba6e4445))
+* **security:** validate sourceDir MCP parameter and use realpath in WriteFiles ([#1144](https://github.com/google/clasp/issues/1144)) ([4eb9dca](https://github.com/google/clasp/commit/4eb9dcab24a7f89fdfdb5720023908700ea38155))
+
 ## [3.3.0](https://github.com/google/clasp/compare/v3.2.0...v3.3.0) (2026-03-11)
 
 
