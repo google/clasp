@@ -37,7 +37,7 @@ export const command = new Command('show-file-status')
     const spinnerMsg = intl.formatMessage({
       defaultMessage: 'Analyzing project files...',
     });
-    const [filesToPush, untrackedFiles] = await withSpinner(spinnerMsg, async () => {
+    const [{files: filesToPush}, untrackedFiles] = await withSpinner(spinnerMsg, async () => {
       return await Promise.all([clasp.files.collectLocalFiles(), clasp.files.getUntrackedFiles()]);
     });
 

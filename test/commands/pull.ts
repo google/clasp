@@ -14,6 +14,7 @@
 
 // This file contains tests for the 'pull' command.
 
+import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -22,6 +23,7 @@ import inquirer from 'inquirer';
 import {afterEach, beforeEach, describe, it} from 'mocha';
 import mockfs from 'mock-fs';
 import sinon from 'sinon';
+import {Files} from '../../src/core/files.js';
 import {runCommand} from '../../test/commands/utils.js';
 import {useChaiExtensions} from '../../test/helpers.js';
 import {
@@ -172,6 +174,127 @@ describe('Pull command', function () {
       expect(out.stdout).to.contain('Pulled 2 files');
       expect('local-only.js').to.not.be.a.realFile;
       expect('ignored.txt').to.be.a.realFile;
+    });
+
+    it('should skip deleting unused files that resolve outside the content directory', async function () {
+      mockfs({
+        'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+        'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-no-settings.json')),
+        // Mock a file that attempts relative traversal path
+        '../traversal.js': 'traversal file content',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+
+      const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
+
+      // The traversal file should not be touched
+      expect('../traversal.js').to.be.a.realFile();
+      expect(out.stdout).to.not.contain('Deleted ../traversal.js');
+    });
+
+    it('should skip deleting unused files that have a symbolic link in their parent path', async function () {
+      mockfs({
+        src: {
+          'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+          'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+          subdir: mockfs.symlink({
+            path: '../outside_dir',
+          }),
+        },
+        '.clasp.json': JSON.stringify({
+          scriptId: 'mock-script-id',
+          rootDir: 'src',
+        }),
+        // outside_dir is outside src
+        outside_dir: {
+          'exploit.js': 'sensitive content',
+        },
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+
+      const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
+
+      // The file inside the symlinked directory should not be deleted
+      expect('outside_dir/exploit.js').to.be.a.realFile();
+      expect(out.stdout).to.not.contain('Deleted subdir/exploit.js');
+    });
+
+    it('should skip deleting unused files that are symbolic links', async function () {
+      mockfs({
+        src: {
+          'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+          'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+          'local-only.js': mockfs.symlink({
+            path: '../outside_file.js',
+          }),
+        },
+        '.clasp.json': JSON.stringify({
+          scriptId: 'mock-script-id',
+          rootDir: 'src',
+        }),
+        'outside_file.js': 'do not delete',
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+
+      const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
+
+      // The symlink/file itself might be skipped from deletion, or at least the target file is intact
+      expect('outside_file.js').to.be.a.realFile();
+      expect(fs.readFileSync('outside_file.js', 'utf8')).to.equal('do not delete');
+      expect(out.stdout).to.not.contain('Deleted local-only.js');
+    });
+
+    it('should throw Security Error when attempting deletion of unsafe files', async function () {
+      mockfs({
+        src: {
+          'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+          'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+        },
+        '.clasp.json': JSON.stringify({
+          scriptId: 'mock-script-id',
+          rootDir: 'src',
+        }),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+
+      // Stub collectLocalFiles to return a traversal file
+      sinon.stub(Files.prototype, 'collectLocalFiles').resolves({
+        files: [
+          {
+            localPath: '../outside_file.js',
+          },
+        ],
+        skipped: [],
+      });
+
+      const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
+      expect(out.exitCode).to.equal(1);
+      expect(out.stderr).to.contain('Security Error: Attempted to delete unsafe file: ../outside_file.js');
     });
 
     it('should pull files as json', async function () {

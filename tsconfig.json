@@ -21,6 +21,7 @@
     "stripInternal": true,
     "target": "es2019",
     "typeRoots": ["./node_modules/@types"],
+    "skipLibCheck": true,
     "importHelpers": true,
     "plugins": [
       {

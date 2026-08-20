@@ -62,9 +62,25 @@ export const command = new Command('push')
         defaultMessage: 'Pushing files...',
       });
       // Perform the push operation using the core `clasp.files.push()` method.
-      const files = await withSpinner(spinnerMsg, async () => {
+      const {files, skipped} = await withSpinner(spinnerMsg, async () => {
         return clasp.files.push();
       });
+
+      if (!options.json && skipped.length > 0) {
+        skipped.forEach(item => {
+          if (item.reason === 'symlink') {
+            console.warn(
+              intl.formatMessage(
+                {
+                  defaultMessage: 'Security Warning: Skipping symbolic link {file}. Symbolic links are not supported.',
+                },
+                {file: item.localPath},
+              ),
+            );
+          }
+        });
+      }
+
       //Generate localised timestamp for the output
       const timestamp = new Date().toLocaleTimeString();
       if (options.json) {

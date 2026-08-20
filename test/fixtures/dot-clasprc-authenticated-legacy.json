@@ -4,7 +4,7 @@
       "scope": "https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/service.management https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/script.webapp.deploy https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/logging.read https://www.googleapis.com/auth/script.deployments openid",
       "token_type": "Bearer",
       "id_token": "mock-id-token",
-      "expiry_date": 1737679731213,
+      "expiry_date": 4893817365115,
       "refresh_token": "mock-refresh-token"
     },
     "oauth2ClientSettings": {

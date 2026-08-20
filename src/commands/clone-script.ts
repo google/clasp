@@ -90,14 +90,35 @@ export const command = new Command('clone-script')
       // 1. Configure the clasp instance with the determined script ID.
       // 2. Pull the files from the remote project (optionally a specific version).
       // 3. Update the local .clasp.json project settings file.
-      const files = await withSpinner(cloningScriptMsg, async () => {
+      const {files, writeResult} = await withSpinner(cloningScriptMsg, async () => {
         clasp = clasp.withScriptId(scriptId);
-        const files = await clasp.files.pull(versionNumber);
+        const {files, writeResult} = await clasp.files.pull(versionNumber);
         // After successfully pulling files, update the local project settings (e.g., .clasp.json)
         // to reflect the cloned scriptId and other relevant configurations.
         await clasp.project.updateSettings();
-        return files;
+        return {files, writeResult};
       });
+
+      if (!options.json && writeResult.skipped.length > 0) {
+        writeResult.skipped.forEach(item => {
+          console.warn(
+            intl.formatMessage(
+              {
+                defaultMessage: 'Security Warning: Skipping write of {file} ({reason}).',
+              },
+              {
+                file: item.localPath,
+                reason:
+                  item.reason === 'parent_symlink'
+                    ? 'parent directory contains a symbolic link'
+                    : item.reason === 'target_symlink'
+                      ? 'target path is a symbolic link'
+                      : 'outside project directory or unsafe race condition detected',
+              },
+            ),
+          );
+        });
+      }
 
       if (options.json) {
         console.log(JSON.stringify({scriptId, files: files.map(f => f.localPath)}, null, 2));

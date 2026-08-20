@@ -69,4 +69,63 @@ describe('FileCredentialStore permissions', function () {
     const mode = afterStat.mode & 0o777;
     expect(mode).to.equal(0o600);
   });
+
+  it('rejects saving credentials if the credential file is a symlink by default', async function () {
+    if (process.platform === 'win32') {
+      return this.skip();
+    }
+    const realTarget = path.join(os.tmpdir(), `clasprc-target-${Date.now()}.json`);
+    tmpFile = path.join(os.tmpdir(), `clasprc-symlink-${Date.now()}.json`);
+    fs.writeFileSync(realTarget, '{}', {mode: 0o600});
+    fs.symlinkSync(realTarget, tmpFile);
+
+    try {
+      const store = new FileCredentialStore(tmpFile);
+      let error: Error | undefined;
+      try {
+        await store.save('default', {
+          type: 'authorized_user',
+          access_token: 'test-token',
+          refresh_token: 'test-refresh',
+        });
+      } catch (err: any) {
+        error = err;
+      }
+      expect(error).to.be.an.instanceOf(Error);
+      expect(error?.message).to.include('Security Error: Credential file is a symlink');
+    } finally {
+      try {
+        fs.unlinkSync(realTarget);
+      } catch (_e) {
+        // ignore
+      }
+    }
+  });
+
+  it('allows saving credentials to a symlink when allowSymlinks is true', async function () {
+    if (process.platform === 'win32') {
+      return this.skip();
+    }
+    const realTarget = path.join(os.tmpdir(), `clasprc-target-allowed-${Date.now()}.json`);
+    tmpFile = path.join(os.tmpdir(), `clasprc-symlink-allowed-${Date.now()}.json`);
+    fs.writeFileSync(realTarget, '{}', {mode: 0o600});
+    fs.symlinkSync(realTarget, tmpFile);
+
+    try {
+      const store = new FileCredentialStore(tmpFile, true);
+      await store.save('default', {
+        type: 'authorized_user',
+        access_token: 'test-token',
+        refresh_token: 'test-refresh',
+      });
+      const content = JSON.parse(fs.readFileSync(realTarget, 'utf8'));
+      expect(content.tokens?.default?.access_token).to.equal('test-token');
+    } finally {
+      try {
+        fs.unlinkSync(realTarget);
+      } catch (_e) {
+        // ignore
+      }
+    }
+  });
 });

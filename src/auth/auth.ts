@@ -25,7 +25,7 @@ import {AuthorizationCodeFlow} from './auth_code_flow.js';
 import {CredentialStore} from './credential_store.js';
 import {FileCredentialStore} from './file_credential_store.js';
 import {LocalServerAuthorizationCodeFlow} from './localhost_auth_code_flow.js';
-import {DEFAULT_CLASP_OAUTH_CLIENT_ID} from './oauth_client.js';
+import {DEFAULT_CLASP_OAUTH_CLIENT_ID, DEFAULT_CLASP_OAUTH_CLIENT_SECRET} from './oauth_client.js';
 import {ServerlessAuthorizationCodeFlow} from './serverless_auth_code_flow.js';
 
 const debug = Debug('clasp:auth');
@@ -34,6 +34,7 @@ type InitOptions = {
   authFilePath?: string;
   userKey?: string;
   useApplicationDefaultCredentials?: boolean;
+  allowSymlinks?: boolean;
 };
 
 /**
@@ -54,11 +55,13 @@ export type AuthInfo = {
  * @param {string} [options.authFilePath] - Path to the credentials file. Defaults to ~/.clasprc.json.
  * @param {string} [options.userKey] - Identifier for the user credentials to load. Defaults to 'default'.
  * @param {boolean} [options.useApplicationDefaultCredentials] - Whether to use Application Default Credentials.
+ * @param {boolean} [options.allowSymlinks] - Whether to allow symlinks for credential storage.
  * @returns {Promise<AuthInfo>} An AuthInfo object with the credential store and potentially loaded credentials.
  */
 export async function initAuth(options: InitOptions): Promise<AuthInfo> {
-  const authFilePath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
-  const credentialStore = new FileCredentialStore(authFilePath);
+  const rawPath = options.authFilePath ?? path.join(os.homedir(), '.clasprc.json');
+  const authFilePath = path.resolve(rawPath);
+  const credentialStore = new FileCredentialStore(authFilePath, options.allowSymlinks);
 
   debug('Initializing auth from %s', options.authFilePath);
   if (options.useApplicationDefaultCredentials) {
@@ -268,6 +271,7 @@ function createDefaultOAuthClient() {
   // Default client
   const client = new OAuth2Client({
     clientId: DEFAULT_CLASP_OAUTH_CLIENT_ID,
+    clientSecret: DEFAULT_CLASP_OAUTH_CLIENT_SECRET,
     redirectUri: 'http://localhost',
   });
   debug('Created built-in oauth client, id: %s', client._clientId);
@@ -289,7 +293,7 @@ export async function createApplicationDefaultCredentials() {
       'https://www.googleapis.com/auth/drive.metadata.readonly', // Drive metadata
       'https://www.googleapis.com/auth/drive.file', // Create Drive files
       'https://www.googleapis.com/auth/service.management', // Cloud Project Service Management API
-      'https://www.googleapis.com/auth/logging.read', // StackDriver logs
+      'https://www.googleapis.com/auth/logging.read', // Cloud Logging logs
       'https://www.googleapis.com/auth/userinfo.email', // User email address
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/cloud-platform',

@@ -18,6 +18,10 @@
 // deterministic tests.
 
 import {expect} from 'chai';
+import 'https-proxy-agent';
+import 'node-domexception';
+import 'fetch-blob';
+import 'formdata-polyfill';
 import mockfs from 'mock-fs';
 import nock from 'nock';
 import sinon from 'sinon';
@@ -60,9 +64,9 @@ export function resetMocks() {
  * Mocks a successful OAuth token refresh request to `https://oauth2.googleapis.com/token`.
  */
 export function mockOAuthRefreshRequest() {
-  nock('https://oauth2.googleapis.com').post(/token/).reply(200, {
+  nock('https://oauth2.googleapis.com').persist().post(/token/).reply(200, {
     access_token: 'not-a-token',
-    expiors_in: 3600,
+    expires_in: 3600,
   });
 }
 

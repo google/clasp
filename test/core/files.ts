@@ -14,6 +14,7 @@
 
 // This file contains tests for the core file management functionalities.
 
+import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
@@ -72,7 +73,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
       expect(foundFiles).to.have.length(4);
     });
 
@@ -105,7 +106,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const pushedFiles = await clasp.files.push();
+      const {files: pushedFiles} = await clasp.files.push();
       expect(pushedFiles).to.have.length(4);
     });
 
@@ -186,10 +187,11 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const pulledFiles = await clasp.files.pull();
+      const {files: pulledFiles} = await clasp.files.pull();
       expect(pulledFiles).to.have.length(2);
       expect(pulledFiles[0].localPath).to.equal('appsscript.json');
       expect(pulledFiles[1].localPath).to.equal('Code.js');
+      expect(fs.readFileSync('Code.js', 'utf8')).to.contain('helloWorld');
     });
 
     it('should pull files with version #', async function () {
@@ -214,7 +216,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const pulledFiles = await clasp.files.pull(2);
+      const {files: pulledFiles} = await clasp.files.pull(2);
       expect(pulledFiles).to.have.length(2);
       expect(pulledFiles[0].localPath).to.equal('appsscript.json');
       expect(pulledFiles[1].localPath).to.equal('Code.js');
@@ -253,7 +255,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
       const foundFilePaths = foundFiles.map(file => file.localPath);
 
       expect(foundFilePaths).to.not.include(path.normalize('subdir/Code.js'));
@@ -309,7 +311,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
 
       expect(foundFiles).to.have.length(3);
       expect(foundFiles.map(file => file.remotePath)).to.contain('Code');
@@ -386,7 +388,7 @@ describe('File operations', function () {
 
     it('should collect local files recursively with default ignore', async function () {
       const clasp = await initClaspInstance({});
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
       expect(foundFiles).to.have.length(4);
     });
 
@@ -472,7 +474,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const pushedFiles = await clasp.files.push();
+      const {files: pushedFiles} = await clasp.files.push();
       expect(pushedFiles).to.have.length(5);
     });
 
@@ -504,7 +506,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
       expect(foundFiles).to.have.length(4);
     });
 
@@ -537,7 +539,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const pushedFiles = await clasp.files.push();
+      const {files: pushedFiles} = await clasp.files.push();
       expect(pushedFiles).to.have.length(4);
     });
 
@@ -563,7 +565,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const pulledFiles = await clasp.files.pull();
+      const {files: pulledFiles} = await clasp.files.pull();
       expect(pulledFiles).to.have.length(2);
       expect(pulledFiles[0].localPath).to.equal(path.normalize('dist/appsscript.json'));
       expect(pulledFiles[1].localPath).to.equal(path.normalize('dist/Code.js'));
@@ -596,7 +598,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
       expect(foundFiles).to.have.length(3);
     });
 
@@ -629,7 +631,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
       expect(foundFiles).to.have.length(3);
     });
 
@@ -681,7 +683,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
       expect(foundFiles).to.have.length(4);
       expect(foundFiles).to.not.contain('ignored.html');
       expect(foundFiles).to.not.contain('Ignored.gs');
@@ -722,7 +724,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const pulledFiles = await clasp.files.pull();
+      const {files: pulledFiles} = await clasp.files.pull();
       expect(pulledFiles).to.have.length(3);
       expect(pulledFiles[0].localPath).to.equal('appsscript.json');
       expect(pulledFiles[1].localPath).to.equal('Code.ts');
@@ -751,7 +753,7 @@ describe('File operations', function () {
       const clasp = await initClaspInstance({
         credentials: mockCredentials(),
       });
-      const foundFiles = await clasp.files.collectLocalFiles();
+      const {files: foundFiles} = await clasp.files.collectLocalFiles();
       expect(foundFiles).to.have.length(4);
     });
   });

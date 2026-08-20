@@ -164,11 +164,11 @@ export const command = new Command('create-script')
     });
     // After creating the script (either standalone or container-bound),
     // pull its initial files (e.g., Code.gs, appsscript.json) to the local directory.
-    const files = await withSpinner(spinnerMsg, async () => {
-      const files = await clasp.files.pull();
+    const {files} = await withSpinner(spinnerMsg, async () => {
+      const {files} = await clasp.files.pull();
       // Update the local .clasp.json with the new scriptId and other settings.
       await clasp.project.updateSettings();
-      return files;
+      return {files};
     });
 
     if (options.json) {
