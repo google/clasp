@@ -306,11 +306,12 @@ describe('Pull command', function () {
         scriptId: 'mock-script-id',
       });
 
+      const unsafePath = path.normalize('../outside_file.js');
       // Stub collectLocalFiles to return a traversal file
       sinon.stub(Files.prototype, 'collectLocalFiles').resolves({
         files: [
           {
-            localPath: '../outside_file.js',
+            localPath: unsafePath,
           },
         ],
         skipped: [],
@@ -318,9 +319,7 @@ describe('Pull command', function () {
 
       const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
       expect(out.exitCode).to.equal(1);
-      expect(out.stderr).to.contain(
-        `Security Error: Attempted to delete unsafe file: ${path.normalize('../outside_file.js')}`,
-      );
+      expect(out.stderr).to.contain(`Security Error: Attempted to delete unsafe file: ${unsafePath}`);
     });
 
     it('should pull files as json', async function () {
