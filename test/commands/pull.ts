@@ -83,7 +83,31 @@ describe('Pull command', function () {
       const out = await runCommand(['pull']);
       expect('dist/appsscript.json').to.be.a.realFile;
       expect('dist/Code.js').to.be.a.realFile;
+      expect(fs.existsSync('dist/dist')).to.be.false;
       expect(out.stdout).to.contain('Pulled 2 files');
+    });
+
+    it('should delete unused files in rootDir when deleteUnusedFiles and force are used', async function () {
+      mockfs({
+        dist: {
+          'appsscript.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/appsscript-no-services.json')),
+          'Code.js': mockfs.load(path.resolve(__dirname, '../../test/fixtures/Code.js')),
+          'local-only.js': 'console.log("local only");',
+        },
+        '.clasp.json': mockfs.load(path.resolve(__dirname, '../../test/fixtures/dot-clasp-dist.json')),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../../test/fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+      mockScriptDownload({
+        scriptId: 'mock-script-id',
+      });
+      const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
+      expect(out.stdout).to.contain('Deleted dist/local-only.js');
+      expect(out.stdout).to.contain('Pulled 2 files');
+      expect('dist/local-only.js').to.not.be.a.realFile;
+      expect('dist/Code.js').to.be.a.realFile;
+      expect(fs.existsSync('dist/dist')).to.be.false;
     });
 
     it('should pull a specific version', async function () {

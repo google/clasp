@@ -541,6 +541,8 @@ describe('File operations', function () {
       expect(pulledFiles).to.have.length(2);
       expect(pulledFiles[0].localPath).to.equal(path.normalize('dist/appsscript.json'));
       expect(pulledFiles[1].localPath).to.equal(path.normalize('dist/Code.js'));
+      expect(fs.readFileSync('dist/Code.js', 'utf8')).to.contain('helloWorld');
+      expect(fs.existsSync('dist/dist')).to.be.false;
     });
 
     afterEach(function () {

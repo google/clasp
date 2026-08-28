@@ -14,6 +14,7 @@
 
 // This file contains tests for the 'create-script' command.
 
+import {existsSync} from 'fs';
 import os from 'os';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -122,6 +123,7 @@ describe('Create script command', function () {
       const out = await runCommand(['create', '--title', 'test', '--rootDir', 'dist']);
       expect('dist/appsscript.json').to.be.a.realFile;
       expect('dist/Code.js').to.be.a.realFile;
+      expect(existsSync('dist/dist')).to.be.false;
       expect(out.stdout).to.contain('Cloned');
     });
 

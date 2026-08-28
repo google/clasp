@@ -154,7 +154,7 @@ async function deleteLocalFiles(clasp: Clasp, filesToDelete: ProjectFile[], forc
 
   const deletedFiles: string[] = [];
   for (const file of filesToDelete) {
-    const targetPath = path.resolve(absoluteContentDir, file.localPath);
+    const targetPath = path.resolve(file.localPath);
     if (!(await isSafeToDelete(targetPath, realContentDir, allowSymlinks))) {
       throw new Error(`Security Error: Attempted to delete unsafe file: ${file.localPath}`);
     }

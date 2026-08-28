@@ -52,7 +52,7 @@ declare global {
 export function chaiFileExists(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils): void {
   const Assertion = chai.Assertion;
 
-  Assertion.addMethod('realFile', function (): void {
+  function assertFile(this: any): void {
     const obj: string = utils.flag(this, 'object');
     const absolutePath: string = path.resolve(obj);
 
@@ -63,5 +63,7 @@ export function chaiFileExists(chai: Chai.ChaiStatic, utils: Chai.ChaiUtils): vo
       `expected ${obj} to exist as a real file`,
       `expected ${obj} to not exist as a real file`,
     );
-  });
+  }
+
+  Assertion.addChainableMethod('realFile', assertFile, assertFile);
 }

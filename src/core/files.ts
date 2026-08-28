@@ -675,10 +675,24 @@ export class Files {
     const allowSymlinks = Boolean(this.options.files.allowSymlinks);
 
     // SECURITY: Validate contentDir isn't a symlink unless allowSymlinks is enabled
+    try {
+      const stat = await fs.lstat(absoluteContentDir);
+      if (!allowSymlinks && stat.isSymbolicLink()) {
+        throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
+      }
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') {
+        throw err;
+      }
+    }
+
     const realContentDir = await fs.realpath(absoluteContentDir).catch(() => absoluteContentDir);
     if (!allowSymlinks && realContentDir !== absoluteContentDir) {
       throw new Error(`Security Error: Content directory is a symlink. Possible race attack.`);
     }
+
+    // Ensure content directory exists
+    await fs.mkdir(absoluteContentDir, {recursive: true});
 
     const written: string[] = [];
     const skipped: WriteFilesResult['skipped'] = [];
@@ -689,7 +703,7 @@ export class Files {
         return;
       }
 
-      const targetPath = path.resolve(absoluteContentDir, file.localPath);
+      const targetPath = path.resolve(file.localPath);
 
       // Ensure file stays inside project dir
       if (!isInside(realContentDir, targetPath)) {
