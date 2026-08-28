@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.1](https://github.com/google/clasp/compare/v3.4.0...v3.4.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **files:** prevent rootDir double application during pull, clone, and create ([13d3322](https://github.com/google/clasp/commit/13d33229d60b1050e74ea9a416ee5e6528cc14fd))
+
 ## [3.4.0](https://github.com/google/clasp/compare/v3.3.0...v3.4.0) (2026-08-20)
 
 
