@@ -103,7 +103,7 @@ describe('Pull command', function () {
         scriptId: 'mock-script-id',
       });
       const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
-      expect(out.stdout).to.contain('Deleted dist/local-only.js');
+      expect(out.stdout).to.contain(`Deleted ${path.normalize('dist/local-only.js')}`);
       expect(out.stdout).to.contain('Pulled 2 files');
       expect('dist/local-only.js').to.not.be.a.realFile;
       expect('dist/Code.js').to.be.a.realFile;
@@ -220,7 +220,7 @@ describe('Pull command', function () {
 
       // The traversal file should not be touched
       expect('../traversal.js').to.be.a.realFile();
-      expect(out.stdout).to.not.contain('Deleted ../traversal.js');
+      expect(out.stdout).to.not.contain(`Deleted ${path.normalize('../traversal.js')}`);
     });
 
     it('should skip deleting unused files that have a symbolic link in their parent path', async function () {
@@ -253,7 +253,7 @@ describe('Pull command', function () {
 
       // The file inside the symlinked directory should not be deleted
       expect('outside_dir/exploit.js').to.be.a.realFile();
-      expect(out.stdout).to.not.contain('Deleted subdir/exploit.js');
+      expect(out.stdout).to.not.contain(`Deleted ${path.normalize('subdir/exploit.js')}`);
     });
 
     it('should skip deleting unused files that are symbolic links', async function () {
@@ -306,11 +306,12 @@ describe('Pull command', function () {
         scriptId: 'mock-script-id',
       });
 
+      const unsafePath = path.normalize('../outside_file.js');
       // Stub collectLocalFiles to return a traversal file
       sinon.stub(Files.prototype, 'collectLocalFiles').resolves({
         files: [
           {
-            localPath: '../outside_file.js',
+            localPath: unsafePath,
           },
         ],
         skipped: [],
@@ -318,7 +319,7 @@ describe('Pull command', function () {
 
       const out = await runCommand(['pull', '--deleteUnusedFiles', '--force']);
       expect(out.exitCode).to.equal(1);
-      expect(out.stderr).to.contain('Security Error: Attempted to delete unsafe file: ../outside_file.js');
+      expect(out.stderr).to.contain(`Security Error: Attempted to delete unsafe file: ${unsafePath}`);
     });
 
     it('should pull files as json', async function () {
