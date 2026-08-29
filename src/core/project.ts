@@ -25,7 +25,7 @@ import {fetchWithPages} from './utils.js';
 import {ClaspOptions, assertAuthenticated, assertScriptConfigured, handleApiError} from './utils.js';
 
 import path from 'path';
-import {Manifest} from './manifest.js';
+import {Library, Manifest} from './manifest.js';
 
 const debug = Debug('clasp:core');
 
@@ -494,5 +494,35 @@ export class Project {
     const content = await fs.readFile(manifestPath);
     const manifest: Manifest = JSON.parse(content.toString());
     return manifest;
+  }
+
+  /**
+   * Adds a library dependency to the `appsscript.json` manifest, or updates it
+   * if a library with the same `libraryId` is already present.
+   * @param {string} libraryId - The script ID of the library to add.
+   * @param {string} version - The version number or label of the library.
+   * @param {string} userSymbol - The variable name used to access the library in script.
+   * @param {boolean} [developmentMode=false] - Whether to use the library's development mode (HEAD).
+   * @returns {Promise<void>}
+   * @throws {Error} If the script is not configured or the manifest file cannot be read/parsed.
+   */
+  async addLibrary(libraryId: string, version: string, userSymbol: string, developmentMode = false): Promise<void> {
+    debug('Adding library %s@%s as %s', libraryId, version, userSymbol);
+    assertScriptConfigured(this.options);
+
+    const manifest = await this.readManifest();
+    const library: Library = {libraryId, version, userSymbol, developmentMode};
+
+    const libraries = manifest.dependencies?.libraries ?? [];
+    const index = libraries.findIndex(existing => existing.libraryId === libraryId);
+    if (index === -1) {
+      libraries.push(library);
+    } else {
+      libraries[index] = library;
+    }
+    manifest.dependencies = {...manifest.dependencies, libraries};
+
+    const manifestPath = path.join(this.options.files.contentDir, 'appsscript.json');
+    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
   }
 }
