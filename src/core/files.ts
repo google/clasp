@@ -597,6 +597,16 @@ export class Files {
       return indexA - indexB;
     });
 
+    // Fail fast if filePushOrder references files that don't exist locally,
+    // instead of silently skipping them (google/clasp#984).
+    const missingFilePushOrder = this.checkMissingFilesFromPushOrder(files);
+    if (missingFilePushOrder.length > 0) {
+      throw new Error(
+        `filePushOrder references files that do not exist: ${missingFilePushOrder.join(', ')}`,
+        {cause: {code: 'MISSING_PUSH_ORDER_FILE', value: missingFilePushOrder}},
+      );
+    }
+
     // Prepare file objects for the Apps Script API request.
     try {
       const scriptFiles = files.map(f => ({
@@ -637,17 +647,17 @@ export class Files {
    * Checks if any files specified in the `filePushOrder` of the manifest
    * were not actually pushed. This can help identify misconfigurations.
    * @param {ProjectFile[]} pushedFiles - An array of files that were successfully pushed.
-   * @returns {void} This method does not return a value but may have side effects (e.g. logging) if implemented.
-   * Currently, it only calculates missing files but doesn't do anything with the result.
+   * @returns {string[]} The `filePushOrder` entries that were not among the pushed files.
    */
-  checkMissingFilesFromPushOrder(pushedFiles: ProjectFile[]) {
-    const missingFiles = [];
+  checkMissingFilesFromPushOrder(pushedFiles: ProjectFile[]): string[] {
+    const missingFiles: string[] = [];
     for (const p of this.options.files.filePushOrder ?? []) {
       const wasPushed = pushedFiles.find(f => path.normalize(f.localPath) === path.normalize(p));
       if (!wasPushed) {
         missingFiles.push(p);
       }
     }
+    return missingFiles;
   }
 
   /**
