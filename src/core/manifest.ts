@@ -178,24 +178,50 @@ export interface Gmail {
   sheets: Sheets;
 }
 
+export interface CommonAddOnManifest {
+  name?: string;
+  logoUrl?: string;
+  layoutProperties?: {
+    primaryColor?: string;
+    secondaryColor?: string;
+  };
+  openLinkUrlPrefixes?: string[];
+  useLocaleFromApp?: boolean;
+}
+
+export interface ChatAddOnManifest {
+  addToSpaceFallbackMessage?: string;
+  chatAddon?: boolean;
+}
+
+export interface AddOns {
+  common?: CommonAddOnManifest;
+  chat?: ChatAddOnManifest;
+  [key: string]: unknown;
+}
+
 /**
  * Represents the structure of the `appsscript.json` manifest file.
  * @property {string} [timeZone] - The script's time zone (e.g., "America/New_York").
  * @property {string[]} [oauthScopes] - A list of OAuth scopes required by the script.
  * @property {Dependencies} [dependencies] - Project dependencies like libraries and advanced services.
  * @property {string} [exceptionLogging] - Configures exception logging (e.g., "STACKDRIVER").
+ * @property {string} [runtimeVersion] - The Apps Script runtime version (e.g., "V8").
  * @property {Webapp} [webapp] - Configuration for deploying the script as a web app.
  * @property {ExecutionApi} [executionApi] - Configuration for deploying the script as an API executable.
  * @property {string[]} [urlFetchWhitelist] - URL patterns the script is allowed to fetch.
  * @property {Gmail} [gmail] - Configuration for a Gmail add-on.
+ * @property {AddOns} [addOns] - Configuration for Google Workspace add-ons.
  */
 export interface Manifest {
   timeZone?: string;
   oauthScopes?: string[];
   dependencies?: Dependencies;
   exceptionLogging?: string;
+  runtimeVersion?: string;
   webapp?: Webapp;
   executionApi?: ExecutionApi;
   urlFetchWhitelist?: string[];
   gmail?: Gmail;
+  addOns?: AddOns;
 }

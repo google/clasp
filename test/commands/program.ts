@@ -23,6 +23,7 @@ import {runCommand} from './utils.js';
 
 describe('Consistency between imported and registered commands', () => {
   const expectedCommands = [
+    'chat',
     'clone-script',
     'create-deployment',
     'create-script',
