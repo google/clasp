@@ -75,7 +75,7 @@
     "loud-rejection": "^2.2.0",
     "micromatch": "^4.0.8",
     "normalize-path": "^3.0.0",
-    "open": "^10.1.2",
+    "open": "^11.0.4",
     "ora": "^8.1.1",
     "p-map": "^7.0.6",
     "picomatch": "^4.0.5",
