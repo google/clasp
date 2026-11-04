@@ -108,7 +108,7 @@
     "mock-fs": "^5.5.0",
     "nock": "^14.0.17",
     "sinon": "^20.0.0",
-    "source-map-support": "^0.5.21",
+    "source-map-support": "npm:@stackline/source-map-support@1.0.4",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.3.0",
     "type-fest": "^4.41.0",
