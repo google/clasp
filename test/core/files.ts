@@ -455,6 +455,45 @@ describe('File operations', function () {
     });
   });
 
+  // filePushOrder entries are relative to the directory containing .clasp.json, so the order
+  // must also apply when clasp is run from another directory (e.g. with --project).
+  describe('with project in another directory, rootDir and filePushOrder set', function () {
+    beforeEach(function () {
+      mockfs({
+        'project/src/appsscript.json': mockfs.load(path.resolve(__dirname, '../fixtures/appsscript-no-services.json')),
+        'project/src/zBase.js': 'class Base {}',
+        'project/src/Derived.js': 'class Derived extends Base {}',
+        'project/.clasp.json': JSON.stringify({
+          scriptId: 'mock-script-id',
+          rootDir: 'src',
+          filePushOrder: ['src/zBase.js', 'src/Derived.js'],
+        }),
+        [path.resolve(os.homedir(), '.clasprc.json')]: mockfs.load(
+          path.resolve(__dirname, '../fixtures/dot-clasprc-authenticated.json'),
+        ),
+      });
+    });
+
+    it('should push files in specified order when run outside the project root', async function () {
+      nock('https://script.googleapis.com')
+        .put(/\/v1\/projects\/.*\/content/, body => {
+          expect(body.files.map((f: {name: string}) => f.name)).to.deep.equal(['zBase', 'Derived', 'appsscript']);
+          return true;
+        })
+        .reply(200, {});
+      const clasp = await initClaspInstance({
+        credentials: mockCredentials(),
+        configFile: 'project',
+      });
+      const {files: pushedFiles} = await clasp.files.push();
+      expect(pushedFiles).to.have.length(3);
+    });
+
+    afterEach(function () {
+      mockfs.restore();
+    });
+  });
+
   // Test suite for projects where the 'rootDir' in .clasp.json specifies a subdirectory
   // for source files, and no .claspignore file is present.
   describe('with valid project, root directory, no ignore file', function () {
