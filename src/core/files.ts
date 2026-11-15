@@ -578,8 +578,8 @@ export class Files {
     const filePushOrder = this.options.files.filePushOrder ?? [];
     const normalizedFilePushOrder = filePushOrder.map(p => path.normalize(p));
     files.sort((a, b) => {
-      const indexA = normalizedFilePushOrder.indexOf(path.normalize(a.localPath));
-      const indexB = normalizedFilePushOrder.indexOf(path.normalize(b.localPath));
+      const indexA = normalizedFilePushOrder.indexOf(this.toProjectRelativePath(a.localPath));
+      const indexB = normalizedFilePushOrder.indexOf(this.toProjectRelativePath(b.localPath));
 
       // If neither file is in the push order, sort them alphabetically.
       if (indexA === -1 && indexB === -1) {
@@ -643,11 +643,22 @@ export class Files {
   checkMissingFilesFromPushOrder(pushedFiles: ProjectFile[]) {
     const missingFiles = [];
     for (const p of this.options.files.filePushOrder ?? []) {
-      const wasPushed = pushedFiles.find(f => path.normalize(f.localPath) === path.normalize(p));
+      const wasPushed = pushedFiles.find(f => this.toProjectRelativePath(f.localPath) === path.normalize(p));
       if (!wasPushed) {
         missingFiles.push(p);
       }
     }
+  }
+
+  /**
+   * Converts a local file path (relative to the current working directory) to a path
+   * relative to the project root, the directory containing .clasp.json. Entries in
+   * `filePushOrder` are relative to the project root, so they must be compared in that form.
+   * @param {string} localPath - The local path of the file, relative to the current working directory.
+   * @returns {string} The normalized path of the file relative to the project root.
+   */
+  private toProjectRelativePath(localPath: string): string {
+    return path.normalize(path.relative(this.options.files.projectRootDir, path.resolve(localPath)));
   }
 
   /**
