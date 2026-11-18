@@ -140,6 +140,7 @@ clasp
 - [`clasp list-apis`](#apis)
 - [`clasp enable-api<api>`](#apis)
 - [`clasp disable-api <api>`](#apis)
+- [`clasp chat [get | pull | push | update | open] [--open] [--file <file>] [--view <view>] [--updateMask <mask>]`](#chat)
 - [`clasp run-function [function]`](#clasp-run)
 
 ## Guides
@@ -533,6 +534,27 @@ Clasp offers several commands to opens the current directory's `clasp` project a
 - `clasp open-web-app`
 - `clasp open-container`
 - `clasp open-credentials-setup`
+
+### Chat
+
+Configure a Google Chat app built as a Google Workspace add-on using the [Google Workspace Add-ons API](https://developers.google.com/workspace/chat/configure-chat-api#configure-api).
+
+Because Apps Script's `appsscript.json` manifest strictly validates against `ScriptManifest`, Chat app configuration (`ChatAppConfig`) is stored in a separate `chatapp.json` file alongside `appsscript.json` so `clasp push` is unaffected. When pushing `chatapp.json`, `clasp` automatically falls back to `addOns.common.name` and `addOns.common.logoUrl` from `appsscript.json` if `displayName` or `avatarUri` are omitted.
+
+#### Subcommands & Options
+
+- `clasp chat get [--view <view>]`: Retrieve the current Chat app configuration (`BASIC` or `FULL`, default: `FULL`).
+- `clasp chat pull [-f, --file <file>] [--view <view>]`: Download the Chat app configuration to `chatapp.json` (or `--file`).
+- `clasp chat push [-f, --file <file>] [--updateMask <mask>]` (alias `update`): Update the Chat app configuration from `chatapp.json` (or `--file`).
+- `clasp chat open` / `clasp chat --open`: Open the Chat API Configuration page in the browser.
+
+#### Examples
+
+- `clasp chat get`
+- `clasp chat pull`
+- `clasp chat push`
+- `clasp chat update --updateMask displayName,description`
+- `clasp chat open`
 
 ### Deployments
 

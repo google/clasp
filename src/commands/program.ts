@@ -19,6 +19,7 @@
 import {Command, CommanderError, Option} from 'commander';
 import {PROJECT_NAME} from '../constants.js';
 
+import {command as chatCommand} from './chat.js';
 import {command as cloneCommand} from './clone-script.js';
 import {command as createDeploymentCommand} from './create-deployment.js';
 import {command as createCommand} from './create-script.js';
@@ -162,6 +163,7 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
     enableApiCommand,
     listApisCommand,
     openApisConsoleCommand,
+    chatCommand,
     authStatusCommand,
     filesStatusCommand,
     openLogsCommand,
@@ -180,6 +182,9 @@ export function makeProgram(exitOverride?: (err: CommanderError) => void) {
   for (const cmd of commandsToAdd) {
     program.addCommand(cmd);
     cmd.copyInheritedSettings(program);
+    for (const sub of cmd.commands) {
+      sub.copyInheritedSettings(program);
+    }
   }
 
   program.on('command:*', function (this: Command, op) {

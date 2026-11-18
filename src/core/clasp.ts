@@ -25,6 +25,7 @@ import JSON5 from 'json5';
 import splitLines from 'split-lines';
 import stripBom from 'strip-bom';
 import {getUserInfo} from '../auth/auth.js';
+import {ChatApp} from './chat.js';
 import {Files, isInside} from './files.js';
 import {Functions} from './functions.js';
 import {Logs} from './logs.js';
@@ -67,6 +68,7 @@ export type InitOptions = {
  */
 export class Clasp {
   private options: ClaspOptions;
+  readonly chat: ChatApp;
   readonly services: Services;
   readonly files: Files;
   readonly project: Project;
@@ -80,6 +82,7 @@ export class Clasp {
   constructor(options: ClaspOptions) {
     debug('Creating clasp instance with options: %O', options);
     this.options = options;
+    this.chat = new ChatApp(options);
     this.services = new Services(options);
     this.files = new Files(options);
     this.project = new Project(options);
